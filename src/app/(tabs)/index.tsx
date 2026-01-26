@@ -97,15 +97,15 @@ export default function TodayScreen() {
 
   const handleEntryPress = (entry: LogEntry) => {
     router.push({
-      pathname: '/edit-entry',
-      params: { entryId: entry.id, type: 'log' },
+      pathname: '/log-entry/[id]',
+      params: { id: entry.id },
     });
   };
 
   const handleQuickAddPress = (entry: QuickAddEntry) => {
     router.push({
-      pathname: '/edit-entry',
-      params: { entryId: entry.id, type: 'quick' },
+      pathname: '/log-entry/[id]',
+      params: { id: entry.id },
     });
   };
 
