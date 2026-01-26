@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -113,8 +113,8 @@ export default function AddFoodScreen() {
   const isSearching_ = searchText.length >= SEARCH_SETTINGS.minQueryLength;
   const showResults = isSearching_ && results.length > 0;
   const showNoResults = isSearching_ && results.length === 0 && !isSearching;
-  const showRecent = !isSearching_ && (recentFoods.length > 0 || frequentFoods.length > 0);
-  const showEmpty = !isSearching_ && recentFoods.length === 0 && frequentFoods.length === 0;
+  const showRecent = !isSearching_ && recentFoods.length > 0;
+  const showEmpty = !isSearching_ && recentFoods.length === 0;
 
   const renderFoodItem = ({ item }: { item: FoodItem }) => (
     <FoodSearchResult
@@ -123,14 +123,8 @@ export default function AddFoodScreen() {
     />
   );
 
-  const renderSectionHeader = (title: string) => (
-    <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-      {title}
-    </Text>
-  );
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
@@ -209,40 +203,18 @@ export default function AddFoodScreen() {
 
         {showRecent && (
           <FlatList
-            data={[]}
-            renderItem={() => null}
+            data={recentFoods}
+            keyExtractor={(item) => item.id}
+            renderItem={renderFoodItem}
             ListHeaderComponent={
-              <>
-                {frequentFoods.length > 0 && (
-                  <>
-                    {renderSectionHeader('Frequently Used')}
-                    {frequentFoods.map((food) => (
-                      <View key={food.id} style={styles.foodItemWrapper}>
-                        <FoodSearchResult
-                          food={food}
-                          onPress={() => handleFoodSelect(food)}
-                        />
-                      </View>
-                    ))}
-                  </>
-                )}
-                {recentFoods.length > 0 && (
-                  <>
-                    {renderSectionHeader('Recent')}
-                    {recentFoods.map((food) => (
-                      <View key={food.id} style={styles.foodItemWrapper}>
-                        <FoodSearchResult
-                          food={food}
-                          onPress={() => handleFoodSelect(food)}
-                        />
-                      </View>
-                    ))}
-                  </>
-                )}
-              </>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 0 }]}>
+                Recently Logged
+              </Text>
             }
             contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           />
         )}
 
@@ -334,9 +306,6 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: spacing[2],
-  },
-  foodItemWrapper: {
-    marginBottom: spacing[2],
   },
   sectionTitle: {
     ...typography.caption,

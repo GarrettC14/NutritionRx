@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -30,12 +30,16 @@ export default function GoalsSettingsScreen() {
   const [selectedRate, setSelectedRate] = useState(activeGoal?.targetRatePercent || 0.5);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Track if we've initialized to prevent overwriting user edits
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     loadActiveGoal();
   }, []);
 
+  // Only sync from activeGoal on initial load, not while editing
   useEffect(() => {
-    if (activeGoal) {
+    if (activeGoal && !hasInitialized.current) {
       setSelectedGoalType(activeGoal.type);
       setSelectedRate(activeGoal.targetRatePercent);
       if (activeGoal.targetWeightKg) {
@@ -45,6 +49,7 @@ export default function GoalsSettingsScreen() {
             : activeGoal.targetWeightKg.toFixed(0)
         );
       }
+      hasInitialized.current = true;
     }
   }, [activeGoal, isLbs]);
 

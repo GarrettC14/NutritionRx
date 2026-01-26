@@ -77,7 +77,7 @@ export const SEARCH_SETTINGS = {
   debounceMs: 300,
   minQueryLength: 2,
   maxResults: 50,
-  recentLimit: 10,
+  recentLimit: 20,
   frequentLimit: 10,
 } as const;
 

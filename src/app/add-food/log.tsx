@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,18 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
-import { useFoodLogStore, useFoodSearchStore } from '@/stores';
+import {
+  ServingUnit,
+  SERVING_UNITS,
+  getAvailableUnits,
+  calculateNutritionForUnit,
+  getDefaultAmountForUnit,
+  getUnitLabel,
+} from '@/constants/servingUnits';
+import { useFoodLogStore } from '@/stores';
 import { foodRepository } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
 
 export default function LogFoodScreen() {
   const { colors } = useTheme();
@@ -36,7 +43,8 @@ export default function LogFoodScreen() {
   const [food, setFood] = useState<FoodItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [servings, setServings] = useState('1');
+  const [amount, setAmount] = useState('1');
+  const [selectedUnit, setSelectedUnit] = useState<ServingUnit>('serving');
   const [mealType, setMealType] = useState<MealType>(
     (params.mealType as MealType) || MealType.Snack
   );
@@ -54,45 +62,73 @@ export default function LogFoodScreen() {
     loadFood();
   }, [params.foodId]);
 
-  // Calculate nutritional values based on servings
-  const servingsNum = parseFloat(servings) || 0;
-  const calculatedNutrition = food
-    ? {
-        calories: Math.round(food.calories * servingsNum),
-        protein: Math.round(food.protein * servingsNum),
-        carbs: Math.round(food.carbs * servingsNum),
-        fat: Math.round(food.fat * servingsNum),
-      }
-    : { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  // Get available units for this food
+  const availableUnits = useMemo(() => {
+    if (!food) return ['serving'] as ServingUnit[];
+    return getAvailableUnits({
+      servingSizeGrams: food.servingSizeGrams,
+      servingSizeMl: null, // We don't have this field yet
+    });
+  }, [food]);
 
-  const handleServingsChange = (value: string) => {
+  // Calculate nutrition based on amount and unit
+  const calculatedNutrition = useMemo(() => {
+    if (!food) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    const amountNum = parseFloat(amount) || 0;
+    return calculateNutritionForUnit(
+      {
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        servingSize: food.servingSize,
+        servingSizeGrams: food.servingSizeGrams,
+        servingSizeMl: null,
+      },
+      amountNum,
+      selectedUnit
+    );
+  }, [food, amount, selectedUnit]);
+
+  // Handle unit change
+  const handleUnitChange = (unit: ServingUnit) => {
+    if (!food) return;
+    setSelectedUnit(unit);
+    // Set default amount for the new unit
+    setAmount(getDefaultAmountForUnit(unit, { servingSizeGrams: food.servingSizeGrams }));
+  };
+
+  // Handle amount change
+  const handleAmountChange = (value: string) => {
     // Allow decimal numbers
     const cleaned = value.replace(/[^0-9.]/g, '');
     // Only allow one decimal point
     const parts = cleaned.split('.');
     if (parts.length > 2) {
-      setServings(parts[0] + '.' + parts.slice(1).join(''));
+      setAmount(parts[0] + '.' + parts.slice(1).join(''));
     } else {
-      setServings(cleaned);
+      setAmount(cleaned);
     }
   };
 
-  const adjustServings = (delta: number) => {
-    const current = parseFloat(servings) || 0;
-    const newValue = Math.max(0.25, current + delta);
-    setServings(newValue.toString());
-  };
-
+  // Handle save
   const handleSave = async () => {
-    if (!food || servingsNum <= 0) return;
+    if (!food) return;
+    const amountNum = parseFloat(amount) || 0;
+    if (amountNum <= 0) return;
 
     setIsSaving(true);
     try {
+      // Calculate servings equivalent for storage
+      const servingsEquivalent = selectedUnit === 'serving'
+        ? amountNum
+        : calculatedNutrition.calories / food.calories;
+
       await addLogEntry({
         foodItemId: food.id,
         date,
         mealType,
-        servings: servingsNum,
+        servings: servingsEquivalent,
         calories: calculatedNutrition.calories,
         protein: calculatedNutrition.protein,
         carbs: calculatedNutrition.carbs,
@@ -113,9 +149,12 @@ export default function LogFoodScreen() {
     { label: 'Snack', value: MealType.Snack },
   ];
 
+  const amountNum = parseFloat(amount) || 0;
+  const isValid = amountNum > 0 && amountNum <= 9999;
+
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -125,7 +164,7 @@ export default function LogFoodScreen() {
 
   if (!food) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.textTertiary} />
           <Text style={[styles.errorText, { color: colors.textSecondary }]}>
@@ -138,28 +177,15 @@ export default function LogFoodScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text
-            style={[styles.headerTitle, { color: colors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {food.name}
-          </Text>
-          {food.brand && (
-            <Text
-              style={[styles.headerSubtitle, { color: colors.textSecondary }]}
-              numberOfLines={1}
-            >
-              {food.brand}
-            </Text>
-          )}
-        </View>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+          Add to {MEAL_TYPE_LABELS[mealType]}
+        </Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -167,50 +193,81 @@ export default function LogFoodScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Serving Info */}
-        <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-            Serving Size
+        {/* Food Info Card */}
+        <View style={[styles.foodCard, { backgroundColor: colors.bgSecondary }]}>
+          <Text style={[styles.foodName, { color: colors.textPrimary }]}>
+            {food.name}
           </Text>
-          <Text style={[styles.servingText, { color: colors.textPrimary }]}>
+          {food.brand && (
+            <Text style={[styles.foodBrand, { color: colors.textSecondary }]}>
+              {food.brand}
+            </Text>
+          )}
+          <Text style={[styles.servingInfo, { color: colors.textTertiary }]}>
             {food.servingSize} {food.servingUnit}
-            {food.servingSizeGrams && ` (${food.servingSizeGrams}g)`}
+            {food.servingSizeGrams ? ` (${food.servingSizeGrams}g per serving)` : ''}
           </Text>
         </View>
 
-        {/* Servings Selector */}
-        <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
+        {/* How Much Section */}
+        <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-            Number of Servings
+            HOW MUCH?
           </Text>
-          <View style={styles.servingsRow}>
-            <Pressable
-              style={[styles.servingButton, { borderColor: colors.borderDefault }]}
-              onPress={() => adjustServings(-0.25)}
-            >
-              <Ionicons name="remove" size={24} color={colors.accent} />
-            </Pressable>
+
+          {/* Amount Input */}
+          <View style={[styles.amountCard, { backgroundColor: colors.bgSecondary }]}>
             <TextInput
-              style={[styles.servingsInput, { color: colors.textPrimary }]}
-              value={servings}
-              onChangeText={handleServingsChange}
+              style={[styles.amountInput, { color: colors.textPrimary }]}
+              value={amount}
+              onChangeText={handleAmountChange}
               keyboardType="decimal-pad"
+              placeholder="1"
+              placeholderTextColor={colors.textTertiary}
               selectTextOnFocus
             />
-            <Pressable
-              style={[styles.servingButton, { borderColor: colors.borderDefault }]}
-              onPress={() => adjustServings(0.25)}
-            >
-              <Ionicons name="add" size={24} color={colors.accent} />
-            </Pressable>
           </View>
+
+          {/* Unit Selector Pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.unitPillsContainer}
+          >
+            {availableUnits.map((unit) => {
+              const isSelected = selectedUnit === unit;
+              return (
+                <Pressable
+                  key={unit}
+                  style={[
+                    styles.unitPill,
+                    {
+                      backgroundColor: isSelected ? colors.accent : 'transparent',
+                      borderColor: isSelected ? colors.accent : colors.borderDefault,
+                    },
+                  ]}
+                  onPress={() => handleUnitChange(unit)}
+                >
+                  <Text
+                    style={[
+                      styles.unitPillText,
+                      { color: isSelected ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    {getUnitLabel(unit)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
 
-        {/* Meal Type */}
-        <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
+        {/* Meal Type Selector */}
+        <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-            Meal
+            MEAL
           </Text>
           <View style={styles.mealSelector}>
             {mealOptions.map((option) => (
@@ -243,46 +300,43 @@ export default function LogFoodScreen() {
           </View>
         </View>
 
-        {/* Nutrition Summary */}
-        <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-            Nutrition Summary
+        {/* Nutrition Preview Card */}
+        <View style={[styles.nutritionCard, { backgroundColor: colors.bgSecondary }]}>
+          <Text style={[styles.caloriesValue, { color: colors.textPrimary }]}>
+            {calculatedNutrition.calories}
           </Text>
-          <View style={styles.nutritionGrid}>
-            <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionValue, { color: colors.textPrimary }]}>
-                {calculatedNutrition.calories}
-              </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Calories
-              </Text>
-            </View>
-            <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionValue, { color: colors.protein }]}>
-                {calculatedNutrition.protein}g
-              </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Protein
+          <Text style={[styles.caloriesLabel, { color: colors.textSecondary }]}>
+            calories
+          </Text>
+
+          <View style={styles.macroRow}>
+            <View style={[styles.macroPill, { backgroundColor: colors.protein + '20' }]}>
+              <Text style={[styles.macroPillText, { color: colors.protein }]}>
+                P: {calculatedNutrition.protein}g
               </Text>
             </View>
-            <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionValue, { color: colors.carbs }]}>
-                {calculatedNutrition.carbs}g
-              </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Carbs
+            <View style={[styles.macroPill, { backgroundColor: colors.carbs + '20' }]}>
+              <Text style={[styles.macroPillText, { color: colors.carbs }]}>
+                C: {calculatedNutrition.carbs}g
               </Text>
             </View>
-            <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionValue, { color: colors.fat }]}>
-                {calculatedNutrition.fat}g
-              </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Fat
+            <View style={[styles.macroPill, { backgroundColor: colors.fat + '20' }]}>
+              <Text style={[styles.macroPillText, { color: colors.fat }]}>
+                F: {calculatedNutrition.fat}g
               </Text>
             </View>
           </View>
         </View>
+
+        {/* Large portion warning */}
+        {amountNum > 5 && selectedUnit === 'serving' && (
+          <View style={[styles.warningBanner, { backgroundColor: colors.warningBg }]}>
+            <Ionicons name="alert-circle" size={20} color={colors.warning} />
+            <Text style={[styles.warningText, { color: colors.warning }]}>
+              That's a large portion. Double check?
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Save Button */}
@@ -290,9 +344,11 @@ export default function LogFoodScreen() {
         <Button
           onPress={handleSave}
           loading={isSaving}
-          disabled={servingsNum <= 0}
+          disabled={!isValid}
           fullWidth
-        >{`Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
+        >
+          Add Food
+        </Button>
       </View>
     </SafeAreaView>
   );
@@ -321,21 +377,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[3],
-    gap: spacing[3],
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
   },
   headerTitle: {
     ...typography.title.medium,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    ...typography.caption,
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
@@ -343,39 +390,60 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingBottom: spacing[4],
-    gap: spacing[3],
+    gap: spacing[4],
   },
-  section: {
+  foodCard: {
     padding: spacing[4],
     borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  foodName: {
+    ...typography.title.large,
+    textAlign: 'center',
+  },
+  foodBrand: {
+    ...typography.body.medium,
+    textAlign: 'center',
+  },
+  servingInfo: {
+    ...typography.caption,
+    textAlign: 'center',
+    marginTop: spacing[1],
+  },
+  section: {
+    gap: spacing[3],
   },
   sectionLabel: {
     ...typography.caption,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: spacing[2],
   },
-  servingText: {
-    ...typography.body.large,
-  },
-  servingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[4],
-  },
-  servingButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    justifyContent: 'center',
+  amountCard: {
+    padding: spacing[6],
+    borderRadius: borderRadius.xl,
     alignItems: 'center',
   },
-  servingsInput: {
-    ...typography.metric.large,
+  amountInput: {
+    fontSize: 48,
+    fontWeight: '600',
     textAlign: 'center',
-    minWidth: 80,
+    minWidth: 120,
+  },
+  unitPillsContainer: {
+    flexDirection: 'row',
+    gap: spacing[2],
+    paddingVertical: spacing[1],
+  },
+  unitPill: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  unitPillText: {
+    ...typography.body.medium,
+    fontWeight: '500',
   },
   mealSelector: {
     flexDirection: 'row',
@@ -392,19 +460,44 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     fontWeight: '500',
   },
-  nutritionGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  nutritionItem: {
+  nutritionCard: {
+    padding: spacing[5],
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
-    gap: spacing[1],
+    gap: spacing[3],
   },
-  nutritionValue: {
-    ...typography.metric.medium,
+  caloriesValue: {
+    fontSize: 48,
+    fontWeight: '700',
   },
-  nutritionLabel: {
-    ...typography.caption,
+  caloriesLabel: {
+    ...typography.body.medium,
+    marginTop: -spacing[2],
+  },
+  macroRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginTop: spacing[2],
+  },
+  macroPill: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.md,
+  },
+  macroPillText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+  },
+  warningText: {
+    ...typography.body.small,
+    flex: 1,
   },
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,

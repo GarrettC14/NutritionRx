@@ -346,6 +346,29 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
   console.log('Inserted food log entries');
 
   // ============================================================
+  // UPDATE FOOD ITEMS USAGE TRACKING
+  // Set last_used_at and usage_count based on log entries
+  // ============================================================
+  await db.runAsync(`
+    UPDATE food_items
+    SET
+      last_used_at = (
+        SELECT MAX(created_at)
+        FROM log_entries
+        WHERE log_entries.food_item_id = food_items.id
+      ),
+      usage_count = (
+        SELECT COUNT(*)
+        FROM log_entries
+        WHERE log_entries.food_item_id = food_items.id
+      ),
+      updated_at = ?
+    WHERE id IN (SELECT DISTINCT food_item_id FROM log_entries)
+  `, [now]);
+
+  console.log('Updated food items usage tracking');
+
+  // ============================================================
   // QUICK ADD ENTRIES - A few quick add examples
   // ============================================================
   const quickAddEntries = [

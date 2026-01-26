@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -35,25 +35,37 @@ export default function LogWeightScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [existingEntry, setExistingEntry] = useState<any>(null);
 
+  // Track if we've initialized the weight to prevent re-setting on store updates
+  const hasInitialized = useRef(false);
+
   const today = new Date().toISOString().split('T')[0];
 
-  // Load latest weight and check for existing entry
+  // Load latest weight and check for existing entry - only initialize once
   useEffect(() => {
     const loadData = async () => {
+      if (hasInitialized.current) return;
+
       await loadLatest();
       const existing = await getEntryByDate(today);
+
       if (existing) {
         setExistingEntry(existing);
         const displayWeight = isLbs ? kgToLbs(existing.weightKg) : existing.weightKg;
         setWeight(displayWeight.toFixed(1));
         setNotes(existing.notes || '');
-      } else if (latestEntry) {
-        const displayWeight = isLbs ? kgToLbs(latestEntry.weightKg) : latestEntry.weightKg;
-        setWeight(displayWeight.toFixed(1));
+        hasInitialized.current = true;
+      } else {
+        // Get latest from store after loading
+        const store = useWeightStore.getState();
+        if (store.latestEntry) {
+          const displayWeight = isLbs ? kgToLbs(store.latestEntry.weightKg) : store.latestEntry.weightKg;
+          setWeight(displayWeight.toFixed(1));
+        }
+        hasInitialized.current = true;
       }
     };
     loadData();
-  }, [loadLatest, getEntryByDate, latestEntry, isLbs, today]);
+  }, []);
 
   const handleWeightChange = (value: string) => {
     // Allow only numbers and one decimal point

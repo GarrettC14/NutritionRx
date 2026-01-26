@@ -129,7 +129,7 @@ export default function CreateFoodScreen() {
   const commonUnits = ['serving', 'g', 'oz', 'cup', 'tbsp', 'tsp', 'piece', 'slice'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
