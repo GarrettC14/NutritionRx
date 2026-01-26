@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter, Redirect } from 'expo-router';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfileStore, useSettingsStore, useWeightStore, useGoalStore } from '@/stores';
 
 export default function AppInitializer() {
   const { colors } = useTheme();
-  const router = useRouter();
 
   const { profile, loadProfile, isLoaded: profileLoaded } = useProfileStore();
   const { loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
@@ -38,9 +38,9 @@ export default function AppInitializer() {
   // Show loading spinner while initializing
   if (!isInitialized || !profileLoaded) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
         <ActivityIndicator size="large" color={colors.accent} />
-      </View>
+      </SafeAreaView>
     );
   }
 

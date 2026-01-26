@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -11,7 +12,7 @@ export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Not Found' }} />
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
         <Ionicons name="warning-outline" size={64} color={colors.textTertiary} />
         <Text style={[styles.title, { color: colors.textPrimary }]}>
           Page Not Found
@@ -24,7 +25,7 @@ export default function NotFoundScreen() {
             <Text style={styles.buttonText}>Go to Home</Text>
           </Pressable>
         </Link>
-      </View>
+      </SafeAreaView>
     </>
   );
 }
