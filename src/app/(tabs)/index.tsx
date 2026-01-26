@@ -193,19 +193,11 @@ export default function TodayScreen() {
               What will you eat today?
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Tap + to add your first meal
+              Tap a meal section to add food
             </Text>
           </View>
         )}
       </ScrollView>
-
-      {/* FAB */}
-      <Pressable
-        style={[styles.fab, { backgroundColor: colors.accent }]}
-        onPress={() => handleAddFood(MealType.Snack)}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </Pressable>
     </SafeAreaView>
   );
 }
@@ -259,20 +251,5 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     ...typography.body.medium,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 100,
-    right: componentSpacing.screenEdgePadding,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });

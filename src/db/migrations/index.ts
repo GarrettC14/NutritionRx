@@ -4,8 +4,9 @@ import { migration002Goals } from './002_goals';
 import { migration003HealthSync } from './003_health_sync';
 import { migration004SeedFoods } from './004_seed_foods';
 import { migration005MacroTemplates } from './005_macro_templates';
+import { migration006SeedMockData } from './006_seed_mock_data';
 
-export const CURRENT_SCHEMA_VERSION = 5;
+export const CURRENT_SCHEMA_VERSION = 6;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -13,6 +14,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration003HealthSync,
   migration004SeedFoods,
   migration005MacroTemplates,
+  migration006SeedMockData,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {
