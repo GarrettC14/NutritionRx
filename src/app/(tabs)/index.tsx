@@ -156,7 +156,8 @@ export default function TodayScreen() {
           <CalorieRing
             consumed={dailyTotals.calories}
             target={goals.calories}
-            size={200}
+            size={220}
+            strokeWidth={14}
           />
         </View>
 
