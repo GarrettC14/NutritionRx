@@ -6,22 +6,16 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useSettingsStore } from '@/stores';
-import { WeightUnit, Theme } from '@/constants/defaults';
+import { WeightUnit } from '@/constants/defaults';
 
 export default function UnitsSettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { settings, setWeightUnit, setTheme } = useSettingsStore();
+  const { settings, setWeightUnit } = useSettingsStore();
 
   const weightUnitOptions: { value: WeightUnit; label: string; description: string }[] = [
     { value: 'lbs', label: 'Pounds (lbs)', description: 'Imperial system' },
     { value: 'kg', label: 'Kilograms (kg)', description: 'Metric system' },
-  ];
-
-  const themeOptions: { value: Theme; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { value: 'dark', label: 'Dark', icon: 'moon' },
-    { value: 'light', label: 'Light', icon: 'sunny' },
-    { value: 'auto', label: 'System', icon: 'phone-portrait-outline' },
   ];
 
   return (
@@ -29,7 +23,7 @@ export default function UnitsSettingsScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: 'Units & Display',
+          headerTitle: 'Units',
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
@@ -96,49 +90,6 @@ export default function UnitsSettingsScreen() {
             </View>
           </View>
 
-          {/* Theme */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>APPEARANCE</Text>
-            <View style={styles.themeOptions}>
-              {themeOptions.map((option) => (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.themeOption,
-                    {
-                      backgroundColor:
-                        settings.theme === option.value
-                          ? colors.accent + '20'
-                          : colors.bgSecondary,
-                      borderColor:
-                        settings.theme === option.value ? colors.accent : 'transparent',
-                    },
-                  ]}
-                  onPress={() => setTheme(option.value)}
-                >
-                  <Ionicons
-                    name={option.icon}
-                    size={24}
-                    color={
-                      settings.theme === option.value ? colors.accent : colors.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.themeLabel,
-                      {
-                        color:
-                          settings.theme === option.value ? colors.accent : colors.textPrimary,
-                      },
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
           {/* Energy Unit Info */}
           <View style={[styles.infoCard, { backgroundColor: colors.bgSecondary }]}>
             <Ionicons name="information-circle" size={20} color={colors.textSecondary} />
@@ -193,22 +144,6 @@ const styles = StyleSheet.create({
   },
   optionDescription: {
     ...typography.body.small,
-  },
-  themeOptions: {
-    flexDirection: 'row',
-    gap: spacing[3],
-  },
-  themeOption: {
-    flex: 1,
-    padding: spacing[4],
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    gap: spacing[2],
-    borderWidth: 2,
-  },
-  themeLabel: {
-    ...typography.body.medium,
-    fontWeight: '600',
   },
   infoCard: {
     flexDirection: 'row',

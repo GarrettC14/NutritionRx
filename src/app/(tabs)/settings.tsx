@@ -174,7 +174,7 @@ export default function SettingsScreen() {
             <SettingsItem
               icon="scale-outline"
               title="Units"
-              subtitle="Weight, energy"
+              subtitle="Weight unit preference"
               onPress={() => router.push('/settings/units')}
             />
             <ThemeSelector />
