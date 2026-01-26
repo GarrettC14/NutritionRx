@@ -2,7 +2,7 @@ import { getDatabase } from '@/db/database';
 import { DEFAULT_SETTINGS } from '@/constants/defaults';
 
 export type WeightUnit = 'lbs' | 'kg';
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'auto';
 
 export interface UserSettings {
   dailyCalorieGoal: number;

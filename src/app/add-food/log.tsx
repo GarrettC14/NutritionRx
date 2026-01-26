@@ -131,7 +131,7 @@ export default function LogFoodScreen() {
           <Text style={[styles.errorText, { color: colors.textSecondary }]}>
             Food not found
           </Text>
-          <Button label="Go Back" onPress={() => router.back()} />
+          <Button onPress={() => router.back()}>Go Back</Button>
         </View>
       </SafeAreaView>
     );
@@ -186,7 +186,7 @@ export default function LogFoodScreen() {
           </Text>
           <View style={styles.servingsRow}>
             <Pressable
-              style={[styles.servingButton, { borderColor: colors.border }]}
+              style={[styles.servingButton, { borderColor: colors.borderDefault }]}
               onPress={() => adjustServings(-0.25)}
             >
               <Ionicons name="remove" size={24} color={colors.accent} />
@@ -199,7 +199,7 @@ export default function LogFoodScreen() {
               selectTextOnFocus
             />
             <Pressable
-              style={[styles.servingButton, { borderColor: colors.border }]}
+              style={[styles.servingButton, { borderColor: colors.borderDefault }]}
               onPress={() => adjustServings(0.25)}
             >
               <Ionicons name="add" size={24} color={colors.accent} />
@@ -222,7 +222,7 @@ export default function LogFoodScreen() {
                     backgroundColor:
                       mealType === option.value ? colors.accent : 'transparent',
                     borderColor:
-                      mealType === option.value ? colors.accent : colors.border,
+                      mealType === option.value ? colors.accent : colors.borderDefault,
                   },
                 ]}
                 onPress={() => setMealType(option.value)}
@@ -288,12 +288,11 @@ export default function LogFoodScreen() {
       {/* Save Button */}
       <View style={styles.footer}>
         <Button
-          label={`Add to ${MEAL_TYPE_LABELS[mealType]}`}
           onPress={handleSave}
           loading={isSaving}
           disabled={servingsNum <= 0}
           fullWidth
-        />
+        >{`Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
       </View>
     </SafeAreaView>
   );

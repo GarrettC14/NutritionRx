@@ -86,6 +86,17 @@ export const logEntryRepository = {
     return rows.map(mapLogEntryRowToDomain);
   },
 
+  async getAll(): Promise<LogEntry[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<LogEntryWithFoodRow>(
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+       FROM log_entries le
+       JOIN food_items fi ON le.food_item_id = fi.id
+       ORDER BY le.date DESC, le.meal_type, le.created_at`
+    );
+    return rows.map(mapLogEntryRowToDomain);
+  },
+
   async getDailyTotals(date: string): Promise<DailyTotals> {
     const db = getDatabase();
     const result = await db.getFirstAsync<DailyTotalsRow>(

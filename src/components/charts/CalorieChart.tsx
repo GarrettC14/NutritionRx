@@ -100,7 +100,7 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
           noOfSections={4}
           maxValue={yMax}
           yAxisColor="transparent"
-          xAxisColor={colors.border}
+          xAxisColor={colors.borderDefault}
           yAxisTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
           xAxisLabelTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
           hideRules

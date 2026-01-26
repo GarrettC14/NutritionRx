@@ -257,7 +257,7 @@ export default function AddFoodScreen() {
       </View>
 
       {/* Bottom Actions */}
-      <View style={[styles.bottomActions, { borderTopColor: colors.border }]}>
+      <View style={[styles.bottomActions, { borderTopColor: colors.borderDefault }]}>
         <Pressable
           style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
           onPress={handleQuickAdd}

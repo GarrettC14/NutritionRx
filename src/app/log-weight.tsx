@@ -162,7 +162,7 @@ export default function LogWeightScreen() {
               {[-1, -0.5, 0.5, 1].map((amount) => (
                 <Pressable
                   key={amount}
-                  style={[styles.quickAdjustButton, { borderColor: colors.border }]}
+                  style={[styles.quickAdjustButton, { borderColor: colors.borderDefault }]}
                   onPress={() => handleIncrement(amount)}
                 >
                   <Text style={[styles.quickAdjustText, { color: colors.textSecondary }]}>
@@ -180,7 +180,7 @@ export default function LogWeightScreen() {
               Notes (optional)
             </Text>
             <TextInput
-              style={[styles.notesInput, { color: colors.textPrimary, borderColor: colors.border }]}
+              style={[styles.notesInput, { color: colors.textPrimary, borderColor: colors.borderDefault }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="e.g., After morning workout..."

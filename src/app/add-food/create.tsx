@@ -209,7 +209,7 @@ export default function CreateFoodScreen() {
                       backgroundColor:
                         servingUnit === unit ? colors.accent : 'transparent',
                       borderColor:
-                        servingUnit === unit ? colors.accent : colors.border,
+                        servingUnit === unit ? colors.accent : colors.borderDefault,
                     },
                   ]}
                   onPress={() => setServingUnit(unit)}
@@ -239,7 +239,7 @@ export default function CreateFoodScreen() {
               onChangeText={(v) => handleNumberInput(v, setCalories)}
               keyboardType="number-pad"
               placeholder="0"
-              rightElement={
+              rightIcon={
                 <Text style={[styles.inputUnit, { color: colors.textSecondary }]}>
                   kcal
                 </Text>
@@ -255,7 +255,7 @@ export default function CreateFoodScreen() {
                   onChangeText={(v) => handleNumberInput(v, setProtein)}
                   keyboardType="number-pad"
                   placeholder="0"
-                  rightElement={
+                  rightIcon={
                     <Text style={[styles.inputUnit, { color: colors.protein }]}>g</Text>
                   }
                 />
@@ -267,7 +267,7 @@ export default function CreateFoodScreen() {
                   onChangeText={(v) => handleNumberInput(v, setCarbs)}
                   keyboardType="number-pad"
                   placeholder="0"
-                  rightElement={
+                  rightIcon={
                     <Text style={[styles.inputUnit, { color: colors.carbs }]}>g</Text>
                   }
                 />
@@ -279,7 +279,7 @@ export default function CreateFoodScreen() {
                   onChangeText={(v) => handleNumberInput(v, setFat)}
                   keyboardType="number-pad"
                   placeholder="0"
-                  rightElement={
+                  rightIcon={
                     <Text style={[styles.inputUnit, { color: colors.fat }]}>g</Text>
                   }
                 />
@@ -291,11 +291,10 @@ export default function CreateFoodScreen() {
         {/* Save Button */}
         <View style={styles.footer}>
           <Button
-            label={`Create & Add to ${MEAL_TYPE_LABELS[mealType]}`}
             onPress={handleSave}
             loading={isSaving}
             fullWidth
-          />
+          >{`Create & Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

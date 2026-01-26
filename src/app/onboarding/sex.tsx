@@ -46,7 +46,7 @@ export default function SexScreen() {
               styles.option,
               {
                 backgroundColor: selectedSex === 'male' ? colors.accent : colors.bgSecondary,
-                borderColor: selectedSex === 'male' ? colors.accent : colors.border,
+                borderColor: selectedSex === 'male' ? colors.accent : colors.borderDefault,
               },
             ]}
             onPress={() => setSelectedSex('male')}
@@ -71,7 +71,7 @@ export default function SexScreen() {
               styles.option,
               {
                 backgroundColor: selectedSex === 'female' ? colors.accent : colors.bgSecondary,
-                borderColor: selectedSex === 'female' ? colors.accent : colors.border,
+                borderColor: selectedSex === 'female' ? colors.accent : colors.borderDefault,
               },
             ]}
             onPress={() => setSelectedSex('female')}

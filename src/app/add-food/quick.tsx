@@ -112,7 +112,7 @@ export default function QuickAddScreen() {
             <TextInput
               style={[
                 styles.calorieInput,
-                { color: colors.textPrimary, borderColor: colors.border },
+                { color: colors.textPrimary, borderColor: colors.borderDefault },
               ]}
               value={calories}
               onChangeText={(v) => handleNumberInput(v, setCalories)}
@@ -144,7 +144,7 @@ export default function QuickAddScreen() {
               <TextInput
                 style={[
                   styles.macroInput,
-                  { color: colors.textPrimary, borderColor: colors.border },
+                  { color: colors.textPrimary, borderColor: colors.borderDefault },
                 ]}
                 value={protein}
                 onChangeText={(v) => handleNumberInput(v, setProtein)}
@@ -166,7 +166,7 @@ export default function QuickAddScreen() {
               <TextInput
                 style={[
                   styles.macroInput,
-                  { color: colors.textPrimary, borderColor: colors.border },
+                  { color: colors.textPrimary, borderColor: colors.borderDefault },
                 ]}
                 value={carbs}
                 onChangeText={(v) => handleNumberInput(v, setCarbs)}
@@ -188,7 +188,7 @@ export default function QuickAddScreen() {
               <TextInput
                 style={[
                   styles.macroInput,
-                  { color: colors.textPrimary, borderColor: colors.border },
+                  { color: colors.textPrimary, borderColor: colors.borderDefault },
                 ]}
                 value={fat}
                 onChangeText={(v) => handleNumberInput(v, setFat)}
@@ -218,7 +218,7 @@ export default function QuickAddScreen() {
                     backgroundColor:
                       mealType === option.value ? colors.accent : 'transparent',
                     borderColor:
-                      mealType === option.value ? colors.accent : colors.border,
+                      mealType === option.value ? colors.accent : colors.borderDefault,
                   },
                 ]}
                 onPress={() => setMealType(option.value)}
@@ -247,7 +247,7 @@ export default function QuickAddScreen() {
           <TextInput
             style={[
               styles.descriptionInput,
-              { color: colors.textPrimary, borderColor: colors.border },
+              { color: colors.textPrimary, borderColor: colors.borderDefault },
             ]}
             value={description}
             onChangeText={setDescription}
@@ -262,12 +262,11 @@ export default function QuickAddScreen() {
       {/* Save Button */}
       <View style={styles.footer}>
         <Button
-          label={`Add to ${MEAL_TYPE_LABELS[mealType]}`}
           onPress={handleSave}
           loading={isSaving}
           disabled={!isValid}
           fullWidth
-        />
+        >{`Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
       </View>
     </SafeAreaView>
   );

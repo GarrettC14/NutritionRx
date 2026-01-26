@@ -22,3 +22,5 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(),
   clear: jest.fn(),
 }));
+
+// Note: expo-file-system and expo-sharing are mocked via moduleNameMapper in jest.config.js

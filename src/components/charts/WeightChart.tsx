@@ -126,7 +126,7 @@ export function WeightChart({ entries, showTrend = true }: WeightChartProps) {
           areaChart
           curved
           yAxisColor="transparent"
-          xAxisColor={colors.border}
+          xAxisColor={colors.borderDefault}
           yAxisTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
           xAxisLabelTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
           hideRules

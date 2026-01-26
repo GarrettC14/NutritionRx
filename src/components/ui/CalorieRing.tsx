@@ -10,8 +10,7 @@ import { animation } from '@/constants/spacing';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-interface CalorieRingProps {
-  progress: number; // 0 to 1
+interface CalorieRingBaseProps {
   size?: number;
   strokeWidth?: number;
   trackColor?: string;
@@ -21,8 +20,24 @@ interface CalorieRingProps {
   animated?: boolean;
 }
 
+interface CalorieRingProgressProps extends CalorieRingBaseProps {
+  progress: number; // 0 to 1
+  consumed?: never;
+  target?: never;
+}
+
+interface CalorieRingTargetProps extends CalorieRingBaseProps {
+  progress?: never;
+  consumed: number;
+  target: number;
+}
+
+type CalorieRingProps = CalorieRingProgressProps | CalorieRingTargetProps;
+
 export function CalorieRing({
-  progress,
+  progress: progressProp,
+  consumed,
+  target,
   size = 200,
   strokeWidth = 12,
   trackColor,
@@ -36,6 +51,11 @@ export function CalorieRing({
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const center = size / 2;
+
+  // Calculate progress from consumed/target or use direct progress prop
+  const progress = progressProp !== undefined
+    ? progressProp
+    : (target > 0 ? consumed / target : 0);
 
   // Clamp progress to 0-1 (allow showing up to 100%, not more)
   const clampedProgress = Math.min(1, Math.max(0, progress));

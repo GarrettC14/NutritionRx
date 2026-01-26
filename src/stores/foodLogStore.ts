@@ -244,16 +244,16 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
     };
 
     const entriesByMeal = state.getEntriesByMeal();
-    const quickEntriesByMeal = state.getQuickEntriesByMeal();
+    const quickAddsByMeal = state.getQuickEntriesByMeal();
 
     return {
       date: state.selectedDate,
       totals: state.dailyTotals,
       goals,
       entries: state.entries,
-      quickAddEntries: state.quickAddEntries,
+      quickAdds: state.quickAddEntries,
       entriesByMeal,
-      quickEntriesByMeal,
+      quickAddsByMeal,
     };
   },
 

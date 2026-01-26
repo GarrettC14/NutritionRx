@@ -62,8 +62,8 @@ export function Input({
           style={[
             styles.input,
             { color: colors.textPrimary },
-            leftIcon && styles.inputWithLeftIcon,
-            rightIcon && styles.inputWithRightIcon,
+            leftIcon ? styles.inputWithLeftIcon : undefined,
+            rightIcon ? styles.inputWithRightIcon : undefined,
             style,
           ]}
           placeholderTextColor={colors.textTertiary}

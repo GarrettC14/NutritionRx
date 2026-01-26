@@ -51,7 +51,7 @@ export function MealSection({
             </Text>
           )}
           <Pressable
-            style={[styles.addButton, { borderColor: colors.border }]}
+            style={[styles.addButton, { borderColor: colors.borderDefault }]}
             onPress={() => onAddPress(mealType)}
             hitSlop={8}
           >

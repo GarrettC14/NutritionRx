@@ -74,6 +74,14 @@ export const quickAddRepository = {
     return rows.map(mapQuickAddRowToDomain);
   },
 
+  async getAll(): Promise<QuickAddEntry[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<QuickAddEntryRow>(
+      `SELECT * FROM quick_add_entries ORDER BY date DESC, meal_type, created_at`
+    );
+    return rows.map(mapQuickAddRowToDomain);
+  },
+
   async create(input: CreateQuickAddInput): Promise<QuickAddEntry> {
     const db = getDatabase();
     const id = uuidv4();

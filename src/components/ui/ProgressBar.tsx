@@ -29,15 +29,16 @@ export function ProgressBar({
   const clampedProgress = Math.min(1, Math.max(0, progress));
 
   const fillStyle = useAnimatedStyle(() => {
+    const widthValue = `${clampedProgress * 100}%`;
     const width = animated
-      ? withTiming(`${clampedProgress * 100}%`, {
+      ? withTiming(widthValue as unknown as number, {
           duration: animation.progressRing,
           easing: Easing.out(Easing.cubic),
         })
-      : `${clampedProgress * 100}%`;
+      : widthValue;
 
     return {
-      width,
+      width: width as unknown as string,
     };
   }, [clampedProgress, animated]);
 

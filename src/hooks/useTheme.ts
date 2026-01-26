@@ -2,9 +2,23 @@ import { useColorScheme } from 'react-native';
 import { colors, chartColors, Colors, ChartColors } from '@/constants/colors';
 import { shadows } from '@/constants/spacing';
 
-interface ThemeColors extends Colors {
+interface ShadowStyle {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+}
+
+interface Shadows {
+  sm: ShadowStyle;
+  md: ShadowStyle;
+  lg: ShadowStyle;
+}
+
+export interface ThemeColors extends Colors {
   chart: ChartColors;
-  shadows: typeof shadows.dark;
+  shadows: Shadows;
 }
 
 export function useTheme(): {
@@ -28,5 +42,3 @@ export function useTheme(): {
     isDark,
   };
 }
-
-export type { ThemeColors };

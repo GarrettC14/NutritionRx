@@ -131,5 +131,54 @@ export const chartColors = {
 } as const;
 
 export type ColorScheme = keyof typeof colors;
-export type Colors = typeof colors.dark;
-export type ChartColors = typeof chartColors.dark;
+
+// Base color types (generic interface)
+export interface Colors {
+  bgPrimary: string;
+  bgSecondary: string;
+  bgElevated: string;
+  bgInteractive: string;
+  textPrimary: string;
+  textSecondary: string;
+  textTertiary: string;
+  textDisabled: string;
+  borderDefault: string;
+  borderStrong: string;
+  accent: string;
+  accentDark: string;
+  success: string;
+  successBg: string;
+  warning: string;
+  warningBg: string;
+  error: string;
+  errorBg: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  calories: string;
+  ringTrack: string;
+  ringFill: string;
+}
+
+export interface ChartColors {
+  primary: string;
+  primaryGradient: readonly string[];
+  rawWeight: string;
+  trendLine: string;
+  goalLine: string;
+  dailyBurn: string;
+  initialEstimate: string;
+  underTarget: string;
+  atTarget: string;
+  overTarget: string;
+  targetLine: string;
+  progress: string;
+  remaining: string;
+  setback: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  grid: string;
+  axis: string;
+  label: string;
+}

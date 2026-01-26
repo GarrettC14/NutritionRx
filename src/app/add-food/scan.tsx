@@ -203,7 +203,7 @@ export default function BarcodeScanScreen() {
                   <Text style={styles.errorButtonText}>Scan Again</Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.errorButton, { borderColor: colors.border, borderWidth: 1 }]}
+                  style={[styles.errorButton, { borderColor: colors.borderDefault, borderWidth: 1 }]}
                   onPress={handleManualEntry}
                 >
                   <Text style={[styles.errorButtonText, { color: colors.textPrimary }]}>

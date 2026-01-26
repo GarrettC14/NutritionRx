@@ -15,8 +15,9 @@ import { spacing, borderRadius } from '@/constants/spacing';
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends Omit<PressableProps, 'style'> {
-  children: string;
+export interface ButtonProps extends Omit<PressableProps, 'style'> {
+  children?: string;
+  label?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -27,6 +28,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
 
 export function Button({
   children,
+  label,
   variant = 'primary',
   size = 'md',
   loading = false,
@@ -37,6 +39,7 @@ export function Button({
   onPress,
   ...props
 }: ButtonProps) {
+  const buttonText = children ?? label ?? '';
   const { colors } = useTheme();
 
   const getBackgroundColor = () => {
@@ -136,7 +139,7 @@ export function Button({
             textStyle,
           ]}
         >
-          {children}
+          {buttonText}
         </Text>
       )}
     </Pressable>
