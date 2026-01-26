@@ -82,30 +82,31 @@ function ThemeSelector() {
         <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
           Appearance
         </Text>
-        <View style={styles.themePillsContainer}>
+        <View style={[styles.segmentedControl, { backgroundColor: colors.bgInteractive }]}>
           {options.map((option) => {
             const isSelected = preference === option.value;
             return (
               <Pressable
                 key={option.value}
                 style={[
-                  styles.themePill,
-                  {
-                    backgroundColor: isSelected ? colors.accent : 'transparent',
-                    borderColor: isSelected ? colors.accent : colors.borderDefault,
-                  },
+                  styles.segmentOption,
+                  isSelected && [
+                    styles.segmentOptionSelected,
+                    { backgroundColor: colors.bgElevated },
+                  ],
                 ]}
                 onPress={() => setPreference(option.value)}
               >
                 <Ionicons
                   name={option.icon}
                   size={16}
-                  color={isSelected ? '#FFFFFF' : colors.textSecondary}
+                  color={isSelected ? colors.accent : colors.textSecondary}
                 />
                 <Text
                   style={[
-                    styles.themePillText,
-                    { color: isSelected ? '#FFFFFF' : colors.textSecondary },
+                    styles.segmentLabel,
+                    { color: isSelected ? colors.accent : colors.textSecondary },
+                    isSelected && styles.segmentLabelSelected,
                   ]}
                 >
                   {option.label}
@@ -299,24 +300,34 @@ const styles = StyleSheet.create({
   themeSelectorContent: {
     flex: 1,
   },
-  themePillsContainer: {
+  segmentedControl: {
     flexDirection: 'row',
-    gap: spacing[2],
-    marginTop: spacing[3],
+    borderRadius: borderRadius.md,
+    padding: 4,
+    marginTop: spacing[2],
   },
-  themePill: {
+  segmentOption: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    gap: spacing[1],
+    paddingHorizontal: spacing[1],
+    borderRadius: borderRadius.sm,
+    gap: 4,
   },
-  themePillText: {
+  segmentOptionSelected: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentLabel: {
     fontSize: 13,
     fontWeight: '500',
+  },
+  segmentLabelSelected: {
+    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
