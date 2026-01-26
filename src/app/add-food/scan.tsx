@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +24,7 @@ const SCAN_AREA_SIZE = width * 0.7;
 export default function BarcodeScanScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     mealType?: string;
     date?: string;
@@ -86,16 +88,16 @@ export default function BarcodeScanScreen() {
   // Permission not yet determined
   if (!permission) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
         <ActivityIndicator size="large" color={colors.accent} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Permission denied
   if (!permission.granted) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
         <View style={styles.permissionContainer}>
           <Ionicons
             name="camera-outline"
@@ -123,7 +125,7 @@ export default function BarcodeScanScreen() {
             </Pressable>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -142,7 +144,7 @@ export default function BarcodeScanScreen() {
       {/* Overlay */}
       <View style={styles.overlay}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Pressable
             style={[styles.closeButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
             onPress={() => router.back()}
@@ -184,7 +186,7 @@ export default function BarcodeScanScreen() {
         </View>
 
         {/* Instructions / Error */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
           {error ? (
             <View style={[styles.errorCard, { backgroundColor: colors.bgSecondary }]}>
               <Ionicons
@@ -235,7 +237,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: componentSpacing.screenEdgePadding,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -311,7 +312,6 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
   },
   footer: {
-    paddingBottom: 100,
     paddingHorizontal: componentSpacing.screenEdgePadding,
     alignItems: 'center',
   },

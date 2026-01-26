@@ -120,7 +120,7 @@ export default function TodayScreen() {
   const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable

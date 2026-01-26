@@ -105,7 +105,7 @@ export default function ProgressScreen() {
   const timeRanges: TimeRange[] = ['7d', '30d', '90d', 'all'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
