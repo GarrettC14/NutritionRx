@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme, ThemePreference } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 
@@ -64,6 +64,59 @@ function SettingsItem({
   );
 }
 
+function ThemeSelector() {
+  const { colors, preference, setPreference } = useTheme();
+
+  const options: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
+    { value: 'light', label: 'Light', icon: 'sunny-outline' },
+    { value: 'dark', label: 'Dark', icon: 'moon-outline' },
+  ];
+
+  return (
+    <View style={[styles.themeSelector, { backgroundColor: colors.bgSecondary }]}>
+      <View style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}>
+        <Ionicons name="color-palette-outline" size={20} color={colors.accent} />
+      </View>
+      <View style={styles.themeSelectorContent}>
+        <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+          Appearance
+        </Text>
+        <View style={[styles.segmentedControl, { backgroundColor: colors.bgInteractive }]}>
+          {options.map((option) => {
+            const isSelected = preference === option.value;
+            return (
+              <Pressable
+                key={option.value}
+                style={[
+                  styles.segmentOption,
+                  isSelected && [styles.segmentOptionSelected, { backgroundColor: colors.bgSecondary }],
+                ]}
+                onPress={() => setPreference(option.value)}
+              >
+                <Ionicons
+                  name={option.icon}
+                  size={16}
+                  color={isSelected ? colors.accent : colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.segmentLabel,
+                    { color: isSelected ? colors.accent : colors.textSecondary },
+                    isSelected && styles.segmentLabelSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -121,12 +174,7 @@ export default function SettingsScreen() {
               subtitle="Weight, energy"
               onPress={() => router.push('/settings/units')}
             />
-            <SettingsItem
-              icon="moon-outline"
-              title="Appearance"
-              subtitle="Dark mode"
-              onPress={() => {}}
-            />
+            <ThemeSelector />
           </View>
         </View>
 
@@ -244,6 +292,45 @@ const styles = StyleSheet.create({
   settingsSubtitle: {
     ...typography.body.small,
     marginTop: spacing[1],
+  },
+  // Theme selector styles
+  themeSelector: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: spacing[4],
+    gap: spacing[3],
+  },
+  themeSelectorContent: {
+    flex: 1,
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: borderRadius.md,
+    padding: 4,
+    marginTop: spacing[2],
+  },
+  segmentOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[1],
+    borderRadius: borderRadius.sm,
+    gap: 4,
+  },
+  segmentOptionSelected: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  segmentLabelSelected: {
+    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',

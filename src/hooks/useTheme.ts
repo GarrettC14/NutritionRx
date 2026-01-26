@@ -1,44 +1,21 @@
-import { useColorScheme } from 'react-native';
-import { colors, chartColors, Colors, ChartColors } from '@/constants/colors';
-import { shadows } from '@/constants/spacing';
+import { useThemeContext, ThemeColors, ThemePreference } from '@/contexts/ThemeContext';
 
-interface ShadowStyle {
-  shadowColor: string;
-  shadowOffset: { width: number; height: number };
-  shadowOpacity: number;
-  shadowRadius: number;
-  elevation: number;
-}
-
-interface Shadows {
-  sm: ShadowStyle;
-  md: ShadowStyle;
-  lg: ShadowStyle;
-}
-
-export interface ThemeColors extends Colors {
-  chart: ChartColors;
-  shadows: Shadows;
-}
+export type { ThemeColors, ThemePreference };
 
 export function useTheme(): {
   colorScheme: 'dark' | 'light';
   colors: ThemeColors;
   isDark: boolean;
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
 } {
-  const systemColorScheme = useColorScheme();
-  const colorScheme = systemColorScheme ?? 'dark';
-  const isDark = colorScheme === 'dark';
-
-  const themeColors: ThemeColors = {
-    ...colors[colorScheme],
-    chart: chartColors[colorScheme],
-    shadows: shadows[colorScheme],
-  };
+  const { colorScheme, colors, isDark, preference, setPreference } = useThemeContext();
 
   return {
     colorScheme,
-    colors: themeColors,
+    colors,
     isDark,
+    preference,
+    setPreference,
   };
 }

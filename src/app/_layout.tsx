@@ -5,6 +5,35 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { useTheme } from '@/hooks/useTheme';
+
+function RootLayoutContent() {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+          contentStyle: { backgroundColor: colors.bgPrimary },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="add-food" />
+        <Stack.Screen name="food/[id]" />
+        <Stack.Screen name="log-entry/[id]" />
+        <Stack.Screen name="log-weight" />
+        <Stack.Screen name="weekly-reflection" />
+      </Stack>
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
@@ -31,26 +60,11 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0D1117' }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-            contentStyle: { backgroundColor: '#0D1117' },
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="settings" />
-          <Stack.Screen name="add-food" />
-          <Stack.Screen name="food/[id]" />
-          <Stack.Screen name="log-entry/[id]" />
-          <Stack.Screen name="log-weight" />
-          <Stack.Screen name="weekly-reflection" />
-        </Stack>
+        <ThemeProvider>
+          <RootLayoutContent />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
