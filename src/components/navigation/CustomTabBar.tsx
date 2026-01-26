@@ -34,8 +34,8 @@ const TABS: TabItem[] = [
   {
     name: 'progress',
     title: 'Progress',
-    icon: 'stats-chart-outline',
-    iconActive: 'stats-chart',
+    icon: 'bar-chart-outline',
+    iconActive: 'bar-chart',
     href: '/(tabs)/progress',
     matchPaths: ['/(tabs)/progress'],
   },
