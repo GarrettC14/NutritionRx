@@ -106,6 +106,8 @@ export function mapUserProfileRowToDomain(row: UserProfileRow): UserProfile {
     activityLevel: row.activity_level
       ? (row.activity_level as UserProfile['activityLevel'])
       : undefined,
+    eatingStyle: (row.eating_style as UserProfile['eatingStyle']) ?? 'flexible',
+    proteinPriority: (row.protein_priority as UserProfile['proteinPriority']) ?? 'active',
     hasCompletedOnboarding: row.has_completed_onboarding === 1,
     onboardingSkipped: row.onboarding_skipped === 1,
     createdAt: new Date(row.created_at),
@@ -131,6 +133,8 @@ export function mapGoalRowToDomain(row: GoalRow): Goal {
     currentProteinG: row.current_protein_g,
     currentCarbsG: row.current_carbs_g,
     currentFatG: row.current_fat_g,
+    eatingStyle: (row.eating_style as Goal['eatingStyle']) ?? 'flexible',
+    proteinPriority: (row.protein_priority as Goal['proteinPriority']) ?? 'active',
     isActive: row.is_active === 1,
     completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
     createdAt: new Date(row.created_at),

@@ -1,5 +1,6 @@
+import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { BarChart } from 'react-native-gifted-charts';
+import Svg, { Rect, Line, Text as SvgText, G } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
@@ -8,6 +9,8 @@ import { useSettingsStore } from '@/stores';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 64;
+const CHART_HEIGHT = 160;
+const PADDING = { top: 20, bottom: 30, left: 10, right: 10 };
 
 interface CalorieChartProps {
   data: Array<{ date: string; totals: DailyTotals }>;
@@ -34,27 +37,6 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Convert to chart data
-  const chartData = sortedData.map((day) => {
-    const isOverGoal = day.totals.calories > calorieGoal;
-    const isSignificantlyUnder = day.totals.calories < calorieGoal * 0.8;
-
-    return {
-      value: day.totals.calories,
-      label: formatDateLabel(day.date),
-      frontColor: isOverGoal
-        ? colors.warning
-        : isSignificantlyUnder
-          ? colors.textTertiary
-          : colors.accent,
-      topLabelComponent: () => (
-        <Text style={[styles.barLabel, { color: colors.textTertiary }]}>
-          {day.totals.calories > 0 ? day.totals.calories.toLocaleString() : ''}
-        </Text>
-      ),
-    };
-  });
-
   // Calculate statistics
   const totalCalories = sortedData.reduce((sum, d) => sum + d.totals.calories, 0);
   const avgCalories = Math.round(totalCalories / sortedData.length);
@@ -62,6 +44,15 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
 
   // Determine y-axis max
   const yMax = Math.max(maxCalories, calorieGoal) * 1.15;
+
+  // Chart dimensions
+  const chartWidth = CHART_WIDTH - PADDING.left - PADDING.right;
+  const chartHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
+  const barWidth = Math.min(30, (chartWidth / sortedData.length) - 8);
+  const barSpacing = (chartWidth - barWidth * sortedData.length) / (sortedData.length + 1);
+
+  // Calculate goal line position
+  const goalLineY = PADDING.top + chartHeight - (calorieGoal / yMax) * chartHeight;
 
   return (
     <View style={styles.container}>
@@ -91,36 +82,68 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
       </View>
 
       <View style={styles.chartContainer}>
-        <BarChart
-          data={chartData}
-          width={CHART_WIDTH - 40}
-          height={160}
-          barWidth={Math.min(30, (CHART_WIDTH - 80) / chartData.length - 8)}
-          spacing={8}
-          noOfSections={4}
-          maxValue={yMax}
-          yAxisColor="transparent"
-          xAxisColor={colors.borderDefault}
-          yAxisTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
-          hideRules
-          barBorderRadius={4}
-          showReferenceLine1={showGoalLine}
-          referenceLine1Position={calorieGoal}
-          referenceLine1Config={{
-            color: colors.accent,
-            dashWidth: 4,
-            dashGap: 4,
-            thickness: 1,
-          }}
-          renderTooltip={(item: any) => (
-            <View style={[styles.tooltip, { backgroundColor: colors.bgSecondary }]}>
-              <Text style={[styles.tooltipText, { color: colors.textPrimary }]}>
-                {item.value.toLocaleString()} kcal
-              </Text>
-            </View>
+        <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+          {/* X-axis line */}
+          <Line
+            x1={PADDING.left}
+            y1={PADDING.top + chartHeight}
+            x2={CHART_WIDTH - PADDING.right}
+            y2={PADDING.top + chartHeight}
+            stroke={colors.borderDefault}
+            strokeWidth={1}
+          />
+
+          {/* Goal line */}
+          {showGoalLine && (
+            <Line
+              x1={PADDING.left}
+              y1={goalLineY}
+              x2={CHART_WIDTH - PADDING.right}
+              y2={goalLineY}
+              stroke={colors.accent}
+              strokeWidth={1}
+              strokeDasharray="4,4"
+            />
           )}
-        />
+
+          {/* Bars */}
+          {sortedData.map((day, index) => {
+            const x = PADDING.left + barSpacing + index * (barWidth + barSpacing);
+            const barHeight = (day.totals.calories / yMax) * chartHeight;
+            const y = PADDING.top + chartHeight - barHeight;
+            const isOverGoal = day.totals.calories > calorieGoal;
+            const isSignificantlyUnder = day.totals.calories < calorieGoal * 0.8;
+            const barColor = isOverGoal
+              ? colors.warning
+              : isSignificantlyUnder
+                ? colors.textTertiary
+                : colors.accent;
+
+            return (
+              <G key={day.date}>
+                <Rect
+                  x={x}
+                  y={y}
+                  width={barWidth}
+                  height={barHeight}
+                  fill={barColor}
+                  rx={4}
+                  ry={4}
+                />
+                {/* X-axis label */}
+                <SvgText
+                  x={x + barWidth / 2}
+                  y={PADDING.top + chartHeight + 15}
+                  fill={colors.textTertiary}
+                  fontSize={10}
+                  textAnchor="middle"
+                >
+                  {formatDateLabel(day.date)}
+                </SvgText>
+              </G>
+            );
+          })}
+        </Svg>
       </View>
 
       {showGoalLine && (
@@ -159,10 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing[2],
   },
-  barLabel: {
-    fontSize: 9,
-    marginBottom: 2,
-  },
   legend: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -180,13 +199,5 @@ const styles = StyleSheet.create({
   },
   legendText: {
     ...typography.caption,
-  },
-  tooltip: {
-    padding: spacing[2],
-    borderRadius: 4,
-  },
-  tooltipText: {
-    ...typography.caption,
-    fontWeight: '600',
   },
 });

@@ -1,14 +1,6 @@
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import Animated, {
-  useAnimatedProps,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
-import { animation } from '@/constants/spacing';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface CalorieRingBaseProps {
   size?: number;
@@ -44,7 +36,6 @@ export function CalorieRing({
   fillColor,
   style,
   children,
-  animated = true,
 }: CalorieRingProps) {
   const { colors } = useTheme();
 
@@ -55,23 +46,11 @@ export function CalorieRing({
   // Calculate progress from consumed/target or use direct progress prop
   const progress = progressProp !== undefined
     ? progressProp
-    : (target > 0 ? consumed / target : 0);
+    : (target && target > 0 ? consumed! / target : 0);
 
   // Clamp progress to 0-1 (allow showing up to 100%, not more)
   const clampedProgress = Math.min(1, Math.max(0, progress));
-
-  const animatedProps = useAnimatedProps(() => {
-    const strokeDashoffset = animated
-      ? withTiming(circumference * (1 - clampedProgress), {
-          duration: animation.progressRing,
-          easing: Easing.out(Easing.cubic),
-        })
-      : circumference * (1 - clampedProgress);
-
-    return {
-      strokeDashoffset,
-    };
-  }, [clampedProgress, animated]);
+  const strokeDashoffset = circumference * (1 - clampedProgress);
 
   return (
     <View style={[styles.container, { width: size, height: size }, style]}>
@@ -86,15 +65,15 @@ export function CalorieRing({
           fill="none"
         />
         {/* Progress */}
-        <AnimatedCircle
+        <Circle
           cx={center}
           cy={center}
           r={radius}
           stroke={fillColor ?? colors.ringFill}
           strokeWidth={strokeWidth}
           fill="none"
-          strokeDasharray={circumference}
-          animatedProps={animatedProps}
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           transform={`rotate(-90 ${center} ${center})`}
         />

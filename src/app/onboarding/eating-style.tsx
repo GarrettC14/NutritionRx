@@ -1,66 +1,72 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
-import { useProfileStore } from '@/stores';
-import { ActivityLevel } from '@/types/domain';
-import { tdeeCalculator } from '@/services/tdeeCalculator';
+import { EatingStyle } from '@/types/domain';
 
-interface ActivityOption {
-  level: ActivityLevel;
+interface EatingStyleOption {
+  value: EatingStyle;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   description: string;
+  ratio: string;
 }
 
-const activityOptions: ActivityOption[] = [
+const eatingStyleOptions: EatingStyleOption[] = [
   {
-    level: 'sedentary',
-    icon: 'desktop-outline',
-    label: 'Sedentary',
-    description: 'Desk job, little to no exercise',
+    value: 'flexible',
+    icon: 'options-outline',
+    label: 'Flexible',
+    description: 'Balanced split between carbs and fats',
+    ratio: '50% carbs / 50% fat',
   },
   {
-    level: 'lightly_active',
-    icon: 'walk-outline',
-    label: 'Lightly Active',
-    description: 'Light exercise 1-3 days per week',
+    value: 'carb_focused',
+    icon: 'flash-outline',
+    label: 'Carb Focused',
+    description: 'Higher carbs for energy-demanding activities',
+    ratio: '65% carbs / 35% fat',
   },
   {
-    level: 'moderately_active',
-    icon: 'bicycle-outline',
-    label: 'Moderately Active',
-    description: 'Moderate exercise 3-5 days per week',
+    value: 'fat_focused',
+    icon: 'water-outline',
+    label: 'Fat Focused',
+    description: 'Higher fats, capped at 150g carbs',
+    ratio: '35% carbs / 65% fat',
   },
   {
-    level: 'very_active',
-    icon: 'barbell-outline',
-    label: 'Very Active',
-    description: 'Hard exercise 6-7 days per week',
-  },
-  {
-    level: 'extremely_active',
-    icon: 'fitness-outline',
-    label: 'Extremely Active',
-    description: 'Very hard exercise or physical job',
+    value: 'very_low_carb',
+    icon: 'flame-outline',
+    label: 'Very Low Carb',
+    description: 'Keto-style, maximum 50g carbs per day',
+    ratio: '10% carbs / 90% fat',
   },
 ];
 
-export default function ActivityScreen() {
+export default function EatingStyleScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { profile, updateProfile } = useProfileStore();
-  const [selected, setSelected] = useState<ActivityLevel | null>(null);
+  const params = useLocalSearchParams<{
+    goalType: string;
+    targetWeight?: string;
+    rate: string;
+  }>();
 
-  const handleContinue = async () => {
-    if (!selected) return;
-    await updateProfile({ activityLevel: selected });
-    router.push('/onboarding/goal');
+  const [selected, setSelected] = useState<EatingStyle>('flexible');
+
+  const handleContinue = () => {
+    router.push({
+      pathname: '/onboarding/protein-priority',
+      params: {
+        ...params,
+        eatingStyle: selected,
+      },
+    });
   };
 
   return (
@@ -68,17 +74,17 @@ export default function ActivityScreen() {
       {/* Progress */}
       <View style={styles.progress}>
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
-          <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '55%' }]} />
+          <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '81%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>5 of 11</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>9 of 11</Text>
       </View>
 
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.textPrimary }]}>
-          How active are you?
+          Choose your eating style
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Be honest - this affects your calorie calculations.
+          This determines how your remaining calories (after protein) are split between carbs and fat.
         </Text>
 
         <ScrollView
@@ -86,37 +92,37 @@ export default function ActivityScreen() {
           contentContainerStyle={styles.optionsContent}
           showsVerticalScrollIndicator={false}
         >
-          {activityOptions.map((option) => (
+          {eatingStyleOptions.map((option) => (
             <Pressable
-              key={option.level}
+              key={option.value}
               style={[
                 styles.option,
                 {
                   backgroundColor:
-                    selected === option.level ? colors.accent + '20' : colors.bgSecondary,
+                    selected === option.value ? colors.accent + '20' : colors.bgSecondary,
                   borderColor:
-                    selected === option.level ? colors.accent : 'transparent',
+                    selected === option.value ? colors.accent : 'transparent',
                 },
               ]}
-              onPress={() => setSelected(option.level)}
+              onPress={() => setSelected(option.value)}
             >
               <View
                 style={[
                   styles.optionIcon,
-                  { backgroundColor: selected === option.level ? colors.accent : colors.bgPrimary },
+                  { backgroundColor: selected === option.value ? colors.accent : colors.bgPrimary },
                 ]}
               >
                 <Ionicons
                   name={option.icon}
                   size={24}
-                  color={selected === option.level ? '#FFFFFF' : colors.textSecondary}
+                  color={selected === option.value ? '#FFFFFF' : colors.textSecondary}
                 />
               </View>
               <View style={styles.optionText}>
                 <Text
                   style={[
                     styles.optionLabel,
-                    { color: selected === option.level ? colors.accent : colors.textPrimary },
+                    { color: selected === option.value ? colors.accent : colors.textPrimary },
                   ]}
                 >
                   {option.label}
@@ -124,20 +130,29 @@ export default function ActivityScreen() {
                 <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
                   {option.description}
                 </Text>
+                <Text style={[styles.optionRatio, { color: colors.textTertiary }]}>
+                  {option.ratio}
+                </Text>
               </View>
-              {selected === option.level && (
+              {selected === option.value && (
                 <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
               )}
             </Pressable>
           ))}
         </ScrollView>
+
+        <View style={[styles.infoBox, { backgroundColor: colors.bgSecondary }]}>
+          <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+            The percentages show how remaining calories (after protein) are split. You can change this later in Settings.
+          </Text>
+        </View>
       </View>
 
       <View style={styles.footer}>
         <Button
           label="Continue"
           onPress={handleContinue}
-          disabled={!selected}
           fullWidth
         />
       </View>
@@ -214,6 +229,22 @@ const styles = StyleSheet.create({
   },
   optionDescription: {
     ...typography.body.small,
+    marginBottom: spacing[1],
+  },
+  optionRatio: {
+    ...typography.caption,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+    marginTop: spacing[2],
+  },
+  infoText: {
+    ...typography.body.small,
+    flex: 1,
   },
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,

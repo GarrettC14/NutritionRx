@@ -81,7 +81,7 @@ export default function RateScreen() {
   const handleContinue = () => {
     if (selectedRate === null) return;
     router.push({
-      pathname: '/onboarding/summary',
+      pathname: '/onboarding/eating-style',
       params: {
         goalType,
         targetWeight: targetWeightKg?.toString() || '',
@@ -97,7 +97,7 @@ export default function RateScreen() {
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
           <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '88%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>8 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>8 of 11</Text>
       </View>
 
       <View style={styles.content}>

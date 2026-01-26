@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { GoalRow, WeeklyReflectionRow, DailyMetabolismRow } from '@/types/database';
 import { Goal, WeeklyReflection, DailyMetabolism } from '@/types/domain';
@@ -9,6 +9,8 @@ import {
 } from '@/types/mappers';
 
 export type GoalType = 'lose' | 'maintain' | 'gain';
+export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
+export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
 
 export interface CreateGoalInput {
   type: GoalType;
@@ -21,6 +23,8 @@ export interface CreateGoalInput {
   initialProteinG: number;
   initialCarbsG: number;
   initialFatG: number;
+  eatingStyle: EatingStyle;
+  proteinPriority: ProteinPriority;
 }
 
 export interface UpdateGoalInput {
@@ -31,6 +35,8 @@ export interface UpdateGoalInput {
   currentProteinG?: number;
   currentCarbsG?: number;
   currentFatG?: number;
+  eatingStyle?: EatingStyle;
+  proteinPriority?: ProteinPriority;
   isActive?: boolean;
   completedAt?: string;
 }
@@ -99,7 +105,7 @@ export const goalRepository = {
 
   async createGoal(input: CreateGoalInput): Promise<Goal> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     // Deactivate any existing active goals
@@ -113,8 +119,9 @@ export const goalRepository = {
         id, type, target_weight_kg, target_rate_percent, start_date, start_weight_kg,
         initial_tdee_estimate, initial_target_calories, initial_protein_g, initial_carbs_g, initial_fat_g,
         current_tdee_estimate, current_target_calories, current_protein_g, current_carbs_g, current_fat_g,
+        eating_style, protein_priority,
         is_active, completed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.type,
@@ -132,6 +139,8 @@ export const goalRepository = {
         input.initialProteinG,
         input.initialCarbsG,
         input.initialFatG,
+        input.eatingStyle,
+        input.proteinPriority,
         1, // is_active
         null,
         now,
@@ -178,6 +187,14 @@ export const goalRepository = {
     if (updates.currentFatG !== undefined) {
       setClauses.push('current_fat_g = ?');
       values.push(updates.currentFatG);
+    }
+    if (updates.eatingStyle !== undefined) {
+      setClauses.push('eating_style = ?');
+      values.push(updates.eatingStyle);
+    }
+    if (updates.proteinPriority !== undefined) {
+      setClauses.push('protein_priority = ?');
+      values.push(updates.proteinPriority);
     }
     if (updates.isActive !== undefined) {
       setClauses.push('is_active = ?');
@@ -251,7 +268,7 @@ export const goalRepository = {
 
   async createReflection(input: CreateWeeklyReflectionInput): Promise<WeeklyReflection> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     await db.runAsync(
@@ -382,7 +399,7 @@ export const goalRepository = {
       );
     } else {
       // Create new
-      const id = uuidv4();
+      const id = generateId();
       await db.runAsync(
         `INSERT INTO daily_metabolism (
           id, date, trend_weight_kg, calorie_intake, estimated_daily_burn,

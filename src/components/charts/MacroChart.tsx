@@ -1,5 +1,6 @@
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { PieChart } from 'react-native-gifted-charts';
+import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
@@ -16,6 +17,82 @@ const PROTEIN_CAL = 4;
 const CARBS_CAL = 4;
 const FAT_CAL = 9;
 
+// Donut chart component
+interface DonutSegment {
+  percentage: number;
+  color: string;
+}
+
+function DonutChart({
+  segments,
+  size = 120,
+  strokeWidth = 20,
+  centerText,
+  centerColor,
+  bgColor,
+}: {
+  segments: DonutSegment[];
+  size?: number;
+  strokeWidth?: number;
+  centerText?: string;
+  centerColor?: string;
+  bgColor?: string;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+
+  let currentOffset = circumference * 0.25; // Start at top (12 o'clock)
+
+  return (
+    <Svg width={size} height={size}>
+      {/* Background circle */}
+      <Circle
+        cx={center}
+        cy={center}
+        r={radius}
+        stroke={bgColor || '#30363D'}
+        strokeWidth={strokeWidth}
+        fill="none"
+      />
+      {/* Segments */}
+      {segments.map((segment, index) => {
+        const segmentLength = (segment.percentage / 100) * circumference;
+        const offset = currentOffset;
+        currentOffset -= segmentLength;
+
+        return (
+          <Circle
+            key={index}
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke={segment.color}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+            strokeDashoffset={offset}
+            strokeLinecap="butt"
+          />
+        );
+      })}
+      {/* Center text */}
+      {centerText && (
+        <SvgText
+          x={center}
+          y={center + 6}
+          fill={centerColor || '#F0F6FC'}
+          fontSize={18}
+          fontWeight="600"
+          textAnchor="middle"
+        >
+          {centerText}
+        </SvgText>
+      )}
+    </Svg>
+  );
+}
+
 export function MacroChart({ totals, showGoalComparison = true }: MacroChartProps) {
   const { colors } = useTheme();
   const { settings } = useSettingsStore();
@@ -31,11 +108,11 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
   const carbsPct = totalMacroCals > 0 ? Math.round((carbsCals / totalMacroCals) * 100) : 0;
   const fatPct = 100 - proteinPct - carbsPct; // Ensure they sum to 100
 
-  const pieData = [
-    { value: proteinPct, color: colors.protein, text: `${proteinPct}%` },
-    { value: carbsPct, color: colors.carbs, text: `${carbsPct}%` },
-    { value: fatPct, color: colors.fat, text: `${fatPct}%` },
-  ].filter(d => d.value > 0);
+  const segments: DonutSegment[] = [
+    { percentage: proteinPct, color: colors.protein },
+    { percentage: carbsPct, color: colors.carbs },
+    { percentage: fatPct, color: colors.fat },
+  ].filter(d => d.percentage > 0);
 
   // Goal calculations
   const goalProteinCals = settings.dailyProteinGoal * PROTEIN_CAL;
@@ -54,17 +131,11 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
   return (
     <View style={styles.container}>
       <View style={styles.chartRow}>
-        <PieChart
-          data={pieData}
-          donut
-          radius={60}
-          innerRadius={40}
-          innerCircleColor={colors.bgSecondary}
-          centerLabelComponent={() => (
-            <Text style={[styles.centerLabel, { color: colors.textPrimary }]}>
-              {totals.calories}
-            </Text>
-          )}
+        <DonutChart
+          segments={segments}
+          centerText={String(totals.calories)}
+          centerColor={colors.textPrimary}
+          bgColor={colors.bgInteractive}
         />
 
         <View style={styles.macroList}>
@@ -154,10 +225,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
-  },
-  centerLabel: {
-    ...typography.title.medium,
-    textAlign: 'center',
   },
   macroList: {
     flex: 1,

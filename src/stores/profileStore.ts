@@ -38,6 +38,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({
         error: error instanceof Error ? error.message : 'Failed to load profile',
         isLoading: false,
+        isLoaded: true, // Mark as loaded even on error to prevent infinite spinner
       });
     }
   },

@@ -8,8 +8,9 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { useProfileStore, useWeightStore, useSettingsStore, useGoalStore } from '@/stores';
-import { GoalType } from '@/types/domain';
-import { tdeeCalculator, MacroTargets } from '@/services/tdeeCalculator';
+import { GoalType, EatingStyle, ProteinPriority } from '@/types/domain';
+import { tdeeCalculator } from '@/services/tdeeCalculator';
+import { macroCalculator, MacroTargets } from '@/services/macroCalculator';
 
 const kgToLbs = (kg: number): number => Math.round(kg * 2.20462 * 10) / 10;
 
@@ -20,9 +21,11 @@ export default function SummaryScreen() {
     goalType: string;
     targetWeight?: string;
     rate: string;
+    eatingStyle?: string;
+    proteinPriority?: string;
   }>();
 
-  const { profile, completeOnboarding } = useProfileStore();
+  const { profile, completeOnboarding, updateProfile } = useProfileStore();
   const { latestEntry } = useWeightStore();
   const { settings, setDailyGoals } = useSettingsStore();
   const { createGoal } = useGoalStore();
@@ -36,6 +39,8 @@ export default function SummaryScreen() {
   const ratePercent = parseFloat(params.rate) || 0;
   const currentWeightKg = latestEntry?.weightKg || 70;
   const isLbs = settings.weightUnit === 'lbs';
+  const eatingStyle = (params.eatingStyle as EatingStyle) || 'flexible';
+  const proteinPriority = (params.proteinPriority as ProteinPriority) || 'active';
 
   useEffect(() => {
     if (!profile) return;
@@ -63,7 +68,8 @@ export default function SummaryScreen() {
 
     setTdee(calculatedTdee);
 
-    const calculatedMacros = tdeeCalculator.calculateMacros({
+    // Calculate target calories based on goal
+    const targetCalories = tdeeCalculator.calculateTargetCalories({
       sex: profile.sex || 'male',
       ageYears: age,
       heightCm: profile.heightCm || 170,
@@ -73,8 +79,16 @@ export default function SummaryScreen() {
       targetRatePercent: ratePercent,
     });
 
+    // Use macroCalculator with eating style and protein priority
+    const calculatedMacros = macroCalculator.calculateMacros({
+      weightKg: currentWeightKg,
+      targetCalories,
+      eatingStyle,
+      proteinPriority,
+    });
+
     setMacros(calculatedMacros);
-  }, [profile, currentWeightKg, goalType, ratePercent]);
+  }, [profile, currentWeightKg, goalType, ratePercent, eatingStyle, proteinPriority]);
 
   const handleComplete = async () => {
     if (!macros || !profile) return;
@@ -102,6 +116,12 @@ export default function SummaryScreen() {
         fat: macros.fat,
       });
 
+      // Update profile with eating style and protein priority
+      await updateProfile({
+        eatingStyle,
+        proteinPriority,
+      });
+
       // Create the goal using the store's calculation methods
       await createGoal({
         type: goalType,
@@ -112,6 +132,8 @@ export default function SummaryScreen() {
         heightCm: profile.heightCm || 170,
         age,
         activityLevel: profile.activityLevel || 'moderately_active',
+        eatingStyle,
+        proteinPriority,
       });
 
       // Mark onboarding as complete
@@ -139,7 +161,7 @@ export default function SummaryScreen() {
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
           <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '100%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>9 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>11 of 11</Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -164,6 +186,23 @@ export default function SummaryScreen() {
               Target: {isLbs ? kgToLbs(targetWeightKg) : targetWeightKg} {isLbs ? 'lbs' : 'kg'}
             </Text>
           )}
+        </View>
+
+        {/* Nutrition Preferences */}
+        <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
+          <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>NUTRITION PREFERENCES</Text>
+          <View style={styles.preferenceRow}>
+            <Text style={[styles.preferenceLabel, { color: colors.textSecondary }]}>Eating Style</Text>
+            <Text style={[styles.preferenceValue, { color: colors.textPrimary }]}>
+              {macroCalculator.getEatingStyleLabel(eatingStyle)}
+            </Text>
+          </View>
+          <View style={styles.preferenceRow}>
+            <Text style={[styles.preferenceLabel, { color: colors.textSecondary }]}>Protein Priority</Text>
+            <Text style={[styles.preferenceValue, { color: colors.textPrimary }]}>
+              {macroCalculator.getProteinPriorityLabel(proteinPriority)}
+            </Text>
+          </View>
         </View>
 
         {/* Calorie Target */}
@@ -321,6 +360,19 @@ const styles = StyleSheet.create({
   targetWeight: {
     ...typography.body.medium,
     marginTop: spacing[1],
+  },
+  preferenceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[2],
+  },
+  preferenceLabel: {
+    ...typography.body.medium,
+  },
+  preferenceValue: {
+    ...typography.body.medium,
+    fontWeight: '600',
   },
   calorieDisplay: {
     flexDirection: 'row',

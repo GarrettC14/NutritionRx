@@ -1,74 +1,55 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useTheme } from '@/hooks/useTheme';
 import { initDatabase } from '@/db/database';
 
 export default function RootLayout() {
-  const { colors, isDark } = useTheme();
+  const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
-    // Initialize database on app start
-    initDatabase().catch(console.error);
+    // Initialize database on app start and wait for it
+    initDatabase()
+      .then(() => setDbReady(true))
+      .catch((error) => {
+        console.error('Database initialization failed:', error);
+        setDbReady(true); // Still proceed to show error state
+      });
   }, []);
 
+  // Wait for database before rendering routes
+  if (!dbReady) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0D1117' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#58a6ff" />
+        </View>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0D1117' }}>
       <SafeAreaProvider>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="light" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: colors.bgPrimary },
-            animation: 'slide_from_right',
+            animation: 'none',
+            contentStyle: { backgroundColor: '#0D1117' },
           }}
         >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="onboarding"
-            options={{ headerShown: false, gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="settings"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="add-food"
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-          <Stack.Screen
-            name="food/[id]"
-            options={{
-              presentation: 'card',
-            }}
-          />
-          <Stack.Screen
-            name="log-entry/[id]"
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-          <Stack.Screen
-            name="log-weight"
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-          <Stack.Screen
-            name="weekly-reflection"
-            options={{
-              presentation: 'modal',
-              animation: 'fade',
-            }}
-          />
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="add-food" />
+          <Stack.Screen name="food/[id]" />
+          <Stack.Screen name="log-entry/[id]" />
+          <Stack.Screen name="log-weight" />
+          <Stack.Screen name="weekly-reflection" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

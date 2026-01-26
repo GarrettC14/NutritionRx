@@ -27,9 +27,9 @@ export default function SexScreen() {
       {/* Progress */}
       <View style={styles.progress}>
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
-          <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '11%' }]} />
+          <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '9%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>1 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>1 of 11</Text>
       </View>
 
       <View style={styles.content}>

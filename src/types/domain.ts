@@ -15,6 +15,15 @@ export type ActivityLevel =
   | 'very_active'
   | 'extremely_active';
 
+// Macro Template Types
+export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
+export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
+
+export interface MacroTemplate {
+  eatingStyle: EatingStyle;
+  proteinPriority: ProteinPriority;
+}
+
 export interface FoodItem {
   id: string;
   name: string;
@@ -85,6 +94,8 @@ export interface UserProfile {
   dateOfBirth?: Date;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  eatingStyle: EatingStyle;
+  proteinPriority: ProteinPriority;
   hasCompletedOnboarding: boolean;
   onboardingSkipped: boolean;
   createdAt: Date;
@@ -108,6 +119,8 @@ export interface Goal {
   currentProteinG: number;
   currentCarbsG: number;
   currentFatG: number;
+  eatingStyle: EatingStyle;
+  proteinPriority: ProteinPriority;
   isActive: boolean;
   completedAt?: Date;
   createdAt: Date;

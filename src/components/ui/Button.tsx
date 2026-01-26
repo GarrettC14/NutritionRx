@@ -105,9 +105,10 @@ export function Button({
 
   const sizeStyles = getSizeStyles();
 
-  const handlePress = async (e: any) => {
+  const handlePress = (e: any) => {
     if (!disabled && !loading) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Fire haptics without blocking - don't let it prevent onPress
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       onPress?.(e);
     }
   };

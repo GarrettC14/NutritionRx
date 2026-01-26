@@ -1,13 +1,8 @@
 import { View, Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
-import { spacing, borderRadius, animation } from '@/constants/spacing';
+import { spacing, borderRadius } from '@/constants/spacing';
 
 interface SegmentedControlOption<T> {
   value: T;
@@ -32,16 +27,6 @@ export function SegmentedControl<T extends string | number>({
   const selectedIndex = options.findIndex((opt) => opt.value === value);
   const segmentWidth = 100 / options.length;
 
-  const indicatorStyle = useAnimatedStyle(() => {
-    return {
-      left: withTiming(`${selectedIndex * segmentWidth}%`, {
-        duration: animation.fast,
-        easing: Easing.out(Easing.cubic),
-      }),
-      width: `${segmentWidth}%`,
-    };
-  }, [selectedIndex, segmentWidth]);
-
   const handlePress = async (optionValue: T) => {
     if (optionValue !== value) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -57,11 +42,14 @@ export function SegmentedControl<T extends string | number>({
         style,
       ]}
     >
-      <Animated.View
+      <View
         style={[
           styles.indicator,
-          { backgroundColor: colors.bgElevated },
-          indicatorStyle,
+          {
+            backgroundColor: colors.bgElevated,
+            left: `${selectedIndex * segmentWidth}%`,
+            width: `${segmentWidth}%`,
+          },
         ]}
       />
       {options.map((option) => (

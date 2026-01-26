@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { FoodItemRow } from '@/types/database';
 import { FoodItem, DataSource } from '@/types/domain';
@@ -101,7 +101,7 @@ export const foodRepository = {
 
   async create(input: CreateFoodInput): Promise<FoodItem> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     await db.runAsync(

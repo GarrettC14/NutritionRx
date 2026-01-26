@@ -57,7 +57,7 @@ export default function BirthdayScreen() {
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
           <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '22%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>2 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>2 of 11</Text>
       </View>
 
       <View style={styles.content}>

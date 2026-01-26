@@ -100,6 +100,12 @@ export default function SettingsScreen() {
               subtitle="Height, weight unit"
               onPress={() => router.push('/settings/profile')}
             />
+            <SettingsItem
+              icon="nutrition-outline"
+              title="Nutrition Preferences"
+              subtitle="Eating style, protein priority"
+              onPress={() => router.push('/settings/nutrition')}
+            />
           </View>
         </View>
 

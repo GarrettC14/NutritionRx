@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { LogEntryWithFoodRow, DailyTotalsRow } from '@/types/database';
 import { LogEntry, DailyTotals } from '@/types/domain';
@@ -164,7 +164,7 @@ export const logEntryRepository = {
 
   async create(input: CreateLogEntryInput): Promise<LogEntry> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     await db.runAsync(

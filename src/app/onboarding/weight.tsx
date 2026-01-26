@@ -75,7 +75,7 @@ export default function WeightScreen() {
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
           <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '44%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>4 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>4 of 11</Text>
       </View>
 
       <View style={styles.content}>

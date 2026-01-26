@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { QuickAddEntryRow } from '@/types/database';
 import { QuickAddEntry } from '@/types/domain';
@@ -84,7 +84,7 @@ export const quickAddRepository = {
 
   async create(input: CreateQuickAddInput): Promise<QuickAddEntry> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     await db.runAsync(

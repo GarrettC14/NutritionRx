@@ -11,11 +11,13 @@ export { weightRepository } from './weightRepository';
 export type { CreateWeightInput, UpdateWeightInput } from './weightRepository';
 
 export { profileRepository } from './profileRepository';
-export type { CreateProfileInput, UpdateProfileInput, ActivityLevel, Sex } from './profileRepository';
+export type { CreateProfileInput, UpdateProfileInput, ActivityLevel, Sex, EatingStyle as ProfileEatingStyle, ProteinPriority as ProfileProteinPriority } from './profileRepository';
 
 export { goalRepository } from './goalRepository';
 export type {
   GoalType,
+  EatingStyle,
+  ProteinPriority,
   CreateGoalInput,
   UpdateGoalInput,
   CreateWeeklyReflectionInput,

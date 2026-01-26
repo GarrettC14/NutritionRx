@@ -90,7 +90,7 @@ export default function TargetScreen() {
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
           <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '77%' }]} />
         </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>7 of 9</Text>
+        <Text style={[styles.progressText, { color: colors.textTertiary }]}>7 of 11</Text>
       </View>
 
       <View style={styles.content}>

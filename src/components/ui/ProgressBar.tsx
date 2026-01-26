@@ -1,11 +1,5 @@
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
-import { borderRadius, animation } from '@/constants/spacing';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -22,25 +16,10 @@ export function ProgressBar({
   color,
   trackColor,
   style,
-  animated = true,
 }: ProgressBarProps) {
   const { colors } = useTheme();
 
   const clampedProgress = Math.min(1, Math.max(0, progress));
-
-  const fillStyle = useAnimatedStyle(() => {
-    const widthValue = `${clampedProgress * 100}%`;
-    const width = animated
-      ? withTiming(widthValue as unknown as number, {
-          duration: animation.progressRing,
-          easing: Easing.out(Easing.cubic),
-        })
-      : widthValue;
-
-    return {
-      width: width as unknown as string,
-    };
-  }, [clampedProgress, animated]);
 
   return (
     <View
@@ -54,14 +33,14 @@ export function ProgressBar({
         style,
       ]}
     >
-      <Animated.View
+      <View
         style={[
           styles.fill,
           {
+            width: `${clampedProgress * 100}%`,
             backgroundColor: color ?? colors.ringFill,
             borderRadius: height / 2,
           },
-          fillStyle,
         ]}
       />
     </View>

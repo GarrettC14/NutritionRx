@@ -5,6 +5,8 @@ import {
   CreateGoalInput,
   CreateWeeklyReflectionInput,
   GoalType,
+  EatingStyle,
+  ProteinPriority,
 } from '@/repositories';
 import { Goal, WeeklyReflection, UserProfile } from '@/types/domain';
 import {
@@ -15,6 +17,7 @@ import {
   MAX_WEEKLY_ADJUSTMENTS,
   DATA_QUALITY_THRESHOLDS,
 } from '@/constants/defaults';
+import { macroCalculator } from '@/services/macroCalculator';
 
 interface GoalState {
   // State
@@ -41,6 +44,8 @@ interface GoalState {
     heightCm: number;
     age: number;
     activityLevel: keyof typeof ACTIVITY_MULTIPLIERS;
+    eatingStyle?: EatingStyle;
+    proteinPriority?: ProteinPriority;
   }) => Promise<Goal>;
   updateGoalTargets: (
     newTdee: number,
@@ -132,7 +137,17 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       const bmr = get().calculateBMR(params.currentWeightKg, params.heightCm, params.age, params.sex);
       const tdee = get().calculateTDEE(bmr, params.activityLevel);
       const targetCalories = get().calculateTargetCalories(tdee, params.type, params.targetRatePercent, params.sex);
-      const macros = get().calculateMacros(targetCalories, params.currentWeightKg);
+
+      // Use macroCalculator with eating style and protein priority if provided
+      const eatingStyle = params.eatingStyle ?? 'flexible';
+      const proteinPriority = params.proteinPriority ?? 'active';
+
+      const macros = macroCalculator.calculateMacros({
+        weightKg: params.currentWeightKg,
+        targetCalories: Math.round(targetCalories),
+        eatingStyle,
+        proteinPriority,
+      });
 
       const input: CreateGoalInput = {
         type: params.type,
@@ -145,6 +160,8 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         initialProteinG: macros.protein,
         initialCarbsG: macros.carbs,
         initialFatG: macros.fat,
+        eatingStyle,
+        proteinPriority,
       };
 
       const goal = await goalRepository.createGoal(input);

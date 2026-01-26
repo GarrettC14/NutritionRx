@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { WeightEntryRow } from '@/types/database';
 import { WeightEntry } from '@/types/domain';
@@ -108,7 +108,7 @@ export const weightRepository = {
 
   async create(input: CreateWeightInput): Promise<WeightEntry> {
     const db = getDatabase();
-    const id = uuidv4();
+    const id = generateId();
     const now = new Date().toISOString();
 
     // Check if entry already exists for this date

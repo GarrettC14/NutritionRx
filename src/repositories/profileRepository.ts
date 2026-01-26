@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { UserProfileRow } from '@/types/database';
 import { UserProfile } from '@/types/domain';
@@ -6,12 +6,16 @@ import { mapUserProfileRowToDomain } from '@/types/mappers';
 
 export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
 export type Sex = 'male' | 'female';
+export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
+export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
 
 export interface CreateProfileInput {
   sex?: Sex;
   dateOfBirth?: string;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  eatingStyle?: EatingStyle;
+  proteinPriority?: ProteinPriority;
 }
 
 export interface UpdateProfileInput {
@@ -19,6 +23,8 @@ export interface UpdateProfileInput {
   dateOfBirth?: string;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  eatingStyle?: EatingStyle;
+  proteinPriority?: ProteinPriority;
   hasCompletedOnboarding?: boolean;
   onboardingSkipped?: boolean;
 }
@@ -49,14 +55,17 @@ export const profileRepository = {
     await db.runAsync(
       `INSERT INTO user_profile (
         id, sex, date_of_birth, height_cm, activity_level,
+        eating_style, protein_priority,
         has_completed_onboarding, onboarding_skipped, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         DEFAULT_PROFILE_ID,
         input.sex ?? null,
         input.dateOfBirth ?? null,
         input.heightCm ?? null,
         input.activityLevel ?? null,
+        input.eatingStyle ?? 'flexible',
+        input.proteinPriority ?? 'active',
         0,
         0,
         now,
@@ -94,6 +103,14 @@ export const profileRepository = {
     if (updates.activityLevel !== undefined) {
       setClauses.push('activity_level = ?');
       values.push(updates.activityLevel);
+    }
+    if (updates.eatingStyle !== undefined) {
+      setClauses.push('eating_style = ?');
+      values.push(updates.eatingStyle);
+    }
+    if (updates.proteinPriority !== undefined) {
+      setClauses.push('protein_priority = ?');
+      values.push(updates.proteinPriority);
     }
     if (updates.hasCompletedOnboarding !== undefined) {
       setClauses.push('has_completed_onboarding = ?');

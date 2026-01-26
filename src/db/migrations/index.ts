@@ -2,13 +2,17 @@ import { SQLiteDatabase } from 'expo-sqlite';
 import { migration001Initial } from './001_initial';
 import { migration002Goals } from './002_goals';
 import { migration003HealthSync } from './003_health_sync';
+import { migration004SeedFoods } from './004_seed_foods';
+import { migration005MacroTemplates } from './005_macro_templates';
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
   migration002Goals,
   migration003HealthSync,
+  migration004SeedFoods,
+  migration005MacroTemplates,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {
