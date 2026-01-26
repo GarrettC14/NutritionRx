@@ -187,12 +187,6 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
-              icon="download-outline"
-              title="Export Data"
-              subtitle="Download your data"
-              onPress={() => router.push('/settings/data')}
-            />
-            <SettingsItem
               icon="cloud-upload-outline"
               title="Import Data"
               subtitle="Restore from backup"
