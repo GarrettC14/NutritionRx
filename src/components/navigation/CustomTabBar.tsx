@@ -21,7 +21,6 @@ const TABS: TabItem[] = [
     icon: 'today-outline',
     iconActive: 'today',
     href: '/(tabs)',
-    matchPaths: ['/(tabs)', '/'],
   },
   {
     name: 'food',
@@ -37,7 +36,7 @@ const TABS: TabItem[] = [
     icon: 'bar-chart-outline',
     iconActive: 'bar-chart',
     href: '/(tabs)/progress',
-    matchPaths: ['/(tabs)/progress'],
+    matchPaths: ['/progress'],
   },
   {
     name: 'settings',
@@ -45,7 +44,7 @@ const TABS: TabItem[] = [
     icon: 'settings-outline',
     iconActive: 'settings',
     href: '/(tabs)/settings',
-    matchPaths: ['/(tabs)/settings', '/settings'],
+    matchPaths: ['/settings'],
   },
 ];
 
@@ -56,14 +55,14 @@ export function CustomTabBar() {
   const insets = useSafeAreaInsets();
 
   const isTabActive = (tab: TabItem): boolean => {
+    // Today tab - active on root/index
+    if (tab.name === 'index') {
+      return pathname === '/' || pathname === '/index' || pathname === '';
+    }
+
+    // Other tabs - check matchPaths
     if (tab.matchPaths) {
-      return tab.matchPaths.some((path) => {
-        if (path === '/(tabs)' || path === '/') {
-          // Today tab - active only on root tabs
-          return pathname === '/' || pathname === '/(tabs)' || pathname === '/index';
-        }
-        return pathname.startsWith(path);
-      });
+      return tab.matchPaths.some((path) => pathname.startsWith(path));
     }
     return false;
   };
