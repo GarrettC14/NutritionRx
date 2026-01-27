@@ -146,7 +146,6 @@ export default function AddFoodScreen() {
             placeholderTextColor={colors.textTertiary}
             value={searchText}
             onChangeText={setSearchText}
-            autoFocus
             returnKeyType="search"
             onSubmitEditing={() => Keyboard.dismiss()}
           />
