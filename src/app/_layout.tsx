@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -21,19 +21,64 @@ function RootLayoutContent() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'none',
+          animation: 'default', // Platform-native push/pop animations
+          gestureEnabled: Platform.OS === 'ios', // iOS swipe back gesture
           contentStyle: { backgroundColor: colors.bgPrimary },
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+        {/* App initializer - no animation needed */}
+        <Stack.Screen name="index" options={{ animation: 'none' }} />
+
+        {/* Main tabs - no animation (handled by tab navigator) */}
+        <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+
+        {/* Full screen modal flow - slide up, no gesture dismiss */}
+        <Stack.Screen
+          name="onboarding"
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: false,
+          }}
+        />
+
+        {/* Settings nested stack - default push animation */}
         <Stack.Screen name="settings" />
-        <Stack.Screen name="add-food" />
+
+        {/* Add food - treated as pseudo-tab, no animation from tabs */}
+        <Stack.Screen name="add-food" options={{ animation: 'none' }} />
+
+        {/* Detail screens - default platform push animation */}
         <Stack.Screen name="food/[id]" />
-        <Stack.Screen name="log-entry/[id]" />
-        <Stack.Screen name="log-weight" />
-        <Stack.Screen name="weekly-reflection" />
+
+        {/* Modal forms - slide up from bottom */}
+        <Stack.Screen
+          name="log-entry/[id]"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+            gestureDirection: 'vertical',
+          }}
+        />
+        <Stack.Screen
+          name="log-weight"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+            gestureDirection: 'vertical',
+          }}
+        />
+        <Stack.Screen
+          name="weekly-reflection"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+            gestureDirection: 'vertical',
+          }}
+        />
       </Stack>
     </>
   );

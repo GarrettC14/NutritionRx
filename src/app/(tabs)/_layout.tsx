@@ -16,6 +16,7 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          animation: 'none', // Instant tab switching (platform standard)
           lazy: false, // Pre-render all tab screens to avoid flash
           // @ts-ignore - sceneContainerStyle exists on BottomTabNavigator
           sceneContainerStyle: { backgroundColor: bgColor },

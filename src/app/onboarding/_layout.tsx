@@ -9,8 +9,8 @@ export default function OnboardingLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.bgPrimary },
-        animation: 'slide_from_right',
-        gestureEnabled: false,
+        animation: 'default', // Platform-native push/pop animations
+        gestureEnabled: false, // Prevent accidental back navigation during onboarding
       }}
     >
       <Stack.Screen name="index" />
@@ -22,6 +22,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="goal" />
       <Stack.Screen name="target" />
       <Stack.Screen name="rate" />
+      <Stack.Screen name="eating-style" />
+      <Stack.Screen name="protein-priority" />
       <Stack.Screen name="summary" />
     </Stack>
   );
