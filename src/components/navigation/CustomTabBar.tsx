@@ -99,40 +99,51 @@ export function CustomTabBar() {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.bgSecondary,
-          borderTopColor: colors.borderDefault,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 20,
-        },
-      ]}
-    >
-      {TABS.map((tab) => {
-        const isActive = isTabActive(tab);
-        const color = isActive ? colors.accent : colors.textSecondary;
+    <View style={[styles.wrapper, { backgroundColor: colors.bgSecondary }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.bgSecondary,
+            borderTopColor: colors.borderDefault,
+          },
+        ]}
+      >
+        {TABS.map((tab) => {
+          const isActive = isTabActive(tab);
+          const color = isActive ? colors.accent : colors.textSecondary;
 
-        return (
-          <Pressable
-            key={tab.name}
-            style={styles.tab}
-            onPress={() => handleTabPress(tab)}
-          >
-            <Ionicons
-              name={isActive ? tab.iconActive : tab.icon}
-              size={24}
-              color={color}
-            />
-            <Text style={[styles.label, { color }]}>{tab.title}</Text>
-          </Pressable>
-        );
-      })}
+          return (
+            <Pressable
+              key={tab.name}
+              style={styles.tab}
+              onPress={() => handleTabPress(tab)}
+            >
+              <Ionicons
+                name={isActive ? tab.iconActive : tab.icon}
+                size={24}
+                color={color}
+              />
+              <Text style={[styles.label, { color }]}>{tab.title}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {/* Safe area bottom fill */}
+      <View
+        style={{
+          height: insets.bottom > 0 ? insets.bottom : 20,
+          backgroundColor: colors.bgSecondary,
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    // Ensures background color fills the entire bottom area
+  },
   container: {
     flexDirection: 'row',
     borderTopWidth: 1,
