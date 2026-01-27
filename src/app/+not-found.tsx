@@ -12,7 +12,7 @@ export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Not Found' }} />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <Ionicons name="warning-outline" size={64} color={colors.textTertiary} />
         <Text style={[styles.title, { color: colors.textPrimary }]}>
           Page Not Found

@@ -23,10 +23,11 @@ import {
   getDefaultAmountForUnit,
   getUnitLabel,
 } from '@/constants/servingUnits';
-import { useFoodLogStore } from '@/stores';
+import { useFoodLogStore, useFavoritesStore } from '@/stores';
 import { foodRepository } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
+import { FavoriteButton } from '@/components/ui/FavoriteButton';
 
 export default function LogFoodScreen() {
   const { colors } = useTheme();
@@ -38,6 +39,7 @@ export default function LogFoodScreen() {
   }>();
 
   const { addLogEntry } = useFoodLogStore();
+  const { isFavorite, toggleFavorite, updateFavoriteDefaults, loadFavorites } = useFavoritesStore();
 
   // State
   const [food, setFood] = useState<FoodItem | null>(null);
@@ -50,7 +52,7 @@ export default function LogFoodScreen() {
   );
   const date = params.date || new Date().toISOString().split('T')[0];
 
-  // Load food item
+  // Load food item and ensure favorites are loaded
   useEffect(() => {
     const loadFood = async () => {
       if (!params.foodId) return;
@@ -60,6 +62,7 @@ export default function LogFoodScreen() {
       setIsLoading(false);
     };
     loadFood();
+    loadFavorites();
   }, [params.foodId]);
 
   // Get available units for this food
@@ -108,6 +111,21 @@ export default function LogFoodScreen() {
       setAmount(parts[0] + '.' + parts.slice(1).join(''));
     } else {
       setAmount(cleaned);
+    }
+  };
+
+  // Handle favorite toggle - saves current serving size/unit as default
+  const handleToggleFavorite = async () => {
+    if (!food) return;
+    try {
+      const isNowFavorited = await toggleFavorite(food.id);
+      // If we just added to favorites, save current serving size/unit as default
+      if (isNowFavorited) {
+        const amountNum = parseFloat(amount) || 1;
+        await updateFavoriteDefaults(food.id, amountNum, selectedUnit);
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -186,7 +204,11 @@ export default function LogFoodScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Add to {MEAL_TYPE_LABELS[mealType]}
         </Text>
-        <View style={{ width: 28 }} />
+        <FavoriteButton
+          isFavorite={isFavorite(food.id)}
+          onPress={handleToggleFavorite}
+          size={26}
+        />
       </View>
 
       <ScrollView

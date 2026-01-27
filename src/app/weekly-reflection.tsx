@@ -95,7 +95,7 @@ export default function WeeklyReflectionScreen() {
   // No pending reflection
   if (!pendingReflection) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Weekly Check-in</Text>
           <Pressable onPress={() => router.back()}>
@@ -121,7 +121,7 @@ export default function WeeklyReflectionScreen() {
     pendingReflection.newTargetCalories !== activeGoal.currentTargetCalories;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Week {pendingReflection.weekNumber} Check-in

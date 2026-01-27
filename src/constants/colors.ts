@@ -38,6 +38,9 @@ export const colors = {
     // Progress ring
     ringTrack: '#30363D',
     ringFill: '#64B5F6',
+
+    // Favorites
+    favorites: '#E57373',
   },
 
   // === LIGHT MODE ===
@@ -79,6 +82,9 @@ export const colors = {
     // Progress ring
     ringTrack: '#E5E7EB',
     ringFill: '#2563EB',
+
+    // Favorites
+    favorites: '#D32F2F',
   },
 } as const;
 
@@ -158,6 +164,7 @@ export interface Colors {
   calories: string;
   ringTrack: string;
   ringFill: string;
+  favorites: string;
 }
 
 export interface ChartColors {

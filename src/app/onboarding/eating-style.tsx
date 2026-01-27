@@ -70,7 +70,7 @@ export default function EatingStyleScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Progress */}
       <View style={styles.progress}>
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>

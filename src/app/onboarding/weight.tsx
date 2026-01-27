@@ -69,7 +69,7 @@ export default function WeightScreen() {
   const displayOther = unit === 'kg' ? `${kgToLbs(weightKg)} lbs` : `${weightKg.toFixed(1)} kg`;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Progress */}
       <View style={styles.progress}>
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>

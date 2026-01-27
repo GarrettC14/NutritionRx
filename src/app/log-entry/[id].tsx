@@ -23,10 +23,11 @@ import {
   getDefaultAmountForUnit,
   getUnitLabel,
 } from '@/constants/servingUnits';
-import { useFoodLogStore } from '@/stores';
+import { useFoodLogStore, useFavoritesStore } from '@/stores';
 import { logEntryRepository, quickAddRepository, foodRepository } from '@/repositories';
 import { LogEntry, QuickAddEntry, FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
+import { FavoriteButton } from '@/components/ui/FavoriteButton';
 
 type EntryType = 'log' | 'quick';
 
@@ -43,6 +44,7 @@ export default function LogEntryScreen() {
 
   const { updateLogEntry, deleteLogEntry, updateQuickEntry, deleteQuickEntry, refreshCurrentDate } =
     useFoodLogStore();
+  const { isFavorite, toggleFavorite, loadFavorites } = useFavoritesStore();
 
   // State
   const [loadedEntry, setLoadedEntry] = useState<LoadedEntry | null>(null);
@@ -63,7 +65,7 @@ export default function LogEntryScreen() {
   const [quickFat, setQuickFat] = useState('');
   const [quickDescription, setQuickDescription] = useState('');
 
-  // Load entry
+  // Load entry and favorites
   useEffect(() => {
     const loadEntry = async () => {
       if (!id) return;
@@ -99,6 +101,7 @@ export default function LogEntryScreen() {
     };
 
     loadEntry();
+    loadFavorites();
   }, [id]);
 
   // Get available units for log entries
@@ -156,6 +159,16 @@ export default function LogEntryScreen() {
   const handleMealTypeChange = (meal: MealType) => {
     setMealType(meal);
     setHasChanges(true);
+  };
+
+  // Handle favorite toggle
+  const handleToggleFavorite = async () => {
+    if (!loadedEntry?.food) return;
+    try {
+      await toggleFavorite(loadedEntry.food.id);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
   };
 
   // Handle save
@@ -244,7 +257,7 @@ export default function LogEntryScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <Ionicons name="close" size={28} color={colors.textPrimary} />
@@ -262,7 +275,7 @@ export default function LogEntryScreen() {
   // Not found state
   if (!loadedEntry) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <Ionicons name="close" size={28} color={colors.textPrimary} />
@@ -285,8 +298,10 @@ export default function LogEntryScreen() {
     loadedEntry.type === 'quick' ? parseInt(quickCalories, 10) > 0 : true;
   const isValid = isLogValid && isQuickValid;
 
+  const foodIsFavorite = loadedEntry.food ? isFavorite(loadedEntry.food.id) : false;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
@@ -339,6 +354,23 @@ export default function LogEntryScreen() {
               </Text>
             )}
           </View>
+        )}
+
+        {/* Favorite Toggle Row - Only for log entries */}
+        {loadedEntry.type === 'log' && loadedEntry.food && (
+          <Pressable
+            style={[styles.favoriteRow, { backgroundColor: colors.bgSecondary }]}
+            onPress={handleToggleFavorite}
+          >
+            <FavoriteButton
+              isFavorite={foodIsFavorite}
+              onPress={handleToggleFavorite}
+              size={24}
+            />
+            <Text style={[styles.favoriteText, { color: colors.textPrimary }]}>
+              {foodIsFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+            </Text>
+          </Pressable>
         )}
 
         {/* Edit section based on type */}
@@ -630,6 +662,17 @@ const styles = StyleSheet.create({
     ...typography.caption,
     textAlign: 'center',
     marginTop: spacing[1],
+  },
+  favoriteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing[3],
+    borderRadius: borderRadius.lg,
+    gap: spacing[2],
+  },
+  favoriteText: {
+    ...typography.body.medium,
+    fontWeight: '500',
   },
   section: {
     gap: spacing[3],

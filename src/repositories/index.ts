@@ -27,3 +27,6 @@ export type {
 
 export { settingsRepository } from './settingsRepository';
 export type { UserSettings, WeightUnit, Theme } from './settingsRepository';
+
+export { favoriteRepository } from './favoriteRepository';
+export type { AddFavoriteInput } from './favoriteRepository';

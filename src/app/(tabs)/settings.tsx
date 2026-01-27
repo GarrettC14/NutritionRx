@@ -222,6 +222,31 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Legal Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            LEGAL
+          </Text>
+          <View style={styles.sectionContent}>
+            <SettingsItem
+              icon="heart-outline"
+              title="Health & Safety Notice"
+              subtitle="Review the health disclaimer"
+              onPress={() => router.push('/settings/health-notice')}
+            />
+            <SettingsItem
+              icon="document-text-outline"
+              title="Terms of Service"
+              onPress={() => {}}
+            />
+            <SettingsItem
+              icon="shield-outline"
+              title="Privacy Policy"
+              onPress={() => {}}
+            />
+          </View>
+        </View>
+
         {/* About Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>

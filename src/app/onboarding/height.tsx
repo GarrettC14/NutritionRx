@@ -47,7 +47,7 @@ export default function HeightScreen() {
   const displayIn = Math.round((heightInCm - displayFt * 30.48) / 2.54);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Progress */}
       <View style={styles.progress}>
         <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>

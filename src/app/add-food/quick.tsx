@@ -120,7 +120,6 @@ export default function QuickAddScreen() {
               placeholder="0"
               placeholderTextColor={colors.textTertiary}
               selectTextOnFocus
-              autoFocus
             />
             <Text style={[styles.inputUnit, { color: colors.textSecondary }]}>
               kcal

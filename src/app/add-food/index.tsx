@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -17,10 +18,12 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 import { MealType } from '@/constants/mealTypes';
-import { useFoodSearchStore } from '@/stores';
+import { useFoodSearchStore, useFavoritesStore } from '@/stores';
 import { FoodItem } from '@/types/domain';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
 import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
+import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -51,7 +54,7 @@ export default function AddFoodScreen() {
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, SEARCH_SETTINGS.debounceMs);
 
-  // Store
+  // Food search store
   const {
     results,
     recentFoods,
@@ -65,10 +68,20 @@ export default function AddFoodScreen() {
     loadFrequentFoods,
   } = useFoodSearchStore();
 
-  // Load recent and frequent foods on mount
+  // Favorites store
+  const {
+    favorites,
+    isLoaded: favoritesLoaded,
+    loadFavorites,
+    toggleFavorite,
+    isFavorite,
+  } = useFavoritesStore();
+
+  // Load recent, frequent foods and favorites on mount
   useEffect(() => {
     loadRecentFoods();
     loadFrequentFoods();
+    loadFavorites();
   }, []);
 
   // Search when debounced value changes
@@ -112,21 +125,54 @@ export default function AddFoodScreen() {
     });
   };
 
+  const handleToggleFavorite = useCallback(async (foodId: string) => {
+    try {
+      await toggleFavorite(foodId);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
+  }, [toggleFavorite]);
+
   const isSearching_ = searchText.length >= SEARCH_SETTINGS.minQueryLength;
   const showResults = isSearching_ && results.length > 0;
   const showNoResults = isSearching_ && results.length === 0 && !isSearching;
-  const showRecent = !isSearching_ && recentFoods.length > 0;
-  const showEmpty = !isSearching_ && recentFoods.length === 0;
+  const showSections = !isSearching_;
+  const showEmpty = !isSearching_ && recentFoods.length === 0 && favorites.length === 0;
 
   const renderFoodItem = ({ item }: { item: FoodItem }) => (
-    <FoodSearchResult
-      food={item}
-      onPress={() => handleFoodSelect(item)}
-    />
+    <View style={styles.foodRow}>
+      <View style={styles.foodRowContent}>
+        <FoodSearchResult
+          food={item}
+          onPress={() => handleFoodSelect(item)}
+        />
+      </View>
+      <FavoriteButton
+        isFavorite={isFavorite(item.id)}
+        onPress={() => handleToggleFavorite(item.id)}
+        size={22}
+      />
+    </View>
+  );
+
+  const renderFoodItemWithFavorite = (food: FoodItem) => (
+    <View key={food.id} style={styles.foodRow}>
+      <View style={styles.foodRowContent}>
+        <FoodSearchResult
+          food={food}
+          onPress={() => handleFoodSelect(food)}
+        />
+      </View>
+      <FavoriteButton
+        isFavorite={isFavorite(food.id)}
+        onPress={() => handleToggleFavorite(food.id)}
+        size={22}
+      />
+    </View>
   );
 
   // Show skeleton while initial data is loading
-  if (!isLoaded) {
+  if (!isLoaded || !favoritesLoaded) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <FoodSearchSkeleton />
@@ -207,21 +253,33 @@ export default function AddFoodScreen() {
           </View>
         )}
 
-        {showRecent && (
-          <FlatList
-            data={recentFoods}
-            keyExtractor={(item) => item.id}
-            renderItem={renderFoodItem}
-            ListHeaderComponent={
-              <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 0 }]}>
-                Recently Logged
-              </Text>
-            }
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
+        {showSections && !showEmpty && (
+          <ScrollView
+            style={styles.sectionsContainer}
+            contentContainerStyle={styles.sectionsContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-          />
+          >
+            {/* Favorites Section - expanded by default */}
+            <CollapsibleSection
+              title="Favorites"
+              itemCount={favorites.length}
+              defaultExpanded={true}
+              emptyMessage="No favorites yet. Tap the heart to add foods."
+            >
+              {favorites.map(renderFoodItemWithFavorite)}
+            </CollapsibleSection>
+
+            {/* Recently Logged Section - collapsed by default */}
+            <CollapsibleSection
+              title="Recently Logged"
+              itemCount={recentFoods.length}
+              defaultExpanded={false}
+              emptyMessage="No recently logged foods."
+            >
+              {recentFoods.map(renderFoodItemWithFavorite)}
+            </CollapsibleSection>
+          </ScrollView>
         )}
 
         {showEmpty && (
@@ -279,8 +337,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    height: 50,
     paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
     borderRadius: borderRadius.md,
     gap: spacing[2],
   },
@@ -289,8 +347,8 @@ const styles = StyleSheet.create({
     ...typography.body.large,
   },
   scanButton: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -307,8 +365,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[3],
   },
+  sectionsContainer: {
+    flex: 1,
+  },
+  sectionsContent: {
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingVertical: spacing[2],
+    paddingBottom: spacing[4],
+  },
   separator: {
     height: spacing[2],
+  },
+  foodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  foodRowContent: {
+    flex: 1,
   },
   sectionTitle: {
     ...typography.caption,

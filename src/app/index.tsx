@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfileStore, useSettingsStore, useWeightStore, useGoalStore } from '@/stores';
+import { useLegalAcknowledgment } from '@/features/legal/hooks/useLegalAcknowledgment';
 
 export default function AppInitializer() {
   const { colors } = useTheme();
@@ -12,6 +13,7 @@ export default function AppInitializer() {
   const { loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
   const { loadEntries: loadWeightEntries } = useWeightStore();
   const { loadActiveGoal } = useGoalStore();
+  const { isLoading: legalLoading, needsAcknowledgment } = useLegalAcknowledgment();
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -36,12 +38,17 @@ export default function AppInitializer() {
   }, []);
 
   // Show loading spinner while initializing
-  if (!isInitialized || !profileLoaded) {
+  if (!isInitialized || !profileLoaded || legalLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
+  }
+
+  // Check if legal acknowledgment is needed (first priority)
+  if (needsAcknowledgment) {
+    return <Redirect href="/legal-acknowledgment" />;
   }
 
   // Check if onboarding is needed

@@ -32,6 +32,16 @@ function RootLayoutContent() {
         {/* Main tabs - no animation (handled by tab navigator) */}
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
 
+        {/* Legal acknowledgment - full screen, no back */}
+        <Stack.Screen
+          name="legal-acknowledgment"
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+            gestureEnabled: false,
+          }}
+        />
+
         {/* Full screen modal flow - slide up, no gesture dismiss */}
         <Stack.Screen
           name="onboarding"
