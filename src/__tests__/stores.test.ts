@@ -237,6 +237,8 @@ describe('Profile Store', () => {
       sex: 'male',
       heightCm: 180,
       activityLevel: 'moderately_active',
+      eatingStyle: 'flexible',
+      proteinPriority: 'active',
       hasCompletedOnboarding: false,
       onboardingSkipped: false,
     };
@@ -270,6 +272,8 @@ describe('Profile Store', () => {
       profile: {
         id: 'default-profile',
         dateOfBirth: birthDate,
+        eatingStyle: 'flexible',
+        proteinPriority: 'active',
         hasCompletedOnboarding: false,
         onboardingSkipped: false,
         createdAt: new Date(),

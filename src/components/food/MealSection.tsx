@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -17,6 +17,7 @@ interface MealSectionProps {
   onQuickAddPress?: (entry: QuickAddEntry) => void;
   onDeleteEntry?: (entry: LogEntry) => void;
   onDeleteQuickAdd?: (entry: QuickAddEntry) => void;
+  onCopyMeal?: (mealType: MealType) => void;
 }
 
 export function MealSection({
@@ -28,8 +29,10 @@ export function MealSection({
   onQuickAddPress,
   onDeleteEntry,
   onDeleteQuickAdd,
+  onCopyMeal,
 }: MealSectionProps) {
   const { colors } = useTheme();
+  const [showMenu, setShowMenu] = useState(false);
 
   const totalCalories =
     entries.reduce((sum, e) => sum + e.calories, 0) +
@@ -37,18 +40,44 @@ export function MealSection({
 
   const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
 
+  const handleCopyMeal = () => {
+    setShowMenu(false);
+    onCopyMeal?.(mealType);
+  };
+
+  const handleMenuPress = () => {
+    if (hasEntries) {
+      setShowMenu(true);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          {MEAL_TYPE_LABELS[mealType]}
-        </Text>
+        <Pressable
+          style={styles.titleContainer}
+          onLongPress={handleMenuPress}
+          delayLongPress={300}
+        >
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {MEAL_TYPE_LABELS[mealType]}
+          </Text>
+        </Pressable>
         <View style={styles.headerRight}>
           {totalCalories > 0 && (
             <Text style={[styles.totalCalories, { color: colors.textSecondary }]}>
               {totalCalories} kcal
             </Text>
+          )}
+          {hasEntries && onCopyMeal && (
+            <Pressable
+              style={[styles.menuButton, { borderColor: colors.borderDefault }]}
+              onPress={handleMenuPress}
+              hitSlop={8}
+            >
+              <Ionicons name="ellipsis-horizontal" size={16} color={colors.textSecondary} />
+            </Pressable>
           )}
           <Pressable
             style={[styles.addButton, { borderColor: colors.borderDefault }]}
@@ -91,6 +120,43 @@ export function MealSection({
           </Text>
         </Pressable>
       )}
+
+      {/* Menu Modal */}
+      <Modal
+        visible={showMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMenu(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowMenu(false)}
+        >
+          <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
+            <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
+              {MEAL_TYPE_LABELS[mealType]}
+            </Text>
+            <Pressable
+              style={[styles.menuItem, { borderBottomColor: colors.borderDefault }]}
+              onPress={handleCopyMeal}
+            >
+              <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
+              <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+                Copy to Tomorrow
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => setShowMenu(false)}
+            >
+              <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -105,16 +171,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing[2],
   },
+  titleContainer: {
+    paddingVertical: spacing[1],
+  },
   title: {
     ...typography.title.small,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
+    gap: spacing[2],
   },
   totalCalories: {
     ...typography.caption,
+  },
+  menuButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addButton: {
     width: 32,
@@ -136,6 +213,35 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   emptyText: {
+    ...typography.body.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    width: '80%',
+    maxWidth: 300,
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    gap: spacing[2],
+  },
+  menuTitle: {
+    ...typography.title.small,
+    textAlign: 'center',
+    marginBottom: spacing[2],
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[2],
+    borderBottomWidth: 0,
+  },
+  menuItemText: {
     ...typography.body.medium,
   },
 });

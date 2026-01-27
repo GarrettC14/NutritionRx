@@ -489,3 +489,6 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
 
   console.log('Migration 006: Seeded comprehensive mock data');
 }
+
+// Export alias for developer menu
+export const seedMockData = migration006SeedMockData;

@@ -50,6 +50,8 @@ describe('goalRepository', () => {
       current_protein_g: 170,
       current_carbs_g: 195,
       current_fat_g: 65,
+      eating_style: 'flexible',
+      protein_priority: 'active',
       is_active: 1,
       completed_at: null,
       created_at: '2024-01-01T00:00:00.000Z',
@@ -139,6 +141,8 @@ describe('goalRepository', () => {
         initialProteinG: 170,
         initialCarbsG: 200,
         initialFatG: 67,
+        eatingStyle: 'flexible' as const,
+        proteinPriority: 'active' as const,
       };
 
       it('creates goal and deactivates existing active goals', async () => {

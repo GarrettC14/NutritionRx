@@ -36,6 +36,10 @@ interface FoodLogState {
   updateQuickEntry: (id: string, updates: UpdateQuickAddInput) => Promise<QuickAddEntry>;
   deleteQuickEntry: (id: string) => Promise<void>;
 
+  // Copy actions
+  copyMealToDate: (sourceMealType: MealType, targetDate: string, targetMealType?: MealType) => Promise<void>;
+  copyDayToDate: (sourceDate: string, targetDate: string) => Promise<void>;
+
   // Computed
   getDailySummary: () => DailySummary;
   getEntriesByMeal: () => Record<MealType, LogEntry[]>;
@@ -226,6 +230,110 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete quick entry',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  copyMealToDate: async (sourceMealType, targetDate, targetMealType) => {
+    set({ isLoading: true, error: null });
+    try {
+      const sourceDate = get().selectedDate;
+      const entries = get().entries.filter((e) => e.mealType === sourceMealType);
+      const quickEntries = get().quickAddEntries.filter((e) => e.mealType === sourceMealType);
+
+      const finalMealType = targetMealType || sourceMealType;
+
+      // Copy log entries
+      for (const entry of entries) {
+        await logEntryRepository.create({
+          foodItemId: entry.foodItemId,
+          date: targetDate,
+          mealType: finalMealType,
+          servings: entry.servings,
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          notes: entry.notes,
+        });
+      }
+
+      // Copy quick add entries
+      for (const entry of quickEntries) {
+        await quickAddRepository.create({
+          date: targetDate,
+          mealType: finalMealType,
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          description: entry.description,
+        });
+      }
+
+      // Reload if we copied to current date
+      if (targetDate === get().selectedDate) {
+        await get().loadEntriesForDate(targetDate);
+      }
+
+      set({ isLoading: false });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to copy meal',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  copyDayToDate: async (sourceDate, targetDate) => {
+    set({ isLoading: true, error: null });
+    try {
+      // Load entries from source date
+      const [sourceEntries, sourceQuickEntries] = await Promise.all([
+        logEntryRepository.findByDate(sourceDate),
+        quickAddRepository.findByDate(sourceDate),
+      ]);
+
+      // Copy log entries
+      for (const entry of sourceEntries) {
+        await logEntryRepository.create({
+          foodItemId: entry.foodItemId,
+          date: targetDate,
+          mealType: entry.mealType,
+          servings: entry.servings,
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          notes: entry.notes,
+        });
+      }
+
+      // Copy quick add entries
+      for (const entry of sourceQuickEntries) {
+        await quickAddRepository.create({
+          date: targetDate,
+          mealType: entry.mealType,
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat,
+          description: entry.description,
+        });
+      }
+
+      // Reload if we copied to current date
+      if (targetDate === get().selectedDate) {
+        await get().loadEntriesForDate(targetDate);
+      }
+
+      set({ isLoading: false });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to copy day',
         isLoading: false,
       });
       throw error;

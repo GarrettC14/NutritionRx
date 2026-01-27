@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { useEffect, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,9 @@ export default function TodayScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
+  // State
+  const [showDayMenu, setShowDayMenu] = useState(false);
+
   // Stores
   const {
     selectedDate,
@@ -29,6 +32,8 @@ export default function TodayScreen() {
     deleteQuickEntry,
     getEntriesByMeal,
     getQuickEntriesByMeal,
+    copyMealToDate,
+    copyDayToDate,
   } = useFoodLogStore();
 
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
@@ -117,12 +122,47 @@ export default function TodayScreen() {
     await deleteQuickEntry(entry.id);
   };
 
+  const handleCopyMeal = async (mealType: MealType) => {
+    const tomorrow = new Date(selectedDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    try {
+      await copyMealToDate(mealType, tomorrowStr);
+      Alert.alert('Copied', `${mealType.charAt(0).toUpperCase() + mealType.slice(1)} copied to tomorrow.`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to copy meal. Please try again.');
+    }
+  };
+
+  const handleCopyDay = async () => {
+    setShowDayMenu(false);
+    const tomorrow = new Date(selectedDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    try {
+      await copyDayToDate(selectedDate, tomorrowStr);
+      Alert.alert('Copied', 'All meals copied to tomorrow.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to copy day. Please try again.');
+    }
+  };
+
   const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        {hasEntries && (
+          <Pressable
+            style={styles.headerButton}
+            onPress={() => setShowDayMenu(true)}
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color={colors.textSecondary} />
+          </Pressable>
+        )}
         <Pressable
           style={styles.dateNav}
           onLongPress={goToToday}
@@ -144,6 +184,9 @@ export default function TodayScreen() {
             />
           </Pressable>
         </Pressable>
+        {hasEntries ? (
+          <View style={styles.headerButton} />
+        ) : null}
       </View>
 
       <ScrollView
@@ -184,6 +227,7 @@ export default function TodayScreen() {
                 onQuickAddPress={handleQuickAddPress}
                 onDeleteEntry={handleDeleteEntry}
                 onDeleteQuickAdd={handleDeleteQuickAdd}
+                onCopyMeal={handleCopyMeal}
               />
             ))}
           </View>
@@ -199,6 +243,43 @@ export default function TodayScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Day Menu Modal */}
+      <Modal
+        visible={showDayMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDayMenu(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowDayMenu(false)}
+        >
+          <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
+            <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
+              {formatDate(selectedDate)}
+            </Text>
+            <Pressable
+              style={styles.menuItem}
+              onPress={handleCopyDay}
+            >
+              <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
+              <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+                Copy All Meals to Tomorrow
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => setShowDayMenu(false)}
+            >
+              <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -209,10 +290,16 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[3],
+  },
+  headerButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   dateNav: {
     flexDirection: 'row',
@@ -251,6 +338,34 @@ const styles = StyleSheet.create({
     marginTop: spacing[4],
   },
   emptySubtitle: {
+    ...typography.body.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    width: '80%',
+    maxWidth: 320,
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    gap: spacing[2],
+  },
+  menuTitle: {
+    ...typography.title.small,
+    textAlign: 'center',
+    marginBottom: spacing[2],
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[2],
+  },
+  menuItemText: {
     ...typography.body.medium,
   },
 });

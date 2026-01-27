@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -124,6 +125,25 @@ export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
+  // Developer menu access - tap version 7 times
+  const tapCountRef = useRef(0);
+  const lastTapTimeRef = useRef(0);
+
+  const handleVersionTap = () => {
+    const now = Date.now();
+    // Reset if more than 2 seconds between taps
+    if (now - lastTapTimeRef.current > 2000) {
+      tapCountRef.current = 0;
+    }
+    lastTapTimeRef.current = now;
+    tapCountRef.current += 1;
+
+    if (tapCountRef.current >= 7) {
+      tapCountRef.current = 0;
+      router.push('/settings/developer');
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
@@ -208,12 +228,29 @@ export default function SettingsScreen() {
             ABOUT
           </Text>
           <View style={styles.sectionContent}>
-            <SettingsItem
-              icon="information-circle-outline"
-              title="About NutritionRx"
-              subtitle="Version 1.0.0"
+            <Pressable
+              style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
               onPress={() => router.push('/settings/about')}
-            />
+              onLongPress={handleVersionTap}
+              delayLongPress={0}
+            >
+              <View
+                style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}
+              >
+                <Ionicons name="information-circle-outline" size={20} color={colors.accent} />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                  About NutritionRx
+                </Text>
+                <Pressable onPress={handleVersionTap}>
+                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                    Version 1.0.0
+                  </Text>
+                </Pressable>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </Pressable>
             <SettingsItem
               icon="help-circle-outline"
               title="Help & Feedback"
