@@ -30,3 +30,9 @@ export type { UserSettings, WeightUnit, Theme } from './settingsRepository';
 
 export { favoriteRepository } from './favoriteRepository';
 export type { AddFavoriteInput } from './favoriteRepository';
+
+export { onboardingRepository } from './onboardingRepository';
+export type { GoalPath, EnergyUnit, OnboardingData } from './onboardingRepository';
+
+export { waterRepository, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from './waterRepository';
+export type { WaterLog, CreateWaterLogInput, UpdateWaterLogInput } from './waterRepository';

@@ -7,8 +7,10 @@ import { migration005MacroTemplates } from './005_macro_templates';
 import { migration006SeedMockData } from './006_seed_mock_data';
 import { migration007FavoriteFoods } from './007_favorite_foods';
 import { migration008LegalAcknowledgment } from './008_legal_acknowledgment';
+import { migration009SeedRestaurantUSDAFoods } from './009_seed_restaurant_usda_foods';
+import { migration010WaterTracking } from './010_water_tracking';
 
-export const CURRENT_SCHEMA_VERSION = 8;
+export const CURRENT_SCHEMA_VERSION = 10;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -19,6 +21,8 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration006SeedMockData,
   migration007FavoriteFoods,
   migration008LegalAcknowledgment,
+  migration009SeedRestaurantUSDAFoods,
+  migration010WaterTracking,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

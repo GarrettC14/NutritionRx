@@ -40,7 +40,9 @@
         {
           "cameraPermission": "NutritionRx needs camera access to scan barcodes on food products."
         }
-      ]
+      ],
+      "./plugins/withIOSWidget",
+      "./plugins/withAndroidWidget"
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import { useProfileStore, useSettingsStore, useWeightStore, useGoalStore } from '@/stores';
+import { useProfileStore, useSettingsStore, useWeightStore, useGoalStore, useOnboardingStore } from '@/stores';
 import { useLegalAcknowledgment } from '@/features/legal/hooks/useLegalAcknowledgment';
 
 export default function AppInitializer() {
@@ -13,6 +13,7 @@ export default function AppInitializer() {
   const { loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
   const { loadEntries: loadWeightEntries } = useWeightStore();
   const { loadActiveGoal } = useGoalStore();
+  const { loadOnboarding, isComplete: onboardingComplete, isLoaded: onboardingLoaded } = useOnboardingStore();
   const { isLoading: legalLoading, needsAcknowledgment } = useLegalAcknowledgment();
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -26,6 +27,7 @@ export default function AppInitializer() {
           loadSettings(),
           loadWeightEntries(),
           loadActiveGoal(),
+          loadOnboarding(),
         ]);
         setIsInitialized(true);
       } catch (error) {
@@ -38,7 +40,7 @@ export default function AppInitializer() {
   }, []);
 
   // Show loading spinner while initializing
-  if (!isInitialized || !profileLoaded || legalLoading) {
+  if (!isInitialized || !profileLoaded || !onboardingLoaded || legalLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color={colors.accent} />
@@ -51,8 +53,8 @@ export default function AppInitializer() {
     return <Redirect href="/legal-acknowledgment" />;
   }
 
-  // Check if onboarding is needed
-  const needsOnboarding = !profile?.hasCompletedOnboarding && !profile?.onboardingSkipped;
+  // Check if onboarding is needed (check both new onboarding store and legacy profile)
+  const needsOnboarding = !onboardingComplete && !profile?.hasCompletedOnboarding && !profile?.onboardingSkipped;
 
   // Redirect based on onboarding status
   if (needsOnboarding) {

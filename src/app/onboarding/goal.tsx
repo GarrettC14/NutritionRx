@@ -1,135 +1,133 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
-import { GoalType } from '@/types/domain';
+import { useOnboardingStore } from '@/stores';
+import { GoalPath } from '@/repositories/onboardingRepository';
 
 interface GoalOption {
-  type: GoalType;
-  icon: keyof typeof Ionicons.glyphMap;
+  value: GoalPath;
   label: string;
-  description: string;
+  subtitle: string;
 }
 
 const goalOptions: GoalOption[] = [
   {
-    type: 'lose',
-    icon: 'trending-down',
-    label: 'Lose Weight',
-    description: 'Create a calorie deficit to lose body fat',
+    value: 'lose',
+    label: 'Lose weight',
+    subtitle: 'Track calories to reach goals',
   },
   {
-    type: 'maintain',
-    icon: 'fitness-outline',
-    label: 'Maintain Weight',
-    description: 'Keep your current weight stable',
+    value: 'maintain',
+    label: 'Maintain weight',
+    subtitle: 'Keep your nutrition balanced',
   },
   {
-    type: 'gain',
-    icon: 'trending-up',
-    label: 'Gain Weight',
-    description: 'Build muscle with a calorie surplus',
+    value: 'gain',
+    label: 'Build muscle',
+    subtitle: 'Optimize protein and calories',
+  },
+  {
+    value: 'track',
+    label: 'Just track what I eat',
+    subtitle: 'No specific goal in mind',
   },
 ];
 
-export default function GoalScreen() {
+export default function GoalPathScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const [selected, setSelected] = useState<GoalType | null>(null);
+  const { setGoalPath } = useOnboardingStore();
+
+  // Default to 'track' (no pressure)
+  const [selected, setSelected] = useState<GoalPath>('track');
+
+  const handleSelect = (value: GoalPath) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setSelected(value);
+  };
 
   const handleContinue = () => {
-    if (!selected) return;
+    setGoalPath(selected);
+    router.push('/onboarding/preferences');
+  };
 
-    if (selected === 'maintain') {
-      // Skip target screen for maintenance
-      router.push({
-        pathname: '/onboarding/rate',
-        params: { goalType: selected },
-      });
-    } else {
-      router.push({
-        pathname: '/onboarding/target',
-        params: { goalType: selected },
-      });
-    }
+  const handleBack = () => {
+    router.back();
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
-      {/* Progress */}
-      <View style={styles.progress}>
-        <View style={[styles.progressBar, { backgroundColor: colors.bgSecondary }]}>
-          <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '66%' }]} />
-        </View>
-        <Text style={[styles.progressText, { color: colors.textTertiary }]}>6 of 11</Text>
+      {/* Header with back button */}
+      <View style={styles.header}>
+        <Pressable onPress={handleBack} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
+        </Pressable>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Title */}
         <Text style={[styles.title, { color: colors.textPrimary }]}>
-          What's your goal?
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          We'll customize your nutrition targets based on this.
+          What brings you to{'\n'}NutritionRx?
         </Text>
 
+        {/* Options */}
         <View style={styles.options}>
           {goalOptions.map((option) => (
             <Pressable
-              key={option.type}
+              key={option.value}
               style={[
-                styles.option,
+                styles.optionCard,
                 {
-                  backgroundColor:
-                    selected === option.type ? colors.accent + '20' : colors.bgSecondary,
-                  borderColor:
-                    selected === option.type ? colors.accent : 'transparent',
+                  backgroundColor: colors.bgSecondary,
+                  borderColor: selected === option.value ? colors.accent : colors.borderDefault,
+                  borderWidth: selected === option.value ? 2 : 1,
                 },
               ]}
-              onPress={() => setSelected(option.type)}
+              onPress={() => handleSelect(option.value)}
             >
-              <View
-                style={[
-                  styles.optionIcon,
-                  { backgroundColor: selected === option.type ? colors.accent : colors.bgPrimary },
-                ]}
-              >
-                <Ionicons
-                  name={option.icon}
-                  size={32}
-                  color={selected === option.type ? '#FFFFFF' : colors.textSecondary}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.optionLabel,
-                  { color: selected === option.type ? colors.accent : colors.textPrimary },
-                ]}
-              >
-                {option.label}
-              </Text>
-              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-                {option.description}
-              </Text>
-              {selected === option.type && (
-                <View style={styles.checkmark}>
-                  <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+              <View style={styles.radioContainer}>
+                <View
+                  style={[
+                    styles.radioOuter,
+                    {
+                      borderColor: selected === option.value ? colors.accent : colors.borderStrong,
+                    },
+                  ]}
+                >
+                  {selected === option.value && (
+                    <View style={[styles.radioInner, { backgroundColor: colors.accent }]} />
+                  )}
                 </View>
-              )}
+              </View>
+              <View style={styles.optionText}>
+                <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
+                  {option.label}
+                </Text>
+                <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]}>
+                  {option.subtitle}
+                </Text>
+              </View>
             </Pressable>
           ))}
         </View>
-      </View>
+      </ScrollView>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <Button
           label="Continue"
           onPress={handleContinue}
-          disabled={!selected}
           fullWidth
         />
       </View>
@@ -141,72 +139,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  progress: {
-    flexDirection: 'row',
+  header: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[2],
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing[3],
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingTop: spacing[4],
   },
-  progressBar: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  progressText: {
-    ...typography.caption,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingTop: spacing[8],
-  },
   title: {
-    ...typography.display.small,
-    marginBottom: spacing[2],
-  },
-  subtitle: {
-    ...typography.body.large,
-    marginBottom: spacing[8],
+    ...typography.display.medium,
+    marginBottom: spacing[6],
   },
   options: {
-    gap: spacing[4],
+    gap: spacing[3],
   },
-  option: {
-    padding: spacing[4],
-    borderRadius: borderRadius.xl,
-    borderWidth: 2,
+  optionCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    padding: spacing[4],
+    borderRadius: borderRadius.lg,
   },
-  optionIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  radioContainer: {
+    marginRight: spacing[3],
+  },
+  radioOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing[3],
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  optionText: {
+    flex: 1,
   },
   optionLabel: {
-    ...typography.title.medium,
+    ...typography.body.large,
+    fontWeight: '600',
     marginBottom: spacing[1],
   },
-  optionDescription: {
-    ...typography.body.small,
-    textAlign: 'center',
-  },
-  checkmark: {
-    position: 'absolute',
-    top: spacing[3],
-    right: spacing[3],
+  optionSubtitle: {
+    ...typography.body.medium,
   },
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingBottom: spacing[6],
+    paddingTop: spacing[4],
   },
 });

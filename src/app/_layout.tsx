@@ -6,6 +6,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { TooltipProvider } from '@/contexts/TooltipContext';
+import { TooltipModal } from '@/components/ui/TooltipModal';
 import { useTheme } from '@/hooks/useTheme';
 import { colors as themeColors } from '@/constants/colors';
 
@@ -122,7 +124,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: DEFAULT_BG }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <RootLayoutContent />
+          <TooltipProvider>
+            <RootLayoutContent />
+            <TooltipModal />
+          </TooltipProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

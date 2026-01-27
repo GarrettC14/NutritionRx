@@ -182,6 +182,12 @@ export default function SettingsScreen() {
               subtitle="Eating style, protein priority"
               onPress={() => router.push('/settings/nutrition')}
             />
+            <SettingsItem
+              icon="water-outline"
+              title="Water Tracking"
+              subtitle="Daily glass goal, glass size"
+              onPress={() => router.push('/settings/water')}
+            />
           </View>
         </View>
 

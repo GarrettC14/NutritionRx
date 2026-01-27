@@ -1,102 +1,60 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
-import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { spacing, componentSpacing } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 
 export default function WelcomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
-  const handleGetStarted = () => {
-    router.push('/onboarding/sex');
-  };
-
-  const handleSkip = () => {
-    router.replace('/(tabs)');
+  const handleBegin = () => {
+    router.push('/onboarding/goal');
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
-        {/* Logo/Icon */}
-        <View style={[styles.logoContainer, { backgroundColor: colors.accent + '20' }]}>
-          <Ionicons name="nutrition-outline" size={64} color={colors.accent} />
-        </View>
+        {/* Emoji with fade-in animation */}
+        <Animated.View
+          entering={FadeIn.duration(600).delay(200)}
+          style={styles.emojiContainer}
+        >
+          <Text style={styles.emoji}>🥗</Text>
+        </Animated.View>
 
-        {/* Welcome Text */}
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          Welcome to NutritionRx
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Your personal nutrition companion that learns and adapts to your body.
-        </Text>
+        {/* Title */}
+        <Animated.Text
+          entering={FadeInDown.duration(500).delay(400)}
+          style={[styles.title, { color: colors.textPrimary }]}
+        >
+          NutritionRx
+        </Animated.Text>
 
-        {/* Features */}
-        <View style={styles.features}>
-          <FeatureItem
-            icon="analytics-outline"
-            title="Smart Tracking"
-            description="Log food easily with barcode scanning and quick-add"
-            colors={colors}
-          />
-          <FeatureItem
-            icon="trending-up"
-            title="Adaptive Learning"
-            description="Your calorie targets adjust based on your actual results"
-            colors={colors}
-          />
-          <FeatureItem
-            icon="shield-checkmark-outline"
-            title="100% Private"
-            description="All your data stays on your device, always"
-            colors={colors}
-          />
-        </View>
+        {/* Subtitle */}
+        <Animated.Text
+          entering={FadeInDown.duration(500).delay(600)}
+          style={[styles.subtitle, { color: colors.textSecondary }]}
+        >
+          Nourish. Track. Thrive.
+        </Animated.Text>
       </View>
 
-      {/* Buttons */}
-      <View style={styles.footer}>
+      {/* Button */}
+      <Animated.View
+        entering={FadeInDown.duration(500).delay(800)}
+        style={styles.footer}
+      >
         <Button
-          label="Let's Get Started"
-          onPress={handleGetStarted}
+          label="Let's Begin"
+          onPress={handleBegin}
           fullWidth
         />
-        <Pressable style={styles.skipButton} onPress={handleSkip}>
-          <Text style={[styles.skipText, { color: colors.textSecondary }]}>
-            Skip for now
-          </Text>
-        </Pressable>
-      </View>
+      </Animated.View>
     </SafeAreaView>
-  );
-}
-
-interface FeatureItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
-  colors: any;
-}
-
-function FeatureItem({ icon, title, description, colors }: FeatureItemProps) {
-  return (
-    <View style={styles.feature}>
-      <View style={[styles.featureIcon, { backgroundColor: colors.bgSecondary }]}>
-        <Ionicons name={icon} size={24} color={colors.accent} />
-      </View>
-      <View style={styles.featureText}>
-        <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>
-          {title}
-        </Text>
-        <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
-          {description}
-        </Text>
-      </View>
-    </View>
   );
 }
 
@@ -106,66 +64,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingTop: spacing[8],
-    alignItems: 'center',
-  },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+  },
+  emojiContainer: {
     marginBottom: spacing[6],
   },
+  emoji: {
+    fontSize: 80,
+  },
   title: {
-    ...typography.display.medium,
+    ...typography.display.large,
     textAlign: 'center',
     marginBottom: spacing[2],
   },
   subtitle: {
     ...typography.body.large,
     textAlign: 'center',
-    marginBottom: spacing[8],
-    paddingHorizontal: spacing[4],
-  },
-  features: {
-    width: '100%',
-    gap: spacing[4],
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing[3],
-  },
-  featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  featureText: {
-    flex: 1,
-  },
-  featureTitle: {
-    ...typography.body.large,
-    fontWeight: '600',
-    marginBottom: spacing[1],
-  },
-  featureDescription: {
-    ...typography.body.medium,
   },
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingBottom: spacing[6],
-    gap: spacing[3],
-  },
-  skipButton: {
-    alignItems: 'center',
-    paddingVertical: spacing[2],
-  },
-  skipText: {
-    ...typography.body.medium,
+    paddingBottom: spacing[8],
   },
 });

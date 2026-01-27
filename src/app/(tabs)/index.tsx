@@ -7,12 +7,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
-import { useFoodLogStore, useSettingsStore } from '@/stores';
+import { useFoodLogStore, useSettingsStore, useWaterStore } from '@/stores';
 import { CalorieRing } from '@/components/ui/CalorieRing';
 import { MacroSummary } from '@/components/food/MacroSummary';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
+import { WaterSection } from '@/components/water';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 
 export default function TodayScreen() {
@@ -39,18 +40,21 @@ export default function TodayScreen() {
   } = useFoodLogStore();
 
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore();
 
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
 
-  // Show skeleton until both data and settings are loaded
-  const isReady = dataLoaded && settingsLoaded;
+  // Show skeleton until data, settings, and water are loaded
+  const isReady = dataLoaded && settingsLoaded && waterLoaded;
 
   // Load data on mount
   useEffect(() => {
     loadSettings();
     loadEntriesForDate(selectedDate);
     loadStreak();
+    loadWaterSettings();
+    loadTodayWater();
   }, []);
 
   // Date navigation
@@ -253,6 +257,11 @@ export default function TodayScreen() {
           />
         </View>
 
+        {/* Water Section */}
+        <View style={styles.waterSection}>
+          <WaterSection />
+        </View>
+
         {/* Meal Sections - Always show all, collapsed by default */}
         <View style={styles.mealsContainer}>
           {MEAL_TYPE_ORDER.map((mealType) => (
@@ -360,6 +369,9 @@ const styles = StyleSheet.create({
     marginVertical: spacing[4],
   },
   macroSection: {
+    marginBottom: spacing[6],
+  },
+  waterSection: {
     marginBottom: spacing[6],
   },
   mealsContainer: {

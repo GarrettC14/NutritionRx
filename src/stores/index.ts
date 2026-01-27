@@ -5,3 +5,5 @@ export { useWeightStore } from './weightStore';
 export { useGoalStore } from './goalStore';
 export { useProfileStore } from './profileStore';
 export { useFavoritesStore } from './favoritesStore';
+export { useOnboardingStore } from './onboardingStore';
+export { useWaterStore } from './waterStore';
