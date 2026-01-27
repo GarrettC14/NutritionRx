@@ -127,13 +127,9 @@ export default function AddFoodScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color={colors.textPrimary} />
-        </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Add Food
         </Text>
-        <View style={{ width: 28 }} />
       </View>
 
       {/* Search Bar */}
@@ -257,14 +253,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingVertical: spacing[3],
+    paddingVertical: spacing[4],
   },
   headerTitle: {
-    ...typography.title.medium,
+    ...typography.display.small,
   },
   searchContainer: {
     flexDirection: 'row',
