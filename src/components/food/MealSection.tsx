@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -7,6 +8,11 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 import { FoodEntryCard } from './FoodEntryCard';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface MealSectionProps {
   mealType: MealType;
@@ -18,7 +24,10 @@ interface MealSectionProps {
   onDeleteEntry?: (entry: LogEntry) => void;
   onDeleteQuickAdd?: (entry: QuickAddEntry) => void;
   onCopyMeal?: (mealType: MealType) => void;
+  defaultExpanded?: boolean;
 }
+
+const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
 
 export function MealSection({
   mealType,
@@ -30,15 +39,31 @@ export function MealSection({
   onDeleteEntry,
   onDeleteQuickAdd,
   onCopyMeal,
+  defaultExpanded = false,
 }: MealSectionProps) {
   const { colors } = useTheme();
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Chevron rotation animation
+  const rotation = useSharedValue(defaultExpanded ? 90 : 0);
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
 
   const totalCalories =
     entries.reduce((sum, e) => sum + e.calories, 0) +
     quickAddEntries.reduce((sum, e) => sum + e.calories, 0);
 
-  const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
+  const itemCount = entries.length + quickAddEntries.length;
+  const hasEntries = itemCount > 0;
+
+  const toggleExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    setIsExpanded(!isExpanded);
+  };
 
   const handleCopyMeal = () => {
     setShowMenu(false);
@@ -51,74 +76,90 @@ export function MealSection({
     }
   };
 
+  const handleAddPress = (e: any) => {
+    e.stopPropagation();
+    onAddPress(mealType);
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable
-          style={styles.titleContainer}
-          onLongPress={handleMenuPress}
-          delayLongPress={300}
-        >
+    <View style={[styles.container, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}>
+      {/* Collapsible Header */}
+      <Pressable
+        style={styles.header}
+        onPress={toggleExpanded}
+        onLongPress={handleMenuPress}
+        delayLongPress={300}
+      >
+        <View style={styles.headerLeft}>
+          <Animated.View style={chevronStyle}>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </Animated.View>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {MEAL_TYPE_LABELS[mealType]}
           </Text>
-        </Pressable>
-        <View style={styles.headerRight}>
-          {totalCalories > 0 && (
-            <Text style={[styles.totalCalories, { color: colors.textSecondary }]}>
-              {totalCalories} kcal
+          {!isExpanded && hasEntries && (
+            <Text style={[styles.itemCount, { color: colors.textTertiary }]}>
+              {itemCount} {itemCount === 1 ? 'item' : 'items'}
             </Text>
           )}
-          {hasEntries && onCopyMeal && (
-            <Pressable
-              style={[styles.menuButton, { borderColor: colors.borderDefault }]}
-              onPress={handleMenuPress}
-              hitSlop={8}
-            >
-              <Ionicons name="ellipsis-horizontal" size={16} color={colors.textSecondary} />
-            </Pressable>
-          )}
+        </View>
+        <View style={styles.headerRight}>
+          <Text style={[styles.totalCalories, { color: colors.textSecondary }]}>
+            {totalCalories} cal
+          </Text>
           <Pressable
-            style={[styles.addButton, { borderColor: colors.borderDefault }]}
-            onPress={() => onAddPress(mealType)}
+            style={[styles.addButton, { backgroundColor: colors.bgInteractive }]}
+            onPress={handleAddPress}
             hitSlop={8}
           >
-            <Ionicons name="add" size={20} color={colors.accent} />
+            <Ionicons name="add" size={18} color={colors.accent} />
           </Pressable>
         </View>
-      </View>
+      </Pressable>
 
-      {/* Entries */}
-      {hasEntries ? (
-        <View style={styles.entriesList}>
-          {entries.map((entry) => (
-            <FoodEntryCard
-              key={entry.id}
-              entry={entry}
-              onPress={() => onEntryPress?.(entry)}
-              onDelete={onDeleteEntry ? () => onDeleteEntry(entry) : undefined}
-            />
-          ))}
-          {quickAddEntries.map((entry) => (
-            <FoodEntryCard
-              key={entry.id}
-              entry={entry}
-              onPress={() => onQuickAddPress?.(entry)}
-              onDelete={onDeleteQuickAdd ? () => onDeleteQuickAdd(entry) : undefined}
-            />
-          ))}
+      {/* Expanded Content */}
+      {isExpanded && (
+        <View style={styles.content}>
+          {hasEntries ? (
+            <View style={styles.entriesList}>
+              {entries.map((entry) => (
+                <FoodEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onPress={() => onEntryPress?.(entry)}
+                  onDelete={onDeleteEntry ? () => onDeleteEntry(entry) : undefined}
+                />
+              ))}
+              {quickAddEntries.map((entry) => (
+                <FoodEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onPress={() => onQuickAddPress?.(entry)}
+                  onDelete={onDeleteQuickAdd ? () => onDeleteQuickAdd(entry) : undefined}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
+                No foods logged yet
+              </Text>
+            </View>
+          )}
+
+          {/* Menu button when expanded and has entries */}
+          {hasEntries && onCopyMeal && (
+            <Pressable
+              style={styles.copyButton}
+              onPress={handleCopyMeal}
+            >
+              <Ionicons name="copy-outline" size={14} color={colors.textTertiary} />
+              <Text style={[styles.copyButtonText, { color: colors.textTertiary }]}>
+                Copy to tomorrow
+              </Text>
+            </Pressable>
+          )}
         </View>
-      ) : (
-        <Pressable
-          style={[styles.emptyState, { backgroundColor: colors.bgSecondary }]}
-          onPress={() => onAddPress(mealType)}
-        >
-          <Ionicons name="add-circle-outline" size={24} color={colors.textTertiary} />
-          <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-            Add food
-          </Text>
-        </Pressable>
       )}
 
       {/* Menu Modal */}
@@ -163,57 +204,70 @@ export function MealSection({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing[4],
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing[2],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
   },
-  titleContainer: {
-    paddingVertical: spacing[1],
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    flex: 1,
   },
   title: {
-    ...typography.title.small,
+    ...typography.body.large,
+    fontWeight: '600',
+  },
+  itemCount: {
+    ...typography.caption,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
+    gap: spacing[3],
   },
   totalCalories: {
-    ...typography.caption,
+    ...typography.body.medium,
+    fontWeight: '500',
   },
-  menuButton: {
+  addButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  content: {
+    paddingHorizontal: spacing[3],
+    paddingBottom: spacing[3],
   },
   entriesList: {
     gap: spacing[2],
   },
   emptyState: {
-    flexDirection: 'row',
+    paddingVertical: spacing[3],
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[4],
-    borderRadius: borderRadius.md,
   },
   emptyText: {
     ...typography.body.medium,
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[1],
+    marginTop: spacing[3],
+    paddingVertical: spacing[2],
+  },
+  copyButtonText: {
+    ...typography.caption,
   },
   modalOverlay: {
     flex: 1,

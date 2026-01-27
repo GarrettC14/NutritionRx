@@ -235,39 +235,27 @@ export default function TodayScreen() {
           <MacroSummary
             totals={dailyTotals}
             goals={goals}
-            variant={hasEntries ? 'detailed' : 'compact'}
+            variant="detailed"
           />
         </View>
 
-        {/* Meal Sections or Empty State */}
-        {hasEntries ? (
-          <View style={styles.mealsContainer}>
-            {MEAL_TYPE_ORDER.map((mealType) => (
-              <MealSection
-                key={mealType}
-                mealType={mealType}
-                entries={entriesByMeal[mealType]}
-                quickAddEntries={quickEntriesByMeal[mealType]}
-                onAddPress={handleAddFood}
-                onEntryPress={handleEntryPress}
-                onQuickAddPress={handleQuickAddPress}
-                onDeleteEntry={handleDeleteEntry}
-                onDeleteQuickAdd={handleDeleteQuickAdd}
-                onCopyMeal={handleCopyMeal}
-              />
-            ))}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="restaurant-outline" size={64} color={colors.textTertiary} />
-            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-              What will you eat today?
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Tap a meal section to add food
-            </Text>
-          </View>
-        )}
+        {/* Meal Sections - Always show all, collapsed by default */}
+        <View style={styles.mealsContainer}>
+          {MEAL_TYPE_ORDER.map((mealType) => (
+            <MealSection
+              key={mealType}
+              mealType={mealType}
+              entries={entriesByMeal[mealType]}
+              quickAddEntries={quickEntriesByMeal[mealType]}
+              onAddPress={handleAddFood}
+              onEntryPress={handleEntryPress}
+              onQuickAddPress={handleQuickAddPress}
+              onDeleteEntry={handleDeleteEntry}
+              onDeleteQuickAdd={handleDeleteQuickAdd}
+              onCopyMeal={handleCopyMeal}
+            />
+          ))}
+        </View>
       </ScrollView>
 
       {/* Day Menu Modal */}
@@ -361,19 +349,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[6],
   },
   mealsContainer: {
-    gap: spacing[2],
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: spacing[12],
     gap: spacing[3],
-  },
-  emptyTitle: {
-    ...typography.title.medium,
-    marginTop: spacing[4],
-  },
-  emptySubtitle: {
-    ...typography.body.medium,
   },
   modalOverlay: {
     flex: 1,
