@@ -11,6 +11,7 @@ interface FoodSearchState {
   frequentFoods: FoodItem[];
   isSearching: boolean;
   isLoadingRecent: boolean;
+  isLoaded: boolean;
   error: string | null;
 
   // Actions
@@ -32,6 +33,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
   frequentFoods: [],
   isSearching: false,
   isLoadingRecent: false,
+  isLoaded: false,
   error: null,
 
   setQuery: (query) => {
@@ -71,11 +73,12 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
     set({ isLoadingRecent: true, error: null });
     try {
       const recentFoods = await foodRepository.getRecent();
-      set({ recentFoods, isLoadingRecent: false });
+      set({ recentFoods, isLoadingRecent: false, isLoaded: true });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load recent foods',
         isLoadingRecent: false,
+        isLoaded: true,
       });
     }
   },

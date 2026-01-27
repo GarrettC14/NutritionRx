@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWeightStore, useSettingsStore } from '@/stores';
 import { logEntryRepository } from '@/repositories';
 import { WeightChart, CalorieChart, MacroChart } from '@/components/charts';
+import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
@@ -40,13 +41,13 @@ export default function ProgressScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { entries: weightEntries, loadEntriesForRange } = useWeightStore();
-  const { settings, loadSettings } = useSettingsStore();
+  const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
 
   const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('30d');
   const [calorieData, setCalorieData] = useState<Array<{ date: string; totals: DailyTotals }>>([]);
   const [avgMacros, setAvgMacros] = useState<DailyTotals>({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [daysLogged, setDaysLogged] = useState(0);
 
   const loadData = useCallback(async () => {
@@ -88,7 +89,7 @@ export default function ProgressScreen() {
   useEffect(() => {
     const initialLoad = async () => {
       await loadData();
-      setIsInitialLoading(false);
+      setDataLoaded(true);
     };
     initialLoad();
   }, [loadData]);
@@ -109,25 +110,12 @@ export default function ProgressScreen() {
 
   const timeRanges: TimeRange[] = ['7d', '30d', '90d', 'all'];
 
-  // Show loading state on initial load to prevent flash
-  if (isInitialLoading) {
+  // Show skeleton on initial load to prevent flash
+  const isReady = dataLoaded && settingsLoaded;
+  if (!isReady) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Your Journey
-          </Text>
-          <Pressable
-            style={[styles.logWeightButton, { backgroundColor: colors.bgInteractive }]}
-            onPress={() => router.push('/log-weight')}
-          >
-            <Ionicons name="add" size={20} color={colors.accent} />
-            <Text style={[styles.logWeightText, { color: colors.accent }]}>Weight</Text>
-          </Pressable>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <ProgressScreenSkeleton />
       </SafeAreaView>
     );
   }
@@ -362,11 +350,6 @@ function InsightCard({ icon, title, value, subtitle, colors }: InsightCardProps)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',

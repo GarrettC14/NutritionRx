@@ -12,7 +12,7 @@ export default function AddFoodLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'none',
-          contentStyle: { flex: 1 },
+          contentStyle: { flex: 1, backgroundColor: colors.bgPrimary },
         }}
       >
         <Stack.Screen name="index" />

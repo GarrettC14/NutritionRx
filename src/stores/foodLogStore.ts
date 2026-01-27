@@ -20,6 +20,7 @@ interface FoodLogState {
   dailyTotals: DailyTotals;
   streak: number;
   isLoading: boolean;
+  isLoaded: boolean;
   error: string | null;
 
   // Actions
@@ -102,6 +103,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
   dailyTotals: emptyTotals,
   streak: 0,
   isLoading: false,
+  isLoaded: false,
   error: null,
 
   setSelectedDate: (date) => {
@@ -123,11 +125,13 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         quickAddEntries,
         dailyTotals,
         isLoading: false,
+        isLoaded: true,
       });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load entries',
         isLoading: false,
+        isLoaded: true,
       });
     }
   },

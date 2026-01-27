@@ -12,14 +12,12 @@ import { CalorieRing } from '@/components/ui/CalorieRing';
 import { MacroSummary } from '@/components/food/MacroSummary';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
+import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 
 export default function TodayScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-
-  // State
-  const [showDayMenu, setShowDayMenu] = useState(false);
 
   // Stores
   const {
@@ -29,6 +27,7 @@ export default function TodayScreen() {
     quickAddEntries,
     dailyTotals,
     streak,
+    isLoaded: dataLoaded,
     loadEntriesForDate,
     loadStreak,
     deleteLogEntry,
@@ -40,6 +39,12 @@ export default function TodayScreen() {
   } = useFoodLogStore();
 
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+
+  // State
+  const [showDayMenu, setShowDayMenu] = useState(false);
+
+  // Show skeleton until both data and settings are loaded
+  const isReady = dataLoaded && settingsLoaded;
 
   // Load data on mount
   useEffect(() => {
@@ -164,6 +169,15 @@ export default function TodayScreen() {
   };
 
   const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
+
+  // Show skeleton while loading
+  if (!isReady) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+        <TodayScreenSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>

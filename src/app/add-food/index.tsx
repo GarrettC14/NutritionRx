@@ -20,6 +20,7 @@ import { MealType } from '@/constants/mealTypes';
 import { useFoodSearchStore } from '@/stores';
 import { FoodItem } from '@/types/domain';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
+import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -56,6 +57,7 @@ export default function AddFoodScreen() {
     recentFoods,
     frequentFoods,
     isSearching,
+    isLoaded,
     error,
     search,
     clearSearch,
@@ -122,6 +124,15 @@ export default function AddFoodScreen() {
       onPress={() => handleFoodSelect(item)}
     />
   );
+
+  // Show skeleton while initial data is loading
+  if (!isLoaded) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+        <FoodSearchSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>

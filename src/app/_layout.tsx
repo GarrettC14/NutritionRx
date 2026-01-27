@@ -7,6 +7,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useTheme } from '@/hooks/useTheme';
+import { colors as themeColors } from '@/constants/colors';
+
+// Default background to prevent white flash (dark mode is default)
+const DEFAULT_BG = themeColors.dark.bgPrimary;
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
@@ -60,7 +64,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: DEFAULT_BG }}>
       <SafeAreaProvider>
         <ThemeProvider>
           <RootLayoutContent />
