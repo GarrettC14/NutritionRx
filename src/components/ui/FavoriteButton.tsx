@@ -57,7 +57,7 @@ export function FavoriteButton({
       hitSlop={8}
     >
       <Ionicons
-        name={isFavorite ? 'heart' : 'heart-outline'}
+        name={isFavorite ? 'star' : 'star-outline'}
         size={size}
         color={isFavorite ? colors.favorites : colors.textTertiary}
       />

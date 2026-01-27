@@ -204,6 +204,12 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/units')}
             />
             <ThemeSelector />
+            <SettingsItem
+              icon="apps-outline"
+              title="Widgets"
+              subtitle="Home screen widgets setup"
+              onPress={() => router.push('/settings/widgets')}
+            />
           </View>
         </View>
 
@@ -243,12 +249,12 @@ export default function SettingsScreen() {
             <SettingsItem
               icon="document-text-outline"
               title="Terms of Service"
-              onPress={() => {}}
+              onPress={() => router.push('/settings/terms-of-service')}
             />
             <SettingsItem
               icon="shield-outline"
               title="Privacy Policy"
-              onPress={() => {}}
+              onPress={() => router.push('/settings/privacy-policy')}
             />
           </View>
         </View>

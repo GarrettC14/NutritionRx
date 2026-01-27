@@ -40,7 +40,7 @@ export const colors = {
     ringFill: '#64B5F6',
 
     // Favorites
-    favorites: '#E57373',
+    favorites: '#FFD54F',
   },
 
   // === LIGHT MODE ===
@@ -84,7 +84,7 @@ export const colors = {
     ringFill: '#2563EB',
 
     // Favorites
-    favorites: '#D32F2F',
+    favorites: '#F59E0B',
   },
 } as const;
 

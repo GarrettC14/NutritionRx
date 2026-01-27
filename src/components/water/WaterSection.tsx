@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
@@ -6,6 +8,13 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useWaterStore } from '@/stores';
 import { DEFAULT_WATER_GOAL } from '@/repositories';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const WATER_BLUE = '#7EC8E3';
 
 interface WaterDropsProps {
   filled: number;
@@ -15,21 +24,22 @@ interface WaterDropsProps {
 function WaterDrops({ filled, total }: WaterDropsProps) {
   const { colors } = useTheme();
 
-  // Create a grid of 2 rows x 4 columns
+  // Create a grid of drops
   const drops = Array.from({ length: total }, (_, i) => i < filled);
 
   return (
     <View style={styles.dropsContainer}>
       {drops.map((isFilled, index) => (
-        <Text
+        <View
           key={index}
           style={[
-            styles.drop,
-            { color: isFilled ? '#7EC8E3' : colors.textTertiary },
+            styles.dropCircle,
+            {
+              backgroundColor: isFilled ? WATER_BLUE : 'transparent',
+              borderColor: isFilled ? WATER_BLUE : colors.textTertiary,
+            },
           ]}
-        >
-          {isFilled ? '💧' : '○'}
-        </Text>
+        />
       ))}
     </View>
   );
@@ -37,18 +47,34 @@ function WaterDrops({ filled, total }: WaterDropsProps) {
 
 interface WaterSectionProps {
   onPress?: () => void;
+  defaultExpanded?: boolean;
 }
 
-export function WaterSection({ onPress }: WaterSectionProps) {
+export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionProps) {
   const { colors } = useTheme();
   const { todayLog, goalGlasses, addGlass, removeGlass, hasMetGoal } = useWaterStore();
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  // Chevron rotation animation
+  const rotation = useSharedValue(defaultExpanded ? 90 : 0);
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
 
   const glasses = todayLog?.glasses ?? 0;
   const goal = goalGlasses ?? DEFAULT_WATER_GOAL;
   const percent = goal > 0 ? Math.min((glasses / goal) * 100, 100) : 0;
   const goalMet = hasMetGoal();
 
-  const handleAddGlass = async () => {
+  const toggleExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleAddGlass = async (e?: any) => {
+    e?.stopPropagation?.();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     await addGlass();
   };
@@ -61,14 +87,13 @@ export function WaterSection({ onPress }: WaterSectionProps) {
   };
 
   return (
-    <Pressable
-      style={[styles.container, { backgroundColor: colors.bgSecondary }]}
-      onPress={onPress}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.emoji}>💧</Text>
+    <View style={[styles.container, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}>
+      {/* Collapsible Header */}
+      <Pressable style={styles.header} onPress={toggleExpanded}>
+        <View style={styles.headerLeft}>
+          <Animated.View style={chevronStyle}>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </Animated.View>
           <Text style={[styles.title, { color: colors.textPrimary }]}>Water</Text>
           {goalMet && (
             <View style={[styles.goalBadge, { backgroundColor: colors.success + '20' }]}>
@@ -76,73 +101,93 @@ export function WaterSection({ onPress }: WaterSectionProps) {
             </View>
           )}
         </View>
-        <Text style={[styles.count, { color: colors.textPrimary }]}>
-          {glasses} / {goal} glasses
-        </Text>
-      </View>
+        <View style={styles.headerRight}>
+          <Text style={[styles.count, { color: colors.textSecondary }]}>
+            {glasses}/{goal} glasses
+          </Text>
+          <Pressable
+            style={[styles.headerAddButton, { backgroundColor: colors.bgInteractive }]}
+            onPress={handleAddGlass}
+            hitSlop={8}
+          >
+            <Ionicons name="add" size={18} color={WATER_BLUE} />
+          </Pressable>
+        </View>
+      </Pressable>
 
-      {/* Progress Bar */}
-      <View style={[styles.progressTrack, { backgroundColor: colors.bgInteractive }]}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              backgroundColor: '#7EC8E3',
-              width: `${percent}%`,
-            },
-          ]}
-        />
-      </View>
+      {/* Expanded Content */}
+      {isExpanded && (
+        <View style={styles.content}>
+          {/* Progress Bar */}
+          <View style={[styles.progressTrack, { backgroundColor: colors.bgInteractive }]}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: WATER_BLUE,
+                  width: `${percent}%`,
+                },
+              ]}
+            />
+          </View>
 
-      {/* Water Drops Visualization */}
-      <WaterDrops filled={Math.min(glasses, goal)} total={goal} />
+          {/* Water Drops Visualization */}
+          <WaterDrops filled={Math.min(glasses, goal)} total={goal} />
 
-      {/* Actions */}
-      <View style={styles.actions}>
-        <Pressable
-          style={[styles.actionButton, { backgroundColor: colors.bgInteractive }]}
-          onPress={handleRemoveGlass}
-          disabled={glasses === 0}
-        >
-          <Ionicons
-            name="remove"
-            size={20}
-            color={glasses === 0 ? colors.textDisabled : colors.textPrimary}
-          />
-        </Pressable>
-        <Pressable
-          style={[styles.addButton, { backgroundColor: '#7EC8E3' }]}
-          onPress={handleAddGlass}
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-          <Text style={styles.addButtonText}>Add Glass</Text>
-        </Pressable>
-      </View>
-    </Pressable>
+          {/* Actions */}
+          <View style={styles.actions}>
+            <Pressable
+              style={[styles.actionButton, { backgroundColor: colors.bgInteractive }]}
+              onPress={handleRemoveGlass}
+              disabled={glasses === 0}
+            >
+              <Ionicons
+                name="remove"
+                size={20}
+                color={glasses === 0 ? colors.textDisabled : colors.textPrimary}
+              />
+            </Pressable>
+            <Pressable
+              style={[styles.addButton, { backgroundColor: WATER_BLUE }]}
+              onPress={handleAddGlass}
+            >
+              <Ionicons name="add" size={24} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Add Glass</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: borderRadius.lg,
-    padding: spacing[4],
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing[3],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
   },
-  titleRow: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
+    flex: 1,
   },
-  emoji: {
-    fontSize: 20,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
   },
   title: {
-    ...typography.title.small,
+    ...typography.body.large,
+    fontWeight: '600',
   },
   goalBadge: {
     width: 20,
@@ -154,6 +199,17 @@ const styles = StyleSheet.create({
   count: {
     ...typography.body.medium,
     fontWeight: '500',
+  },
+  headerAddButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    paddingHorizontal: spacing[3],
+    paddingBottom: spacing[3],
   },
   progressTrack: {
     height: 8,
@@ -172,10 +228,11 @@ const styles = StyleSheet.create({
     gap: spacing[2],
     marginBottom: spacing[4],
   },
-  drop: {
-    fontSize: 20,
-    width: 28,
-    textAlign: 'center',
+  dropCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
   },
   actions: {
     flexDirection: 'row',

@@ -10,7 +10,7 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -22,7 +22,6 @@ import { useFoodSearchStore, useFavoritesStore } from '@/stores';
 import { FoodItem } from '@/types/domain';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
 import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
-import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 
 // Debounce hook
@@ -73,8 +72,6 @@ export default function AddFoodScreen() {
     favorites,
     isLoaded: favoritesLoaded,
     loadFavorites,
-    toggleFavorite,
-    isFavorite,
   } = useFavoritesStore();
 
   // Load recent, frequent foods and favorites on mount
@@ -125,14 +122,6 @@ export default function AddFoodScreen() {
     });
   };
 
-  const handleToggleFavorite = useCallback(async (foodId: string) => {
-    try {
-      await toggleFavorite(foodId);
-    } catch (error) {
-      console.error('Failed to toggle favorite:', error);
-    }
-  }, [toggleFavorite]);
-
   const isSearching_ = searchText.length >= SEARCH_SETTINGS.minQueryLength;
   const showResults = isSearching_ && results.length > 0;
   const showNoResults = isSearching_ && results.length === 0 && !isSearching;
@@ -140,33 +129,17 @@ export default function AddFoodScreen() {
   const showEmpty = !isSearching_ && recentFoods.length === 0 && favorites.length === 0;
 
   const renderFoodItem = ({ item }: { item: FoodItem }) => (
-    <View style={styles.foodRow}>
-      <View style={styles.foodRowContent}>
-        <FoodSearchResult
-          food={item}
-          onPress={() => handleFoodSelect(item)}
-        />
-      </View>
-      <FavoriteButton
-        isFavorite={isFavorite(item.id)}
-        onPress={() => handleToggleFavorite(item.id)}
-        size={22}
-      />
-    </View>
+    <FoodSearchResult
+      food={item}
+      onPress={() => handleFoodSelect(item)}
+    />
   );
 
-  const renderFoodItemWithFavorite = (food: FoodItem) => (
-    <View key={food.id} style={styles.foodRow}>
-      <View style={styles.foodRowContent}>
-        <FoodSearchResult
-          food={food}
-          onPress={() => handleFoodSelect(food)}
-        />
-      </View>
-      <FavoriteButton
-        isFavorite={isFavorite(food.id)}
-        onPress={() => handleToggleFavorite(food.id)}
-        size={22}
+  const renderFoodItemSimple = (food: FoodItem) => (
+    <View key={food.id} style={styles.foodItemWrapper}>
+      <FoodSearchResult
+        food={food}
+        onPress={() => handleFoodSelect(food)}
       />
     </View>
   );
@@ -265,9 +238,9 @@ export default function AddFoodScreen() {
               title="Favorites"
               itemCount={favorites.length}
               defaultExpanded={true}
-              emptyMessage="No favorites yet. Tap the heart to add foods."
+              emptyMessage="No favorites yet. Add favorites when logging food."
             >
-              {favorites.map(renderFoodItemWithFavorite)}
+              {favorites.map(renderFoodItemSimple)}
             </CollapsibleSection>
 
             {/* Recently Logged Section - collapsed by default */}
@@ -277,7 +250,7 @@ export default function AddFoodScreen() {
               defaultExpanded={false}
               emptyMessage="No recently logged foods."
             >
-              {recentFoods.map(renderFoodItemWithFavorite)}
+              {recentFoods.map(renderFoodItemSimple)}
             </CollapsibleSection>
           </ScrollView>
         )}
@@ -376,12 +349,8 @@ const styles = StyleSheet.create({
   separator: {
     height: spacing[2],
   },
-  foodRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  foodRowContent: {
-    flex: 1,
+  foodItemWrapper: {
+    marginBottom: spacing[2],
   },
   sectionTitle: {
     ...typography.caption,

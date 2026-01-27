@@ -18,8 +18,13 @@ export default function SettingsLayout() {
       <Stack.Screen name="profile" />
       <Stack.Screen name="units" />
       <Stack.Screen name="nutrition" />
+      <Stack.Screen name="water" />
       <Stack.Screen name="data" />
       <Stack.Screen name="about" />
+      <Stack.Screen name="health-notice" />
+      <Stack.Screen name="privacy-policy" />
+      <Stack.Screen name="terms-of-service" />
+      <Stack.Screen name="widgets" />
       <Stack.Screen name="developer" />
     </Stack>
   );
