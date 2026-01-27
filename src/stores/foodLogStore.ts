@@ -18,6 +18,7 @@ interface FoodLogState {
   entries: LogEntry[];
   quickAddEntries: QuickAddEntry[];
   dailyTotals: DailyTotals;
+  streak: number;
   isLoading: boolean;
   error: string | null;
 
@@ -25,6 +26,7 @@ interface FoodLogState {
   setSelectedDate: (date: string) => void;
   loadEntriesForDate: (date: string) => Promise<void>;
   refreshCurrentDate: () => Promise<void>;
+  loadStreak: () => Promise<void>;
 
   // Log entry actions
   addLogEntry: (input: CreateLogEntryInput) => Promise<LogEntry>;
@@ -57,11 +59,48 @@ const emptyTotals: DailyTotals = {
   fat: 0,
 };
 
+// Calculate streak from a list of dates (sorted descending)
+const calculateStreakFromDates = (dates: string[]): number => {
+  if (dates.length === 0) return 0;
+
+  const today = getFormattedDate();
+  const yesterday = getFormattedDate(new Date(Date.now() - 86400000));
+
+  // Check if streak is active (logged today or yesterday)
+  const hasLoggedToday = dates.includes(today);
+  const hasLoggedYesterday = dates.includes(yesterday);
+
+  // If no logs today or yesterday, streak is broken
+  if (!hasLoggedToday && !hasLoggedYesterday) {
+    return 0;
+  }
+
+  // Start counting from the most recent logged date
+  const startDate = hasLoggedToday ? today : yesterday;
+  let streak = 0;
+  let currentDate = new Date(startDate + 'T12:00:00');
+
+  // Count consecutive days
+  const dateSet = new Set(dates);
+  while (true) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    if (dateSet.has(dateStr)) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
 export const useFoodLogStore = create<FoodLogState>((set, get) => ({
   selectedDate: getFormattedDate(),
   entries: [],
   quickAddEntries: [],
   dailyTotals: emptyTotals,
+  streak: 0,
   isLoading: false,
   error: null,
 
@@ -97,6 +136,16 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
     await get().loadEntriesForDate(get().selectedDate);
   },
 
+  loadStreak: async () => {
+    try {
+      const dates = await logEntryRepository.getDatesWithLogs();
+      const streak = calculateStreakFromDates(dates);
+      set({ streak });
+    } catch (error) {
+      console.error('Failed to load streak:', error);
+    }
+  },
+
   addLogEntry: async (input) => {
     set({ isLoading: true, error: null });
     try {
@@ -115,6 +164,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         dailyTotals,
         isLoading: false,
       }));
+
+      // Update streak
+      get().loadStreak();
 
       return entry;
     } catch (error) {
@@ -159,6 +211,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         dailyTotals,
         isLoading: false,
       }));
+
+      // Update streak
+      get().loadStreak();
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete entry',
@@ -183,6 +238,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         dailyTotals,
         isLoading: false,
       }));
+
+      // Update streak
+      get().loadStreak();
 
       return entry;
     } catch (error) {
@@ -227,6 +285,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         dailyTotals,
         isLoading: false,
       }));
+
+      // Update streak
+      get().loadStreak();
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete quick entry',

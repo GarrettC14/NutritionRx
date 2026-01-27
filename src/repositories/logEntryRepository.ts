@@ -273,4 +273,18 @@ export const logEntryRepository = {
     );
     return result?.days_logged ?? 0;
   },
+
+  async getDatesWithLogs(): Promise<string[]> {
+    const db = getDatabase();
+    const results = await db.getAllAsync<{ date: string }>(
+      `SELECT DISTINCT date
+       FROM (
+         SELECT date FROM log_entries
+         UNION ALL
+         SELECT date FROM quick_add_entries
+       )
+       ORDER BY date DESC`
+    );
+    return results.map((r) => r.date);
+  },
 };

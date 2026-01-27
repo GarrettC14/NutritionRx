@@ -11,6 +11,7 @@ import { useFoodLogStore, useSettingsStore } from '@/stores';
 import { CalorieRing } from '@/components/ui/CalorieRing';
 import { MacroSummary } from '@/components/food/MacroSummary';
 import { MealSection } from '@/components/food/MealSection';
+import { StreakBadge } from '@/components/ui/StreakBadge';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 
 export default function TodayScreen() {
@@ -27,7 +28,9 @@ export default function TodayScreen() {
     entries,
     quickAddEntries,
     dailyTotals,
+    streak,
     loadEntriesForDate,
+    loadStreak,
     deleteLogEntry,
     deleteQuickEntry,
     getEntriesByMeal,
@@ -42,6 +45,7 @@ export default function TodayScreen() {
   useEffect(() => {
     loadSettings();
     loadEntriesForDate(selectedDate);
+    loadStreak();
   }, []);
 
   // Date navigation
@@ -57,8 +61,18 @@ export default function TodayScreen() {
     setSelectedDate(today);
   }, [setSelectedDate]);
 
-  // Format date for display
+  // Format date for display - full format "Monday, January 27"
   const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr + 'T12:00:00');
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Format date for modal title
+  const formatDateShort = (dateStr: string): string => {
     const date = new Date(dateStr + 'T12:00:00');
     const today = new Date();
     today.setHours(12, 0, 0, 0);
@@ -155,38 +169,50 @@ export default function TodayScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <View style={styles.headerRow}>
+          {/* Left: Prev Arrow + Date */}
+          <View style={styles.headerLeft}>
+            <Pressable
+              style={styles.navButton}
+              onPress={() => navigateDate('prev')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
+            </Pressable>
+            <Pressable onLongPress={goToToday}>
+              <Text style={[styles.dateText, { color: colors.textPrimary }]}>
+                {formatDate(selectedDate)}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Right: Streak Badge + Next Arrow */}
+          <View style={styles.headerRight}>
+            <StreakBadge streakDays={streak} />
+            <Pressable
+              style={styles.navButton}
+              onPress={() => navigateDate('next')}
+              disabled={isToday}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={isToday ? colors.textTertiary : colors.textSecondary}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Day menu button - shown below date when there are entries */}
         {hasEntries && (
           <Pressable
-            style={styles.headerButton}
+            style={styles.dayMenuButton}
             onPress={() => setShowDayMenu(true)}
           >
-            <Ionicons name="ellipsis-horizontal" size={20} color={colors.textSecondary} />
+            <Ionicons name="ellipsis-horizontal" size={16} color={colors.textTertiary} />
           </Pressable>
         )}
-        <Pressable
-          style={styles.dateNav}
-          onLongPress={goToToday}
-        >
-          <Pressable onPress={() => navigateDate('prev')}>
-            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
-          </Pressable>
-          <Text style={[styles.dateText, { color: colors.textPrimary }]}>
-            {formatDate(selectedDate)}
-          </Text>
-          <Pressable
-            onPress={() => navigateDate('next')}
-            disabled={isToday}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={24}
-              color={isToday ? colors.textTertiary : colors.textSecondary}
-            />
-          </Pressable>
-        </Pressable>
-        {hasEntries ? (
-          <View style={styles.headerButton} />
-        ) : null}
       </View>
 
       <ScrollView
@@ -257,7 +283,7 @@ export default function TodayScreen() {
         >
           <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
             <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
-              {formatDate(selectedDate)}
+              {formatDateShort(selectedDate)}
             </Text>
             <Pressable
               style={styles.menuItem}
@@ -289,27 +315,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[3],
   },
-  headerButton: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  dateNav: {
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    flex: 1,
+  },
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
   },
+  navButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   dateText: {
     ...typography.title.medium,
-    minWidth: 120,
-    textAlign: 'center',
+  },
+  dayMenuButton: {
+    alignSelf: 'center',
+    paddingVertical: spacing[1],
+    paddingHorizontal: spacing[3],
+    marginTop: spacing[1],
   },
   scrollView: {
     flex: 1,
