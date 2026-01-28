@@ -6,11 +6,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { useWeightStore, useSettingsStore } from '@/stores';
+import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPhotoStore } from '@/stores';
 import { logEntryRepository } from '@/repositories';
 import { WeightChart, CalorieChart, MacroChart } from '@/components/charts';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
+import { MicronutrientSummary } from '@/components/micronutrients';
+import { ProgressPhotosSummary } from '@/components/progressPhotos';
+import { usePremium } from '@/hooks/usePremium';
+import { DailyInsightsSection } from '@/features/insights';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
 
@@ -42,6 +46,25 @@ export default function ProgressScreen() {
   const router = useRouter();
   const { entries: weightEntries, loadEntriesForRange } = useWeightStore();
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { isPremium } = usePremium();
+
+  // Micronutrient store
+  const {
+    loadProfile: loadNutrientProfile,
+    loadDailyIntake,
+    dailyIntake,
+    isLoaded: nutrientsLoaded,
+  } = useMicronutrientStore();
+
+  // Progress photos store
+  const {
+    loadPhotos,
+    photos,
+    stats: photoStats,
+    getFirstPhoto,
+    getLatestPhoto,
+    isLoaded: photosLoaded,
+  } = useProgressPhotoStore();
 
   const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('30d');
   const [calorieData, setCalorieData] = useState<Array<{ date: string; totals: DailyTotals }>>([]);
@@ -84,19 +107,26 @@ export default function ProgressScreen() {
 
   useEffect(() => {
     loadSettings();
-  }, [loadSettings]);
+    loadNutrientProfile();
+    loadPhotos();
+  }, [loadSettings, loadNutrientProfile, loadPhotos]);
 
   useEffect(() => {
     const initialLoad = async () => {
       await loadData();
+      // Load today's micronutrient data
+      const today = new Date().toISOString().split('T')[0];
+      await loadDailyIntake(today);
       setDataLoaded(true);
     };
     initialLoad();
-  }, [loadData]);
+  }, [loadData, loadDailyIntake]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await loadData();
+    const today = new Date().toISOString().split('T')[0];
+    await loadDailyIntake(today);
     setIsRefreshing(false);
   };
 
@@ -111,7 +141,7 @@ export default function ProgressScreen() {
   const timeRanges: TimeRange[] = ['7d', '30d', '90d', 'all'];
 
   // Show skeleton on initial load to prevent flash
-  const isReady = dataLoaded && settingsLoaded;
+  const isReady = dataLoaded && settingsLoaded && nutrientsLoaded && photosLoaded;
   if (!isReady) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
@@ -321,6 +351,30 @@ export default function ProgressScreen() {
             </View>
           </View>
         )}
+
+        {/* Micronutrients Section */}
+        {dailyIntake && dailyIntake.nutrients.length > 0 && (
+          <MicronutrientSummary
+            nutrients={dailyIntake.nutrients}
+            onPress={() => router.push('/micronutrients')}
+            onCategoryPress={(category) => router.push(`/micronutrients?category=${category}`)}
+            isPremium={isPremium}
+          />
+        )}
+
+        {/* Progress Photos Section */}
+        <ProgressPhotosSummary
+          stats={photoStats}
+          recentPhotos={photos.slice(0, 5)}
+          firstPhoto={getFirstPhoto()}
+          latestPhoto={getLatestPhoto()}
+          onPress={() => router.push('/progress-photos')}
+          onAddPress={() => router.push('/progress-photos/capture')}
+          onComparePress={() => router.push('/progress-photos/compare')}
+        />
+
+        {/* AI Analysis Section - Premium Feature */}
+        <DailyInsightsSection />
       </ScrollView>
     </SafeAreaView>
   );
