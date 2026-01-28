@@ -1,13 +1,12 @@
 /**
  * InsightsEmptyState Component
- * Shown when there's no data for insights
+ * Shows when there are no insights to display
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { typography } from '@/constants/typography';
-import { spacing } from '@/constants/spacing';
 
 interface InsightsEmptyStateProps {
   title: string;
@@ -18,8 +17,10 @@ export function InsightsEmptyState({ title, message }: InsightsEmptyStateProps) 
   const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>📊</Text>
+    <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
+      <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>
+        <Ionicons name="sparkles" size={24} color={colors.accent} />
+      </View>
       <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>
     </View>
@@ -28,23 +29,28 @@ export function InsightsEmptyState({ title, message }: InsightsEmptyStateProps) 
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: spacing[4],
+    padding: 24,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
   },
-  icon: {
-    fontSize: 32,
-    marginBottom: spacing[3],
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   title: {
-    ...typography.body.large,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: spacing[2],
+    marginBottom: 6,
     textAlign: 'center',
   },
   message: {
-    ...typography.body.small,
-    textAlign: 'center',
+    fontSize: 14,
     lineHeight: 20,
-    paddingHorizontal: spacing[2],
+    textAlign: 'center',
   },
 });

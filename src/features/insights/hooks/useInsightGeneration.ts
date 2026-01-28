@@ -1,301 +1,188 @@
 /**
  * useInsightGeneration Hook
- * Orchestrates insight generation using LLM or fallback
+ * Manages LLM-based insight generation with fallback
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { useInsightsData, calculateInputHash } from './useInsightsData';
 import { useInsightsStore } from '../stores/insightsStore';
 import { LLMService } from '../services/LLMService';
 import { buildInsightPrompt, parseInsightResponse } from '../services/InsightPromptBuilder';
 import { generateFallbackInsights, getEmptyStateMessage } from '../services/FallbackInsights';
-import type { Insight, CachedInsights, LLMDownloadProgress } from '../types/insights.types';
+import type { InsightInputData, Insight, LLMStatus } from '../types/insights.types';
 
-/**
- * Get today's date string
- */
-function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+interface UseInsightGenerationResult {
+  insights: Insight[];
+  isGenerating: boolean;
+  error: string | null;
+  source: 'llm' | 'fallback' | null;
+  llmStatus: LLMStatus;
+  emptyState: { title: string; message: string } | null;
+  generateInsights: (data: InsightInputData) => Promise<void>;
+  downloadModel: () => Promise<void>;
+  cancelDownload: () => void;
+  deleteModel: () => Promise<void>;
+  isDownloading: boolean;
+  downloadProgress: number;
 }
 
-export function useInsightGeneration() {
-  const { gatherInsightData, hasEnoughData } = useInsightsData();
-
+export function useInsightGeneration(): UseInsightGenerationResult {
   const {
     cachedInsights,
-    isGenerating,
-    lastError,
     llmStatus,
     downloadProgress,
-    capabilities,
-    setCachedInsights,
-    clearCachedInsights,
-    setIsGenerating,
-    setLastError,
+    isGenerating,
+    generationError,
+    llmEnabled,
+    setInsights,
     setLLMStatus,
     setDownloadProgress,
-    setCapabilities,
-    shouldRegenerate,
-    isTodaysCacheValid,
+    setIsGenerating,
+    setGenerationError,
+    shouldRegenerateInsights,
   } = useInsightsStore();
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  /**
-   * Initialize LLM capabilities check
-   */
-  const initialize = useCallback(async () => {
-    if (isInitialized) return;
-
-    try {
-      // Check device capabilities
-      const caps = await LLMService.checkCapabilities();
-      setCapabilities(caps);
-
-      // Check model status
+  // Check LLM status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
       const status = await LLMService.getStatus();
       setLLMStatus(status);
+    };
+    checkStatus();
+  }, [setLLMStatus]);
 
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('[useInsightGeneration] Initialization error:', error);
-      setLLMStatus('unsupported');
-      setIsInitialized(true);
-    }
-  }, [isInitialized, setCapabilities, setLLMStatus]);
+  const generateInsights = useCallback(
+    async (data: InsightInputData) => {
+      // Check if we should use cached insights
+      if (!shouldRegenerateInsights() && cachedInsights) {
+        return;
+      }
 
-  // Initialize on mount
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
+      setIsGenerating(true);
+      setGenerationError(null);
 
-  /**
-   * Download the LLM model
-   */
+      try {
+        // Check if LLM is available and enabled
+        const status = await LLMService.getStatus();
+        setLLMStatus(status);
+
+        if (status === 'ready' && llmEnabled) {
+          // Try LLM generation
+          const prompt = buildInsightPrompt(data);
+          const result = await LLMService.generate(prompt, 512);
+
+          if (result.success && result.text) {
+            const insights = parseInsightResponse(result.text);
+            if (insights.length > 0) {
+              setInsights(insights, 'llm');
+              return;
+            }
+          }
+          // If LLM failed, fall through to fallback
+          console.log('[useInsightGeneration] LLM failed, using fallback');
+        }
+
+        // Use fallback insights
+        const fallbackInsights = generateFallbackInsights(data);
+        setInsights(fallbackInsights, 'fallback');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to generate insights';
+        setGenerationError(errorMessage);
+        console.error('[useInsightGeneration] Error:', errorMessage);
+
+        // Try fallback even on error
+        try {
+          const fallbackInsights = generateFallbackInsights(data);
+          setInsights(fallbackInsights, 'fallback');
+        } catch {
+          // If even fallback fails, just log error
+        }
+      }
+    },
+    [
+      cachedInsights,
+      llmEnabled,
+      setInsights,
+      setLLMStatus,
+      setIsGenerating,
+      setGenerationError,
+      shouldRegenerateInsights,
+    ]
+  );
+
   const downloadModel = useCallback(async () => {
-    if (!capabilities?.canRunLocalLLM) {
-      setLastError("Device can't run local LLM");
-      return false;
-    }
+    setIsDownloading(true);
+    setDownloadProgress({ bytesDownloaded: 0, totalBytes: 0, percentage: 0 });
 
     try {
-      setLLMStatus('downloading');
-      setLastError(null);
-
-      const result = await LLMService.downloadModel((progress: LLMDownloadProgress) => {
+      const result = await LLMService.downloadModel((progress) => {
         setDownloadProgress(progress);
       });
 
       if (result.success) {
         setLLMStatus('ready');
-        setDownloadProgress(null);
-        return true;
       } else {
-        setLLMStatus('error');
-        setLastError(result.error || 'Download failed');
-        setDownloadProgress(null);
-        return false;
+        setGenerationError(result.error || 'Download failed');
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Download failed';
-      setLLMStatus('error');
-      setLastError(message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Download failed';
+      setGenerationError(errorMessage);
+    } finally {
+      setIsDownloading(false);
       setDownloadProgress(null);
-      return false;
     }
-  }, [capabilities, setLLMStatus, setLastError, setDownloadProgress]);
+  }, [setDownloadProgress, setLLMStatus, setGenerationError]);
 
-  /**
-   * Cancel model download
-   */
   const cancelDownload = useCallback(() => {
     LLMService.cancelDownload();
-    setLLMStatus('not_downloaded');
+    setIsDownloading(false);
     setDownloadProgress(null);
-  }, [setLLMStatus, setDownloadProgress]);
+  }, [setDownloadProgress]);
 
-  /**
-   * Generate insights using LLM
-   */
-  const generateWithLLM = useCallback(
-    async (data: ReturnType<typeof gatherInsightData> extends Promise<infer T> ? T : never) => {
-      try {
-        setLLMStatus('loading');
+  const deleteModel = useCallback(async () => {
+    await LLMService.deleteModel();
+    setLLMStatus('not_downloaded');
+  }, [setLLMStatus]);
 
-        // Initialize LLM if needed
-        const initResult = await LLMService.initialize();
-        if (!initResult.success) {
-          throw new Error(initResult.error || 'Failed to initialize LLM');
-        }
-
-        setLLMStatus('generating');
-
-        // Build prompt
-        const prompt = buildInsightPrompt(data);
-
-        // Generate response
-        const result = await LLMService.generate(prompt, 512);
-        if (!result.success || !result.text) {
-          throw new Error(result.error || 'No response generated');
-        }
-
-        // Parse response
-        const insights = parseInsightResponse(result.text);
-        if (insights.length === 0) {
-          throw new Error('Failed to parse insights');
-        }
-
-        setLLMStatus('ready');
-        return insights;
-      } catch (error) {
-        console.error('[useInsightGeneration] LLM generation error:', error);
-        setLLMStatus('ready');
-        throw error;
-      }
-    },
-    [setLLMStatus]
-  );
-
-  /**
-   * Generate insights (LLM or fallback)
-   */
-  const generateInsights = useCallback(
-    async (forceRegenerate: boolean = false) => {
-      if (isGenerating) return;
-
-      try {
-        setIsGenerating(true);
-        setLastError(null);
-
-        // Gather input data
-        const data = await gatherInsightData();
-        const inputHash = calculateInputHash(data);
-
-        // Check if we need to regenerate
-        if (!forceRegenerate && !shouldRegenerate(inputHash)) {
-          setIsGenerating(false);
-          return;
-        }
-
-        // Check if we have enough data
-        if (!hasEnoughData) {
-          const emptyState = getEmptyStateMessage(data);
-          const cached: CachedInsights = {
-            date: getToday(),
-            insights: [
-              {
-                category: 'pattern',
-                text: emptyState.message,
-                icon: '📝',
-              },
-            ],
-            generatedAt: new Date().toISOString(),
-            inputHash,
-            source: 'fallback',
-          };
-          setCachedInsights(cached);
-          setIsGenerating(false);
-          return;
-        }
-
-        let insights: Insight[];
-        let source: 'llm' | 'fallback' = 'fallback';
-
-        // Try LLM if available
-        if (llmStatus === 'ready' && capabilities?.canRunLocalLLM) {
-          try {
-            insights = await generateWithLLM(data);
-            source = 'llm';
-          } catch {
-            // Fall back to rule-based
-            console.log('[useInsightGeneration] Falling back to rule-based insights');
-            insights = generateFallbackInsights(data);
-          }
-        } else {
-          // Use fallback
-          insights = generateFallbackInsights(data);
-        }
-
-        // If no insights generated, use empty state
-        if (insights.length === 0) {
-          const emptyState = getEmptyStateMessage(data);
-          insights = [
-            {
-              category: 'pattern',
-              text: emptyState.message,
-              icon: '📝',
-            },
-          ];
-        }
-
-        // Cache insights
-        const cached: CachedInsights = {
-          date: getToday(),
-          insights,
-          generatedAt: new Date().toISOString(),
-          inputHash,
-          source,
-        };
-        setCachedInsights(cached);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to generate insights';
-        console.error('[useInsightGeneration] Error:', message);
-        setLastError(message);
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    [
-      isGenerating,
-      gatherInsightData,
-      hasEnoughData,
-      llmStatus,
-      capabilities,
-      shouldRegenerate,
-      setIsGenerating,
-      setLastError,
-      setCachedInsights,
-      generateWithLLM,
-    ]
-  );
-
-  /**
-   * Refresh insights (force regenerate)
-   */
-  const refreshInsights = useCallback(() => {
-    return generateInsights(true);
-  }, [generateInsights]);
-
-  /**
-   * Auto-generate insights if cache is stale
-   */
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (isGenerating) return;
-
-    // Auto-generate if no valid cache
-    if (!isTodaysCacheValid() && hasEnoughData) {
-      generateInsights();
-    }
-  }, [isInitialized, isGenerating, isTodaysCacheValid, hasEnoughData, generateInsights]);
+  // Compute empty state message
+  const emptyState =
+    !cachedInsights?.insights.length && cachedInsights
+      ? null
+      : cachedInsights === null
+        ? getEmptyStateMessage({
+            todayCalories: 0,
+            todayProtein: 0,
+            todayCarbs: 0,
+            todayFat: 0,
+            todayFiber: 0,
+            todayWater: 0,
+            todayMealCount: 0,
+            todayFoods: [],
+            calorieTarget: 2000,
+            proteinTarget: 150,
+            waterTarget: 2000,
+            avgCalories7d: 0,
+            avgProtein7d: 0,
+            loggingStreak: 0,
+            calorieStreak: 0,
+            daysUsingApp: 1,
+            userGoal: 'maintain',
+          })
+        : null;
 
   return {
-    // State
-    insights: cachedInsights?.insights || [],
+    insights: cachedInsights?.insights ?? [],
     isGenerating,
-    lastError,
+    error: generationError,
+    source: cachedInsights?.source ?? null,
     llmStatus,
-    downloadProgress,
-    capabilities,
-    hasEnoughData,
-    source: cachedInsights?.source || 'fallback',
-    lastUpdated: cachedInsights?.generatedAt,
-
-    // Actions
+    emptyState,
     generateInsights,
-    refreshInsights,
     downloadModel,
     cancelDownload,
-    clearInsights: clearCachedInsights,
+    deleteModel,
+    isDownloading,
+    downloadProgress: downloadProgress?.percentage ?? 0,
   };
 }

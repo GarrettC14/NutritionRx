@@ -1,60 +1,58 @@
 /**
  * InsightCard Component
- * Displays a single insight with icon and text
+ * Displays a single AI-generated insight
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
-import { typography } from '@/constants/typography';
-import { spacing, borderRadius } from '@/constants/spacing';
+import { getCategoryTitle } from '../services/InsightPromptBuilder';
 import type { Insight } from '../types/insights.types';
-import { getCategoryIcon, getCategoryTitle } from '../services/InsightPromptBuilder';
 
 interface InsightCardProps {
   insight: Insight;
-  index?: number;
 }
 
-export function InsightCard({ insight, index = 0 }: InsightCardProps) {
+export function InsightCard({ insight }: InsightCardProps) {
   const { colors } = useTheme();
 
-  const icon = insight.icon || getCategoryIcon(insight.category);
-
   return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 100).springify()}
-      style={styles.container}
-    >
-      <View style={styles.iconContainer}>
-        <Text style={styles.icon}>{icon}</Text>
+    <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
+      <View style={styles.header}>
+        <Text style={styles.icon}>{insight.icon}</Text>
+        <Text style={[styles.category, { color: colors.textSecondary }]}>
+          {getCategoryTitle(insight.category)}
+        </Text>
       </View>
-      <View style={styles.content}>
-        <Text style={[styles.text, { color: colors.textPrimary }]}>{insight.text}</Text>
-      </View>
-    </Animated.View>
+      <Text style={[styles.text, { color: colors.textPrimary }]}>{insight.text}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    paddingVertical: spacing[3],
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
   },
-  iconContainer: {
-    width: 32,
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginBottom: 8,
+    gap: 6,
   },
   icon: {
-    fontSize: 18,
+    fontSize: 16,
   },
-  content: {
-    flex: 1,
+  category: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   text: {
-    ...typography.body.medium,
+    fontSize: 15,
     lineHeight: 22,
   },
 });

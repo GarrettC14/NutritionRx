@@ -1,298 +1,195 @@
 /**
  * useInsightsData Hook
- * Gathers all data needed for LLM insight generation
+ * Collects and aggregates nutrition data for insight generation
  */
 
-import { useCallback, useMemo } from 'react';
-import { logEntryRepository } from '@/repositories';
-import { useFoodLogStore } from '@/stores/foodLogStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useCallback, useEffect, useState } from 'react';
+import { logEntryRepository, waterRepository } from '@/repositories';
 import { useGoalStore } from '@/stores/goalStore';
 import { useWaterStore } from '@/stores/waterStore';
-import type { InsightInputData } from '../types/insights.types';
+import type { InsightInputData, NutrientDailyData } from '../types/insights.types';
 
-// Default fiber target (not tracked separately in settings)
-const DEFAULT_FIBER_TARGET = 28;
+interface UseInsightsDataResult {
+  data: InsightInputData | null;
+  nutrientData: NutrientDailyData[];
+  isLoading: boolean;
+  error: string | null;
+  daysUsingApp: number;
+  daysSinceLastLog: number;
+  refresh: () => Promise<void>;
+}
 
-/**
- * Get date string in YYYY-MM-DD format
- */
-function getDateString(date: Date = new Date()): string {
+function getDateString(daysAgo: number = 0): string {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
   return date.toISOString().split('T')[0];
 }
 
-/**
- * Get date N days ago
- */
-function getDateDaysAgo(days: number): Date {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date;
-}
-
-/**
- * Calculate hash of input data for caching
- */
-export function calculateInputHash(data: InsightInputData): string {
-  const hashInput = JSON.stringify({
-    todayCalories: data.todayCalories,
-    todayProtein: data.todayProtein,
-    todayCarbs: data.todayCarbs,
-    todayFat: data.todayFat,
-    todayFoods: data.todayFoods.sort(),
-    todayMealCount: data.todayMealCount,
-  });
-  // Simple hash function
-  let hash = 0;
-  for (let i = 0; i < hashInput.length; i++) {
-    const char = hashInput.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
+function calculateStreak(dailyData: { date: string; met: boolean }[]): number {
+  let streak = 0;
+  // Start from today or yesterday if today has no data
+  for (let i = 0; i < dailyData.length; i++) {
+    if (dailyData[i].met) {
+      streak++;
+    } else if (i === 0 && !dailyData[i].met) {
+      // If today doesn't meet, check if it's just early in the day
+      continue;
+    } else {
+      break;
+    }
   }
-  return hash.toString(16);
+  return streak;
 }
 
-export function useInsightsData() {
-  const { entries, quickAddEntries, dailyTotals, streak, selectedDate } = useFoodLogStore();
-  const { settings } = useSettingsStore();
+export function useInsightsData(): UseInsightsDataResult {
+  const [data, setData] = useState<InsightInputData | null>(null);
+  const [nutrientData, setNutrientData] = useState<NutrientDailyData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [daysUsingApp, setDaysUsingApp] = useState(0);
+  const [daysSinceLastLog, setDaysSinceLastLog] = useState(0);
+
   const { activeGoal } = useGoalStore();
-  const { todayLog, goalGlasses, glassSizeMl } = useWaterStore();
+  const { goalGlasses, glassSizeMl, todayLog } = useWaterStore();
 
-  /**
-   * Get 7-day averages from logged data
-   */
-  const get7DayAverages = useCallback(async () => {
-    const endDate = getDateString();
-    const startDate = getDateString(getDateDaysAgo(6)); // 7 days including today
-
-    try {
-      const dailyData = await logEntryRepository.getDailyTotalsForRange(startDate, endDate);
-
-      if (dailyData.length === 0) {
-        return {
-          avgCalories7d: 0,
-          avgProtein7d: 0,
-          daysWithData: 0,
-        };
-      }
-
-      const totalCalories = dailyData.reduce((sum, d) => sum + d.totals.calories, 0);
-      const totalProtein = dailyData.reduce((sum, d) => sum + d.totals.protein, 0);
-
-      return {
-        avgCalories7d: Math.round(totalCalories / dailyData.length),
-        avgProtein7d: Math.round(totalProtein / dailyData.length),
-        daysWithData: dailyData.length,
-      };
-    } catch (error) {
-      console.error('Error getting 7-day averages:', error);
-      return {
-        avgCalories7d: 0,
-        avgProtein7d: 0,
-        daysWithData: 0,
-      };
+  const refresh = useCallback(async () => {
+    if (!activeGoal) {
+      setData(null);
+      setIsLoading(false);
+      return;
     }
-  }, []);
 
-  /**
-   * Calculate calorie streak (days meeting calorie target)
-   */
-  const getCalorieStreak = useCallback(async () => {
-    const endDate = getDateString();
-    const startDate = getDateString(getDateDaysAgo(29)); // Last 30 days
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const dailyData = await logEntryRepository.getDailyTotalsForRange(startDate, endDate);
-      const calorieTarget = settings.dailyCalorieGoal;
-      const tolerance = calorieTarget * 0.1; // 10% tolerance
+      const today = getDateString(0);
+      const sevenDaysAgo = getDateString(6);
 
-      let streak = 0;
-      const today = getDateString();
+      // Fetch data in parallel
+      const [todayTotals, weeklyTotals, todayEntries, datesWithLogs] = await Promise.all([
+        logEntryRepository.getDailyTotals(today),
+        logEntryRepository.getDailyTotalsForRange(sevenDaysAgo, today),
+        logEntryRepository.findByDate(today),
+        logEntryRepository.getDatesWithLogs(),
+      ]);
 
-      // Sort by date descending
-      const sortedData = dailyData.sort((a, b) => b.date.localeCompare(a.date));
+      // Calculate days using app
+      const firstLogDate = datesWithLogs.length > 0 ? datesWithLogs[datesWithLogs.length - 1] : today;
+      const daysSinceFirstLog = Math.floor(
+        (new Date(today).getTime() - new Date(firstLogDate).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      setDaysUsingApp(Math.max(1, daysSinceFirstLog + 1));
 
-      for (const day of sortedData) {
-        const diff = Math.abs(day.totals.calories - calorieTarget);
-        if (diff <= tolerance) {
-          streak++;
-        } else if (day.date !== today) {
-          // Break streak if not today (give today a pass)
-          break;
+      // Calculate days since last log
+      const lastLogDate = datesWithLogs.length > 0 ? datesWithLogs[0] : null;
+      const daysSinceLast = lastLogDate
+        ? Math.floor((new Date(today).getTime() - new Date(lastLogDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      setDaysSinceLastLog(daysSinceLast);
+
+      // Get targets from active goal
+      const calorieTarget = activeGoal.currentTargetCalories || activeGoal.initialTargetCalories;
+      const proteinTarget = activeGoal.currentProteinG || activeGoal.initialProteinG;
+      const userGoal = activeGoal.type;
+
+      // Calculate 7-day averages
+      const daysWithData = weeklyTotals.filter((d) => d.totals.calories > 0);
+      const avgCalories7d =
+        daysWithData.length > 0
+          ? Math.round(daysWithData.reduce((sum, d) => sum + d.totals.calories, 0) / daysWithData.length)
+          : 0;
+      const avgProtein7d =
+        daysWithData.length > 0
+          ? Math.round(daysWithData.reduce((sum, d) => sum + d.totals.protein, 0) / daysWithData.length)
+          : 0;
+
+      // Calculate logging streak
+      const loggingData = [];
+      for (let i = 0; i < 7; i++) {
+        const date = getDateString(i);
+        const dayData = weeklyTotals.find((d) => d.date === date);
+        loggingData.push({
+          date,
+          met: dayData ? dayData.totals.calories > 0 : false,
+        });
+      }
+      const loggingStreak = calculateStreak(loggingData);
+
+      // Calculate calorie streak (within 10% of target)
+      const calorieData = [];
+      for (let i = 0; i < 7; i++) {
+        const date = getDateString(i);
+        const dayData = weeklyTotals.find((d) => d.date === date);
+        if (dayData && dayData.totals.calories > 0) {
+          const withinTarget = Math.abs(dayData.totals.calories - calorieTarget) / calorieTarget <= 0.1;
+          calorieData.push({ date, met: withinTarget });
         }
       }
+      const calorieStreak = calorieData.filter((d) => d.met).length;
 
-      return streak;
-    } catch (error) {
-      console.error('Error calculating calorie streak:', error);
-      return 0;
+      // Get food names from today's entries
+      const todayFoods = todayEntries
+        .map((entry) => entry.foodName)
+        .filter((name): name is string => typeof name === 'string' && name.length > 0);
+
+      // Calculate water data
+      const waterTarget = goalGlasses * glassSizeMl;
+      const todayWater = (todayLog?.glasses ?? 0) * glassSizeMl;
+
+      // Build nutrient daily data for deficiency calculations
+      const nutrientDailyData: NutrientDailyData[] = weeklyTotals.map((d) => ({
+        date: d.date,
+        hasData: d.totals.calories > 0,
+        nutrients: {
+          // For now, we only have macro data from log entries
+          // Micronutrient tracking would require additional database fields
+          fiber: 0, // Placeholder - would need fiber tracking
+        },
+      }));
+      setNutrientData(nutrientDailyData);
+
+      const insightData: InsightInputData = {
+        todayCalories: todayTotals.calories,
+        todayProtein: todayTotals.protein,
+        todayCarbs: todayTotals.carbs,
+        todayFat: todayTotals.fat,
+        todayFiber: 0, // Placeholder
+        todayWater,
+        todayMealCount: todayEntries.length,
+        todayFoods: todayFoods.slice(0, 10),
+        calorieTarget,
+        proteinTarget,
+        waterTarget,
+        avgCalories7d,
+        avgProtein7d,
+        loggingStreak,
+        calorieStreak,
+        daysUsingApp: Math.max(1, daysSinceFirstLog + 1),
+        userGoal,
+      };
+
+      setData(insightData);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load insights data';
+      setError(errorMessage);
+      console.error('[useInsightsData] Error:', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
-  }, [settings.dailyCalorieGoal]);
+  }, [activeGoal, goalGlasses, glassSizeMl, todayLog]);
 
-  /**
-   * Calculate protein streak (days meeting protein target)
-   */
-  const getProteinStreak = useCallback(async () => {
-    const endDate = getDateString();
-    const startDate = getDateString(getDateDaysAgo(29));
-
-    try {
-      const dailyData = await logEntryRepository.getDailyTotalsForRange(startDate, endDate);
-      const proteinTarget = settings.dailyProteinGoal;
-      const tolerance = proteinTarget * 0.1;
-
-      let streak = 0;
-      const today = getDateString();
-
-      const sortedData = dailyData.sort((a, b) => b.date.localeCompare(a.date));
-
-      for (const day of sortedData) {
-        const diff = Math.abs(day.totals.protein - proteinTarget);
-        if (diff <= tolerance || day.totals.protein >= proteinTarget) {
-          streak++;
-        } else if (day.date !== today) {
-          break;
-        }
-      }
-
-      return streak;
-    } catch (error) {
-      console.error('Error calculating protein streak:', error);
-      return 0;
-    }
-  }, [settings.dailyProteinGoal]);
-
-  /**
-   * Get first log date to calculate days using app
-   */
-  const getDaysUsingApp = useCallback(async () => {
-    try {
-      const dates = await logEntryRepository.getDatesWithLogs();
-      if (dates.length === 0) return 0;
-
-      // dates are sorted descending, so last is earliest
-      const earliestDate = dates[dates.length - 1];
-      const earliest = new Date(earliestDate + 'T12:00:00');
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - earliest.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
-    } catch (error) {
-      console.error('Error getting days using app:', error);
-      return 0;
-    }
-  }, []);
-
-  /**
-   * Extract unique food names from today's entries
-   */
-  const todayFoods = useMemo(() => {
-    const foodNames = entries.map((e) => e.foodName).filter(Boolean);
-    const quickAddDescriptions = quickAddEntries.map((e) => e.description).filter(Boolean);
-    return [...new Set([...foodNames, ...quickAddDescriptions])];
-  }, [entries, quickAddEntries]);
-
-  /**
-   * Calculate today's meal count
-   */
-  const todayMealCount = useMemo(() => {
-    const mealsWithFood = new Set<string>();
-    entries.forEach((e) => mealsWithFood.add(e.mealType));
-    quickAddEntries.forEach((e) => mealsWithFood.add(e.mealType));
-    return mealsWithFood.size;
-  }, [entries, quickAddEntries]);
-
-  /**
-   * Get user goal type from active goal
-   */
-  const userGoal = useMemo((): 'lose' | 'maintain' | 'gain' => {
-    if (!activeGoal) return 'maintain';
-    return activeGoal.type as 'lose' | 'maintain' | 'gain';
-  }, [activeGoal]);
-
-  /**
-   * Calculate today's water intake in ml
-   */
-  const todayWater = useMemo(() => {
-    return (todayLog?.glasses ?? 0) * glassSizeMl;
-  }, [todayLog, glassSizeMl]);
-
-  /**
-   * Calculate water target in ml
-   */
-  const waterTarget = useMemo(() => {
-    return goalGlasses * glassSizeMl;
-  }, [goalGlasses, glassSizeMl]);
-
-  /**
-   * Gather all insight input data
-   */
-  const gatherInsightData = useCallback(async (): Promise<InsightInputData> => {
-    const [averages, calorieStreak, proteinStreak, daysUsingApp] = await Promise.all([
-      get7DayAverages(),
-      getCalorieStreak(),
-      getProteinStreak(),
-      getDaysUsingApp(),
-    ]);
-
-    return {
-      // Today's data
-      todayCalories: dailyTotals.calories,
-      todayProtein: dailyTotals.protein,
-      todayCarbs: dailyTotals.carbs,
-      todayFat: dailyTotals.fat,
-      todayFiber: 0, // Fiber tracking not yet implemented
-      todayWater,
-      todayMealCount,
-      todayFoods,
-
-      // Targets
-      calorieTarget: settings.dailyCalorieGoal,
-      proteinTarget: settings.dailyProteinGoal,
-      carbTarget: settings.dailyCarbsGoal,
-      fatTarget: settings.dailyFatGoal,
-      fiberTarget: DEFAULT_FIBER_TARGET,
-      waterTarget,
-
-      // Trends
-      avgCalories7d: averages.avgCalories7d,
-      avgProtein7d: averages.avgProtein7d,
-      calorieStreak,
-      proteinStreak,
-      loggingStreak: streak,
-
-      // User context
-      userGoal,
-      daysUsingApp,
-    };
-  }, [
-    dailyTotals,
-    todayWater,
-    todayMealCount,
-    todayFoods,
-    settings,
-    waterTarget,
-    streak,
-    userGoal,
-    get7DayAverages,
-    getCalorieStreak,
-    getProteinStreak,
-    getDaysUsingApp,
-  ]);
-
-  /**
-   * Check if we have enough data for insights
-   */
-  const hasEnoughData = useMemo(() => {
-    return entries.length > 0 || quickAddEntries.length > 0;
-  }, [entries, quickAddEntries]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return {
-    gatherInsightData,
-    hasEnoughData,
-    todayFoods,
-    todayMealCount,
-    todayWater,
-    selectedDate,
+    data,
+    nutrientData,
+    isLoading,
+    error,
+    daysUsingApp,
+    daysSinceLastLog,
+    refresh,
   };
 }

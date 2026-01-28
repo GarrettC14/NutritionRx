@@ -1,127 +1,104 @@
 /**
  * Insights Store
- * Zustand store for managing cached insights and LLM state
+ * Manages cached insights and LLM state
  */
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type {
-  CachedInsights,
-  LLMStatus,
-  LLMDownloadProgress,
-  LLMCapabilities,
-} from '../types/insights.types';
+import type { Insight, CachedInsights, LLMStatus, LLMDownloadProgress } from '../types/insights.types';
 
 interface InsightsState {
   // Cached insights
   cachedInsights: CachedInsights | null;
 
-  // Generation state
-  isGenerating: boolean;
-  lastError: string | null;
-
   // LLM state
   llmStatus: LLMStatus;
   downloadProgress: LLMDownloadProgress | null;
-  capabilities: LLMCapabilities | null;
+
+  // Generation state
+  isGenerating: boolean;
+  lastGenerationTime: number | null;
+  generationError: string | null;
+
+  // User preferences
+  llmEnabled: boolean;
 
   // Actions
-  setCachedInsights: (insights: CachedInsights) => void;
-  clearCachedInsights: () => void;
-  setIsGenerating: (generating: boolean) => void;
-  setLastError: (error: string | null) => void;
+  setInsights: (insights: Insight[], source: 'llm' | 'fallback') => void;
+  clearInsights: () => void;
   setLLMStatus: (status: LLMStatus) => void;
   setDownloadProgress: (progress: LLMDownloadProgress | null) => void;
-  setCapabilities: (capabilities: LLMCapabilities) => void;
-
-  // Computed
-  shouldRegenerate: (inputHash: string) => boolean;
-  isTodaysCacheValid: () => boolean;
+  setIsGenerating: (generating: boolean) => void;
+  setGenerationError: (error: string | null) => void;
+  setLLMEnabled: (enabled: boolean) => void;
+  shouldRegenerateInsights: () => boolean;
 }
 
-/**
- * Get today's date string
- */
-function getToday(): string {
-  return new Date().toISOString().split('T')[0];
-}
+const CACHE_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 export const useInsightsStore = create<InsightsState>()(
   persist(
     (set, get) => ({
       // Initial state
       cachedInsights: null,
-      isGenerating: false,
-      lastError: null,
       llmStatus: 'not_downloaded',
       downloadProgress: null,
-      capabilities: null,
+      isGenerating: false,
+      lastGenerationTime: null,
+      generationError: null,
+      llmEnabled: true,
 
       // Actions
-      setCachedInsights: (insights) => {
-        set({ cachedInsights: insights, lastError: null });
+      setInsights: (insights, source) => {
+        const now = Date.now();
+        const today = new Date().toISOString().split('T')[0];
+        set({
+          cachedInsights: {
+            insights,
+            generatedAt: now,
+            validUntil: now + CACHE_DURATION_MS,
+            source,
+            date: today,
+          },
+          lastGenerationTime: now,
+          generationError: null,
+          isGenerating: false,
+        });
       },
 
-      clearCachedInsights: () => {
-        set({ cachedInsights: null });
-      },
+      clearInsights: () => set({ cachedInsights: null }),
 
-      setIsGenerating: (generating) => {
-        set({ isGenerating: generating });
-      },
+      setLLMStatus: (status) => set({ llmStatus: status }),
 
-      setLastError: (error) => {
-        set({ lastError: error });
-      },
+      setDownloadProgress: (progress) => set({ downloadProgress: progress }),
 
-      setLLMStatus: (status) => {
-        set({ llmStatus: status });
-      },
+      setIsGenerating: (generating) => set({ isGenerating: generating }),
 
-      setDownloadProgress: (progress) => {
-        set({ downloadProgress: progress });
-      },
+      setGenerationError: (error) => set({ generationError: error, isGenerating: false }),
 
-      setCapabilities: (capabilities) => {
-        set({ capabilities });
-      },
+      setLLMEnabled: (enabled) => set({ llmEnabled: enabled }),
 
-      // Check if we should regenerate insights
-      shouldRegenerate: (inputHash) => {
+      shouldRegenerateInsights: () => {
         const { cachedInsights } = get();
-
-        // No cache - need to generate
         if (!cachedInsights) return true;
 
-        // Cache is from different day - regenerate
-        if (cachedInsights.date !== getToday()) return true;
+        const now = Date.now();
+        const today = new Date().toISOString().split('T')[0];
 
-        // Input data has changed - regenerate
-        if (cachedInsights.inputHash !== inputHash) return true;
+        // Regenerate if cache expired or date changed
+        if (now > cachedInsights.validUntil) return true;
+        if (cachedInsights.date !== today) return true;
 
         return false;
       },
-
-      // Check if today's cache is still valid
-      isTodaysCacheValid: () => {
-        const { cachedInsights } = get();
-
-        if (!cachedInsights) return false;
-        if (cachedInsights.date !== getToday()) return false;
-
-        // Cache is valid for today
-        return true;
-      },
     }),
     {
-      name: 'nutritionrx-insights-store',
+      name: 'insights-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        // Only persist cached insights and capabilities
         cachedInsights: state.cachedInsights,
-        capabilities: state.capabilities,
-        llmStatus: state.llmStatus,
+        llmEnabled: state.llmEnabled,
       }),
     }
   )

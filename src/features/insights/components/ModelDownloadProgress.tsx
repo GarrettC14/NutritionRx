@@ -1,247 +1,86 @@
 /**
- * Model Download Progress Component
- * Displays download progress for the AI model
+ * ModelDownloadProgress Component
+ * Shows download progress for the LLM model
  */
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { typography } from '@/constants/typography';
-import { spacing, borderRadius } from '@/constants/spacing';
-import type { LLMDownloadProgress } from '../types/insights.types';
 
 interface ModelDownloadProgressProps {
-  progress: LLMDownloadProgress | null;
+  progress: number;
   isDownloading: boolean;
-  error?: string | null;
-  onStartDownload: () => void;
-  onCancelDownload?: () => void;
-  onRetry?: () => void;
+  onCancel: () => void;
 }
 
-export function ModelDownloadProgress({
-  progress,
-  isDownloading,
-  error,
-  onStartDownload,
-  onCancelDownload,
-  onRetry,
-}: ModelDownloadProgressProps) {
+export function ModelDownloadProgress({ progress, isDownloading, onCancel }: ModelDownloadProgressProps) {
   const { colors } = useTheme();
 
-  // Format bytes to human readable
-  const formatBytes = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
+  if (!isDownloading) return null;
 
-  // Format seconds to human readable
-  const formatTime = (seconds: number): string => {
-    if (seconds < 60) return `${seconds} seconds`;
-    if (seconds < 3600) {
-      const mins = Math.floor(seconds / 60);
-      return mins === 1 ? '1 minute' : `${mins} minutes`;
-    }
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${mins}m`;
-  };
-
-  // Error state
-  if (error) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-        <View style={[styles.iconContainer, { backgroundColor: colors.errorBg }]}>
-          <Ionicons name="alert-circle" size={24} color={colors.error} />
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Downloading AI Model</Text>
         </View>
-        <View style={styles.content}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Download Failed</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={2}>
-            {error}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.accent }]}
-          onPress={onRetry || onStartDownload}
-        >
-          <Text style={styles.actionButtonText}>Retry</Text>
+        <TouchableOpacity onPress={onCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="close" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
-    );
-  }
 
-  // Downloading state
-  if (isDownloading && progress) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-        <View style={styles.downloadContent}>
-          <View style={styles.downloadHeader}>
-            <ActivityIndicator size="small" color={colors.accent} />
-            <Text style={[styles.title, { color: colors.textPrimary, marginLeft: spacing[2] }]}>
-              Setting up Smart Insights
-            </Text>
-          </View>
-
-          {/* Progress bar */}
-          <View style={[styles.progressBarContainer, { backgroundColor: colors.bgInteractive }]}>
-            <View
-              style={[
-                styles.progressBar,
-                {
-                  backgroundColor: colors.accent,
-                  width: `${progress.percentage}%`,
-                },
-              ]}
-            />
-          </View>
-
-          <View style={styles.progressDetails}>
-            <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-              Downloading AI model ({formatBytes(progress.bytesDownloaded)} of{' '}
-              {formatBytes(progress.totalBytes)})
-            </Text>
-            <Text style={[styles.progressPercent, { color: colors.accent }]}>
-              {progress.percentage}%
-            </Text>
-          </View>
-
-          <Text style={[styles.timeRemaining, { color: colors.textTertiary }]}>
-            {progress.estimatedSecondsRemaining > 0
-              ? `About ${formatTime(progress.estimatedSecondsRemaining)} remaining`
-              : 'Almost done...'}
-          </Text>
-
-          <Text style={[styles.infoText, { color: colors.textTertiary }]}>
-            This is a one-time download. Insights will work offline after this.
-          </Text>
-
-          {onCancelDownload && (
-            <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.borderDefault }]}
-              onPress={onCancelDownload}
-            >
-              <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      <View style={[styles.progressTrack, { backgroundColor: colors.borderDefault }]}>
+        <View
+          style={[
+            styles.progressFill,
+            { backgroundColor: colors.accent, width: `${Math.min(progress, 100)}%` },
+          ]}
+        />
       </View>
-    );
-  }
 
-  // Not downloaded state - show download prompt
-  return (
-    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-      <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
-        <Ionicons name="cloud-download-outline" size={24} color={colors.accent} />
-      </View>
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Download AI Model</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          ~1 GB download required for personalized insights
-        </Text>
-      </View>
-      <TouchableOpacity
-        style={[styles.actionButton, { backgroundColor: colors.accent }]}
-        onPress={onStartDownload}
-      >
-        <Ionicons name="download-outline" size={16} color="#FFFFFF" />
-        <Text style={styles.actionButtonText}>Download</Text>
-      </TouchableOpacity>
+      <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+        {progress}% complete
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: borderRadius.lg,
-    padding: spacing[4],
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.md,
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing[3],
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  content: {
-    flex: 1,
-    marginBottom: spacing[3],
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    ...typography.body.large,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: spacing[1],
   },
-  subtitle: {
-    ...typography.body.small,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderRadius: borderRadius.md,
-    gap: spacing[2],
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  downloadContent: {
-    width: '100%',
-  },
-  downloadHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing[4],
-  },
-  progressBarContainer: {
-    height: 8,
-    borderRadius: 4,
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: spacing[2],
+    marginBottom: 8,
   },
-  progressBar: {
+  progressFill: {
     height: '100%',
-    borderRadius: 4,
-  },
-  progressDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing[1],
+    borderRadius: 3,
   },
   progressText: {
-    ...typography.body.small,
-    flex: 1,
-  },
-  progressPercent: {
-    ...typography.body.small,
-    fontWeight: '600',
-  },
-  timeRemaining: {
-    ...typography.caption,
-    marginBottom: spacing[3],
-  },
-  infoText: {
-    ...typography.caption,
+    fontSize: 13,
     textAlign: 'center',
-    marginBottom: spacing[3],
-  },
-  cancelButton: {
-    alignSelf: 'center',
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[4],
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-  },
-  cancelButtonText: {
-    ...typography.body.small,
   },
 });

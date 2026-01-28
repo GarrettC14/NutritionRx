@@ -5,13 +5,8 @@
 
 import type { InsightInputData, Insight, InsightCategory } from '../types/insights.types';
 
-/**
- * Build the LLM prompt for insight generation
- */
 export function buildInsightPrompt(data: InsightInputData): string {
-  const goalText =
-    data.userGoal === 'lose' ? 'weight loss' : data.userGoal === 'gain' ? 'muscle gain' : 'maintenance';
-
+  const goalText = data.userGoal === 'lose' ? 'weight loss' : data.userGoal === 'gain' ? 'muscle gain' : 'maintenance';
   const foodsList = data.todayFoods.slice(0, 10).join(', ') || 'No foods logged yet';
 
   return `You are a supportive nutrition companion for the NutritionRx app. Generate 2-3 brief, personalized insights about the user's nutrition today.
@@ -51,86 +46,25 @@ Valid categories: macro_balance, protein, consistency, pattern, trend, hydration
 Generate insights now:`;
 }
 
-/**
- * Parse LLM response into insights
- */
 export function parseInsightResponse(responseText: string): Insight[] {
   try {
-    // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.warn('[InsightPromptBuilder] No JSON found in response');
-      return [];
-    }
-
+    if (!jsonMatch) { console.warn('[InsightPromptBuilder] No JSON found in response'); return []; }
     const parsed = JSON.parse(jsonMatch[0]);
-
-    if (!parsed.insights || !Array.isArray(parsed.insights)) {
-      console.warn('[InsightPromptBuilder] Invalid insights format');
-      return [];
-    }
-
-    // Validate and clean insights
-    const validCategories: InsightCategory[] = [
-      'macro_balance',
-      'protein',
-      'consistency',
-      'pattern',
-      'trend',
-      'hydration',
-      'timing',
-      'rest',
-    ];
-
+    if (!parsed.insights || !Array.isArray(parsed.insights)) { console.warn('[InsightPromptBuilder] Invalid insights format'); return []; }
+    const validCategories: InsightCategory[] = ['macro_balance', 'protein', 'consistency', 'pattern', 'trend', 'hydration', 'timing', 'rest'];
     return parsed.insights
-      .filter(
-        (insight: any) =>
-          insight &&
-          typeof insight.text === 'string' &&
-          insight.text.length > 0 &&
-          validCategories.includes(insight.category)
-      )
-      .map((insight: any) => ({
-        category: insight.category as InsightCategory,
-        text: insight.text.trim(),
-        icon: getCategoryIcon(insight.category),
-      }));
-  } catch (error) {
-    console.error('[InsightPromptBuilder] Error parsing response:', error);
-    return [];
-  }
+      .filter((insight: any) => insight && typeof insight.text === 'string' && insight.text.length > 0 && validCategories.includes(insight.category))
+      .map((insight: any) => ({ category: insight.category as InsightCategory, text: insight.text.trim(), icon: getCategoryIcon(insight.category) }));
+  } catch (error) { console.error('[InsightPromptBuilder] Error parsing response:', error); return []; }
 }
 
-/**
- * Get icon for insight category
- */
 export function getCategoryIcon(category: InsightCategory): string {
-  const icons: Record<InsightCategory, string> = {
-    macro_balance: '⚖️',
-    protein: '🎯',
-    consistency: '🔥',
-    pattern: '📊',
-    trend: '📈',
-    hydration: '💧',
-    timing: '⏰',
-    rest: '🌙',
-  };
+  const icons: Record<InsightCategory, string> = { macro_balance: '⚖️', protein: '🎯', consistency: '🔥', pattern: '📊', trend: '📈', hydration: '💧', timing: '⏰', rest: '🌙' };
   return icons[category] || '💡';
 }
 
-/**
- * Get display title for insight category
- */
 export function getCategoryTitle(category: InsightCategory): string {
-  const titles: Record<InsightCategory, string> = {
-    macro_balance: 'Macro Balance',
-    protein: 'Protein Pacing',
-    consistency: 'Consistency Win',
-    pattern: 'Pattern Spotted',
-    trend: 'Trend Update',
-    hydration: 'Hydration',
-    timing: 'Meal Timing',
-    rest: 'Rest Day',
-  };
+  const titles: Record<InsightCategory, string> = { macro_balance: 'Macro Balance', protein: 'Protein Pacing', consistency: 'Consistency Win', pattern: 'Pattern Spotted', trend: 'Trend Update', hydration: 'Hydration', timing: 'Meal Timing', rest: 'Rest Day' };
   return titles[category] || 'Insight';
 }
