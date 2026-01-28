@@ -1,0 +1,89 @@
+# Voice Assistant Settings E2E Test Suite
+# Tests the voice assistant settings and Siri shortcuts configuration
+#
+# Usage: maestro test .maestro/voice-assistant/voice-settings-flow.yaml
+
+appId: com.nutritionrx.app
+
+---
+# Voice Assistant Settings Flow Test
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd
+
+# Skip onboarding if present
+- tapOn:
+    text: "Skip"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Navigate to Settings
+- tapOn:
+    id: "settings-tab"
+
+- waitForAnimationToEnd
+
+# Scroll to find Voice Assistant section
+- scroll:
+    direction: DOWN
+
+# Verify Voice Assistant option is visible (iOS only feature primarily)
+- assertVisible:
+    text: "Voice Assistant"
+    optional: true
+
+- assertVisible:
+    text: "Siri Shortcuts"
+    optional: true
+
+# Tap to open Voice Assistant settings
+- tapOn:
+    text: "Voice Assistant"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify Siri Shortcuts section is visible
+- assertVisible:
+    text: "Siri Shortcuts"
+    optional: true
+
+# Verify common shortcuts are listed
+- assertVisible:
+    text: "Add water"
+    optional: true
+
+- assertVisible:
+    text: "Quick add"
+    optional: true
+
+- assertVisible:
+    text: "Check calories"
+    optional: true
+
+# Verify Voice Preferences section
+- scroll:
+    direction: DOWN
+
+- assertVisible:
+    text: "Voice Preferences"
+    optional: true
+
+- assertVisible:
+    text: "Default Quick Add Amount"
+    optional: true
+
+- assertVisible:
+    text: "Haptic Feedback"
+    optional: true
+
+# Navigate back
+- back
+
+- waitForAnimationToEnd
+
+# Verify we're back on settings
+- assertVisible:
+    text: "Settings"

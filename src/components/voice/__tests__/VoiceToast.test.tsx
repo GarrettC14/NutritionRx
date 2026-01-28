@@ -2,10 +2,6 @@
  * VoiceToast Component Tests
  */
 
-import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
-import { VoiceToast } from '../VoiceToast';
-
 // Mock useTheme hook
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
@@ -17,20 +13,11 @@ jest.mock('@/hooks/useTheme', () => ({
   }),
 }));
 
-// Mock Animated to avoid animation timing issues in tests
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  RN.Animated.timing = () => ({
-    start: (callback?: () => void) => callback?.(),
-  });
-  RN.Animated.spring = () => ({
-    start: (callback?: () => void) => callback?.(),
-  });
-  RN.Animated.parallel = (animations: any[]) => ({
-    start: (callback?: () => void) => callback?.(),
-  });
-  return RN;
-});
+// Note: react-native mock is in src/__mocks__/react-native.ts
+
+import React from 'react';
+import { render, act, waitFor } from '@testing-library/react-native';
+import { VoiceToast } from '../VoiceToast';
 
 describe('VoiceToast', () => {
   beforeEach(() => {
