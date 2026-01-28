@@ -1,0 +1,101 @@
+import React from 'react';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useTheme } from '@/hooks/useTheme';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
+
+interface PremiumSettingsRowProps {
+  label: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  href?: string;
+  context?: string;
+  subtitle?: string;
+}
+
+/**
+ * Settings row that shows lock icon for non-premium users.
+ * Tapping navigates to href if premium, or shows paywall if not.
+ */
+export function PremiumSettingsRow({
+  label,
+  icon,
+  href,
+  context = 'general',
+  subtitle,
+}: PremiumSettingsRowProps) {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const { isPremium } = useSubscriptionStore();
+
+  const handlePress = () => {
+    if (isPremium && href) {
+      router.push(href as any);
+    } else {
+      router.push(`/paywall?context=${context}`);
+    }
+  };
+
+  return (
+    <TouchableOpacity style={styles.row} onPress={handlePress}>
+      {icon && (
+        <View style={[styles.iconContainer, { backgroundColor: colors.accent + '26' }]}>
+          <Ionicons name={icon} size={18} color={colors.accent} />
+        </View>
+      )}
+
+      <View style={styles.content}>
+        <Text style={[styles.label, { color: colors.textPrimary }]}>{label}</Text>
+        {subtitle && (
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+        )}
+      </View>
+
+      <View style={styles.trailing}>
+        {!isPremium && (
+          <Ionicons
+            name="lock-closed"
+            size={14}
+            color={colors.textTertiary}
+            style={styles.lockIcon}
+          />
+        )}
+        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  content: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 16,
+  },
+  subtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  trailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  lockIcon: {
+    marginRight: 4,
+  },
+});

@@ -1,11 +1,12 @@
 import { useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePreference } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -124,6 +125,7 @@ function ThemeSelector() {
 export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { isPremium, expirationDate, hasBundle } = useSubscriptionStore();
 
   // Developer menu access - tap version 7 times
   const tapCountRef = useRef(0);
@@ -158,6 +160,70 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Premium Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            PREMIUM
+          </Text>
+          <View style={styles.sectionContent}>
+            {isPremium ? (
+              <>
+                <Pressable
+                  style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      Linking.openURL('https://apps.apple.com/account/subscriptions');
+                    } else {
+                      Linking.openURL('https://play.google.com/store/account/subscriptions');
+                    }
+                  }}
+                >
+                  <View
+                    style={[styles.settingsIcon, { backgroundColor: colors.successBg }]}
+                  >
+                    <Ionicons name="star" size={20} color={colors.success} />
+                  </View>
+                  <View style={styles.settingsContent}>
+                    <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                      Premium Active
+                    </Text>
+                    <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                      {hasBundle ? 'Bundle subscription' : 'Single app subscription'}
+                    </Text>
+                  </View>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                </Pressable>
+                {expirationDate && (
+                  <View
+                    style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
+                  >
+                    <View
+                      style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}
+                    >
+                      <Ionicons name="calendar-outline" size={20} color={colors.accent} />
+                    </View>
+                    <View style={styles.settingsContent}>
+                      <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                        Renews
+                      </Text>
+                    </View>
+                    <Text style={{ color: colors.textSecondary }}>
+                      {new Date(expirationDate).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <SettingsItem
+                icon="star-outline"
+                title="Upgrade to Premium"
+                subtitle="Unlock all features"
+                onPress={() => router.push('/paywall?context=general')}
+              />
+            )}
+          </View>
+        </View>
+
         {/* Goals Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>

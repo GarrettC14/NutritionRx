@@ -4,12 +4,15 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { initDatabase } from '@/db/database';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/contexts/TooltipContext';
 import { TooltipModal } from '@/components/ui/TooltipModal';
 import { useTheme } from '@/hooks/useTheme';
 import { colors as themeColors } from '@/constants/colors';
+import { REVENUECAT_CONFIG } from '@/config/revenuecat';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 // Default background to prevent white flash (dark mode is default)
 const DEFAULT_BG = themeColors.dark.bgPrimary;
@@ -91,6 +94,16 @@ function RootLayoutContent() {
             gestureDirection: 'vertical',
           }}
         />
+
+        {/* Paywall - full screen modal, no swipe dismiss */}
+        <Stack.Screen
+          name="paywall"
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+            gestureEnabled: false,
+          }}
+        />
       </Stack>
     </>
   );
@@ -98,6 +111,8 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
+  const [purchasesReady, setPurchasesReady] = useState(false);
+  const initializeSubscription = useSubscriptionStore((state) => state.initialize);
 
   useEffect(() => {
     // Initialize database on app start and wait for it
@@ -109,8 +124,30 @@ export default function RootLayout() {
       });
   }, []);
 
-  // Wait for database before rendering routes
-  if (!dbReady) {
+  useEffect(() => {
+    // Initialize RevenueCat after database is ready
+    if (!dbReady) return;
+
+    const initPurchases = async () => {
+      try {
+        if (__DEV__) {
+          Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+        }
+
+        await Purchases.configure({ apiKey: REVENUECAT_CONFIG.apiKey });
+        await initializeSubscription();
+        setPurchasesReady(true);
+      } catch (error) {
+        console.error('Failed to initialize purchases:', error);
+        setPurchasesReady(true); // Still proceed even if purchases fail
+      }
+    };
+
+    initPurchases();
+  }, [dbReady, initializeSubscription]);
+
+  // Wait for database and purchases before rendering routes
+  if (!dbReady || !purchasesReady) {
     return (
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0D1117' }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
