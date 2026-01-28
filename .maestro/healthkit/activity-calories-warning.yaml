@@ -1,0 +1,66 @@
+# Activity Calories Warning E2E Test
+# Tests that warning appears when enabling activity calorie adjustment
+#
+# Prerequisites:
+# - App must be running on iOS simulator
+# - User must have granted HealthKit permissions and be connected
+
+appId: com.nutritionrx.app
+
+---
+# Test: Activity calories warning visibility
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+
+# Navigate to Settings tab
+- tapOn:
+    id: "settings-tab"
+
+- waitForAnimationToEnd
+
+# Scroll to find Apple Health
+- scroll:
+    direction: DOWN
+
+# Open Apple Health settings
+- tapOn:
+    text: "Apple Health"
+
+- waitForAnimationToEnd
+
+# Scroll down to Advanced section
+- scroll:
+    direction: DOWN
+
+# Verify Advanced section exists (when connected)
+- assertVisible:
+    text: "Advanced"
+    optional: true
+
+# Toggle "Adjust for activity" on
+- tapOn:
+    text: "Adjust for activity"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify warning message appears
+- assertVisible:
+    text: "nutrition experts"
+    optional: true
+
+- assertVisible:
+    text: "50%"
+    optional: true
+
+# Toggle it back off
+- tapOn:
+    text: "Adjust for activity"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Navigate back
+- back

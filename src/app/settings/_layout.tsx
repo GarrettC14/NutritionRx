@@ -25,6 +25,8 @@ export default function SettingsLayout() {
       <Stack.Screen name="privacy-policy" />
       <Stack.Screen name="terms-of-service" />
       <Stack.Screen name="widgets" />
+      <Stack.Screen name="apple-health" />
+      <Stack.Screen name="health-connect" />
       <Stack.Screen name="developer" />
     </Stack>
   );

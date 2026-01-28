@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { waterRepository, WaterLog, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from '@/repositories';
 import { settingsRepository } from '@/repositories';
+import { syncWaterToHealthKit } from '@/services/healthkit/healthKitNutritionSync';
+import { useHealthKitStore, getDateKey } from './healthKitStore';
 
 interface WaterState {
   // State
@@ -76,6 +78,24 @@ export const useWaterStore = create<WaterState>((set, get) => ({
     try {
       const log = await waterRepository.addGlass(today);
       set({ todayLog: log });
+
+      // Sync to HealthKit if enabled (non-blocking)
+      const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();
+      const { glassSizeMl } = get();
+      if (syncWater && isConnected) {
+        syncWaterToHealthKit({
+          date: new Date(),
+          milliliters: glassSizeMl,
+        })
+          .then((result) => {
+            if (result.success) {
+              markWaterSynced(getDateKey(new Date()), glassSizeMl);
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to sync water to HealthKit:', error);
+          });
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to add glass',
@@ -97,9 +117,31 @@ export const useWaterStore = create<WaterState>((set, get) => ({
 
   setGlasses: async (glasses: number) => {
     const today = getToday();
+    const previousGlasses = get().todayLog?.glasses ?? 0;
     try {
       const log = await waterRepository.setGlasses(today, glasses);
       set({ todayLog: log });
+
+      // Sync difference to HealthKit if enabled (non-blocking)
+      // Only sync if we're adding water (not removing)
+      const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();
+      const { glassSizeMl } = get();
+      const glassesAdded = glasses - previousGlasses;
+      if (syncWater && isConnected && glassesAdded > 0) {
+        const millilitersAdded = glassesAdded * glassSizeMl;
+        syncWaterToHealthKit({
+          date: new Date(),
+          milliliters: millilitersAdded,
+        })
+          .then((result) => {
+            if (result.success) {
+              markWaterSynced(getDateKey(new Date()), millilitersAdded);
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to sync water to HealthKit:', error);
+          });
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to set glasses',

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -219,11 +219,27 @@ export default function SettingsScreen() {
             DATA
           </Text>
           <View style={styles.sectionContent}>
+            {Platform.OS === 'ios' && (
+              <SettingsItem
+                icon="heart-outline"
+                title="Apple Health"
+                subtitle="Sync nutrition, weight, and water"
+                onPress={() => router.push('/settings/apple-health')}
+              />
+            )}
+            {Platform.OS === 'android' && (
+              <SettingsItem
+                icon="fitness-outline"
+                title="Health Connect"
+                subtitle="Sync nutrition, weight, and water"
+                onPress={() => router.push('/settings/health-connect')}
+              />
+            )}
             <SettingsItem
-              icon="cloud-upload-outline"
-              title="Import Data"
-              subtitle="Restore from backup"
-              onPress={() => {}}
+              icon="cloud-download-outline"
+              title="Import From Other Apps"
+              subtitle="MyFitnessPal, Cronometer, Lose It!"
+              onPress={() => router.push('/import-data')}
             />
             <SettingsItem
               icon="trash-outline"

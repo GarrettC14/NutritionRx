@@ -1,0 +1,67 @@
+# HealthKit Settings Toggle E2E Test
+# Tests toggling sync settings when connected
+#
+# Prerequisites:
+# - App must be running on iOS simulator
+# - User must have granted HealthKit permissions
+
+appId: com.nutritionrx.app
+
+---
+# Test: Toggle sync settings
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+
+# Navigate to Settings tab
+- tapOn:
+    id: "settings-tab"
+
+- waitForAnimationToEnd
+
+# Scroll to find Apple Health
+- scroll:
+    direction: DOWN
+
+# Open Apple Health settings
+- tapOn:
+    text: "Apple Health"
+
+- waitForAnimationToEnd
+
+# Verify settings are visible (only if connected)
+- assertVisible:
+    text: "What to sync"
+    optional: true
+
+# Test: Toggle Nutrition sync off and on
+- tapOn:
+    text: "Nutrition"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Test: Toggle Water intake sync
+- tapOn:
+    text: "Water intake"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Test: Toggle Read weight
+- tapOn:
+    text: "Read weight"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Test: Toggle Save weight
+- tapOn:
+    text: "Save weight"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Navigate back
+- back

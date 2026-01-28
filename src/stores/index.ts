@@ -7,3 +7,5 @@ export { useProfileStore } from './profileStore';
 export { useFavoritesStore } from './favoritesStore';
 export { useOnboardingStore } from './onboardingStore';
 export { useWaterStore } from './waterStore';
+export { useHealthKitStore, getDateKey } from './healthKitStore';
+export { useHealthConnectStore } from './healthConnectStore';

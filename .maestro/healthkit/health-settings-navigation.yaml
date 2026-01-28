@@ -1,0 +1,39 @@
+# HealthKit Settings Navigation E2E Test
+# Tests navigation to Apple Health settings screen
+#
+# Prerequisites:
+# - App must be running on iOS simulator
+# - User must be past onboarding
+
+appId: com.nutritionrx.app
+
+---
+# Test: Navigate to Apple Health Settings
+- launchApp:
+    clearState: false
+
+# Wait for app to load
+- waitForAnimationToEnd
+
+# Navigate to Settings tab
+- tapOn:
+    id: "settings-tab"
+
+- waitForAnimationToEnd
+
+# Scroll to Data section (Apple Health should be there)
+- scroll:
+    direction: DOWN
+
+# Tap on Apple Health settings
+- tapOn:
+    text: "Apple Health"
+
+- waitForAnimationToEnd
+
+# Verify we're on the Apple Health screen
+- assertVisible:
+    text: "Apple Health"
+
+- assertVisible:
+    text: "Keep your health data in sync across all your apps."

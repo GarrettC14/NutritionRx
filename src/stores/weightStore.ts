@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { weightRepository, CreateWeightInput } from '@/repositories';
 import { WeightEntry } from '@/types/domain';
+import {
+  syncWeightToHealthKit,
+  getWeightFromHealthKit,
+} from '@/services/healthkit/healthKitNutritionSync';
+import { useHealthKitStore } from './healthKitStore';
 
 interface WeightState {
   // State
@@ -19,6 +24,9 @@ interface WeightState {
   updateEntry: (id: string, weightKg: number, notes?: string) => Promise<WeightEntry>;
   deleteEntry: (id: string) => Promise<void>;
   getEntryByDate: (date: string) => Promise<WeightEntry | null>;
+
+  // HealthKit integration
+  importFromHealthKit: () => Promise<{ imported: boolean; weight?: number }>;
 }
 
 export const useWeightStore = create<WeightState>((set, get) => ({
@@ -94,6 +102,15 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       ]);
 
       set({ isLoading: false });
+
+      // Sync to HealthKit if enabled (non-blocking)
+      const { writeWeight, isConnected } = useHealthKitStore.getState();
+      if (writeWeight && isConnected) {
+        syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
+          console.error('Failed to sync weight to HealthKit:', error);
+        });
+      }
+
       return entry;
     } catch (error) {
       set({
@@ -118,6 +135,14 @@ export const useWeightStore = create<WeightState>((set, get) => ({
 
       // Refresh trend weight
       get().loadTrendWeight();
+
+      // Sync to HealthKit if enabled (non-blocking)
+      const { writeWeight, isConnected } = useHealthKitStore.getState();
+      if (writeWeight && isConnected) {
+        syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
+          console.error('Failed to sync weight to HealthKit:', error);
+        });
+      }
 
       return entry;
     } catch (error) {
@@ -156,6 +181,69 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       return await weightRepository.findByDate(date);
     } catch (error) {
       return null;
+    }
+  },
+
+  /**
+   * Import the latest weight from HealthKit if it's newer than local data
+   * This is useful for importing weight from smart scales synced to Apple Health
+   */
+  importFromHealthKit: async () => {
+    const { readWeight, isConnected } = useHealthKitStore.getState();
+
+    if (!readWeight || !isConnected) {
+      return { imported: false };
+    }
+
+    try {
+      const healthWeight = await getWeightFromHealthKit();
+
+      if (!healthWeight) {
+        return { imported: false };
+      }
+
+      // Get latest local entry
+      const latestLocal = await weightRepository.getLatest();
+
+      // Import if Health has newer data or no local data exists
+      const shouldImport =
+        !latestLocal || new Date(healthWeight.date) > new Date(latestLocal.date);
+
+      if (shouldImport) {
+        const dateKey = healthWeight.date.toISOString().split('T')[0];
+
+        // Check if we already have an entry for this date
+        const existingForDate = await weightRepository.findByDate(dateKey);
+
+        if (existingForDate) {
+          // Update existing entry
+          await weightRepository.update(existingForDate.id, {
+            weightKg: healthWeight.kg,
+            notes: 'Imported from Apple Health',
+          });
+        } else {
+          // Create new entry
+          await weightRepository.create({
+            weightKg: healthWeight.kg,
+            date: dateKey,
+            notes: 'Imported from Apple Health',
+          });
+        }
+
+        // Refresh data
+        await Promise.all([
+          get().loadEntries(),
+          get().loadLatest(),
+          get().loadTrendWeight(),
+        ]);
+
+        return { imported: true, weight: healthWeight.kg };
+      }
+
+      return { imported: false };
+    } catch (error) {
+      console.error('Failed to import weight from HealthKit:', error);
+      return { imported: false };
     }
   },
 }));
