@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NutritionRx</string>
+
+    <!-- Tiles -->
+    <string name="tile_quick_add">Quick Add</string>
+    <string name="tile_progress">Daily Progress</string>
+
+    <!-- Complications -->
+    <string name="complication_calories">Calories Today</string>
+    <string name="complication_water">Water Today</string>
+
+    <!-- Home Screen -->
+    <string name="today">Today</string>
+    <string name="calories">calories</string>
+    <string name="remaining">remaining</string>
+    <string name="of_goal">of %1$d</string>
+
+    <!-- Water Screen -->
+    <string name="water">Water</string>
+    <string name="glasses">glasses</string>
+    <string name="add_water">Add Water</string>
+    <string name="water_added">Water added!</string>
+    <string name="water_goal_reached">Goal reached!</string>
+
+    <!-- Quick Add Screen -->
+    <string name="quick_add">Quick Add</string>
+    <string name="recent_foods">Recent Foods</string>
+    <string name="cal">cal</string>
+    <string name="added_calories">Added %1$d calories</string>
+
+    <!-- Sync Status -->
+    <string name="syncing">Syncing…</string>
+    <string name="last_synced">Last synced %1$s</string>
+    <string name="sync_failed">Sync failed</string>
+    <string name="phone_not_connected">Phone not connected</string>
+    <string name="open_phone_app">Open app on phone to sync</string>
+</resources>
