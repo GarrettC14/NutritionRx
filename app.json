@@ -27,7 +27,17 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.nutritionrx.app",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.health.READ_NUTRITION",
+        "android.permission.health.WRITE_NUTRITION",
+        "android.permission.health.READ_HYDRATION",
+        "android.permission.health.WRITE_HYDRATION",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.WRITE_WEIGHT",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_TOTAL_CALORIES_BURNED"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -41,8 +51,20 @@
           "cameraPermission": "NutritionRx needs camera access to scan barcodes on food products."
         }
       ],
+      "expo-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "./plugins/withIOSWidget",
-      "./plugins/withAndroidWidget"
+      "./plugins/withAndroidWidget",
+      "./plugins/withHealthConnect"
     ],
     "experiments": {
       "typedRoutes": true
