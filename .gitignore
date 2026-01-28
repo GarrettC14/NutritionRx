@@ -39,6 +39,10 @@ yarn-error.*
 # testing
 coverage/
 
-# generated native folders
-/ios
+# generated native folders (except custom native code)
+/ios/*
+!/ios/NutritionRx Watch App/
+!/ios/NutritionRx/
+/ios/NutritionRx/*
+!/ios/NutritionRx/WatchConnectivity/
 /android
