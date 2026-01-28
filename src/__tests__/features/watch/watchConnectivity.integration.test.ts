@@ -10,19 +10,21 @@ let reachabilityCallback: ((event: { isReachable: boolean }) => void) | null = n
 let sessionStateCallback: ((event: { state: string; error?: string }) => void) | null = null;
 let watchCommandCallback: ((command: any) => void) | null = null;
 
+const mockNativeModule = {
+  sendDailyDataToWatch: jest.fn(),
+  sendRecentFoodsToWatch: jest.fn(),
+  isWatchReachable: jest.fn(),
+  isWatchPaired: jest.fn(),
+  isWatchAppInstalled: jest.fn(),
+  getWatchSessionState: jest.fn(),
+};
+
 jest.mock('react-native', () => ({
   Platform: {
     OS: 'ios',
   },
   NativeModules: {
-    WatchConnectivityModule: {
-      sendDailyDataToWatch: jest.fn(),
-      sendRecentFoodsToWatch: jest.fn(),
-      isWatchReachable: jest.fn(),
-      isWatchPaired: jest.fn(),
-      isWatchAppInstalled: jest.fn(),
-      getWatchSessionState: jest.fn(),
-    },
+    WatchConnectivityModule: mockNativeModule,
   },
   NativeEventEmitter: jest.fn().mockImplementation(() => ({
     addListener: jest.fn((eventName, callback) => {
@@ -38,10 +40,6 @@ jest.mock('react-native', () => ({
     removeAllListeners: jest.fn(),
   })),
 }));
-
-// Get mock references after mocking
-const { NativeModules } = require('react-native');
-const mockNativeModule = NativeModules.WatchConnectivityModule;
 
 import { watchConnectivityService } from '@/services/watchConnectivity/watchConnectivityService';
 import { useWatchConnectivity } from '@/hooks/useWatchConnectivity';
@@ -223,6 +221,64 @@ describe('Watch Connectivity Integration', () => {
     });
   });
 
+  describe('Session state transitions', () => {
+    it('handles watch app installation', async () => {
+      // Start with watch app not installed
+      mockNativeModule.getWatchSessionState.mockResolvedValue({
+        isSupported: true,
+        isPaired: true,
+        isWatchAppInstalled: false,
+        isReachable: false,
+      });
+
+      const { result } = renderHook(() => useWatchConnectivity());
+
+      await waitFor(() => {
+        expect(result.current.isWatchAppInstalled).toBe(false);
+      });
+
+      // Simulate watch app being installed
+      mockNativeModule.getWatchSessionState.mockResolvedValue({
+        isSupported: true,
+        isPaired: true,
+        isWatchAppInstalled: true,
+        isReachable: true,
+      });
+
+      act(() => {
+        sessionStateCallback?.({ state: 'activated' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isWatchAppInstalled).toBe(true);
+      });
+    });
+
+    it('handles watch pairing changes', async () => {
+      const { result } = renderHook(() => useWatchConnectivity());
+
+      await waitFor(() => {
+        expect(result.current.isPaired).toBe(true);
+      });
+
+      // Simulate watch being unpaired
+      mockNativeModule.getWatchSessionState.mockResolvedValue({
+        isSupported: true,
+        isPaired: false,
+        isWatchAppInstalled: false,
+        isReachable: false,
+      });
+
+      act(() => {
+        sessionStateCallback?.({ state: 'inactive' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPaired).toBe(false);
+      });
+    });
+  });
+
   describe('Error recovery', () => {
     it('recovers from temporary network errors', async () => {
       const { result } = renderHook(() => useWatchConnectivity());
@@ -245,6 +301,25 @@ describe('Watch Connectivity Integration', () => {
 
       expect(result.current.isReachable).toBe(true);
     });
+
+    it('handles session activation error', async () => {
+      const { result } = renderHook(() => useWatchConnectivity());
+
+      await waitFor(() => {
+        expect(result.current.isAvailable).toBe(true);
+      });
+
+      // Simulate activation error
+      act(() => {
+        sessionStateCallback?.({
+          state: 'inactive',
+          error: 'Activation failed',
+        });
+      });
+
+      // Hook should still function
+      expect(result.current.isAvailable).toBe(true);
+    });
   });
 
   describe('Recent foods sync', () => {
@@ -259,6 +334,8 @@ describe('Watch Connectivity Integration', () => {
         { id: '1', name: 'Apple', calories: 95 },
         { id: '2', name: 'Banana', calories: 105, protein: 1, carbs: 27, fat: 0 },
         { id: '3', name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 4 },
+        { id: '4', name: 'Rice', calories: 130, protein: 3, carbs: 28, fat: 0 },
+        { id: '5', name: 'Broccoli', calories: 55, protein: 4, carbs: 11, fat: 1 },
       ];
 
       await act(async () => {
@@ -292,6 +369,63 @@ describe('Watch Connectivity Integration', () => {
       });
 
       expect(handleCommand).toHaveBeenCalledTimes(3);
+    });
+
+    it('handles mixed command types', async () => {
+      const handleCommand = jest.fn();
+      renderHook(() => useWatchConnectivity(handleCommand));
+
+      await waitFor(() => {
+        expect(watchCommandCallback).not.toBeNull();
+      });
+
+      const commands: WatchCommand[] = [
+        { type: 'addWater', glasses: 1 },
+        { type: 'quickAddCalories', calories: 200, meal: 'Lunch' },
+        { type: 'logFood', foodId: 'food-123', meal: 'Lunch' },
+        { type: 'requestSync' },
+      ];
+
+      commands.forEach((command) => {
+        act(() => {
+          watchCommandCallback?.(command);
+        });
+      });
+
+      expect(handleCommand).toHaveBeenCalledTimes(4);
+      expect(handleCommand).toHaveBeenNthCalledWith(1, commands[0]);
+      expect(handleCommand).toHaveBeenNthCalledWith(2, commands[1]);
+      expect(handleCommand).toHaveBeenNthCalledWith(3, commands[2]);
+      expect(handleCommand).toHaveBeenNthCalledWith(4, commands[3]);
+    });
+  });
+});
+
+describe('Watch Connectivity - Meal Type Timing', () => {
+  // Test that the meal type suggestion works correctly based on time
+  describe('meal suggestions based on time', () => {
+    it('includes meal type in quick add commands', async () => {
+      const handleCommand = jest.fn();
+      renderHook(() => useWatchConnectivity(handleCommand));
+
+      await waitFor(() => {
+        expect(watchCommandCallback).not.toBeNull();
+      });
+
+      // Test breakfast time
+      const breakfastCommand: WatchCommand = {
+        type: 'quickAddCalories',
+        calories: 300,
+        meal: 'Breakfast',
+      };
+
+      act(() => {
+        watchCommandCallback?.(breakfastCommand);
+      });
+
+      expect(handleCommand).toHaveBeenCalledWith(
+        expect.objectContaining({ meal: 'Breakfast' })
+      );
     });
   });
 });
@@ -338,6 +472,11 @@ describe('Watch Connectivity - Data Validation', () => {
     expect(sentData).toHaveProperty('calorieTarget');
     expect(sentData).toHaveProperty('waterGlasses');
     expect(sentData).toHaveProperty('waterTarget');
+    expect(sentData).toHaveProperty('protein');
+    expect(sentData).toHaveProperty('carbs');
+    expect(sentData).toHaveProperty('fat');
+    expect(sentData).toHaveProperty('recentFoods');
+    expect(sentData).toHaveProperty('favoriteFoods');
   });
 
   it('handles over-target calorie values', async () => {

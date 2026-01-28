@@ -312,5 +312,52 @@ describe('useWatchConnectivity', () => {
   });
 });
 
-// Note: Testing "unavailable" state requires module reset which conflicts with React hooks
-// The unavailable behavior is covered by unit tests in watchConnectivityService.test.ts
+describe('useWatchConnectivity when unavailable', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.doMock('@/services/watchConnectivity/watchConnectivityService', () => ({
+      watchConnectivityService: {
+        isAvailable: jest.fn(() => false),
+        getSessionState: jest.fn(),
+        sendDailyData: jest.fn(),
+        sendRecentFoods: jest.fn(),
+        onReachabilityChange: jest.fn(() => jest.fn()),
+        onSessionStateChange: jest.fn(() => jest.fn()),
+        onWatchCommand: jest.fn(() => jest.fn()),
+      },
+    }));
+  });
+
+  it('returns unavailable state', async () => {
+    const { useWatchConnectivity: useHook } = require('@/hooks/useWatchConnectivity');
+    const { result } = renderHook(() => useHook());
+
+    expect(result.current.isAvailable).toBe(false);
+  });
+
+  it('sendDailyData is a no-op when unavailable', async () => {
+    const mockService = require('@/services/watchConnectivity/watchConnectivityService').watchConnectivityService;
+    const { useWatchConnectivity: useHook } = require('@/hooks/useWatchConnectivity');
+
+    const { result } = renderHook(() => useHook());
+
+    const mockData: WatchDailyData = {
+      date: '2024-01-15',
+      caloriesConsumed: 1500,
+      calorieTarget: 2000,
+      waterGlasses: 5,
+      waterTarget: 8,
+      protein: 100,
+      carbs: 150,
+      fat: 50,
+      recentFoods: [],
+      favoriteFoods: [],
+    };
+
+    await act(async () => {
+      await result.current.sendDailyData(mockData);
+    });
+
+    expect(mockService.sendDailyData).not.toHaveBeenCalled();
+  });
+});

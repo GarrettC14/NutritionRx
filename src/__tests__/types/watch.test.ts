@@ -38,6 +38,13 @@ describe('Watch Types', () => {
       expect(data.date).toBe('2024-01-15');
       expect(data.caloriesConsumed).toBe(1500);
       expect(data.calorieTarget).toBe(2000);
+      expect(data.waterGlasses).toBe(5);
+      expect(data.waterTarget).toBe(8);
+      expect(data.protein).toBe(100);
+      expect(data.carbs).toBe(150);
+      expect(data.fat).toBe(50);
+      expect(data.recentFoods).toEqual([]);
+      expect(data.favoriteFoods).toEqual([]);
     });
 
     it('accepts daily data with foods', () => {
@@ -86,6 +93,8 @@ describe('Watch Types', () => {
       expect(food.name).toBe('Grilled Chicken');
       expect(food.calories).toBe(165);
       expect(food.protein).toBeUndefined();
+      expect(food.carbs).toBeUndefined();
+      expect(food.fat).toBeUndefined();
     });
 
     it('accepts food with full macros', () => {
@@ -122,6 +131,7 @@ describe('Watch Types', () => {
       };
 
       expect(command.type).toBe('removeWater');
+      expect(command.glasses).toBe(1);
     });
 
     it('accepts quickAddCalories command', () => {
@@ -145,6 +155,7 @@ describe('Watch Types', () => {
 
       expect(command.type).toBe('logFood');
       expect(command.foodId).toBe('food-123');
+      expect(command.meal).toBe('Dinner');
     });
 
     it('accepts requestSync command', () => {
@@ -165,6 +176,9 @@ describe('Watch Types', () => {
       ];
 
       expect(commands).toHaveLength(5);
+      commands.forEach((cmd) => {
+        expect(cmd.type).toBeDefined();
+      });
     });
   });
 
@@ -179,6 +193,20 @@ describe('Watch Types', () => {
 
       expect(state.isSupported).toBe(true);
       expect(state.isPaired).toBe(true);
+      expect(state.isWatchAppInstalled).toBe(true);
+      expect(state.isReachable).toBe(true);
+    });
+
+    it('accepts partial availability state', () => {
+      const state: WatchSessionState = {
+        isSupported: true,
+        isPaired: true,
+        isWatchAppInstalled: false,
+        isReachable: false,
+      };
+
+      expect(state.isWatchAppInstalled).toBe(false);
+      expect(state.isReachable).toBe(false);
     });
   });
 
@@ -192,6 +220,10 @@ describe('Watch Types', () => {
       ];
 
       expect(states).toHaveLength(4);
+      expect(states).toContain('notActivated');
+      expect(states).toContain('inactive');
+      expect(states).toContain('activated');
+      expect(states).toContain('unknown');
     });
   });
 
@@ -206,7 +238,7 @@ describe('Watch Types', () => {
   });
 
   describe('WatchSessionStateEvent', () => {
-    it('accepts session state event', () => {
+    it('accepts session state event without error', () => {
       const event: WatchSessionStateEvent = {
         state: 'activated',
       };
@@ -223,6 +255,110 @@ describe('Watch Types', () => {
 
       expect(event.state).toBe('inactive');
       expect(event.error).toBe('Connection lost');
+    });
+  });
+
+  describe('WatchCommandType', () => {
+    it('includes all command types', () => {
+      const types: WatchCommandType[] = [
+        'addWater',
+        'removeWater',
+        'quickAddCalories',
+        'logFood',
+        'requestSync',
+      ];
+
+      expect(types).toHaveLength(5);
+    });
+  });
+});
+
+describe('Watch Types - Edge Cases', () => {
+  describe('WatchDailyData edge values', () => {
+    it('handles zero values', () => {
+      const data: WatchDailyData = {
+        date: '2024-01-15',
+        caloriesConsumed: 0,
+        calorieTarget: 0,
+        waterGlasses: 0,
+        waterTarget: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        recentFoods: [],
+        favoriteFoods: [],
+      };
+
+      expect(data.caloriesConsumed).toBe(0);
+    });
+
+    it('handles high values (over target)', () => {
+      const data: WatchDailyData = {
+        date: '2024-01-15',
+        caloriesConsumed: 5000,
+        calorieTarget: 2000,
+        waterGlasses: 20,
+        waterTarget: 8,
+        protein: 300,
+        carbs: 500,
+        fat: 200,
+        recentFoods: [],
+        favoriteFoods: [],
+      };
+
+      expect(data.caloriesConsumed).toBeGreaterThan(data.calorieTarget);
+    });
+  });
+
+  describe('WatchSimpleFood edge values', () => {
+    it('handles empty name', () => {
+      const food: WatchSimpleFood = {
+        id: '123',
+        name: '',
+        calories: 0,
+      };
+
+      expect(food.name).toBe('');
+    });
+
+    it('handles long name', () => {
+      const longName = 'A'.repeat(200);
+      const food: WatchSimpleFood = {
+        id: '123',
+        name: longName,
+        calories: 100,
+      };
+
+      expect(food.name.length).toBe(200);
+    });
+
+    it('handles decimal macros', () => {
+      const food: WatchSimpleFood = {
+        id: '123',
+        name: 'Test Food',
+        calories: 150,
+        protein: 10.5,
+        carbs: 20.3,
+        fat: 5.7,
+      };
+
+      expect(food.protein).toBe(10.5);
+    });
+  });
+
+  describe('QuickAddCaloriesCommand meal types', () => {
+    it('accepts all meal types', () => {
+      const meals = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+
+      meals.forEach((meal) => {
+        const command: QuickAddCaloriesCommand = {
+          type: 'quickAddCalories',
+          calories: 100,
+          meal: meal as any,
+        };
+
+        expect(command.meal).toBe(meal);
+      });
     });
   });
 });

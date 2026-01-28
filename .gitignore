@@ -46,3 +46,7 @@ coverage/
 /ios/NutritionRx/*
 !/ios/NutritionRx/WatchConnectivity/
 /android
+
+# Wear OS module (custom native code - tracked)
+!/android/wear/
+!/android/settings.gradle
