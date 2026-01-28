@@ -16,3 +16,4 @@ export {
 } from './domain';
 export * from './mappers';
 export * from './restaurant';
+export * from './ai-photo';

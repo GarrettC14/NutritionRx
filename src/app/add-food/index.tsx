@@ -108,6 +108,13 @@ export default function AddFoodScreen() {
     });
   };
 
+  const handleAIPhoto = () => {
+    router.push({
+      pathname: '/add-food/ai-photo',
+      params: { mealType, date },
+    });
+  };
+
   const handleCreateFood = () => {
     router.push({
       pathname: '/add-food/create',
@@ -288,6 +295,15 @@ export default function AddFoodScreen() {
 
       {/* Bottom Actions */}
       <View style={[styles.bottomActions, { borderTopColor: colors.borderDefault }]}>
+        <Pressable
+          style={[styles.actionButton, { backgroundColor: colors.accent }]}
+          onPress={handleAIPhoto}
+        >
+          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+          <Text style={[styles.actionText, { color: '#FFFFFF' }]}>
+            AI Photo
+          </Text>
+        </Pressable>
         <Pressable
           style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
           onPress={handleQuickAdd}

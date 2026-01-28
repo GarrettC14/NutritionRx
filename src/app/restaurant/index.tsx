@@ -7,6 +7,7 @@ import {
   Pressable,
   FlatList,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -21,6 +22,8 @@ import { Restaurant } from '@/types/restaurant';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { RestaurantListSkeleton } from '@/components/ui/Skeleton';
+import { PremiumBanner } from '@/components/premium';
+import { usePremium, PremiumFeature } from '@/hooks/usePremium';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -65,6 +68,10 @@ export default function RestaurantListScreen() {
     loadRecentRestaurants,
     searchRestaurants,
   } = useRestaurantStore();
+
+  // Premium state
+  const { isPremium } = usePremium();
+  const [showPremiumBanner, setShowPremiumBanner] = useState(true);
 
   // Initialize data and load restaurants on mount
   useEffect(() => {
@@ -262,20 +269,37 @@ export default function RestaurantListScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             ListHeaderComponent={
-              recentRestaurants.length > 0 ? (
-                <View style={styles.recentSection}>
-                  <CollapsibleSection
-                    title="Recently Used"
-                    itemCount={recentRestaurants.length}
-                    defaultExpanded={true}
-                  >
-                    {recentRestaurants.map(renderRestaurantSimple)}
-                  </CollapsibleSection>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-                    All Restaurants
-                  </Text>
-                </View>
-              ) : null
+              <>
+                {/* Premium banner for free users */}
+                {!isPremium && showPremiumBanner && (
+                  <View style={styles.premiumBannerContainer}>
+                    <PremiumBanner
+                      title="Unlock Premium"
+                      description="Get unlimited restaurant tracking and advanced features"
+                      variant="compact"
+                      onDismiss={() => setShowPremiumBanner(false)}
+                      onUpgradePress={() => {
+                        // Navigate to premium screen (to be implemented)
+                        console.log('Navigate to premium');
+                      }}
+                    />
+                  </View>
+                )}
+                {recentRestaurants.length > 0 ? (
+                  <View style={styles.recentSection}>
+                    <CollapsibleSection
+                      title="Recently Used"
+                      itemCount={recentRestaurants.length}
+                      defaultExpanded={true}
+                    >
+                      {recentRestaurants.map(renderRestaurantSimple)}
+                    </CollapsibleSection>
+                    <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                      All Restaurants
+                    </Text>
+                  </View>
+                ) : null}
+              </>
             }
           />
         )}
@@ -378,5 +402,8 @@ const styles = StyleSheet.create({
   emptyText: {
     ...typography.body.medium,
     textAlign: 'center',
+  },
+  premiumBannerContainer: {
+    marginBottom: spacing[3],
   },
 });

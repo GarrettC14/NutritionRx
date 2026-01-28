@@ -11,3 +11,4 @@ export { useHealthKitStore, getDateKey } from './healthKitStore';
 export { useHealthConnectStore } from './healthConnectStore';
 export { useDashboardStore } from './dashboardStore';
 export { useRestaurantStore } from './restaurantStore';
+export { useAIPhotoStore } from './aiPhotoStore';
