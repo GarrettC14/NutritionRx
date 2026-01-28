@@ -356,8 +356,8 @@ export default function ProgressScreen() {
         {dailyIntake && dailyIntake.nutrients.length > 0 && (
           <MicronutrientSummary
             nutrients={dailyIntake.nutrients}
-            onPress={() => router.push('/micronutrients')}
-            onCategoryPress={(category) => router.push(`/micronutrients?category=${category}`)}
+            onPress={() => console.log('Navigate to micronutrients')}
+            onCategoryPress={(category) => console.log('Navigate to micronutrients category:', category)}
             isPremium={isPremium}
           />
         )}
@@ -368,9 +368,9 @@ export default function ProgressScreen() {
           recentPhotos={photos.slice(0, 5)}
           firstPhoto={getFirstPhoto()}
           latestPhoto={getLatestPhoto()}
-          onPress={() => router.push('/progress-photos')}
-          onAddPress={() => router.push('/progress-photos/capture')}
-          onComparePress={() => router.push('/progress-photos/compare')}
+          onPress={() => console.log('Navigate to progress photos')}
+          onAddPress={() => console.log('Navigate to photo capture')}
+          onComparePress={() => console.log('Navigate to photo compare')}
         />
 
         {/* AI Analysis Section - Premium Feature */}

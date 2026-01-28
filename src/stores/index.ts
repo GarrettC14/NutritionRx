@@ -12,3 +12,5 @@ export { useHealthConnectStore } from './healthConnectStore';
 export { useDashboardStore } from './dashboardStore';
 export { useRestaurantStore } from './restaurantStore';
 export { useAIPhotoStore } from './aiPhotoStore';
+export { useMicronutrientStore } from './micronutrientStore';
+export { useProgressPhotoStore } from './progressPhotoStore';

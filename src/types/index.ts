@@ -17,3 +17,5 @@ export {
 export * from './mappers';
 export * from './restaurant';
 export * from './ai-photo';
+export * from './micronutrients';
+export * from './progressPhotos';
