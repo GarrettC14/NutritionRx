@@ -1,0 +1,90 @@
+# Import Source Selection E2E Test
+# Tests the source selection screen and source cards
+#
+# Prerequisites:
+# - App must be running on iOS simulator
+
+appId: com.nutritionrx.app
+
+---
+# Test: Source selection screen functionality
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+
+# Navigate to Settings tab
+- tapOn:
+    id: "settings-tab"
+
+- waitForAnimationToEnd
+
+# Scroll to find Import Data
+- scroll:
+    direction: DOWN
+
+# Open Import Data flow
+- tapOn:
+    text: "Import Data"
+
+- waitForAnimationToEnd
+
+# Go to source selection
+- tapOn:
+    text: "Get Started"
+
+- waitForAnimationToEnd
+
+# Verify screen title
+- assertVisible:
+    text: "Select Source"
+
+# Verify MyFitnessPal source card
+- assertVisible:
+    text: "MyFitnessPal"
+
+- assertVisible:
+    text: "Import meal totals from your MFP diary export"
+
+# Verify Cronometer source card
+- assertVisible:
+    text: "Cronometer"
+
+- assertVisible:
+    text: "Import from Cronometer with detailed food data"
+
+# Verify Lose It! source card
+- assertVisible:
+    text: "Lose It!"
+
+- assertVisible:
+    text: "Import your food history from Lose It!"
+
+# Test: Tap on MyFitnessPal to see export instructions
+- tapOn:
+    text: "MyFitnessPal"
+
+- waitForAnimationToEnd
+
+# Verify export instructions are shown
+- assertVisible:
+    text: "How to export"
+    optional: true
+
+# File picker would open here - we can't fully test without a real file
+# Navigate back to settings
+- back
+
+- waitForAnimationToEnd
+
+- back
+
+- waitForAnimationToEnd
+
+- back
+
+- waitForAnimationToEnd
+
+# Verify we're back on main settings
+- assertVisible:
+    text: "Settings"
