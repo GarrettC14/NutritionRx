@@ -6,7 +6,6 @@ import {
   TextInput,
   Pressable,
   FlatList,
-  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +20,7 @@ import { useRestaurantStore } from '@/stores';
 import { Restaurant } from '@/types/restaurant';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { RestaurantListSkeleton } from '@/components/ui/Skeleton';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -68,14 +68,34 @@ export default function RestaurantListScreen() {
 
   // Initialize data and load restaurants on mount
   useEffect(() => {
+    let mounted = true;
+
     const initialize = async () => {
-      if (!isDataInitialized) {
-        await initializeData();
+      try {
+        if (!isDataInitialized) {
+          await initializeData();
+        }
+
+        // Check if initialization succeeded before loading restaurants
+        // Use getState() to get the current store state after initializeData
+        const storeState = useRestaurantStore.getState();
+        if (!mounted || storeState.error) {
+          return; // Don't load restaurants if there was an error
+        }
+
+        await Promise.all([loadRestaurants(), loadRecentRestaurants()]);
+      } catch (err) {
+        // Errors are handled by the store
+        console.error('Restaurant initialization error:', err);
       }
-      await Promise.all([loadRestaurants(), loadRecentRestaurants()]);
     };
+
     initialize();
-  }, [isDataInitialized]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [isDataInitialized, initializeData, loadRestaurants, loadRecentRestaurants]);
 
   // Search when debounced value changes
   useEffect(() => {
@@ -131,8 +151,8 @@ export default function RestaurantListScreen() {
     </View>
   );
 
-  // Show loading while initializing
-  if (!isDataInitialized || (isLoading && restaurants.length === 0)) {
+  // Show error state
+  if (error) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <View style={styles.header}>
@@ -144,11 +164,28 @@ export default function RestaurantListScreen() {
           </Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
+          <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading restaurants...
+            {error}
           </Text>
+          <Pressable
+            onPress={() => {
+              initializeData().then(() => loadRestaurants());
+            }}
+            style={[styles.retryButton, { backgroundColor: colors.accent }]}
+          >
+            <Text style={[styles.retryButtonText, { color: colors.textInverse }]}>Retry</Text>
+          </Pressable>
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show loading skeleton while initializing
+  if (!isDataInitialized || (isLoading && restaurants.length === 0)) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+        <RestaurantListSkeleton />
       </SafeAreaView>
     );
   }
@@ -292,6 +329,18 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body.medium,
+    textAlign: 'center',
+    marginHorizontal: spacing[4],
+  },
+  retryButton: {
+    marginTop: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[6],
+    borderRadius: borderRadius.md,
+  },
+  retryButtonText: {
+    ...typography.body.medium,
+    fontWeight: '600',
   },
   searchingIndicator: {
     position: 'absolute',

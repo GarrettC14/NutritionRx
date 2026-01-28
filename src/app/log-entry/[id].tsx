@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,6 +27,7 @@ import { logEntryRepository, quickAddRepository, foodRepository } from '@/reposi
 import { LogEntry, QuickAddEntry, FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 type EntryType = 'log' | 'quick';
 
@@ -265,9 +265,7 @@ export default function LogEntryScreen() {
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Edit Entry</Text>
           <View style={{ width: 50 }} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <FoodDetailSkeleton />
       </SafeAreaView>
     );
   }

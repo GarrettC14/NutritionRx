@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[6],
   },
   title: {
-    ...typography.heading.h1,
+    ...typography.display.medium,
     textAlign: 'center',
     marginBottom: spacing[2],
   },

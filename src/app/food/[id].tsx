@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { MealType } from '@/constants/mealTypes';
 import { foodRepository } from '@/repositories';
 import { FoodItem, DataSource } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
+import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 const SOURCE_LABELS: Record<DataSource, string> = {
   open_food_facts: 'Open Food Facts',
@@ -118,9 +118,7 @@ export default function FoodDetailScreen() {
           edges={['bottom']}
           style={[styles.container, { backgroundColor: colors.bgPrimary }]}
         >
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.accent} />
-          </View>
+          <FoodDetailSkeleton />
         </SafeAreaView>
       </>
     );

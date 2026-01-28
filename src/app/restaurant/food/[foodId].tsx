@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -19,6 +18,7 @@ import { useRestaurantStore } from '@/stores';
 import { restaurantRepository } from '@/repositories';
 import { RestaurantFood } from '@/types/restaurant';
 import { Button } from '@/components/ui/Button';
+import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 export default function RestaurantFoodDetailScreen() {
   const { colors } = useTheme();
@@ -107,9 +107,7 @@ export default function RestaurantFoodDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <FoodDetailSkeleton />
       </SafeAreaView>
     );
   }

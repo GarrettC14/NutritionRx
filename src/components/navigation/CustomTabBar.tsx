@@ -29,7 +29,7 @@ const TABS: TabItem[] = [
     icon: 'restaurant-outline',
     iconActive: 'restaurant',
     href: '/add-food',
-    matchPaths: ['/add-food'],
+    matchPaths: ['/add-food', '/restaurant'],
   },
   {
     name: 'progress',

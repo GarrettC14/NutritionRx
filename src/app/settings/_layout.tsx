@@ -1,15 +1,20 @@
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { colors as themeColors } from '@/constants/colors';
+
+// Default background to prevent white flash (dark mode is default)
+const DEFAULT_BG = themeColors.dark.bgPrimary;
 
 export default function SettingsLayout() {
   const { colors } = useTheme();
+  const bgColor = colors?.bgPrimary || DEFAULT_BG;
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.bgPrimary },
+        contentStyle: { backgroundColor: bgColor },
         animation: 'default', // Platform-native push/pop animations
         gestureEnabled: Platform.OS === 'ios', // iOS swipe back gesture
       }}

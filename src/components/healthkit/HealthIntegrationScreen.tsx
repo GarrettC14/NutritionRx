@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
   },
   pageTitle: {
-    ...typography.heading.h1,
+    ...typography.display.medium,
     marginBottom: spacing[2],
   },
   pageSubtitle: {
@@ -346,9 +346,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sectionLabel: {
-    ...typography.label.small,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    ...typography.overline,
     marginBottom: spacing[3],
     marginLeft: spacing[1],
   },
@@ -433,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
   },
   unavailableTitle: {
-    ...typography.heading.h2,
+    ...typography.title.large,
     marginBottom: spacing[2],
   },
   unavailableText: {

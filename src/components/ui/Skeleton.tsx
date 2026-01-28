@@ -366,6 +366,209 @@ function FoodItemSkeleton() {
   );
 }
 
+// Restaurant list screen skeleton
+export function RestaurantListSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Header skeleton */}
+      <View style={styles.restaurantListHeader}>
+        <SkeletonCircle size={24} />
+        <SkeletonBox width={120} height={28} />
+      </View>
+
+      {/* Search bar skeleton */}
+      <View style={styles.searchBarContainer}>
+        <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
+          <SkeletonCircle size={20} />
+          <SkeletonBox width={'70%' as any} height={20} />
+        </View>
+      </View>
+
+      {/* Recent section skeleton */}
+      <View style={styles.restaurantSection}>
+        <SkeletonBox width={100} height={14} style={{ marginBottom: 12 }} />
+        <RestaurantCardSkeleton />
+        <RestaurantCardSkeleton />
+      </View>
+
+      {/* All restaurants skeleton */}
+      <View style={styles.restaurantSection}>
+        <SkeletonBox width={120} height={14} style={{ marginBottom: 12 }} />
+        <RestaurantCardSkeleton />
+        <RestaurantCardSkeleton />
+        <RestaurantCardSkeleton />
+        <RestaurantCardSkeleton />
+      </View>
+    </View>
+  );
+}
+
+function RestaurantCardSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.restaurantCard, { backgroundColor: colors.bgSecondary }]}>
+      <SkeletonBox width={48} height={48} borderRadius={br.sm} />
+      <View style={styles.restaurantCardContent}>
+        <SkeletonBox width={140} height={18} style={{ marginBottom: 6 }} />
+        <View style={styles.restaurantCardDetails}>
+          <SkeletonBox width={60} height={12} />
+          <SkeletonBox width={70} height={12} />
+        </View>
+      </View>
+      <SkeletonCircle size={20} />
+    </View>
+  );
+}
+
+// Restaurant menu screen skeleton
+export function RestaurantMenuSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Header skeleton */}
+      <View style={styles.restaurantMenuHeader}>
+        <SkeletonCircle size={24} />
+        <SkeletonBox width={40} height={40} borderRadius={br.sm} />
+        <View style={{ flex: 1 }}>
+          <SkeletonBox width={140} height={24} style={{ marginBottom: 4 }} />
+          <SkeletonBox width={60} height={14} />
+        </View>
+      </View>
+
+      {/* Search bar skeleton */}
+      <View style={styles.searchBarContainer}>
+        <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
+          <SkeletonCircle size={20} />
+          <SkeletonBox width={'70%' as any} height={20} />
+        </View>
+      </View>
+
+      {/* Category chips skeleton */}
+      <View style={styles.categoryChipsContainer}>
+        <SkeletonBox width={50} height={32} borderRadius={br.full} />
+        <SkeletonBox width={80} height={32} borderRadius={br.full} />
+        <SkeletonBox width={70} height={32} borderRadius={br.full} />
+        <SkeletonBox width={60} height={32} borderRadius={br.full} />
+      </View>
+
+      {/* Menu items skeleton */}
+      <View style={styles.menuItems}>
+        <MenuItemSkeleton />
+        <MenuItemSkeleton />
+        <MenuItemSkeleton />
+        <MenuItemSkeleton />
+        <MenuItemSkeleton />
+      </View>
+    </View>
+  );
+}
+
+function MenuItemSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.menuItem, { backgroundColor: colors.bgSecondary }]}>
+      <View style={{ flex: 1 }}>
+        <SkeletonBox width={'80%' as any} height={18} style={{ marginBottom: 6 }} />
+        <SkeletonBox width={'50%' as any} height={14} />
+      </View>
+      <SkeletonBox width={60} height={24} />
+    </View>
+  );
+}
+
+// Food detail screen skeleton
+export function FoodDetailSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Header skeleton */}
+      <View style={styles.foodDetailHeader}>
+        <SkeletonCircle size={24} />
+        <View style={{ flex: 1 }} />
+        <SkeletonCircle size={24} />
+      </View>
+
+      {/* Food info skeleton */}
+      <View style={styles.foodDetailInfo}>
+        <SkeletonBox width={'70%' as any} height={28} style={{ marginBottom: 8 }} />
+        <SkeletonBox width={'40%' as any} height={18} style={{ marginBottom: 16 }} />
+
+        {/* Calories display */}
+        <View style={[styles.caloriesCard, { backgroundColor: colors.bgSecondary }]}>
+          <SkeletonBox width={80} height={40} />
+          <SkeletonBox width={50} height={18} />
+        </View>
+      </View>
+
+      {/* Macros skeleton */}
+      <View style={[styles.macrosCard, { backgroundColor: colors.bgSecondary }]}>
+        <View style={styles.macroDetailRow}>
+          <MacroDetailSkeleton />
+          <MacroDetailSkeleton />
+          <MacroDetailSkeleton />
+        </View>
+      </View>
+
+      {/* Serving size skeleton */}
+      <View style={[styles.servingCard, { backgroundColor: colors.bgSecondary }]}>
+        <SkeletonBox width={100} height={14} style={{ marginBottom: 12 }} />
+        <View style={styles.servingRow}>
+          <SkeletonBox width={80} height={48} borderRadius={br.md} />
+          <SkeletonBox width={100} height={48} borderRadius={br.md} />
+        </View>
+      </View>
+
+      {/* Add button skeleton */}
+      <View style={styles.addButtonContainer}>
+        <SkeletonBox width={'100%' as any} height={52} borderRadius={br.md} />
+      </View>
+    </View>
+  );
+}
+
+function MacroDetailSkeleton() {
+  return (
+    <View style={styles.macroDetail}>
+      <SkeletonBox width={30} height={24} style={{ marginBottom: 4 }} />
+      <SkeletonBox width={50} height={14} />
+    </View>
+  );
+}
+
+// Generic list screen skeleton
+export function ListScreenSkeleton({ itemCount = 6 }: { itemCount?: number }) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Header skeleton */}
+      <View style={styles.genericHeader}>
+        <SkeletonCircle size={24} />
+        <SkeletonBox width={140} height={28} />
+      </View>
+
+      {/* List items skeleton */}
+      <View style={styles.listItems}>
+        {Array.from({ length: itemCount }).map((_, i) => (
+          <View key={i} style={[styles.listItem, { backgroundColor: colors.bgSecondary }]}>
+            <SkeletonCircle size={44} />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <SkeletonBox width={'70%' as any} height={18} style={{ marginBottom: 6 }} />
+              <SkeletonBox width={'40%' as any} height={14} />
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -535,5 +738,114 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     gap: 12,
+  },
+  // Restaurant list skeleton styles
+  restaurantListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  searchBarContainer: {
+    paddingBottom: 12,
+  },
+  restaurantSection: {
+    marginTop: 16,
+  },
+  restaurantCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: br.md,
+    marginBottom: 8,
+    gap: 12,
+  },
+  restaurantCardContent: {
+    flex: 1,
+  },
+  restaurantCardDetails: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  // Restaurant menu skeleton styles
+  restaurantMenuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  categoryChipsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  menuItems: {
+    marginTop: 12,
+    gap: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: br.md,
+  },
+  // Food detail skeleton styles
+  foodDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  foodDetailInfo: {
+    paddingVertical: 16,
+  },
+  caloriesCard: {
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: br.lg,
+    marginTop: 16,
+    gap: 4,
+  },
+  macrosCard: {
+    padding: 16,
+    borderRadius: br.lg,
+    marginTop: 16,
+  },
+  macroDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  macroDetail: {
+    alignItems: 'center',
+  },
+  servingCard: {
+    padding: 16,
+    borderRadius: br.lg,
+    marginTop: 16,
+  },
+  servingRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  addButtonContainer: {
+    marginTop: 'auto',
+    paddingVertical: 16,
+  },
+  // Generic list skeleton styles
+  genericHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  listItems: {
+    marginTop: 8,
+    gap: 8,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: br.md,
   },
 });

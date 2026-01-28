@@ -17,11 +17,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
+import { getRestaurantBranding } from '@/constants/restaurantBranding';
 import { MealType } from '@/constants/mealTypes';
 import { useRestaurantStore } from '@/stores';
 import { RestaurantFood, MenuCategory } from '@/types/restaurant';
 import { RestaurantFoodCard } from '@/components/restaurant/RestaurantFoodCard';
 import { CategoryChip } from '@/components/restaurant/CategoryChip';
+import { RestaurantMenuSkeleton } from '@/components/ui/Skeleton';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -124,24 +126,18 @@ export default function RestaurantMenuScreen() {
     />
   );
 
-  // Show loading while fetching restaurant
+  // Show loading skeleton while fetching restaurant
   if (isLoading || !currentRestaurant) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-          </Pressable>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <RestaurantMenuSkeleton />
       </SafeAreaView>
     );
   }
 
   const categories = currentRestaurant.categories || [];
   const hasCategories = categories.length > 0;
+  const branding = getRestaurantBranding(currentRestaurant.id, currentRestaurant.name);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
@@ -150,6 +146,11 @@ export default function RestaurantMenuScreen() {
         <Pressable onPress={handleBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
+        <View style={[styles.headerBadge, { backgroundColor: branding.backgroundColor }]}>
+          <Text style={[styles.headerBadgeText, { color: branding.textColor }]}>
+            {branding.initials}
+          </Text>
+        </View>
         <View style={styles.headerContent}>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
             {currentRestaurant.name}
@@ -255,6 +256,19 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: spacing[3],
     padding: spacing[1],
+  },
+  headerBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing[3],
+  },
+  headerBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
   headerContent: {
     flex: 1,

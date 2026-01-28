@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -28,6 +27,7 @@ import { foodRepository } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 export default function LogFoodScreen() {
   const { colors } = useTheme();
@@ -173,9 +173,7 @@ export default function LogFoodScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
+        <FoodDetailSkeleton />
       </SafeAreaView>
     );
   }

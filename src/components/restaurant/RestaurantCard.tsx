@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
+import { getRestaurantBranding } from '@/constants/restaurantBranding';
 import { Restaurant } from '@/types/restaurant';
 
 interface RestaurantCardProps {
@@ -13,6 +14,7 @@ interface RestaurantCardProps {
 
 export function RestaurantCard({ restaurant, onPress }: RestaurantCardProps) {
   const { colors } = useTheme();
+  const branding = getRestaurantBranding(restaurant.id, restaurant.name);
 
   return (
     <Pressable
@@ -23,17 +25,11 @@ export function RestaurantCard({ restaurant, onPress }: RestaurantCardProps) {
       ]}
       onPress={onPress}
     >
-      {/* Logo placeholder or icon */}
-      <View style={[styles.logoContainer, { backgroundColor: colors.bgTertiary }]}>
-        {restaurant.logoAssetPath ? (
-          <Image
-            source={{ uri: restaurant.logoAssetPath }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        ) : (
-          <Ionicons name="restaurant" size={24} color={colors.textSecondary} />
-        )}
+      {/* Styled initials badge */}
+      <View style={[styles.initialsBadge, { backgroundColor: branding.backgroundColor }]}>
+        <Text style={[styles.initialsText, { color: branding.textColor }]}>
+          {branding.initials}
+        </Text>
       </View>
 
       <View style={styles.content}>
@@ -78,17 +74,17 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
-  logoContainer: {
+  initialsBadge: {
     width: 48,
     height: 48,
     borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
-  logo: {
-    width: '100%',
-    height: '100%',
+  initialsText: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
   content: {
     flex: 1,
