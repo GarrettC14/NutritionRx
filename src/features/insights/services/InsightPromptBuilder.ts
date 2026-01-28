@@ -1,0 +1,136 @@
+/**
+ * Insight Prompt Builder
+ * Constructs prompts for LLM insight generation
+ */
+
+import type { InsightInputData, Insight, InsightCategory } from '../types/insights.types';
+
+/**
+ * Build the LLM prompt for insight generation
+ */
+export function buildInsightPrompt(data: InsightInputData): string {
+  const goalText =
+    data.userGoal === 'lose' ? 'weight loss' : data.userGoal === 'gain' ? 'muscle gain' : 'maintenance';
+
+  const foodsList = data.todayFoods.slice(0, 10).join(', ') || 'No foods logged yet';
+
+  return `You are a supportive nutrition companion for the NutritionRx app. Generate 2-3 brief, personalized insights about the user's nutrition today.
+
+USER DATA:
+- Goal: ${goalText}
+- Today: ${data.todayCalories} cal (target: ${data.calorieTarget}), ${data.todayProtein}g protein (target: ${data.proteinTarget}g)
+- Protein: ${data.todayProtein}g of ${data.proteinTarget}g target
+- Carbs: ${data.todayCarbs}g, Fat: ${data.todayFat}g, Fiber: ${data.todayFiber}g
+- Water: ${data.todayWater}ml of ${data.waterTarget}ml target
+- Meals logged: ${data.todayMealCount}
+- Foods today: ${foodsList}
+- 7-day averages: ${data.avgCalories7d} cal, ${data.avgProtein7d}g protein
+- Current streaks: ${data.loggingStreak} days logging, ${data.calorieStreak} days meeting calorie target
+- Days using app: ${data.daysUsingApp}
+
+RULES:
+1. Be specific - reference actual numbers and foods from their data
+2. Be encouraging, never judgmental - one "off" day doesn't matter
+3. Focus on patterns over single data points
+4. Celebrate consistency and small wins
+5. If suggesting changes, use "Consider..." or "You might try..." not "You should..."
+6. Keep each insight to 1-2 sentences max
+7. No medical advice, no supplement recommendations
+8. If it's early in the day with few foods logged, acknowledge that
+
+OUTPUT FORMAT (JSON only, no other text):
+{
+  "insights": [
+    {"category": "macro_balance", "text": "..."},
+    {"category": "protein", "text": "..."}
+  ]
+}
+
+Valid categories: macro_balance, protein, consistency, pattern, trend, hydration, timing, rest
+
+Generate insights now:`;
+}
+
+/**
+ * Parse LLM response into insights
+ */
+export function parseInsightResponse(responseText: string): Insight[] {
+  try {
+    // Extract JSON from response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.warn('[InsightPromptBuilder] No JSON found in response');
+      return [];
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (!parsed.insights || !Array.isArray(parsed.insights)) {
+      console.warn('[InsightPromptBuilder] Invalid insights format');
+      return [];
+    }
+
+    // Validate and clean insights
+    const validCategories: InsightCategory[] = [
+      'macro_balance',
+      'protein',
+      'consistency',
+      'pattern',
+      'trend',
+      'hydration',
+      'timing',
+      'rest',
+    ];
+
+    return parsed.insights
+      .filter(
+        (insight: any) =>
+          insight &&
+          typeof insight.text === 'string' &&
+          insight.text.length > 0 &&
+          validCategories.includes(insight.category)
+      )
+      .map((insight: any) => ({
+        category: insight.category as InsightCategory,
+        text: insight.text.trim(),
+        icon: getCategoryIcon(insight.category),
+      }));
+  } catch (error) {
+    console.error('[InsightPromptBuilder] Error parsing response:', error);
+    return [];
+  }
+}
+
+/**
+ * Get icon for insight category
+ */
+export function getCategoryIcon(category: InsightCategory): string {
+  const icons: Record<InsightCategory, string> = {
+    macro_balance: '⚖️',
+    protein: '🎯',
+    consistency: '🔥',
+    pattern: '📊',
+    trend: '📈',
+    hydration: '💧',
+    timing: '⏰',
+    rest: '🌙',
+  };
+  return icons[category] || '💡';
+}
+
+/**
+ * Get display title for insight category
+ */
+export function getCategoryTitle(category: InsightCategory): string {
+  const titles: Record<InsightCategory, string> = {
+    macro_balance: 'Macro Balance',
+    protein: 'Protein Pacing',
+    consistency: 'Consistency Win',
+    pattern: 'Pattern Spotted',
+    trend: 'Trend Update',
+    hydration: 'Hydration',
+    timing: 'Meal Timing',
+    rest: 'Rest Day',
+  };
+  return titles[category] || 'Insight';
+}

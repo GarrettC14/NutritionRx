@@ -627,7 +627,7 @@ export default function AIPhotoScreen() {
             disabled={selectedFoods.length === 0}
             fullWidth
           >
-            Add to {MEAL_TYPE_LABELS[mealType]}
+            {`Add to ${MEAL_TYPE_LABELS[mealType]}`}
           </Button>
         </View>
 

@@ -181,7 +181,7 @@ export default function RestaurantListScreen() {
             }}
             style={[styles.retryButton, { backgroundColor: colors.accent }]}
           >
-            <Text style={[styles.retryButtonText, { color: colors.textInverse }]}>Retry</Text>
+            <Text style={[styles.retryButtonText, { color: '#FFFFFF' }]}>Retry</Text>
           </Pressable>
         </View>
       </SafeAreaView>
