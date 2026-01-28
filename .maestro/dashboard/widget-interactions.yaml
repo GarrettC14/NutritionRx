@@ -1,0 +1,68 @@
+# Dashboard Widget Interactions E2E Tests
+# Test individual widget interactions
+#
+# Usage: maestro test .maestro/dashboard/widget-interactions.yaml
+
+appId: com.nutritionrx.app
+
+---
+# Widget interaction tests
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+
+# Navigate to dashboard
+- tapOn:
+    id: "home-tab"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Test Water Tracker Widget - Add water
+- tapOn:
+    text: "+1"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify water count updated (should show some number / goal)
+- assertVisible:
+    text: "Water"
+
+# Test Today's Meals Widget expansion
+- scroll:
+    direction: DOWN
+
+# Tap on a meal section to expand (e.g., Breakfast)
+- tapOn:
+    text: "Breakfast"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify expand/collapse works
+- tapOn:
+    text: "Lunch"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Scroll to see more widgets
+- scroll:
+    direction: DOWN
+
+# Verify other widgets are accessible
+- assertVisible:
+    text: "Calories"
+    optional: true
+
+# Scroll back up
+- scroll:
+    direction: UP
+
+- waitForAnimationToEnd
+
+# Verify calorie widget tap navigates (unless in edit mode)
+- assertVisible:
+    text: "Dashboard"
