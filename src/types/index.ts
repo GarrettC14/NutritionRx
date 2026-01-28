@@ -15,3 +15,4 @@ export {
   type DataQuality,
 } from './domain';
 export * from './mappers';
+export * from './restaurant';

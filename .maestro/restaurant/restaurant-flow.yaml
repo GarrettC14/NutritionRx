@@ -1,0 +1,136 @@
+# Restaurant E2E Test Suite
+# Main restaurant browsing and food logging functionality tests
+#
+# Usage: maestro test .maestro/restaurant/restaurant-flow.yaml
+
+appId: com.nutritionrx.app
+
+---
+# Full restaurant flow test - browse, search, and log food
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd
+
+# Skip onboarding if present
+- tapOn:
+    text: "Skip"
+    optional: true
+
+- tapOn:
+    text: "Maybe Later"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Navigate to Add Food screen
+- tapOn:
+    id: "add-food-tab"
+    optional: true
+
+- tapOn:
+    text: "Add Food"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify Add Food screen
+- assertVisible:
+    text: "Add Food"
+
+# Tap on Browse Restaurants button
+- tapOn:
+    text: "Browse Restaurants"
+
+- waitForAnimationToEnd
+
+# Verify Restaurant list screen
+- assertVisible:
+    text: "Restaurants"
+
+# Verify some restaurants are loaded
+- assertVisible:
+    text: "McDonald's"
+    optional: true
+
+- assertVisible:
+    text: "Chipotle"
+    optional: true
+
+# Search for a restaurant
+- tapOn:
+    text: "Search restaurants..."
+
+- inputText: "mcdon"
+
+- waitForAnimationToEnd
+
+# Verify search results
+- assertVisible:
+    text: "McDonald's"
+
+# Clear search and select McDonald's
+- tapOn:
+    id: "clear-search"
+    optional: true
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "McDonald's"
+
+- waitForAnimationToEnd
+
+# Verify restaurant menu screen
+- assertVisible:
+    text: "McDonald's"
+
+# Verify menu items are displayed
+- assertVisible:
+    text: "Big Mac"
+    optional: true
+
+- assertVisible:
+    text: "kcal"
+
+# Search within menu
+- tapOn:
+    text: "Search McDonald's..."
+    optional: true
+
+- inputText: "fries"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Clear and select an item
+- tapOn:
+    id: "clear-search"
+    optional: true
+
+- tapOn:
+    text: "Big Mac"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify food detail screen
+- assertVisible:
+    text: "HOW MANY?"
+    optional: true
+
+# Verify nutrition info is shown
+- assertVisible:
+    text: "calories"
+    optional: true
+
+# Navigate back
+- tapOn:
+    id: "back-button"
+    optional: true
+
+- swipe:
+    direction: RIGHT
+    optional: true
+
+- waitForAnimationToEnd

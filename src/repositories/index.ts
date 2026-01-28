@@ -36,3 +36,5 @@ export type { GoalPath, EnergyUnit, OnboardingData } from './onboardingRepositor
 
 export { waterRepository, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from './waterRepository';
 export type { WaterLog, CreateWaterLogInput, UpdateWaterLogInput } from './waterRepository';
+
+export { restaurantRepository } from './restaurantRepository';
