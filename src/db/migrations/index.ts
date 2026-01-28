@@ -9,8 +9,9 @@ import { migration007FavoriteFoods } from './007_favorite_foods';
 import { migration008LegalAcknowledgment } from './008_legal_acknowledgment';
 import { migration009SeedRestaurantUSDAFoods } from './009_seed_restaurant_usda_foods';
 import { migration010WaterTracking } from './010_water_tracking';
+import { migration011Restaurants } from './011_restaurants';
 
-export const CURRENT_SCHEMA_VERSION = 10;
+export const CURRENT_SCHEMA_VERSION = 11;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -23,6 +24,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration008LegalAcknowledgment,
   migration009SeedRestaurantUSDAFoods,
   migration010WaterTracking,
+  migration011Restaurants,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

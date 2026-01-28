@@ -122,6 +122,13 @@ export default function AddFoodScreen() {
     });
   };
 
+  const handleRestaurants = () => {
+    router.push({
+      pathname: '/restaurant' as any,
+      params: { mealType, date },
+    });
+  };
+
   const isSearching_ = searchText.length >= SEARCH_SETTINGS.minQueryLength;
   const showResults = isSearching_ && results.length > 0;
   const showNoResults = isSearching_ && results.length === 0 && !isSearching;
@@ -265,6 +272,20 @@ export default function AddFoodScreen() {
         )}
       </View>
 
+      {/* Restaurants Button */}
+      <View style={styles.restaurantsContainer}>
+        <Pressable
+          style={[styles.restaurantsButton, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}
+          onPress={handleRestaurants}
+        >
+          <Ionicons name="restaurant-outline" size={20} color={colors.accent} />
+          <Text style={[styles.restaurantsText, { color: colors.textPrimary }]}>
+            Browse Restaurants
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+        </Pressable>
+      </View>
+
       {/* Bottom Actions */}
       <View style={[styles.bottomActions, { borderTopColor: colors.borderDefault }]}>
         <Pressable
@@ -380,6 +401,23 @@ const styles = StyleSheet.create({
   createButtonText: {
     ...typography.body.medium,
     fontWeight: '600',
+  },
+  restaurantsContainer: {
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingTop: spacing[2],
+  },
+  restaurantsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    gap: spacing[2],
+  },
+  restaurantsText: {
+    ...typography.body.medium,
+    fontWeight: '500',
+    flex: 1,
   },
   bottomActions: {
     flexDirection: 'row',
