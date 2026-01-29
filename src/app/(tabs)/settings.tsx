@@ -254,6 +254,18 @@ export default function SettingsScreen() {
               subtitle="Daily glass goal, glass size"
               onPress={() => router.push('/settings/water')}
             />
+            <SettingsItem
+              icon="timer-outline"
+              title="Fasting Timer"
+              subtitle="Intermittent fasting schedule"
+              onPress={() => router.push('/settings/fasting')}
+            />
+            <SettingsItem
+              icon="calendar-outline"
+              title="Meal Planning"
+              subtitle="Plan meals in advance"
+              onPress={() => router.push('/settings/meal-planning')}
+            />
           </View>
         </View>
 

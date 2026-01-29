@@ -33,6 +33,8 @@ export default function SettingsLayout() {
       <Stack.Screen name="apple-health" />
       <Stack.Screen name="health-connect" />
       <Stack.Screen name="developer" />
+      <Stack.Screen name="fasting" />
+      <Stack.Screen name="meal-planning" />
     </Stack>
   );
 }

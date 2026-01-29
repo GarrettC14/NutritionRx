@@ -7,14 +7,16 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
-import { useFoodLogStore, useSettingsStore, useWaterStore } from '@/stores';
+import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore } from '@/stores';
 import { CalorieRing } from '@/components/ui/CalorieRing';
 import { MacroSummary } from '@/components/food/MacroSummary';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
 import { WaterSection } from '@/components/water';
+import { FastingSection, PlannedMealsSection } from '@/components/planning';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
+import { DayTargets } from '@/types/planning';
 
 export default function TodayScreen() {
   const { colors } = useTheme();
@@ -41,12 +43,20 @@ export default function TodayScreen() {
 
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
   const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore();
+  const {
+    config: macroCycleConfig,
+    loadConfig: loadMacroCycleConfig,
+    getTargetsForDate,
+    getDayType,
+    isLoaded: macroCycleLoaded,
+  } = useMacroCycleStore();
 
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
+  const [adjustedTargets, setAdjustedTargets] = useState<DayTargets | null>(null);
 
-  // Show skeleton until data, settings, and water are loaded
-  const isReady = dataLoaded && settingsLoaded && waterLoaded;
+  // Show skeleton until data, settings, water, and macro cycle are loaded
+  const isReady = dataLoaded && settingsLoaded && waterLoaded && macroCycleLoaded;
 
   // Load data on mount
   useEffect(() => {
@@ -55,7 +65,22 @@ export default function TodayScreen() {
     loadStreak();
     loadWaterSettings();
     loadTodayWater();
+    loadMacroCycleConfig();
   }, []);
+
+  // Load adjusted targets when date or settings change
+  useEffect(() => {
+    if (!settingsLoaded) return;
+
+    const baseTargets: DayTargets = {
+      calories: settings.dailyCalorieGoal,
+      protein: settings.dailyProteinGoal,
+      carbs: settings.dailyCarbsGoal,
+      fat: settings.dailyFatGoal,
+    };
+
+    getTargetsForDate(selectedDate, baseTargets).then(setAdjustedTargets);
+  }, [selectedDate, settingsLoaded, settings, macroCycleConfig]);
 
   // Date navigation
   const navigateDate = useCallback((direction: 'prev' | 'next') => {
@@ -107,13 +132,40 @@ export default function TodayScreen() {
   const entriesByMeal = getEntriesByMeal();
   const quickEntriesByMeal = getQuickEntriesByMeal();
 
-  // Goals from settings
-  const goals = {
+  // Goals from settings (use adjusted targets if macro cycling is enabled)
+  const baseGoals = {
     calories: settings.dailyCalorieGoal,
     protein: settings.dailyProteinGoal,
     carbs: settings.dailyCarbsGoal,
     fat: settings.dailyFatGoal,
   };
+
+  const goals = adjustedTargets || baseGoals;
+
+  // Get day type for macro cycling badge
+  const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+  const dayType = macroCycleConfig?.enabled ? getDayType(selectedDayOfWeek) : null;
+
+  // Day type display info
+  const getDayTypeDisplay = () => {
+    if (!dayType) return null;
+    switch (dayType) {
+      case 'training':
+        return { label: 'Training Day', icon: 'barbell-outline' as const };
+      case 'rest':
+        return { label: 'Rest Day', icon: 'leaf-outline' as const };
+      case 'high_carb':
+        return { label: 'High Carb', icon: 'trending-up-outline' as const };
+      case 'low_carb':
+        return { label: 'Low Carb', icon: 'trending-down-outline' as const };
+      case 'custom':
+        return { label: 'Custom', icon: 'settings-outline' as const };
+      default:
+        return null;
+    }
+  };
+
+  const dayTypeDisplay = getDayTypeDisplay();
 
   // Handlers
   const handleAddFood = (mealType: MealType) => {
@@ -215,10 +267,18 @@ export default function TodayScreen() {
           </Pressable>
         </View>
 
-        {/* Row 2: Streak badge (centered) */}
-        {streak > 0 && (
-          <View style={styles.streakRow}>
-            <StreakBadge streakDays={streak} />
+        {/* Row 2: Day type badge and/or Streak badge (centered) */}
+        {(dayTypeDisplay || streak > 0) && (
+          <View style={styles.badgesRow}>
+            {dayTypeDisplay && (
+              <View style={[styles.dayTypeBadge, { backgroundColor: colors.bgSecondary }]}>
+                <Ionicons name={dayTypeDisplay.icon} size={14} color={colors.accent} />
+                <Text style={[styles.dayTypeBadgeText, { color: colors.textSecondary }]}>
+                  {dayTypeDisplay.label}
+                </Text>
+              </View>
+            )}
+            {streak > 0 && <StreakBadge streakDays={streak} />}
           </View>
         )}
 
@@ -260,6 +320,16 @@ export default function TodayScreen() {
         {/* Water Section */}
         <View style={styles.waterSection}>
           <WaterSection />
+        </View>
+
+        {/* Fasting Section */}
+        <View style={styles.fastingSection}>
+          <FastingSection />
+        </View>
+
+        {/* Planned Meals Section */}
+        <View style={styles.plannedMealsSection}>
+          <PlannedMealsSection />
         </View>
 
         {/* Meal Sections - Always show all, collapsed by default */}
@@ -349,8 +419,23 @@ const styles = StyleSheet.create({
     ...typography.title.medium,
     textAlign: 'center',
   },
-  streakRow: {
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
     marginTop: spacing[1],
+  },
+  dayTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.full,
+  },
+  dayTypeBadgeText: {
+    ...typography.caption,
   },
   dayMenuButton: {
     paddingVertical: spacing[1],
@@ -372,6 +457,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing[6],
   },
   waterSection: {
+    marginBottom: spacing[6],
+  },
+  fastingSection: {
+    marginBottom: spacing[6],
+  },
+  plannedMealsSection: {
     marginBottom: spacing[6],
   },
   mealsContainer: {
