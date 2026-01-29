@@ -7,7 +7,6 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  Alert,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -22,6 +21,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useFastingStore } from '@/stores';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { FastingTimer } from './FastingTimer';
 import { PremiumGate } from '@/components/premium/PremiumGate';
 
@@ -54,6 +54,7 @@ function formatTime(date: Date): string {
 function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps) {
   const { colors } = useTheme();
   const router = useRouter();
+  const { showConfirm } = useConfirmDialog();
   const {
     config,
     activeSession,
@@ -115,20 +116,18 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
     const targetHours = activeSession?.targetHours || 16;
 
     if (progress < 100) {
-      Alert.alert(
-        'End Fast Early?',
-        `You've fasted for ${Math.round((progress / 100) * targetHours * 10) / 10} hours.\nYour goal was ${targetHours} hours.\n\nProgress still counts! Every hour of fasting has benefits.`,
-        [
-          { text: 'Keep Going', style: 'cancel' },
-          {
-            text: 'End Fast',
-            onPress: async () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-              await endFast('ended_early');
-            },
-          },
-        ]
-      );
+      const hoursCompleted = Math.round((progress / 100) * targetHours * 10) / 10;
+      showConfirm({
+        title: 'End Fast Early?',
+        message: `You've fasted for ${hoursCompleted} hours. Your goal was ${targetHours} hours.\n\nProgress still counts! Every hour of fasting has benefits.`,
+        icon: '⏱️',
+        cancelLabel: 'Keep Going',
+        confirmLabel: 'End Fast',
+        onConfirm: async () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          await endFast('ended_early');
+        },
+      });
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       endFast('completed');

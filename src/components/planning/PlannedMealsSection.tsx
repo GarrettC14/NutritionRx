@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -12,6 +12,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useMealPlanStore, useSubscriptionStore } from '@/stores';
 import { PlannedMeal, MealSlot } from '@/types/planning';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -33,6 +34,7 @@ export function PlannedMealsSection() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium } = useSubscriptionStore();
+  const { showConfirm } = useConfirmDialog();
   const {
     settings,
     todayMeals,
@@ -79,36 +81,30 @@ export function PlannedMealsSection() {
   };
 
   const handleLogMeal = (meal: PlannedMeal) => {
-    Alert.alert(
-      'Log This Meal',
-      `Mark "${meal.foodName}" as logged?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log',
-          onPress: async () => {
-            await markMealAsLogged(meal.id);
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: 'Log This Meal',
+      message: `Mark "${meal.foodName}" as logged?`,
+      icon: '✅',
+      confirmLabel: 'Log',
+      cancelLabel: 'Cancel',
+      onConfirm: async () => {
+        await markMealAsLogged(meal.id);
+      },
+    });
   };
 
   const handleSkipMeal = (meal: PlannedMeal) => {
-    Alert.alert(
-      'Skip This Meal',
-      `Skip "${meal.foodName}" from today's plan?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Skip',
-          style: 'destructive',
-          onPress: async () => {
-            await markMealAsSkipped(meal.id);
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: 'Skip This Meal',
+      message: `Skip "${meal.foodName}" from today's plan?`,
+      icon: '⏭️',
+      confirmLabel: 'Skip',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        await markMealAsSkipped(meal.id);
+      },
+    });
   };
 
   const handleViewMealPlanning = () => {

@@ -21,6 +21,7 @@ import { PremiumGate } from '@/components/premium';
 import { SettingsSubscreenSkeleton } from '@/components/ui/Skeleton';
 import { Toast, useToast } from '@/components/ui/Toast';
 import { useTooltipContext } from '@/contexts/TooltipContext';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 
 const SAGE_GREEN = '#9CAF88';
@@ -100,6 +101,7 @@ export default function MealPlanningScreen() {
   const [copySourceDate, setCopySourceDate] = useState<string | null>(null);
   const { toastState, showCopied, hideToast } = useToast();
   const { showTooltipIfNotSeen } = useTooltipContext();
+  const { showConfirm } = useConfirmDialog();
 
   // Load data on mount
   useEffect(() => {
@@ -166,45 +168,39 @@ export default function MealPlanningScreen() {
     if (!selectedDate) return;
     setShowDayMenu(false);
 
-    Alert.alert(
-      'Clear Day',
-      'Are you sure you want to remove all planned meals for this day?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearDay(selectedDate);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear day. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: 'Clear Day',
+      message: 'Are you sure you want to remove all planned meals for this day?',
+      icon: '🗓️',
+      confirmLabel: 'Clear',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        try {
+          await clearDay(selectedDate);
+        } catch (error) {
+          Alert.alert('Error', 'Failed to clear day. Please try again.');
+        }
+      },
+    });
   };
 
   const handleDeleteMeal = (meal: PlannedMeal) => {
-    Alert.alert(
-      'Delete Meal',
-      `Remove ${meal.foodName} from your meal plan?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePlannedMeal(meal.id);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete meal.');
-            }
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: 'Delete Meal',
+      message: `Remove ${meal.foodName} from your meal plan?`,
+      icon: '🗑️',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        try {
+          await deletePlannedMeal(meal.id);
+        } catch (error) {
+          Alert.alert('Error', 'Failed to delete meal.');
+        }
+      },
+    });
   };
 
   const getDayMealCount = (date: string): number => {

@@ -228,10 +228,10 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Goals Section */}
+        {/* Your Plan Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            GOALS
+            YOUR PLAN
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
@@ -241,17 +241,26 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/goals')}
             />
             <SettingsItem
-              icon="person-outline"
-              title="Profile"
-              subtitle="Height, weight unit"
-              onPress={() => router.push('/settings/profile')}
-            />
-            <SettingsItem
               icon="nutrition-outline"
               title="Nutrition Preferences"
               subtitle="Eating style, protein priority"
               onPress={() => router.push('/settings/nutrition')}
             />
+            <SettingsItem
+              icon="calendar-outline"
+              title="Meal Planning"
+              subtitle="Plan meals in advance"
+              onPress={() => router.push('/settings/meal-planning')}
+            />
+          </View>
+        </View>
+
+        {/* Tracking Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            TRACKING
+          </Text>
+          <View style={styles.sectionContent}>
             <SettingsItem
               icon="water-outline"
               title="Water Tracking"
@@ -264,21 +273,21 @@ export default function SettingsScreen() {
               subtitle="Intermittent fasting schedule"
               onPress={() => router.push('/settings/fasting')}
             />
-            <SettingsItem
-              icon="calendar-outline"
-              title="Meal Planning"
-              subtitle="Plan meals in advance"
-              onPress={() => router.push('/settings/meal-planning')}
-            />
           </View>
         </View>
 
-        {/* Preferences Section */}
+        {/* Profile Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            PREFERENCES
+            PROFILE
           </Text>
           <View style={styles.sectionContent}>
+            <SettingsItem
+              icon="person-outline"
+              title="Profile"
+              subtitle="Height, weight unit"
+              onPress={() => router.push('/settings/profile')}
+            />
             <SettingsItem
               icon="scale-outline"
               title="Units"
@@ -286,19 +295,13 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/units')}
             />
             <ThemeSelector />
-            <SettingsItem
-              icon="apps-outline"
-              title="Widgets"
-              subtitle="Home screen widgets setup"
-              onPress={() => router.push('/settings/widgets')}
-            />
           </View>
         </View>
 
-        {/* Data Section */}
+        {/* Connections Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            DATA
+            CONNECTIONS
           </Text>
           <View style={styles.sectionContent}>
             {Platform.OS === 'ios' && (
@@ -318,41 +321,36 @@ export default function SettingsScreen() {
               />
             )}
             <SettingsItem
+              icon="apps-outline"
+              title="Widgets"
+              subtitle="Home screen widgets setup"
+              onPress={() => router.push('/settings/widgets')}
+            />
+            <SettingsItem
               icon="cloud-download-outline"
               title="Import From Other Apps"
               subtitle="MyFitnessPal, Cronometer, Lose It!, MacroFactor"
               onPress={() => router.push('/import-data')}
             />
-            <SettingsItem
-              icon="trash-outline"
-              title="Delete All Data"
-              onPress={() => {}}
-              danger
-            />
           </View>
         </View>
 
-        {/* Legal Section */}
+        {/* Support Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            LEGAL
+            SUPPORT
           </Text>
           <View style={styles.sectionContent}>
+            <SettingsItem
+              icon="help-circle-outline"
+              title="Help & Feedback"
+              onPress={() => {}}
+            />
             <SettingsItem
               icon="heart-outline"
               title="Health & Safety Notice"
               subtitle="Review the health disclaimer"
               onPress={() => router.push('/settings/health-notice')}
-            />
-            <SettingsItem
-              icon="document-text-outline"
-              title="Terms of Service"
-              onPress={() => router.push('/settings/terms-of-service')}
-            />
-            <SettingsItem
-              icon="shield-outline"
-              title="Privacy Policy"
-              onPress={() => router.push('/settings/privacy-policy')}
             />
           </View>
         </View>
@@ -387,9 +385,29 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
             </Pressable>
             <SettingsItem
-              icon="help-circle-outline"
-              title="Help & Feedback"
+              icon="document-text-outline"
+              title="Terms of Service"
+              onPress={() => router.push('/settings/terms-of-service')}
+            />
+            <SettingsItem
+              icon="shield-outline"
+              title="Privacy Policy"
+              onPress={() => router.push('/settings/privacy-policy')}
+            />
+          </View>
+        </View>
+
+        {/* Danger Zone Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            DANGER ZONE
+          </Text>
+          <View style={styles.sectionContent}>
+            <SettingsItem
+              icon="trash-outline"
+              title="Delete All Data"
               onPress={() => {}}
+              danger
             />
           </View>
         </View>

@@ -9,6 +9,7 @@ import { initDatabase } from '@/db/database';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/contexts/TooltipContext';
 import { TooltipModal } from '@/components/ui/TooltipModal';
+import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { useTheme } from '@/hooks/useTheme';
 import { colors as themeColors } from '@/constants/colors';
 import { REVENUECAT_CONFIG } from '@/config/revenuecat';
@@ -162,8 +163,10 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <TooltipProvider>
-            <RootLayoutContent />
-            <TooltipModal />
+            <ConfirmDialogProvider>
+              <RootLayoutContent />
+              <TooltipModal />
+            </ConfirmDialogProvider>
           </TooltipProvider>
         </ThemeProvider>
       </SafeAreaProvider>

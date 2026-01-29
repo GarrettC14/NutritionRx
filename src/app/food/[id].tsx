@@ -18,6 +18,7 @@ import { MealType } from '@/constants/mealTypes';
 import { foodRepository } from '@/repositories';
 import { FoodItem, DataSource } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 const SOURCE_LABELS: Record<DataSource, string> = {
@@ -37,6 +38,7 @@ const SOURCE_ICONS: Record<DataSource, keyof typeof Ionicons.glyphMap> = {
 export default function FoodDetailScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { showConfirm } = useConfirmDialog();
   const { id, mealType, date } = useLocalSearchParams<{
     id: string;
     mealType?: string;
@@ -74,28 +76,25 @@ export default function FoodDetailScreen() {
   const handleDelete = () => {
     if (!food || !food.isUserCreated) return;
 
-    Alert.alert(
-      'Delete Food',
-      `Are you sure you want to delete "${food.name}"? This cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await foodRepository.delete(food.id);
-              router.back();
-            } catch (error) {
-              console.error('Failed to delete food:', error);
-              Alert.alert('Error', 'Failed to delete food. Please try again.');
-              setIsDeleting(false);
-            }
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: 'Delete Food',
+      message: `Are you sure you want to delete "${food.name}"? This cannot be undone.`,
+      icon: '🗑️',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        setIsDeleting(true);
+        try {
+          await foodRepository.delete(food.id);
+          router.back();
+        } catch (error) {
+          console.error('Failed to delete food:', error);
+          Alert.alert('Error', 'Failed to delete food. Please try again.');
+          setIsDeleting(false);
+        }
+      },
+    });
   };
 
   // Loading state

@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { useMacroCycleStore, useSettingsStore, useSubscriptionStore } from '@/stores';
 import { MacroCyclePatternType, DayTargets, MacroAdjustment } from '@/types/planning';
 import { PremiumGate } from '@/components/premium';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { MacroCyclingSetupSkeleton } from '@/components/ui/Skeleton';
 
 const SAGE_GREEN = '#9CAF88';
@@ -57,6 +58,7 @@ export default function MacroCyclingSetupScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium } = useSubscriptionStore();
+  const { showConfirm } = useConfirmDialog();
   const { config, enableCycling, disableCycling, calculateDayTargets, loadConfig, isLoaded } = useMacroCycleStore();
   const { settings } = useSettingsStore();
 
@@ -180,17 +182,18 @@ export default function MacroCyclingSetupScreen() {
   };
 
   const handleDisable = async () => {
-    Alert.alert('Disable Macro Cycling?', 'Your daily targets will return to the base values.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Disable',
-        style: 'destructive',
-        onPress: async () => {
-          await disableCycling();
-          router.back();
-        },
+    showConfirm({
+      title: 'Disable Macro Cycling?',
+      message: 'Your daily targets will return to the base values.',
+      icon: '🔄',
+      confirmLabel: 'Disable',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        await disableCycling();
+        router.back();
       },
-    ]);
+    });
   };
 
   // Calculate preview targets

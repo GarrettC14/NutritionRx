@@ -25,6 +25,7 @@ import {
 } from '@/constants/servingUnits';
 import { useFoodLogStore, useFavoritesStore } from '@/stores';
 import { logEntryRepository, quickAddRepository, foodRepository } from '@/repositories';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { LogEntry, QuickAddEntry, FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
@@ -42,6 +43,7 @@ export default function LogEntryScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { showConfirm } = useConfirmDialog();
 
   const { updateLogEntry, deleteLogEntry, updateQuickEntry, deleteQuickEntry, refreshCurrentDate } =
     useFoodLogStore();
@@ -216,36 +218,33 @@ export default function LogEntryScreen() {
 
   // Handle delete
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Entry',
-      'Are you sure you want to delete this entry? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!loadedEntry) return;
-            setIsDeleting(true);
+    showConfirm({
+      title: 'Delete Entry',
+      message: 'Are you sure you want to delete this entry? This cannot be undone.',
+      icon: '🗑️',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        if (!loadedEntry) return;
+        setIsDeleting(true);
 
-            try {
-              if (loadedEntry.type === 'log') {
-                await deleteLogEntry(loadedEntry.entry.id);
-              } else {
-                await deleteQuickEntry(loadedEntry.entry.id);
-              }
+        try {
+          if (loadedEntry.type === 'log') {
+            await deleteLogEntry(loadedEntry.entry.id);
+          } else {
+            await deleteQuickEntry(loadedEntry.entry.id);
+          }
 
-              await refreshCurrentDate();
-              router.back();
-            } catch (error) {
-              console.error('Failed to delete entry:', error);
-              Alert.alert('Error', 'Failed to delete entry. Please try again.');
-              setIsDeleting(false);
-            }
-          },
-        },
-      ]
-    );
+          await refreshCurrentDate();
+          router.back();
+        } catch (error) {
+          console.error('Failed to delete entry:', error);
+          Alert.alert('Error', 'Failed to delete entry. Please try again.');
+          setIsDeleting(false);
+        }
+      },
+    });
   };
 
   const mealOptions = [
