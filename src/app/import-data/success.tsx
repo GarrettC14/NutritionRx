@@ -26,7 +26,7 @@ export default function ImportSuccessScreen() {
   const importedDays = currentSession?.importedDays ?? 0;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         {/* Success Icon */}
         <View style={[styles.iconContainer, { backgroundColor: colors.successBg }]}>

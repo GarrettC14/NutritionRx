@@ -20,6 +20,9 @@ interface SubscriptionState {
   willRenew: boolean;
   hasBundle: boolean;
 
+  // Dev/testing state
+  isDevPremium: boolean;
+
   // Error state
   error: string | null;
 
@@ -29,6 +32,7 @@ interface SubscriptionState {
   purchasePackage: (pkg: PurchasesPackage) => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
   clearError: () => void;
+  toggleDevPremium: () => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionState>()(
@@ -42,6 +46,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       expirationDate: null,
       willRenew: false,
       hasBundle: false,
+      isDevPremium: false,
       error: null,
 
       initialize: async () => {
@@ -207,6 +212,16 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      toggleDevPremium: () => {
+        const { isDevPremium } = get();
+        const newDevPremium = !isDevPremium;
+        set({
+          isDevPremium: newDevPremium,
+          isPremium: newDevPremium, // Override isPremium when dev mode is enabled
+        });
+        console.log(`[Dev] Premium ${newDevPremium ? 'enabled' : 'disabled'} for testing`);
+      },
     }),
     {
       name: 'subscription-storage',
@@ -216,6 +231,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         isPremium: state.isPremium,
         expirationDate: state.expirationDate,
         hasBundle: state.hasBundle,
+        isDevPremium: state.isDevPremium,
       }),
     }
   )

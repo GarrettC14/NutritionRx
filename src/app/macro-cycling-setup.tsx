@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { useMacroCycleStore, useSettingsStore, useSubscriptionStore } from '@/stores';
 import { MacroCyclePatternType, DayTargets, MacroAdjustment } from '@/types/planning';
 import { PremiumGate } from '@/components/premium';
+import { MacroCyclingSetupSkeleton } from '@/components/ui/Skeleton';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -56,7 +57,7 @@ export default function MacroCyclingSetupScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium } = useSubscriptionStore();
-  const { config, enableCycling, disableCycling, calculateDayTargets, loadConfig } = useMacroCycleStore();
+  const { config, enableCycling, disableCycling, calculateDayTargets, loadConfig, isLoaded } = useMacroCycleStore();
   const { settings } = useSettingsStore();
 
   // Base targets from settings
@@ -107,6 +108,34 @@ export default function MacroCyclingSetupScreen() {
       setCustomTargets(initial);
     }
   }, [patternType]);
+
+  // Show skeleton while loading
+  if (!isLoaded) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            headerTitle: 'Macro Cycling Setup',
+            headerStyle: { backgroundColor: colors.bgPrimary },
+            headerTintColor: colors.textPrimary,
+            presentation: 'modal',
+            headerLeft: () => (
+              <Pressable onPress={() => router.back()}>
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
+              </Pressable>
+            ),
+          }}
+        />
+        <SafeAreaView
+          edges={['bottom']}
+          style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        >
+          <MacroCyclingSetupSkeleton />
+        </SafeAreaView>
+      </>
+    );
+  }
 
   const toggleDay = (day: number) => {
     if (markedDays.includes(day)) {

@@ -18,6 +18,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useFastingStore, useSubscriptionStore } from '@/stores';
 import { FastingProtocol, FastingSession } from '@/types/planning';
 import { PremiumGate } from '@/components/premium';
+import { SettingsSubscreenSkeleton } from '@/components/ui/Skeleton';
 
 const FASTING_GREEN = '#9CAF88';
 
@@ -191,9 +192,7 @@ export default function FastingSettingsScreen() {
             headerTintColor: colors.textPrimary,
           }}
         />
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading...</Text>
-        </View>
+        <SettingsSubscreenSkeleton />
       </SafeAreaView>
     );
   }

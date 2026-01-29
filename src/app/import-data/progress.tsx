@@ -37,7 +37,7 @@ export default function ImportProgressScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.content}>
           <View style={[styles.errorIcon, { backgroundColor: colors.errorBg }]}>
             <Ionicons name="alert-circle" size={48} color={colors.error} />
@@ -50,7 +50,7 @@ export default function ImportProgressScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         {/* Icon */}
         <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>

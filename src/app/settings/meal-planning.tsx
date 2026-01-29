@@ -18,6 +18,10 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useMealPlanStore, useSubscriptionStore } from '@/stores';
 import { PlannedMeal, MealSlot } from '@/types/planning';
 import { PremiumGate } from '@/components/premium';
+import { SettingsSubscreenSkeleton } from '@/components/ui/Skeleton';
+import { Toast, useToast } from '@/components/ui/Toast';
+import { useTooltipContext } from '@/contexts/TooltipContext';
+import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -94,6 +98,8 @@ export default function MealPlanningScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDayMenu, setShowDayMenu] = useState(false);
   const [copySourceDate, setCopySourceDate] = useState<string | null>(null);
+  const { toastState, showCopied, hideToast } = useToast();
+  const { showTooltipIfNotSeen } = useTooltipContext();
 
   // Load data on mount
   useEffect(() => {
@@ -132,11 +138,13 @@ export default function MealPlanningScreen() {
     if (!selectedDate) return;
     setCopySourceDate(selectedDate);
     setShowDayMenu(false);
-    Alert.alert(
-      'Copy Day',
-      'Tap another day to paste these meals, or tap the same day again to cancel.',
-      [{ text: 'OK' }]
-    );
+    showTooltipIfNotSeen({
+      id: TOOLTIP_IDS.MEAL_PLAN_COPY_DAY,
+      content: 'Tap another day to paste these meals, or tap the same day again to cancel.',
+      icon: '📋',
+      position: 'center',
+      actions: [{ label: 'Got it', onPress: () => {}, primary: true }],
+    });
   };
 
   const handlePasteDay = async (targetDate: string) => {
@@ -148,7 +156,7 @@ export default function MealPlanningScreen() {
     try {
       await copyDayToDate(copySourceDate, targetDate);
       setCopySourceDate(null);
-      Alert.alert('Copied', 'Meals have been copied successfully.');
+      showCopied('Copied', 'Meals copied successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to copy meals. Please try again.');
     }
@@ -222,9 +230,7 @@ export default function MealPlanningScreen() {
             headerTintColor: colors.textPrimary,
           }}
         />
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading...</Text>
-        </View>
+        <SettingsSubscreenSkeleton />
       </SafeAreaView>
     );
   }
@@ -360,25 +366,15 @@ export default function MealPlanningScreen() {
                     >
                       {formatDayNumber(date)}
                     </Text>
-                    {mealCount > 0 ? (
-                      <>
-                        <Text style={[styles.mealCount, { color: colors.textSecondary }]}>
-                          {mealCount} meal{mealCount !== 1 ? 's' : ''}
-                        </Text>
-                        <Text style={[styles.dayCalories, { color: SAGE_GREEN }]}>
-                          {calories} cal
-                        </Text>
-                      </>
-                    ) : (
-                      <Text style={[styles.emptyDay, { color: colors.textTertiary }]}>
-                        No meals
-                      </Text>
-                    )}
-                    {!isPast && !copySourceDate && (
-                      <View style={[styles.addIndicator, { backgroundColor: colors.bgElevated }]}>
-                        <Ionicons name="add" size={14} color={colors.textSecondary} />
-                      </View>
-                    )}
+                    {/* Meal indicator dot */}
+                    <View
+                      style={[
+                        styles.mealIndicator,
+                        mealCount > 0
+                          ? { backgroundColor: SAGE_GREEN }
+                          : { backgroundColor: colors.borderDefault },
+                      ]}
+                    />
                   </Pressable>
                 );
               })}
@@ -415,6 +411,15 @@ export default function MealPlanningScreen() {
           </PremiumGate>
         )}
       </SafeAreaView>
+
+      {/* Toast for copy feedback */}
+      <Toast
+        visible={toastState.visible}
+        type={toastState.type}
+        title={toastState.title}
+        subtitle={toastState.subtitle}
+        onDismiss={hideToast}
+      />
 
       {/* Day Detail Modal */}
       <Modal
@@ -620,7 +625,7 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     flex: 1,
-    aspectRatio: 0.8,
+    aspectRatio: 1,
     borderRadius: borderRadius.md,
     borderWidth: 1,
     padding: spacing[2],
@@ -630,28 +635,12 @@ const styles = StyleSheet.create({
   dayNumber: {
     ...typography.body.large,
     fontWeight: '700',
-    marginBottom: spacing[1],
   },
-  mealCount: {
-    ...typography.caption,
-  },
-  dayCalories: {
-    ...typography.caption,
-    fontWeight: '600',
-  },
-  emptyDay: {
-    ...typography.caption,
-    textAlign: 'center',
-  },
-  addIndicator: {
-    position: 'absolute',
-    bottom: spacing[1],
-    right: spacing[1],
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
+  mealIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: spacing[1],
   },
   instructions: {
     marginHorizontal: componentSpacing.screenEdgePadding,

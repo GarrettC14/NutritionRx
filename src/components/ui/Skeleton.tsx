@@ -541,6 +541,181 @@ function MacroDetailSkeleton() {
   );
 }
 
+// Settings subscreen skeleton (for Fasting, Meal Planning, etc.)
+export function SettingsSubscreenSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Toggle card skeleton */}
+      <View style={[styles.settingsSubCard, { backgroundColor: colors.bgSecondary }]}>
+        <View style={styles.settingsSubToggleRow}>
+          <View style={{ flex: 1, gap: 6 }}>
+            <SkeletonBox width={120} height={18} />
+            <SkeletonBox width={180} height={14} />
+          </View>
+          <SkeletonBox width={50} height={30} borderRadius={15} />
+        </View>
+      </View>
+
+      {/* Section skeleton */}
+      <View style={styles.settingsSubSection}>
+        <SkeletonBox width={140} height={12} style={{ marginBottom: 12 }} />
+        <View style={styles.settingsSubOptionsList}>
+          <SettingsSubOptionSkeleton />
+          <SettingsSubOptionSkeleton />
+          <SettingsSubOptionSkeleton />
+        </View>
+      </View>
+
+      {/* Another section skeleton */}
+      <View style={styles.settingsSubSection}>
+        <SkeletonBox width={100} height={12} style={{ marginBottom: 12 }} />
+        <View style={[styles.settingsSubCard, { backgroundColor: colors.bgSecondary }]}>
+          <View style={styles.settingsSubRow}>
+            <SkeletonBox width={80} height={16} />
+            <SkeletonBox width={70} height={16} />
+          </View>
+          <View style={[styles.settingsSubDivider, { backgroundColor: colors.borderDefault }]} />
+          <View style={styles.settingsSubRow}>
+            <SkeletonBox width={80} height={16} />
+            <SkeletonBox width={70} height={16} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function SettingsSubOptionSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.settingsSubOption, { backgroundColor: colors.bgSecondary }]}>
+      <View style={{ flex: 1, gap: 4 }}>
+        <SkeletonBox width={80} height={18} />
+        <SkeletonBox width={160} height={14} />
+      </View>
+      <SkeletonCircle size={24} />
+    </View>
+  );
+}
+
+// Macro cycling setup skeleton
+export function MacroCyclingSetupSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Progress dots skeleton */}
+      <View style={styles.macroCyclingProgress}>
+        <SkeletonCircle size={8} />
+        <SkeletonCircle size={8} />
+        <SkeletonCircle size={8} />
+      </View>
+
+      {/* Title skeleton */}
+      <View style={styles.macroCyclingContent}>
+        <SkeletonBox width={200} height={24} style={{ alignSelf: 'center', marginBottom: 16 }} />
+
+        {/* Option cards skeleton */}
+        <View style={styles.macroCyclingOptions}>
+          <MacroCyclingOptionSkeleton />
+          <MacroCyclingOptionSkeleton />
+          <MacroCyclingOptionSkeleton />
+        </View>
+      </View>
+
+      {/* Footer button skeleton */}
+      <View style={styles.macroCyclingFooter}>
+        <SkeletonBox width={'100%' as any} height={52} borderRadius={br.md} />
+      </View>
+    </View>
+  );
+}
+
+function MacroCyclingOptionSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.macroCyclingOption, { backgroundColor: colors.bgSecondary }]}>
+      <SkeletonCircle size={48} />
+      <View style={{ flex: 1, gap: 4 }}>
+        <SkeletonBox width={140} height={18} />
+        <SkeletonBox width={180} height={14} />
+      </View>
+      <SkeletonCircle size={24} />
+    </View>
+  );
+}
+
+// Import preview skeleton
+export function ImportPreviewSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      {/* Header skeleton */}
+      <View style={styles.importPreviewHeader}>
+        <SkeletonCircle size={24} />
+        <SkeletonBox width={80} height={20} />
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Preview card skeleton */}
+      <View style={[styles.importPreviewCard, { backgroundColor: colors.bgSecondary }]}>
+        <View style={styles.importPreviewCardHeader}>
+          <SkeletonCircle size={44} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <SkeletonBox width={140} height={18} />
+            <SkeletonBox width={100} height={14} />
+          </View>
+        </View>
+        <View style={[styles.settingsSubDivider, { backgroundColor: colors.borderDefault }]} />
+        <View style={styles.importPreviewStats}>
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <SkeletonBox width={40} height={24} />
+            <SkeletonBox width={30} height={12} />
+          </View>
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <SkeletonBox width={40} height={24} />
+            <SkeletonBox width={40} height={12} />
+          </View>
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <SkeletonBox width={50} height={24} />
+            <SkeletonBox width={50} height={12} />
+          </View>
+        </View>
+      </View>
+
+      {/* Sample days skeleton */}
+      <View style={styles.importPreviewSection}>
+        <SkeletonBox width={120} height={12} style={{ marginBottom: 12 }} />
+        <ImportSampleDaySkeleton />
+        <ImportSampleDaySkeleton />
+        <ImportSampleDaySkeleton />
+      </View>
+    </View>
+  );
+}
+
+function ImportSampleDaySkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.importSampleDay, { backgroundColor: colors.bgSecondary }]}>
+      <View style={styles.importSampleDayHeader}>
+        <SkeletonBox width={100} height={16} />
+        <SkeletonBox width={60} height={14} />
+      </View>
+      <View style={styles.importSampleDayItems}>
+        <SkeletonBox width={'60%' as any} height={14} />
+        <SkeletonBox width={'40%' as any} height={14} />
+      </View>
+    </View>
+  );
+}
+
 // Generic list screen skeleton
 export function ListScreenSkeleton({ itemCount = 6 }: { itemCount?: number }) {
   const { colors } = useTheme();
@@ -847,5 +1022,102 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: br.md,
+  },
+  // Settings subscreen skeleton styles
+  settingsSubCard: {
+    borderRadius: br.lg,
+    padding: 16,
+    marginTop: 16,
+  },
+  settingsSubToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingsSubSection: {
+    marginTop: 24,
+  },
+  settingsSubOptionsList: {
+    gap: 12,
+  },
+  settingsSubOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: br.lg,
+  },
+  settingsSubRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  settingsSubDivider: {
+    height: 1,
+    marginVertical: 8,
+  },
+  // Macro cycling setup skeleton styles
+  macroCyclingProgress: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  macroCyclingContent: {
+    flex: 1,
+    paddingTop: 16,
+  },
+  macroCyclingOptions: {
+    gap: 12,
+  },
+  macroCyclingOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: br.lg,
+    gap: 12,
+  },
+  macroCyclingFooter: {
+    paddingVertical: 16,
+  },
+  // Import preview skeleton styles
+  importPreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  importPreviewCard: {
+    borderRadius: br.lg,
+    padding: 16,
+    marginTop: 16,
+  },
+  importPreviewCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  importPreviewStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: 12,
+  },
+  importPreviewSection: {
+    marginTop: 24,
+  },
+  importSampleDay: {
+    borderRadius: br.md,
+    padding: 12,
+    marginBottom: 12,
+  },
+  importSampleDayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  importSampleDayItems: {
+    gap: 6,
   },
 });

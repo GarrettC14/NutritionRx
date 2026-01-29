@@ -380,7 +380,7 @@ export default function AIPhotoScreen() {
           {quotaLoaded && (
             <View style={styles.quotaContainer}>
               <Text style={styles.quotaText}>
-                {getRemainingDaily()} scans remaining today
+                {getRemainingDaily()}/{quota.dailyLimit} scans remaining today
               </Text>
             </View>
           )}
@@ -772,7 +772,12 @@ export default function AIPhotoScreen() {
     );
   }
 
-  return null;
+  // Fallback to loading state with proper background
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <ActivityIndicator size="large" color={colors.accent} />
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({

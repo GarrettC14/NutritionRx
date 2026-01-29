@@ -20,9 +20,9 @@ jest.mock('@/db/database', () => ({
   getDatabase: jest.fn(() => mockDb),
 }));
 
-// Mock uuid
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'test-uuid-1234'),
+// Mock generateId
+jest.mock('@/utils/generateId', () => ({
+  generateId: jest.fn(() => 'test-uuid-1234'),
 }));
 
 describe('weightRepository', () => {

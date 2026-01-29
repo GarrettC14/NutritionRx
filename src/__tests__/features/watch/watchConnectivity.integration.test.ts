@@ -5,60 +5,72 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 
-// Mock native module and event emitter
-let reachabilityCallback: ((event: { isReachable: boolean }) => void) | null = null;
-let sessionStateCallback: ((event: { state: string; error?: string }) => void) | null = null;
-let watchCommandCallback: ((command: any) => void) | null = null;
+// Mock native module and event emitter - stored in global to avoid hoisting issues
 
-const mockNativeModule = {
-  sendDailyDataToWatch: jest.fn(),
-  sendRecentFoodsToWatch: jest.fn(),
-  isWatchReachable: jest.fn(),
-  isWatchPaired: jest.fn(),
-  isWatchAppInstalled: jest.fn(),
-  getWatchSessionState: jest.fn(),
-};
+jest.mock('react-native', () => {
+  // Create fresh mock inside the factory function
+  const nativeModule = {
+    sendDailyDataToWatch: jest.fn(),
+    sendRecentFoodsToWatch: jest.fn(),
+    isWatchReachable: jest.fn(),
+    isWatchPaired: jest.fn(),
+    isWatchAppInstalled: jest.fn(),
+    getWatchSessionState: jest.fn(),
+  };
 
-jest.mock('react-native', () => ({
-  Platform: {
-    OS: 'ios',
-  },
-  NativeModules: {
-    WatchConnectivityModule: mockNativeModule,
-  },
-  NativeEventEmitter: jest.fn().mockImplementation(() => ({
-    addListener: jest.fn((eventName, callback) => {
-      if (eventName === 'WatchReachabilityChanged') {
-        reachabilityCallback = callback;
-      } else if (eventName === 'WatchSessionStateChanged') {
-        sessionStateCallback = callback;
-      } else if (eventName === 'WatchCommand') {
-        watchCommandCallback = callback;
-      }
-      return { remove: jest.fn() };
-    }),
-    removeAllListeners: jest.fn(),
-  })),
-}));
+  // Store reference for tests to access
+  (global as any).__mockNativeModule = nativeModule;
+
+  return {
+    Platform: {
+      OS: 'ios',
+    },
+    NativeModules: {
+      WatchConnectivityModule: nativeModule,
+    },
+    NativeEventEmitter: jest.fn().mockImplementation(() => ({
+      addListener: jest.fn((eventName, callback) => {
+        if (eventName === 'WatchReachabilityChanged') {
+          (global as any).__reachabilityCallback = callback;
+        } else if (eventName === 'WatchSessionStateChanged') {
+          (global as any).__sessionStateCallback = callback;
+        } else if (eventName === 'WatchCommand') {
+          (global as any).__watchCommandCallback = callback;
+        }
+        return { remove: jest.fn() };
+      }),
+      removeAllListeners: jest.fn(),
+    })),
+  };
+});
 
 import { watchConnectivityService } from '@/services/watchConnectivity/watchConnectivityService';
 import { useWatchConnectivity } from '@/hooks/useWatchConnectivity';
 import { WatchDailyData, WatchCommand } from '@/types/watch';
 
+// Helper to get mock native module from global
+const getMockNativeModule = () => (global as any).__mockNativeModule;
+const getReachabilityCallback = () => (global as any).__reachabilityCallback;
+const getSessionStateCallback = () => (global as any).__sessionStateCallback;
+const getWatchCommandCallback = () => (global as any).__watchCommandCallback;
+
 describe('Watch Connectivity Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    reachabilityCallback = null;
-    sessionStateCallback = null;
-    watchCommandCallback = null;
+    (global as any).__reachabilityCallback = null;
+    (global as any).__sessionStateCallback = null;
+    (global as any).__watchCommandCallback = null;
 
     // Default session state
-    mockNativeModule.getWatchSessionState.mockResolvedValue({
-      isSupported: true,
-      isPaired: true,
-      isWatchAppInstalled: true,
-      isReachable: true,
-    });
+    const mockModule = getMockNativeModule();
+    if (mockModule) {
+      mockModule.getWatchSessionState.mockResolvedValue({
+        isSupported: true,
+        isPaired: true,
+        isWatchAppInstalled: true,
+        isReachable: true,
+      });
+    }
   });
 
   describe('Full sync flow', () => {
@@ -91,12 +103,12 @@ describe('Watch Connectivity Integration', () => {
         await result.current.sendDailyData(dailyData);
       });
 
-      expect(mockNativeModule.sendDailyDataToWatch).toHaveBeenCalledWith(dailyData);
+      expect(getMockNativeModule().sendDailyDataToWatch).toHaveBeenCalledWith(dailyData);
     });
 
     it('handles watch becoming reachable and syncing data', async () => {
       // Start with watch not reachable
-      mockNativeModule.getWatchSessionState.mockResolvedValue({
+      getMockNativeModule().getWatchSessionState.mockResolvedValue({
         isSupported: true,
         isPaired: true,
         isWatchAppInstalled: true,
@@ -111,7 +123,7 @@ describe('Watch Connectivity Integration', () => {
 
       // Simulate watch becoming reachable
       act(() => {
-        reachabilityCallback?.({ isReachable: true });
+        getReachabilityCallback()?.({ isReachable: true });
       });
 
       expect(result.current.isReachable).toBe(true);
@@ -134,7 +146,7 @@ describe('Watch Connectivity Integration', () => {
         await result.current.sendDailyData(dailyData);
       });
 
-      expect(mockNativeModule.sendDailyDataToWatch).toHaveBeenCalled();
+      expect(getMockNativeModule().sendDailyDataToWatch).toHaveBeenCalled();
     });
   });
 
@@ -144,7 +156,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       const addWaterCommand: WatchCommand = {
@@ -153,7 +165,7 @@ describe('Watch Connectivity Integration', () => {
       };
 
       act(() => {
-        watchCommandCallback?.(addWaterCommand);
+        getWatchCommandCallback()?.(addWaterCommand);
       });
 
       expect(handleCommand).toHaveBeenCalledWith(addWaterCommand);
@@ -164,7 +176,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       const quickAddCommand: WatchCommand = {
@@ -174,7 +186,7 @@ describe('Watch Connectivity Integration', () => {
       };
 
       act(() => {
-        watchCommandCallback?.(quickAddCommand);
+        getWatchCommandCallback()?.(quickAddCommand);
       });
 
       expect(handleCommand).toHaveBeenCalledWith(quickAddCommand);
@@ -185,7 +197,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       const logFoodCommand: WatchCommand = {
@@ -195,7 +207,7 @@ describe('Watch Connectivity Integration', () => {
       };
 
       act(() => {
-        watchCommandCallback?.(logFoodCommand);
+        getWatchCommandCallback()?.(logFoodCommand);
       });
 
       expect(handleCommand).toHaveBeenCalledWith(logFoodCommand);
@@ -206,7 +218,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       const syncCommand: WatchCommand = {
@@ -214,7 +226,7 @@ describe('Watch Connectivity Integration', () => {
       };
 
       act(() => {
-        watchCommandCallback?.(syncCommand);
+        getWatchCommandCallback()?.(syncCommand);
       });
 
       expect(handleCommand).toHaveBeenCalledWith(syncCommand);
@@ -224,7 +236,7 @@ describe('Watch Connectivity Integration', () => {
   describe('Session state transitions', () => {
     it('handles watch app installation', async () => {
       // Start with watch app not installed
-      mockNativeModule.getWatchSessionState.mockResolvedValue({
+      getMockNativeModule().getWatchSessionState.mockResolvedValue({
         isSupported: true,
         isPaired: true,
         isWatchAppInstalled: false,
@@ -238,7 +250,7 @@ describe('Watch Connectivity Integration', () => {
       });
 
       // Simulate watch app being installed
-      mockNativeModule.getWatchSessionState.mockResolvedValue({
+      getMockNativeModule().getWatchSessionState.mockResolvedValue({
         isSupported: true,
         isPaired: true,
         isWatchAppInstalled: true,
@@ -246,7 +258,7 @@ describe('Watch Connectivity Integration', () => {
       });
 
       act(() => {
-        sessionStateCallback?.({ state: 'activated' });
+        getSessionStateCallback()?.({ state: 'activated' });
       });
 
       await waitFor(() => {
@@ -262,7 +274,7 @@ describe('Watch Connectivity Integration', () => {
       });
 
       // Simulate watch being unpaired
-      mockNativeModule.getWatchSessionState.mockResolvedValue({
+      getMockNativeModule().getWatchSessionState.mockResolvedValue({
         isSupported: true,
         isPaired: false,
         isWatchAppInstalled: false,
@@ -270,7 +282,7 @@ describe('Watch Connectivity Integration', () => {
       });
 
       act(() => {
-        sessionStateCallback?.({ state: 'inactive' });
+        getSessionStateCallback()?.({ state: 'inactive' });
       });
 
       await waitFor(() => {
@@ -289,14 +301,14 @@ describe('Watch Connectivity Integration', () => {
 
       // Simulate connection loss
       act(() => {
-        reachabilityCallback?.({ isReachable: false });
+        getReachabilityCallback()?.({ isReachable: false });
       });
 
       expect(result.current.isReachable).toBe(false);
 
       // Simulate connection restored
       act(() => {
-        reachabilityCallback?.({ isReachable: true });
+        getReachabilityCallback()?.({ isReachable: true });
       });
 
       expect(result.current.isReachable).toBe(true);
@@ -311,7 +323,7 @@ describe('Watch Connectivity Integration', () => {
 
       // Simulate activation error
       act(() => {
-        sessionStateCallback?.({
+        getSessionStateCallback()?.({
           state: 'inactive',
           error: 'Activation failed',
         });
@@ -342,7 +354,7 @@ describe('Watch Connectivity Integration', () => {
         await result.current.sendRecentFoods(recentFoods);
       });
 
-      expect(mockNativeModule.sendRecentFoodsToWatch).toHaveBeenCalledWith(recentFoods);
+      expect(getMockNativeModule().sendRecentFoodsToWatch).toHaveBeenCalledWith(recentFoods);
     });
   });
 
@@ -352,7 +364,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       // Simulate rapid water additions (user tapping quickly)
@@ -364,7 +376,7 @@ describe('Watch Connectivity Integration', () => {
 
       commands.forEach((command) => {
         act(() => {
-          watchCommandCallback?.(command);
+          getWatchCommandCallback()?.(command);
         });
       });
 
@@ -376,7 +388,7 @@ describe('Watch Connectivity Integration', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       const commands: WatchCommand[] = [
@@ -388,7 +400,7 @@ describe('Watch Connectivity Integration', () => {
 
       commands.forEach((command) => {
         act(() => {
-          watchCommandCallback?.(command);
+          getWatchCommandCallback()?.(command);
         });
       });
 
@@ -409,7 +421,7 @@ describe('Watch Connectivity - Meal Type Timing', () => {
       renderHook(() => useWatchConnectivity(handleCommand));
 
       await waitFor(() => {
-        expect(watchCommandCallback).not.toBeNull();
+        expect(getWatchCommandCallback()).not.toBeNull();
       });
 
       // Test breakfast time
@@ -420,7 +432,7 @@ describe('Watch Connectivity - Meal Type Timing', () => {
       };
 
       act(() => {
-        watchCommandCallback?.(breakfastCommand);
+        getWatchCommandCallback()?.(breakfastCommand);
       });
 
       expect(handleCommand).toHaveBeenCalledWith(
@@ -433,7 +445,7 @@ describe('Watch Connectivity - Meal Type Timing', () => {
 describe('Watch Connectivity - Data Validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNativeModule.getWatchSessionState.mockResolvedValue({
+    getMockNativeModule().getWatchSessionState.mockResolvedValue({
       isSupported: true,
       isPaired: true,
       isWatchAppInstalled: true,
@@ -465,7 +477,7 @@ describe('Watch Connectivity - Data Validation', () => {
       await result.current.sendDailyData(dailyData);
     });
 
-    const sentData = mockNativeModule.sendDailyDataToWatch.mock.calls[0][0];
+    const sentData = getMockNativeModule().sendDailyDataToWatch.mock.calls[0][0];
 
     expect(sentData).toHaveProperty('date');
     expect(sentData).toHaveProperty('caloriesConsumed');
@@ -504,6 +516,6 @@ describe('Watch Connectivity - Data Validation', () => {
       await result.current.sendDailyData(dailyData);
     });
 
-    expect(mockNativeModule.sendDailyDataToWatch).toHaveBeenCalledWith(dailyData);
+    expect(getMockNativeModule().sendDailyDataToWatch).toHaveBeenCalledWith(dailyData);
   });
 });

@@ -129,7 +129,7 @@ function ThemeSelector() {
 export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { isPremium, expirationDate, hasBundle } = useSubscriptionStore();
+  const { isPremium, expirationDate, hasBundle, isDevPremium, toggleDevPremium } = useSubscriptionStore();
 
   // Developer menu access - tap version 7 times
   const tapCountRef = useRef(0);
@@ -318,13 +318,6 @@ export default function SettingsScreen() {
               />
             )}
             <SettingsItem
-              icon="cloud-upload-outline"
-              title="Export Data"
-              subtitle="Backup your data to CSV or JSON"
-              onPress={() => router.push('/settings/export-data')}
-              showLock={!isPremium}
-            />
-            <SettingsItem
               icon="cloud-download-outline"
               title="Import From Other Apps"
               subtitle="MyFitnessPal, Cronometer, Lose It!, MacroFactor"
@@ -400,6 +393,45 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
+
+        {/* Developer Section - for testing */}
+        {__DEV__ && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              DEVELOPER
+            </Text>
+            <View style={styles.sectionContent}>
+              <Pressable
+                style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
+                onPress={toggleDevPremium}
+              >
+                <View
+                  style={[
+                    styles.settingsIcon,
+                    { backgroundColor: isDevPremium ? colors.successBg : colors.bgInteractive },
+                  ]}
+                >
+                  <Ionicons
+                    name={isDevPremium ? 'lock-open' : 'lock-closed'}
+                    size={20}
+                    color={isDevPremium ? colors.success : colors.accent}
+                  />
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                    {isDevPremium ? 'Premium Unlocked (Dev)' : 'Unlock Premium (Dev)'}
+                  </Text>
+                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                    {isDevPremium ? 'Tap to disable premium for testing' : 'Tap to enable all premium features'}
+                  </Text>
+                </View>
+                {isDevPremium && (
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                )}
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>

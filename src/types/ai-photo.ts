@@ -67,8 +67,8 @@ export interface AIPhotoQuota {
 }
 
 export const AI_PHOTO_LIMITS = {
-  DAILY_FREE: 30,
-  MONTHLY_FREE: 500,
+  DAILY_FREE: 10,
+  MONTHLY_FREE: 200,
   DAILY_PREMIUM: 100,
   MONTHLY_PREMIUM: 3000,
 } as const;

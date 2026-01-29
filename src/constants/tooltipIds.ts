@@ -11,6 +11,9 @@ export const TOOLTIP_IDS = {
   MEAL_COLLAPSE: 'discovery.mealCollapse',
   QUICK_ADD: 'discovery.quickAdd',
   WEEKLY_SUMMARY: 'discovery.weeklySummary',
+
+  // Meal planning
+  MEAL_PLAN_COPY_DAY: 'mealPlan.copyDay',
 } as const;
 
 export type TooltipId = (typeof TOOLTIP_IDS)[keyof typeof TOOLTIP_IDS];

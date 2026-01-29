@@ -46,6 +46,13 @@ export function PlannedMealsSection() {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentHeight = useSharedValue(0);
 
+  // Animated style must be called before any early returns (Rules of Hooks)
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    maxHeight: isExpanded ? withTiming(500, { duration: 300 }) : withTiming(0, { duration: 200 }),
+    opacity: isExpanded ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 200 }),
+    overflow: 'hidden',
+  }));
+
   // Load data on mount
   useEffect(() => {
     loadSettings();
@@ -66,12 +73,6 @@ export function PlannedMealsSection() {
   if (!isLoaded || !isPremium || !settings?.enabled || !settings?.showOnToday || todayMeals.length === 0) {
     return null;
   }
-
-  const animatedContentStyle = useAnimatedStyle(() => ({
-    maxHeight: isExpanded ? withTiming(500, { duration: 300 }) : withTiming(0, { duration: 200 }),
-    opacity: isExpanded ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 200 }),
-    overflow: 'hidden',
-  }));
 
   const handleToggle = () => {
     setIsExpanded(!isExpanded);

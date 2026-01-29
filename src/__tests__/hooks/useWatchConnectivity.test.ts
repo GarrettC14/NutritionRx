@@ -313,33 +313,32 @@ describe('useWatchConnectivity', () => {
 });
 
 describe('useWatchConnectivity when unavailable', () => {
+  // Import the service to spy on it
+  const { watchConnectivityService } = require('@/services/watchConnectivity/watchConnectivityService');
+
   beforeEach(() => {
-    jest.resetModules();
-    jest.doMock('@/services/watchConnectivity/watchConnectivityService', () => ({
-      watchConnectivityService: {
-        isAvailable: jest.fn(() => false),
-        getSessionState: jest.fn(),
-        sendDailyData: jest.fn(),
-        sendRecentFoods: jest.fn(),
-        onReachabilityChange: jest.fn(() => jest.fn()),
-        onSessionStateChange: jest.fn(() => jest.fn()),
-        onWatchCommand: jest.fn(() => jest.fn()),
-      },
-    }));
+    jest.clearAllMocks();
+    // Mock service as unavailable
+    (watchConnectivityService.isAvailable as jest.Mock).mockReturnValue(false);
+    mockGetSessionState.mockResolvedValue({
+      isSupported: false,
+      isPaired: false,
+      isWatchAppInstalled: false,
+      isReachable: false,
+    });
+    mockOnReachabilityChange.mockReturnValue(jest.fn());
+    mockOnSessionStateChange.mockReturnValue(jest.fn());
+    mockOnWatchCommand.mockReturnValue(jest.fn());
   });
 
   it('returns unavailable state', async () => {
-    const { useWatchConnectivity: useHook } = require('@/hooks/useWatchConnectivity');
-    const { result } = renderHook(() => useHook());
+    const { result } = renderHook(() => useWatchConnectivity());
 
     expect(result.current.isAvailable).toBe(false);
   });
 
   it('sendDailyData is a no-op when unavailable', async () => {
-    const mockService = require('@/services/watchConnectivity/watchConnectivityService').watchConnectivityService;
-    const { useWatchConnectivity: useHook } = require('@/hooks/useWatchConnectivity');
-
-    const { result } = renderHook(() => useHook());
+    const { result } = renderHook(() => useWatchConnectivity());
 
     const mockData: WatchDailyData = {
       date: '2024-01-15',
@@ -358,6 +357,7 @@ describe('useWatchConnectivity when unavailable', () => {
       await result.current.sendDailyData(mockData);
     });
 
-    expect(mockService.sendDailyData).not.toHaveBeenCalled();
+    // When unavailable, sendDailyData should not call the service
+    expect(mockSendDailyData).not.toHaveBeenCalled();
   });
 });

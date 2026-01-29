@@ -8,6 +8,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { ImportPreviewCard, ImportSampleDay } from '@/components/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
+import { ImportPreviewSkeleton } from '@/components/ui/Skeleton';
 
 export default function ImportPreviewScreen() {
   const { colors } = useTheme();
@@ -17,7 +18,12 @@ export default function ImportPreviewScreen() {
 
   if (!currentSession) {
     router.replace('/import-data');
-    return null;
+    // Show skeleton while redirecting to prevent white flash
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+        <ImportPreviewSkeleton />
+      </SafeAreaView>
+    );
   }
 
   // Get a sample of days to preview (first 3)
@@ -28,7 +34,7 @@ export default function ImportPreviewScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>

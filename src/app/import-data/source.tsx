@@ -58,7 +58,7 @@ export default function ImportSourceScreen() {
 
   if (showInstructions && selectedConfig) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => setShowInstructions(false)} style={styles.backButton}>
@@ -113,7 +113,7 @@ export default function ImportSourceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
