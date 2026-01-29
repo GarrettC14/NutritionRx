@@ -17,6 +17,7 @@ import {
   QuickAddWidget,
   GoalsSummaryWidget,
   MealIdeasWidget,
+  NutritionOverviewWidget,
 } from '@/components/dashboard/widgets';
 
 /**
@@ -144,6 +145,17 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
     category: 'meals',
     component: MealIdeasWidget as ComponentType<WidgetProps>,
   },
+  nutrition_overview: {
+    type: 'nutrition_overview',
+    name: 'Nutrition Overview',
+    description: 'Combined calorie ring and macro bars in one card',
+    icon: 'fitness-outline',
+    defaultSize: 'large',
+    minSize: 'large',
+    maxSize: 'large',
+    category: 'nutrition',
+    component: NutritionOverviewWidget as ComponentType<WidgetProps>,
+  },
 };
 
 /**
@@ -180,8 +192,9 @@ export const WIDGET_CATEGORIES = [
  * Default widgets for new users
  */
 export const DEFAULT_WIDGET_TYPES: WidgetType[] = [
-  'calorie_ring',
-  'macro_bars',
+  'nutrition_overview',
+  'quick_add',
   'water_tracker',
   'todays_meals',
+  'streak_badge',
 ];

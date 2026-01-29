@@ -14,6 +14,7 @@ import { WidgetProps } from '@/types/dashboard';
 
 interface QuickItem {
   id: string;
+  foodItemId: string;
   name: string;
   calories: number;
   source: 'recent' | 'favorite';
@@ -35,6 +36,7 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
     favorites?.slice(0, 3).forEach((fav) => {
       items.push({
         id: `fav-${fav.id}`,
+        foodItemId: fav.foodItemId || fav.id,
         name: fav.name || fav.foodName || 'Favorite',
         calories: Math.round(fav.calories || 0),
         source: 'favorite',
@@ -51,10 +53,11 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
       .forEach((entry) => {
         const name = entry.foodName || 'Recent food';
         const lowerName = name.toLowerCase();
-        if (!recentNames.has(lowerName) && !favNames.has(lowerName) && items.length < 6) {
+        if (!recentNames.has(lowerName) && !favNames.has(lowerName) && items.length < 6 && entry.foodItemId) {
           recentNames.add(lowerName);
           items.push({
             id: `recent-${entry.id}`,
+            foodItemId: entry.foodItemId,
             name,
             calories: Math.round(entry.calories || 0),
             source: 'recent',
@@ -70,9 +73,11 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Navigate to add food screen with the item pre-selected
-    // TODO: Implement proper quick add functionality
-    router.push('/add-food');
+    // Navigate directly to the log screen with the food pre-selected
+    router.push({
+      pathname: '/add-food/log',
+      params: { foodId: item.foodItemId },
+    });
   };
 
   const handleAddNew = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
@@ -11,6 +11,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
 import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore } from '@/stores';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
@@ -56,11 +57,14 @@ export default function TodayScreen() {
     isEditMode,
     setEditMode,
     reorderWidgets,
+    resetToDefaults,
   } = useDashboardStore();
+  const { showConfirm } = useConfirmDialog();
 
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
   const [showWidgetPicker, setShowWidgetPicker] = useState(false);
+  const [listKey, setListKey] = useState(0);
 
   // Get visible widgets sorted by position
   const visibleWidgets = widgets
@@ -230,23 +234,53 @@ export default function TodayScreen() {
     }
   }, [isEditMode, setEditMode]);
 
+  const handleRestoreDefaults = useCallback(() => {
+    showConfirm({
+      title: 'Restore Default Layout',
+      message: 'This will reset your dashboard to the default widget layout. Your data will not be affected.',
+      icon: '🔄',
+      confirmLabel: 'Restore',
+      cancelLabel: 'Cancel',
+      onConfirm: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        resetToDefaults();
+        // Increment key to remount list without animation
+        setListKey(k => k + 1);
+      },
+    });
+  }, [resetToDefaults, showConfirm]);
+
   // Render widget item
   const renderWidget = useCallback(({ item, drag, isActive }: RenderItemParams<DashboardWidget>) => {
+    // When not in edit mode, allow long press to enter edit mode
+    // When in edit mode, drag is handled by the drag handle inside WidgetRenderer
+    if (!isEditMode) {
+      return (
+        <ScaleDecorator activeScale={0.95}>
+          <TouchableOpacity
+            onLongPress={handleLongPress}
+            delayLongPress={300}
+            activeOpacity={1}
+          >
+            <WidgetRenderer
+              widget={item}
+              isEditMode={isEditMode}
+              drag={drag}
+              isActive={isActive}
+            />
+          </TouchableOpacity>
+        </ScaleDecorator>
+      );
+    }
+
     return (
       <ScaleDecorator activeScale={0.95}>
-        <TouchableOpacity
-          onLongPress={isEditMode ? drag : handleLongPress}
-          disabled={isActive}
-          delayLongPress={200}
-          activeOpacity={0.9}
-        >
-          <WidgetRenderer
-            widget={item}
-            isEditMode={isEditMode}
-            drag={drag}
-            isActive={isActive}
-          />
-        </TouchableOpacity>
+        <WidgetRenderer
+          widget={item}
+          isEditMode={isEditMode}
+          drag={drag}
+          isActive={isActive}
+        />
       </ScaleDecorator>
     );
   }, [isEditMode, handleLongPress]);
@@ -359,19 +393,33 @@ export default function TodayScreen() {
         {/* Dashboard Header */}
         <View style={styles.dashboardHeader}>
           <Text style={[styles.dashboardTitle, { color: colors.textPrimary }]}>Dashboard</Text>
-          <TouchableOpacity
-            onPress={() => setEditMode(!isEditMode)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={[styles.editButton, { color: colors.accent }]}>
-              {isEditMode ? 'Done' : 'Edit'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dashboardHeaderActions}>
+            {isEditMode && (
+              <TouchableOpacity
+                onPress={handleRestoreDefaults}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={[styles.restoreButton, { color: colors.textSecondary }]}>
+                  Restore
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={() => setEditMode(!isEditMode)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.editButton, { color: colors.accent }]}>
+                {isEditMode ? 'Done' : 'Edit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Widget List with Drag-and-Drop */}
         <DraggableFlatList
+          key={listKey}
           data={visibleWidgets}
+          extraData={[isEditMode, widgets]}
           keyExtractor={(item) => item.id}
           renderItem={renderWidget}
           onDragBegin={handleDragBegin}
@@ -380,7 +428,7 @@ export default function TodayScreen() {
           ListFooterComponent={isEditMode ? undefined : ListFooter}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          activationDistance={isEditMode ? 5 : 20}
+          activationDistance={isEditMode ? 15 : 20}
         />
 
         {/* Floating Add Widget Button (Edit Mode only) */}
@@ -453,8 +501,17 @@ const styles = StyleSheet.create({
     paddingTop: spacing[5],
     paddingBottom: spacing[4],
   },
+  dashboardHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[4],
+  },
   dashboardTitle: {
     ...typography.display.medium,
+  },
+  restoreButton: {
+    ...typography.body.large,
+    fontWeight: '500',
   },
   editButton: {
     ...typography.body.large,

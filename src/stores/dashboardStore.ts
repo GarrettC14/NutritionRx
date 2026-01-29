@@ -31,24 +31,23 @@ interface DashboardState {
 
 const DEFAULT_WIDGETS: DashboardWidget[] = [
   {
-    id: 'default-1',
-    type: 'calorie_ring',
+    id: 'default-nutrition_overview',
+    type: 'nutrition_overview',
     position: 0,
     isVisible: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
-    id: 'default-2',
-    type: 'macro_bars',
+    id: 'default-quick_add',
+    type: 'quick_add',
     position: 1,
     isVisible: true,
-    config: { showFiber: false },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
-    id: 'default-3',
+    id: 'default-water_tracker',
     type: 'water_tracker',
     position: 2,
     isVisible: true,
@@ -57,9 +56,17 @@ const DEFAULT_WIDGETS: DashboardWidget[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: 'default-4',
+    id: 'default-todays_meals',
     type: 'todays_meals',
     position: 3,
+    isVisible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'default-streak_badge',
+    type: 'streak_badge',
+    position: 4,
     isVisible: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -150,7 +157,7 @@ export const useDashboardStore = create<DashboardState>()(
         const now = new Date().toISOString();
         const freshDefaults = DEFAULT_WIDGETS.map((w, i) => ({
           ...w,
-          id: `default-${i + 1}`,
+          id: `default-${w.type}`,
           position: i,
           createdAt: now,
           updatedAt: now,

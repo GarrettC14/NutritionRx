@@ -6,13 +6,16 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Path, Line, Circle } from 'react-native-svg';
+import Svg, { Path, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { useWeightStore, useGoalStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 
+const CHART_PADDING = { left: 40, right: 10, top: 10, bottom: 25 };
 const CHART_WIDTH = Dimensions.get('window').width - 80;
-const CHART_HEIGHT = 80;
+const CHART_HEIGHT = 100;
+const PLOT_WIDTH = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
+const PLOT_HEIGHT = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
 
 export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
@@ -35,34 +38,64 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-10);
 
-    return recentWeights.map((w) => w.weightKg);
+    return recentWeights.map((w) => ({
+      weight: w.weightKg,
+      date: new Date(w.date),
+    }));
   }, [entries, chartRange]);
 
-  const latestWeight = chartData.length > 0 ? chartData[chartData.length - 1] : null;
-  const startWeight = chartData.length > 0 ? chartData[0] : null;
+  const weights = chartData.map((d) => d.weight);
+  const latestWeight = weights.length > 0 ? weights[weights.length - 1] : null;
+  const startWeight = weights.length > 0 ? weights[0] : null;
   const weightChange =
     latestWeight && startWeight ? latestWeight - startWeight : null;
 
-  // Generate SVG path for the chart
-  const chartPath = useMemo(() => {
-    if (chartData.length < 2) return '';
+  // Calculate chart bounds and path
+  const { chartPath, minWeight, maxWeight, points } = useMemo(() => {
+    if (chartData.length < 2) {
+      return { chartPath: '', minWeight: 0, maxWeight: 0, points: [] };
+    }
 
-    const minWeight = Math.min(...chartData) - 1;
-    const maxWeight = Math.max(...chartData) + 1;
-    const range = maxWeight - minWeight || 1;
+    const allWeights = chartData.map((d) => d.weight);
+    const min = Math.min(...allWeights) - 0.5;
+    const max = Math.max(...allWeights) + 0.5;
+    const range = max - min || 1;
 
-    const points = chartData.map((weight, index) => {
-      const x = (index / (chartData.length - 1)) * CHART_WIDTH;
-      const y = CHART_HEIGHT - ((weight - minWeight) / range) * CHART_HEIGHT;
-      return { x, y };
+    const pts = chartData.map((data, index) => {
+      const x = CHART_PADDING.left + (index / (chartData.length - 1)) * PLOT_WIDTH;
+      const y = CHART_PADDING.top + PLOT_HEIGHT - ((data.weight - min) / range) * PLOT_HEIGHT;
+      return { x, y, weight: data.weight, date: data.date };
     });
 
-    const path = points.reduce((acc, point, index) => {
+    const path = pts.reduce((acc, point, index) => {
       if (index === 0) return `M ${point.x} ${point.y}`;
       return `${acc} L ${point.x} ${point.y}`;
     }, '');
 
-    return path;
+    return { chartPath: path, minWeight: min, maxWeight: max, points: pts };
+  }, [chartData]);
+
+  // Generate Y-axis labels
+  const yAxisLabels = useMemo(() => {
+    if (chartData.length < 2) return [];
+    const mid = (minWeight + maxWeight) / 2;
+    return [
+      { value: maxWeight, y: CHART_PADDING.top },
+      { value: mid, y: CHART_PADDING.top + PLOT_HEIGHT / 2 },
+      { value: minWeight, y: CHART_PADDING.top + PLOT_HEIGHT },
+    ];
+  }, [chartData.length, minWeight, maxWeight]);
+
+  // Generate X-axis labels (first and last date)
+  const xAxisLabels = useMemo(() => {
+    if (chartData.length < 2) return [];
+    const firstDate = chartData[0].date;
+    const lastDate = chartData[chartData.length - 1].date;
+    const formatDate = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+    return [
+      { label: formatDate(firstDate), x: CHART_PADDING.left },
+      { label: formatDate(lastDate), x: CHART_PADDING.left + PLOT_WIDTH },
+    ];
   }, [chartData]);
 
   const handlePress = () => {
@@ -113,6 +146,49 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
       {chartData.length >= 2 ? (
         <View style={styles.chartContainer}>
           <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+            {/* Horizontal grid lines */}
+            {yAxisLabels.map((label, i) => (
+              <Line
+                key={`grid-${i}`}
+                x1={CHART_PADDING.left}
+                y1={label.y}
+                x2={CHART_PADDING.left + PLOT_WIDTH}
+                y2={label.y}
+                stroke={colors.borderDefault}
+                strokeWidth={1}
+                strokeDasharray="4,4"
+              />
+            ))}
+
+            {/* Y-axis labels */}
+            {yAxisLabels.map((label, i) => (
+              <SvgText
+                key={`y-label-${i}`}
+                x={CHART_PADDING.left - 6}
+                y={label.y + 4}
+                fontSize={10}
+                fill={colors.textTertiary}
+                textAnchor="end"
+              >
+                {label.value.toFixed(0)}
+              </SvgText>
+            ))}
+
+            {/* X-axis labels */}
+            {xAxisLabels.map((label, i) => (
+              <SvgText
+                key={`x-label-${i}`}
+                x={label.x}
+                y={CHART_HEIGHT - 5}
+                fontSize={10}
+                fill={colors.textTertiary}
+                textAnchor={i === 0 ? 'start' : 'end'}
+              >
+                {label.label}
+              </SvgText>
+            ))}
+
+            {/* Trend line */}
             <Path
               d={chartPath}
               stroke={trendLineColor}
@@ -121,21 +197,19 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Latest point */}
-            {chartData.length > 0 && (
+
+            {/* Data points */}
+            {points.map((point, i) => (
               <Circle
-                cx={CHART_WIDTH}
-                cy={
-                  CHART_HEIGHT -
-                  ((chartData[chartData.length - 1] -
-                    (Math.min(...chartData) - 1)) /
-                    (Math.max(...chartData) - Math.min(...chartData) + 2 || 1)) *
-                    CHART_HEIGHT
-                }
-                r={4}
-                fill={trendLineColor}
+                key={`point-${i}`}
+                cx={point.x}
+                cy={point.y}
+                r={i === points.length - 1 ? 5 : 3}
+                fill={i === points.length - 1 ? trendLineColor : colors.bgElevated}
+                stroke={trendLineColor}
+                strokeWidth={i === points.length - 1 ? 0 : 1.5}
               />
-            )}
+            ))}
           </Svg>
         </View>
       ) : (
@@ -197,7 +271,7 @@ const createStyles = (colors: any) =>
     },
     chartContainer: {
       height: CHART_HEIGHT,
-      overflow: 'hidden',
+      marginTop: 4,
     },
     emptyChart: {
       height: CHART_HEIGHT,

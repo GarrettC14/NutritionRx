@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Alert,
 } from 'react-native';
 import DraggableFlatList, {
   ScaleDecorator,
@@ -27,7 +28,7 @@ import { WidgetPickerModal } from './WidgetPickerModal';
 
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
-  const { widgets, isEditMode, setEditMode, reorderWidgets } = useDashboardStore();
+  const { widgets, isEditMode, setEditMode, reorderWidgets, resetToDefaults } = useDashboardStore();
   const [isPickerVisible, setIsPickerVisible] = useState(false);
 
   const visibleWidgets = widgets
@@ -57,6 +58,24 @@ export function DashboardScreen() {
   const handleAddWidget = useCallback(() => {
     setIsPickerVisible(true);
   }, []);
+
+  const handleRestoreDefaults = useCallback(() => {
+    Alert.alert(
+      'Restore Default Layout',
+      'This will reset your dashboard to the default widget layout. Your data will not be affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restore',
+          style: 'destructive',
+          onPress: async () => {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            resetToDefaults();
+          },
+        },
+      ]
+    );
+  }, [resetToDefaults]);
 
   const renderWidget = useCallback(
     ({ item, drag, isActive }: RenderItemParams<DashboardWidget>) => (
@@ -88,6 +107,12 @@ export function DashboardScreen() {
         <View style={styles.headerActions}>
           {isEditMode ? (
             <>
+              <TouchableOpacity
+                style={styles.restoreButton}
+                onPress={handleRestoreDefaults}
+              >
+                <Text style={styles.restoreButtonText}>Restore</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.addButton}
                 onPress={handleAddWidget}
@@ -207,6 +232,15 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.bgInteractive,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    restoreButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 10,
+    },
+    restoreButtonText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.textSecondary,
     },
     addButton: {
       width: 40,

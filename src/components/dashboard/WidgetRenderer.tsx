@@ -41,7 +41,7 @@ export function WidgetRenderer({
     removeWidget(widget.id);
   };
 
-  const handleLongPress = () => {
+  const handleDragStart = () => {
     if (isEditMode && drag) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       drag();
@@ -64,13 +64,7 @@ export function WidgetRenderer({
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity
-        activeOpacity={isEditMode ? 0.9 : 1}
-        onLongPress={handleLongPress}
-        delayLongPress={200}
-        disabled={!isEditMode}
-        style={styles.widgetTouchable}
-      >
+      <View style={styles.widgetTouchable}>
         <View style={styles.widgetWrapper}>
           <WidgetComponent
             config={widget.config}
@@ -79,11 +73,16 @@ export function WidgetRenderer({
         </View>
 
         {isEditMode && (
-          <View style={styles.dragHandle}>
+          <TouchableOpacity
+            style={styles.dragHandle}
+            onLongPress={handleDragStart}
+            delayLongPress={150}
+            activeOpacity={0.7}
+          >
             <Ionicons name="menu" size={20} color={colors.textSecondary} />
-          </View>
+          </TouchableOpacity>
         )}
-      </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -136,12 +135,17 @@ const createStyles = (colors: any, isEditMode: boolean, isActive?: boolean) =>
     },
     dragHandle: {
       position: 'absolute',
-      top: 8,
-      right: 8,
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      backgroundColor: `${colors.bgInteractive}`,
+      top: '50%',
+      right: 0,
+      width: 36,
+      height: 36,
+      marginTop: -18, // Half of height to center vertically
+      borderTopLeftRadius: 18,
+      borderBottomLeftRadius: 18,
+      backgroundColor: colors.bgElevated,
+      borderWidth: 1,
+      borderRightWidth: 0,
+      borderColor: colors.borderDefault,
       alignItems: 'center',
       justifyContent: 'center',
     },

@@ -7,6 +7,8 @@ import { useTheme, ThemePreference } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useDashboardStore } from '@/stores/dashboardStore';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -130,6 +132,8 @@ export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium, expirationDate, hasBundle, isDevPremium, toggleDevPremium } = useSubscriptionStore();
+  const { resetToDefaults } = useDashboardStore();
+  const { showConfirm } = useConfirmDialog();
 
   // Developer menu access - tap version 7 times
   const tapCountRef = useRef(0);
@@ -148,6 +152,19 @@ export default function SettingsScreen() {
       tapCountRef.current = 0;
       router.push('/settings/developer');
     }
+  };
+
+  const handleRestoreDefaultLayout = () => {
+    showConfirm({
+      title: 'Restore Default Layout',
+      message: 'This will reset your dashboard to the default widget layout. Your data will not be affected.',
+      icon: '🔄',
+      confirmLabel: 'Restore',
+      cancelLabel: 'Cancel',
+      onConfirm: () => {
+        resetToDefaults();
+      },
+    });
   };
 
   return (
@@ -325,6 +342,12 @@ export default function SettingsScreen() {
               title="Widgets"
               subtitle="Home screen widgets setup"
               onPress={() => router.push('/settings/widgets')}
+            />
+            <SettingsItem
+              icon="refresh-outline"
+              title="Restore Default Layout"
+              subtitle="Reset dashboard to default widgets"
+              onPress={handleRestoreDefaultLayout}
             />
             <SettingsItem
               icon="cloud-download-outline"

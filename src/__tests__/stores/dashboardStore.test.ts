@@ -65,11 +65,12 @@ describe('dashboardStore', () => {
       useDashboardStore.getState().reset();
       const state = useDashboardStore.getState();
 
-      expect(state.widgets).toHaveLength(4);
-      expect(state.widgets[0].type).toBe('calorie_ring');
-      expect(state.widgets[1].type).toBe('macro_bars');
+      expect(state.widgets).toHaveLength(5);
+      expect(state.widgets[0].type).toBe('nutrition_overview');
+      expect(state.widgets[1].type).toBe('quick_add');
       expect(state.widgets[2].type).toBe('water_tracker');
       expect(state.widgets[3].type).toBe('todays_meals');
+      expect(state.widgets[4].type).toBe('streak_badge');
     });
 
     it('starts in non-edit mode', () => {
@@ -261,8 +262,12 @@ describe('dashboardStore', () => {
       useDashboardStore.getState().resetToDefaults();
 
       const state = useDashboardStore.getState();
-      expect(state.widgets).toHaveLength(4);
-      expect(state.widgets[0].type).toBe('calorie_ring');
+      expect(state.widgets).toHaveLength(5);
+      expect(state.widgets[0].type).toBe('nutrition_overview');
+      expect(state.widgets[1].type).toBe('quick_add');
+      expect(state.widgets[2].type).toBe('water_tracker');
+      expect(state.widgets[3].type).toBe('todays_meals');
+      expect(state.widgets[4].type).toBe('streak_badge');
     });
 
     it('exits edit mode', () => {
@@ -285,7 +290,7 @@ describe('dashboardStore', () => {
       useDashboardStore.getState().reset();
 
       const state = useDashboardStore.getState();
-      expect(state.widgets).toHaveLength(4);
+      expect(state.widgets).toHaveLength(5);
       expect(state.isEditMode).toBe(false);
     });
   });

@@ -16,7 +16,8 @@ export type WidgetType =
   | 'protein_focus'
   | 'quick_add'
   | 'goals_summary'
-  | 'meal_ideas';
+  | 'meal_ideas'
+  | 'nutrition_overview';
 
 /**
  * Widget-specific configuration options

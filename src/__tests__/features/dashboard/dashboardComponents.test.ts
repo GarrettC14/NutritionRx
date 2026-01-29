@@ -16,6 +16,7 @@ jest.mock('@/components/dashboard/widgets', () => ({
   QuickAddWidget: jest.fn(() => null),
   GoalsSummaryWidget: jest.fn(() => null),
   MealIdeasWidget: jest.fn(() => null),
+  NutritionOverviewWidget: jest.fn(() => null),
 }));
 
 // Mock AsyncStorage before imports
@@ -44,7 +45,7 @@ import { useDashboardStore } from '@/stores/dashboardStore';
 
 describe('Widget Definitions', () => {
   describe('WIDGET_DEFINITIONS', () => {
-    it('defines all 11 widget types', () => {
+    it('defines all 12 widget types', () => {
       const widgetTypes: WidgetType[] = [
         'calorie_ring',
         'macro_bars',
@@ -57,6 +58,7 @@ describe('Widget Definitions', () => {
         'quick_add',
         'goals_summary',
         'meal_ideas',
+        'nutrition_overview',
       ];
 
       widgetTypes.forEach((type) => {
@@ -142,7 +144,7 @@ describe('Widget Definitions', () => {
     it('returns all widget definitions', () => {
       const definitions = getAllWidgetDefinitions();
 
-      expect(definitions).toHaveLength(11);
+      expect(definitions).toHaveLength(12);
     });
 
     it('returns array of definition objects', () => {
@@ -216,12 +218,12 @@ describe('Widget Definitions', () => {
   });
 
   describe('DEFAULT_WIDGET_TYPES', () => {
-    it('includes calorie_ring', () => {
-      expect(DEFAULT_WIDGET_TYPES).toContain('calorie_ring');
+    it('includes nutrition_overview', () => {
+      expect(DEFAULT_WIDGET_TYPES).toContain('nutrition_overview');
     });
 
-    it('includes macro_bars', () => {
-      expect(DEFAULT_WIDGET_TYPES).toContain('macro_bars');
+    it('includes quick_add', () => {
+      expect(DEFAULT_WIDGET_TYPES).toContain('quick_add');
     });
 
     it('includes water_tracker', () => {
@@ -232,8 +234,12 @@ describe('Widget Definitions', () => {
       expect(DEFAULT_WIDGET_TYPES).toContain('todays_meals');
     });
 
-    it('has 4 default widgets', () => {
-      expect(DEFAULT_WIDGET_TYPES).toHaveLength(4);
+    it('includes streak_badge', () => {
+      expect(DEFAULT_WIDGET_TYPES).toContain('streak_badge');
+    });
+
+    it('has 5 default widgets', () => {
+      expect(DEFAULT_WIDGET_TYPES).toHaveLength(5);
     });
   });
 });
@@ -248,16 +254,17 @@ describe('Dashboard Store Integration', () => {
     it('initializes with default widgets', () => {
       const state = useDashboardStore.getState();
 
-      expect(state.widgets).toHaveLength(4);
-      expect(state.widgets[0].type).toBe('calorie_ring');
+      expect(state.widgets).toHaveLength(5);
+      expect(state.widgets[0].type).toBe('nutrition_overview');
     });
 
     it('can add all widget types', () => {
+      // Widget types that are not in the default set
       const widgetTypes: WidgetType[] = [
-        'streak_badge',
+        'calorie_ring',
+        'macro_bars',
         'weekly_average',
         'protein_focus',
-        'quick_add',
         'goals_summary',
         'meal_ideas',
         'weight_trend',
@@ -268,7 +275,7 @@ describe('Dashboard Store Integration', () => {
       });
 
       const state = useDashboardStore.getState();
-      expect(state.widgets.length).toBe(4 + widgetTypes.length);
+      expect(state.widgets.length).toBe(5 + widgetTypes.length);
     });
 
     it('edit mode workflow works correctly', () => {
@@ -281,9 +288,9 @@ describe('Dashboard Store Integration', () => {
       store.setEditMode(true);
       expect(useDashboardStore.getState().isEditMode).toBe(true);
 
-      // Add a widget while in edit mode
-      store.addWidget('streak_badge');
-      expect(useDashboardStore.getState().widgets).toHaveLength(5);
+      // Add a widget while in edit mode (use a type not in defaults)
+      store.addWidget('weight_trend');
+      expect(useDashboardStore.getState().widgets).toHaveLength(6);
 
       // Exit edit mode
       useDashboardStore.getState().setEditMode(false);
@@ -315,27 +322,27 @@ describe('Dashboard Store Integration', () => {
         expect(w.position).toBe(i);
       });
 
-      // Add new widget
-      useDashboardStore.getState().addWidget('streak_badge');
+      // Add new widget (use a type that's not in the defaults)
+      useDashboardStore.getState().addWidget('weight_trend');
 
       // New widget should be at the end
       const afterAdd = useDashboardStore.getState().widgets;
-      const newWidget = afterAdd.find((w) => w.type === 'streak_badge');
+      const newWidget = afterAdd.find((w) => w.type === 'weight_trend');
       expect(newWidget?.position).toBe(afterAdd.length - 1);
     });
   });
 
   describe('widget configuration', () => {
     it('can configure widget options', () => {
-      useDashboardStore.getState().updateWidgetConfig('default-2', {
-        showFiber: true,
+      useDashboardStore.getState().updateWidgetConfig('default-water_tracker', {
+        dailyGoal: 10,
       });
 
       const widget = useDashboardStore.getState().widgets.find(
-        (w) => w.id === 'default-2'
+        (w) => w.id === 'default-water_tracker'
       );
 
-      expect(widget?.config?.showFiber).toBe(true);
+      expect(widget?.config?.dailyGoal).toBe(10);
     });
 
     it('add widget with initial config', () => {
@@ -370,18 +377,22 @@ describe('Dashboard Store Integration', () => {
   describe('reset functionality', () => {
     it('resetToDefaults restores original widgets', () => {
       // Add some widgets
-      useDashboardStore.getState().addWidget('streak_badge');
+      useDashboardStore.getState().addWidget('goals_summary');
       useDashboardStore.getState().addWidget('weight_trend');
 
       // Remove a default widget
-      useDashboardStore.getState().removeWidget('default-1');
+      useDashboardStore.getState().removeWidget('default-nutrition_overview');
 
       // Reset
       useDashboardStore.getState().resetToDefaults();
 
       const state = useDashboardStore.getState();
-      expect(state.widgets).toHaveLength(4);
-      expect(state.widgets[0].type).toBe('calorie_ring');
+      expect(state.widgets).toHaveLength(5);
+      expect(state.widgets[0].type).toBe('nutrition_overview');
+      expect(state.widgets[1].type).toBe('quick_add');
+      expect(state.widgets[2].type).toBe('water_tracker');
+      expect(state.widgets[3].type).toBe('todays_meals');
+      expect(state.widgets[4].type).toBe('streak_badge');
     });
   });
 });
