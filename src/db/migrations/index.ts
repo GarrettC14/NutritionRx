@@ -10,6 +10,7 @@ import { migration008LegalAcknowledgment } from './008_legal_acknowledgment';
 import { migration009SeedRestaurantUSDAFoods } from './009_seed_restaurant_usda_foods';
 import { migration010WaterTracking } from './010_water_tracking';
 import { migration011Restaurants } from './011_restaurants';
+import { migration012PlanningFeatures } from './012_planning_features';
 import { migration013MicronutrientsAndPhotos } from './013_micronutrients_and_photos';
 
 export const CURRENT_SCHEMA_VERSION = 13;
@@ -26,6 +27,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration009SeedRestaurantUSDAFoods,
   migration010WaterTracking,
   migration011Restaurants,
+  migration012PlanningFeatures,
   migration013MicronutrientsAndPhotos,
 ];
 

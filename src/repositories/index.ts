@@ -38,3 +38,10 @@ export { waterRepository, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from './wa
 export type { WaterLog, CreateWaterLogInput, UpdateWaterLogInput } from './waterRepository';
 
 export { restaurantRepository } from './restaurantRepository';
+
+export { fastingRepository } from './fastingRepository';
+
+export { macroCycleRepository } from './macroCycleRepository';
+
+export { mealPlanRepository } from './mealPlanRepository';
+export type { CreatePlannedMealInput } from './mealPlanRepository';
