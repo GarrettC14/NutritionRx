@@ -26,7 +26,7 @@ import { WidgetRenderer } from './WidgetRenderer';
 import { WidgetPickerModal } from './WidgetPickerModal';
 
 export function DashboardScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { widgets, isEditMode, setEditMode, reorderWidgets } = useDashboardStore();
   const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -79,7 +79,7 @@ export function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
-        barStyle={colors.statusBar === 'light' ? 'light-content' : 'dark-content'}
+        barStyle={isDark ? 'light-content' : 'dark-content'}
       />
 
       {/* Header */}
@@ -138,7 +138,7 @@ export function DashboardScreen() {
             style={styles.emptyAddButton}
             onPress={handleAddWidget}
           >
-            <Ionicons name="add" size={20} color={colors.textOnAccent} />
+            <Ionicons name="add" size={20} color={'#fff'} />
             <Text style={styles.emptyAddButtonText}>Add Widget</Text>
           </TouchableOpacity>
         </View>
@@ -225,7 +225,7 @@ const createStyles = (colors: any) =>
     doneButtonText: {
       fontSize: 15,
       fontWeight: '600',
-      color: colors.textOnAccent,
+      color: '#fff',
     },
     editBanner: {
       flexDirection: 'row',
@@ -278,7 +278,7 @@ const createStyles = (colors: any) =>
     emptyAddButtonText: {
       fontSize: 15,
       fontWeight: '600',
-      color: colors.textOnAccent,
+      color: '#fff',
     },
     addWidgetCard: {
       flexDirection: 'row',

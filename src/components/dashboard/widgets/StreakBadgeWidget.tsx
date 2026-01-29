@@ -12,11 +12,11 @@ import { WidgetProps } from '@/types/dashboard';
 
 export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
-  const { getLoggingStreak } = useFoodLogStore();
+  const { streak } = useFoodLogStore();
 
-  const streak = getLoggingStreak?.() ?? 0;
-  const hasStreak = streak > 0;
-  const isHotStreak = streak >= 7;
+  const currentStreak = streak ?? 0;
+  const hasStreak = currentStreak > 0;
+  const isHotStreak = currentStreak >= 7;
 
   const styles = createStyles(colors, isHotStreak);
 
@@ -31,7 +31,7 @@ export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.streakNumber}>{streak}</Text>
+        <Text style={styles.streakNumber}>{currentStreak}</Text>
         <Text style={styles.label}>day streak</Text>
       </View>
 

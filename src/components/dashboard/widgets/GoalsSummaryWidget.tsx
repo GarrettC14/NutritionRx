@@ -15,10 +15,10 @@ export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { calorieGoal, proteinGoal, targetWeight, weeklyGoal } = useGoalStore();
-  const { weights } = useWeightStore();
+  const { entries: weights } = useWeightStore();
 
   const currentWeight = weights.length > 0
-    ? weights.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].weight
+    ? weights.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].weightKg
     : null;
 
   const weightToGo = currentWeight && targetWeight

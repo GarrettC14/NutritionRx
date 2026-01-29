@@ -1,21 +1,23 @@
 import { useEffect, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
-import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore } from '@/stores';
-import { CalorieRing } from '@/components/ui/CalorieRing';
-import { MacroSummary } from '@/components/food/MacroSummary';
+import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore } from '@/stores';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
-import { WaterSection } from '@/components/water';
-import { FastingSection, PlannedMealsSection } from '@/components/planning';
+import { WidgetRenderer } from '@/components/dashboard/WidgetRenderer';
+import { WidgetPickerModal } from '@/components/dashboard/WidgetPickerModal';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
+import { DashboardWidget } from '@/types/dashboard';
 import { DayTargets } from '@/types/planning';
 
 export default function TodayScreen() {
@@ -28,7 +30,6 @@ export default function TodayScreen() {
     setSelectedDate,
     entries,
     quickAddEntries,
-    dailyTotals,
     streak,
     isLoaded: dataLoaded,
     loadEntriesForDate,
@@ -46,14 +47,25 @@ export default function TodayScreen() {
   const {
     config: macroCycleConfig,
     loadConfig: loadMacroCycleConfig,
-    getTargetsForDate,
     getDayType,
     isLoaded: macroCycleLoaded,
   } = useMacroCycleStore();
 
+  const {
+    widgets,
+    isEditMode,
+    setEditMode,
+    reorderWidgets,
+  } = useDashboardStore();
+
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
-  const [adjustedTargets, setAdjustedTargets] = useState<DayTargets | null>(null);
+  const [showWidgetPicker, setShowWidgetPicker] = useState(false);
+
+  // Get visible widgets sorted by position
+  const visibleWidgets = widgets
+    .filter((w) => w.isVisible)
+    .sort((a, b) => a.position - b.position);
 
   // Show skeleton until data, settings, water, and macro cycle are loaded
   const isReady = dataLoaded && settingsLoaded && waterLoaded && macroCycleLoaded;
@@ -68,20 +80,6 @@ export default function TodayScreen() {
     loadMacroCycleConfig();
   }, []);
 
-  // Load adjusted targets when date or settings change
-  useEffect(() => {
-    if (!settingsLoaded) return;
-
-    const baseTargets: DayTargets = {
-      calories: settings.dailyCalorieGoal,
-      protein: settings.dailyProteinGoal,
-      carbs: settings.dailyCarbsGoal,
-      fat: settings.dailyFatGoal,
-    };
-
-    getTargetsForDate(selectedDate, baseTargets).then(setAdjustedTargets);
-  }, [selectedDate, settingsLoaded, settings, macroCycleConfig]);
-
   // Date navigation
   const navigateDate = useCallback((direction: 'prev' | 'next') => {
     const current = new Date(selectedDate);
@@ -95,7 +93,7 @@ export default function TodayScreen() {
     setSelectedDate(today);
   }, [setSelectedDate]);
 
-  // Format date for display - full format "Monday, January 27"
+  // Format date for display
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr + 'T12:00:00');
     return date.toLocaleDateString('en-US', {
@@ -131,16 +129,6 @@ export default function TodayScreen() {
   // Get entries by meal
   const entriesByMeal = getEntriesByMeal();
   const quickEntriesByMeal = getQuickEntriesByMeal();
-
-  // Goals from settings (use adjusted targets if macro cycling is enabled)
-  const baseGoals = {
-    calories: settings.dailyCalorieGoal,
-    protein: settings.dailyProteinGoal,
-    carbs: settings.dailyCarbsGoal,
-    fat: settings.dailyFatGoal,
-  };
-
-  const goals = adjustedTargets || baseGoals;
 
   // Get day type for macro cycling badge
   const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
@@ -224,6 +212,45 @@ export default function TodayScreen() {
     }
   };
 
+  // Drag and drop handlers
+  const handleDragBegin = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }, []);
+
+  const handleDragEnd = useCallback(({ data }: { data: DashboardWidget[] }) => {
+    const orderedIds = data.map(w => w.id);
+    reorderWidgets(orderedIds);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [reorderWidgets]);
+
+  const handleLongPress = useCallback(() => {
+    if (!isEditMode) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      setEditMode(true);
+    }
+  }, [isEditMode, setEditMode]);
+
+  // Render widget item
+  const renderWidget = useCallback(({ item, drag, isActive }: RenderItemParams<DashboardWidget>) => {
+    return (
+      <ScaleDecorator activeScale={0.95}>
+        <TouchableOpacity
+          onLongPress={isEditMode ? drag : handleLongPress}
+          disabled={isActive}
+          delayLongPress={200}
+          activeOpacity={0.9}
+        >
+          <WidgetRenderer
+            widget={item}
+            isEditMode={isEditMode}
+            drag={drag}
+            isActive={isActive}
+          />
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
+  }, [isEditMode, handleLongPress]);
+
   const hasEntries = entries.length > 0 || quickAddEntries.length > 0;
 
   // Show skeleton while loading
@@ -235,9 +262,10 @@ export default function TodayScreen() {
     );
   }
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-      {/* Header */}
+  // Header component for the list
+  const ListHeader = () => (
+    <>
+      {/* Date Header */}
       <View style={styles.header}>
         {/* Row 1: Navigation arrows + Date */}
         <View style={styles.dateRow}>
@@ -283,7 +311,7 @@ export default function TodayScreen() {
         )}
 
         {/* Day menu button - shown when there are entries */}
-        {hasEntries && (
+        {hasEntries && !isEditMode && (
           <Pressable
             style={styles.dayMenuButton}
             onPress={() => setShowDayMenu(true)}
@@ -293,101 +321,123 @@ export default function TodayScreen() {
         )}
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Calorie Ring */}
-        <View style={styles.ringContainer}>
-          <CalorieRing
-            consumed={dailyTotals.calories}
-            target={goals.calories}
-            size={220}
-            strokeWidth={14}
-          />
+      {/* Edit Mode Banner */}
+      {isEditMode && (
+        <View style={[styles.editBanner, { backgroundColor: `${colors.accent}15` }]}>
+          <Ionicons name="information-circle" size={18} color={colors.accent} />
+          <Text style={[styles.editBannerText, { color: colors.textSecondary }]}>
+            Long press and drag to reorder. Tap × to remove.
+          </Text>
         </View>
+      )}
+    </>
+  );
 
-        {/* Macro Summary */}
-        <View style={styles.macroSection}>
-          <MacroSummary
-            totals={dailyTotals}
-            goals={goals}
-            variant="detailed"
-          />
-        </View>
+  // Footer component with meal sections
+  const ListFooter = () => (
+    <View style={styles.mealsContainer}>
+      {MEAL_TYPE_ORDER.map((mealType) => (
+        <MealSection
+          key={mealType}
+          mealType={mealType}
+          entries={entriesByMeal[mealType]}
+          quickAddEntries={quickEntriesByMeal[mealType]}
+          onAddPress={handleAddFood}
+          onEntryPress={handleEntryPress}
+          onQuickAddPress={handleQuickAddPress}
+          onDeleteEntry={handleDeleteEntry}
+          onDeleteQuickAdd={handleDeleteQuickAdd}
+          onCopyMeal={handleCopyMeal}
+        />
+      ))}
+    </View>
+  );
 
-        {/* Water Section */}
-        <View style={styles.waterSection}>
-          <WaterSection />
-        </View>
-
-        {/* Fasting Section */}
-        <View style={styles.fastingSection}>
-          <FastingSection />
-        </View>
-
-        {/* Planned Meals Section */}
-        <View style={styles.plannedMealsSection}>
-          <PlannedMealsSection />
-        </View>
-
-        {/* Meal Sections - Always show all, collapsed by default */}
-        <View style={styles.mealsContainer}>
-          {MEAL_TYPE_ORDER.map((mealType) => (
-            <MealSection
-              key={mealType}
-              mealType={mealType}
-              entries={entriesByMeal[mealType]}
-              quickAddEntries={quickEntriesByMeal[mealType]}
-              onAddPress={handleAddFood}
-              onEntryPress={handleEntryPress}
-              onQuickAddPress={handleQuickAddPress}
-              onDeleteEntry={handleDeleteEntry}
-              onDeleteQuickAdd={handleDeleteQuickAdd}
-              onCopyMeal={handleCopyMeal}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Day Menu Modal */}
-      <Modal
-        visible={showDayMenu}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDayMenu(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowDayMenu(false)}
-        >
-          <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
-            <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
-              {formatDateShort(selectedDate)}
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+        {/* Dashboard Header */}
+        <View style={styles.dashboardHeader}>
+          <Text style={[styles.dashboardTitle, { color: colors.textPrimary }]}>Dashboard</Text>
+          <TouchableOpacity
+            onPress={() => setEditMode(!isEditMode)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={[styles.editButton, { color: colors.accent }]}>
+              {isEditMode ? 'Done' : 'Edit'}
             </Text>
-            <Pressable
-              style={styles.menuItem}
-              onPress={handleCopyDay}
-            >
-              <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
-              <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                Copy All Meals to Tomorrow
+          </TouchableOpacity>
+        </View>
+
+        {/* Widget List with Drag-and-Drop */}
+        <DraggableFlatList
+          data={visibleWidgets}
+          keyExtractor={(item) => item.id}
+          renderItem={renderWidget}
+          onDragBegin={handleDragBegin}
+          onDragEnd={handleDragEnd}
+          ListHeaderComponent={ListHeader}
+          ListFooterComponent={isEditMode ? undefined : ListFooter}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          activationDistance={isEditMode ? 5 : 20}
+        />
+
+        {/* Floating Add Widget Button (Edit Mode only) */}
+        {isEditMode && (
+          <TouchableOpacity
+            style={[styles.addWidgetButton, { backgroundColor: colors.accent }]}
+            onPress={() => setShowWidgetPicker(true)}
+          >
+            <Ionicons name="add" size={20} color="#fff" />
+            <Text style={styles.addWidgetButtonText}>Add Widget</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Widget Picker Modal */}
+        <WidgetPickerModal
+          visible={showWidgetPicker}
+          onClose={() => setShowWidgetPicker(false)}
+        />
+
+        {/* Day Menu Modal */}
+        <Modal
+          visible={showDayMenu}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDayMenu(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowDayMenu(false)}
+          >
+            <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
+              <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
+                {formatDateShort(selectedDate)}
               </Text>
-            </Pressable>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => setShowDayMenu(false)}
-            >
-              <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
-              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-    </SafeAreaView>
+              <Pressable
+                style={styles.menuItem}
+                onPress={handleCopyDay}
+              >
+                <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
+                <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+                  Copy All Meals to Tomorrow
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => setShowDayMenu(false)}
+              >
+                <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -395,9 +445,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  dashboardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingTop: spacing[5],
+    paddingBottom: spacing[4],
+  },
+  dashboardTitle: {
+    ...typography.display.medium,
+  },
+  editButton: {
+    ...typography.body.large,
+    fontWeight: '600',
+  },
   header: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingTop: spacing[3],
+    paddingTop: spacing[1],
     paddingBottom: spacing[2],
     alignItems: 'center',
   },
@@ -442,31 +507,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     marginTop: spacing[1],
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingBottom: 100,
-  },
-  ringContainer: {
+  editBanner: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing[4],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    marginHorizontal: componentSpacing.screenEdgePadding,
+    marginBottom: spacing[3],
+    borderRadius: borderRadius.lg,
+    gap: spacing[2],
   },
-  macroSection: {
-    marginBottom: spacing[6],
+  editBannerText: {
+    flex: 1,
+    ...typography.body.small,
   },
-  waterSection: {
-    marginBottom: spacing[6],
-  },
-  fastingSection: {
-    marginBottom: spacing[6],
-  },
-  plannedMealsSection: {
-    marginBottom: spacing[6],
+  listContent: {
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingBottom: 120,
   },
   mealsContainer: {
     gap: spacing[3],
+    marginTop: spacing[4],
+  },
+  addWidgetButton: {
+    position: 'absolute',
+    bottom: 32,
+    left: componentSpacing.screenEdgePadding,
+    right: componentSpacing.screenEdgePadding,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing[4],
+    borderRadius: borderRadius.lg,
+    gap: spacing[2],
+  },
+  addWidgetButtonText: {
+    ...typography.body.large,
+    fontWeight: '600',
+    color: '#fff',
   },
   modalOverlay: {
     flex: 1,

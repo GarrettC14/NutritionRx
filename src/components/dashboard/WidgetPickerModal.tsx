@@ -99,7 +99,7 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
                 size={14}
                 color={
                   selectedCategory === category.id
-                    ? colors.textOnAccent
+                    ? '#fff'
                     : colors.textSecondary
                 }
                 style={styles.categoryIcon}
@@ -241,7 +241,7 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
     },
     categoryTextActive: {
-      color: colors.textOnAccent,
+      color: '#fff',
     },
     widgetList: {
       flex: 1,

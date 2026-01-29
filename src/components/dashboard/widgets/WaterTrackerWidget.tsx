@@ -13,15 +13,15 @@ import { WidgetProps } from '@/types/dashboard';
 
 export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
-  const dailyGoal = config?.dailyGoal ?? 8;
+  const { todayLog, goalGlasses, addGlass } = useWaterStore();
 
-  const { todayIntake, addWater } = useWaterStore();
-  const waterIntake = todayIntake?.glasses ?? 0;
+  const dailyGoal = config?.dailyGoal ?? goalGlasses ?? 8;
+  const waterIntake = todayLog?.glasses ?? 0;
 
   const handleAddWater = async () => {
     if (isEditMode) return;
 
-    await addWater(1);
+    await addGlass();
 
     if (waterIntake + 1 >= dailyGoal) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

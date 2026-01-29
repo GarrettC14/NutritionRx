@@ -96,7 +96,7 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
 
   const handlePress = () => {
     if (!isEditMode) {
-      router.push('/log');
+      router.push('/add-food');
     }
   };
 

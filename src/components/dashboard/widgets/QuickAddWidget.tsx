@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
-import { useFoodLogStore, useFavoritesStore } from '@/stores';
+import { useFoodLogStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 
 interface QuickItem {
@@ -22,8 +22,10 @@ interface QuickItem {
 export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
-  const { entries, addEntry } = useFoodLogStore();
-  const { favorites } = useFavoritesStore();
+  const { entries } = useFoodLogStore();
+
+  // TODO: Implement favorites store integration
+  const favorites: any[] = [];
 
   // Get recent and favorite items
   const quickItems: QuickItem[] = React.useMemo(() => {
@@ -68,26 +70,14 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Find the original entry to copy
-    const sourceEntry = item.source === 'favorite'
-      ? favorites?.find((f) => `fav-${f.id}` === item.id)
-      : entries.find((e) => e.foodName?.toLowerCase() === item.name.toLowerCase());
-
-    if (sourceEntry) {
-      const today = new Date().toISOString().split('T')[0];
-      addEntry({
-        ...sourceEntry,
-        id: undefined, // Will be generated
-        date: today,
-        mealType: 'snack', // Default to snack for quick add
-        createdAt: new Date().toISOString(),
-      });
-    }
+    // Navigate to add food screen with the item pre-selected
+    // TODO: Implement proper quick add functionality
+    router.push('/add-food');
   };
 
   const handleAddNew = () => {
     if (!isEditMode) {
-      router.push('/log');
+      router.push('/add-food');
     }
   };
 

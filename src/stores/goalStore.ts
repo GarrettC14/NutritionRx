@@ -28,6 +28,14 @@ interface GoalState {
   isLoading: boolean;
   error: string | null;
 
+  // Computed getters (derived from activeGoal)
+  calorieGoal: number | null;
+  proteinGoal: number | null;
+  carbGoal: number | null;
+  fatGoal: number | null;
+  targetWeight: number | null;
+  weeklyGoal: number | null;
+
   // Actions
   loadActiveGoal: () => Promise<void>;
   loadProfile: () => Promise<void>;
@@ -65,6 +73,16 @@ interface GoalState {
   calculateMacros: (targetCalories: number, weightKg: number) => { protein: number; carbs: number; fat: number };
 }
 
+// Helper to compute derived values from a goal
+const getDerivedGoalValues = (goal: Goal | null) => ({
+  calorieGoal: goal?.currentTargetCalories ?? null,
+  proteinGoal: goal?.currentProteinG ?? null,
+  carbGoal: goal?.currentCarbsG ?? null,
+  fatGoal: goal?.currentFatG ?? null,
+  targetWeight: goal?.targetWeightKg ?? null,
+  weeklyGoal: goal?.targetRatePercent ?? null,
+});
+
 export const useGoalStore = create<GoalState>((set, get) => ({
   activeGoal: null,
   profile: null,
@@ -73,11 +91,23 @@ export const useGoalStore = create<GoalState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  // Computed values (derived from activeGoal)
+  calorieGoal: null,
+  proteinGoal: null,
+  carbGoal: null,
+  fatGoal: null,
+  targetWeight: null,
+  weeklyGoal: null,
+
   loadActiveGoal: async () => {
     set({ isLoading: true, error: null });
     try {
       const activeGoal = await goalRepository.getActiveGoal();
-      set({ activeGoal, isLoading: false });
+      set({
+        activeGoal,
+        ...getDerivedGoalValues(activeGoal),
+        isLoading: false,
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load goal',
@@ -165,7 +195,11 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       };
 
       const goal = await goalRepository.createGoal(input);
-      set({ activeGoal: goal, isLoading: false });
+      set({
+        activeGoal: goal,
+        ...getDerivedGoalValues(goal),
+        isLoading: false,
+      });
       return goal;
     } catch (error) {
       set({
@@ -189,7 +223,11 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         currentCarbsG: newMacros.carbs,
         currentFatG: newMacros.fat,
       });
-      set({ activeGoal: updated, isLoading: false });
+      set({
+        activeGoal: updated,
+        ...getDerivedGoalValues(updated),
+        isLoading: false,
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to update goal',
@@ -205,7 +243,13 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await goalRepository.completeGoal(activeGoal.id);
-      set({ activeGoal: null, reflections: [], pendingReflection: null, isLoading: false });
+      set({
+        activeGoal: null,
+        ...getDerivedGoalValues(null),
+        reflections: [],
+        pendingReflection: null,
+        isLoading: false,
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to complete goal',

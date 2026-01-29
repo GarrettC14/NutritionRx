@@ -16,10 +16,13 @@ const CHART_HEIGHT = 80;
 
 export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
-  const { colors, chartColors } = useTheme();
-  const { weights } = useWeightStore();
+  const { colors } = useTheme();
+  const { entries } = useWeightStore();
   const { targetWeight } = useGoalStore();
   const chartRange = config?.chartRange ?? '7d';
+
+  // Chart accent color
+  const trendLineColor = colors.accent;
 
   // Get weight data for the selected range
   const chartData = useMemo(() => {
@@ -27,13 +30,13 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
     const daysBack = chartRange === '7d' ? 7 : chartRange === '30d' ? 30 : 90;
     const cutoff = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
 
-    const recentWeights = weights
+    const recentWeights = entries
       .filter((w) => new Date(w.date) >= cutoff)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-10);
 
-    return recentWeights.map((w) => w.weight);
-  }, [weights, chartRange]);
+    return recentWeights.map((w) => w.weightKg);
+  }, [entries, chartRange]);
 
   const latestWeight = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   const startWeight = chartData.length > 0 ? chartData[0] : null;
@@ -112,7 +115,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
           <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
             <Path
               d={chartPath}
-              stroke={chartColors.trendLine}
+              stroke={trendLineColor}
               strokeWidth={2}
               fill="none"
               strokeLinecap="round"
@@ -130,7 +133,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
                     CHART_HEIGHT
                 }
                 r={4}
-                fill={chartColors.trendLine}
+                fill={trendLineColor}
               />
             )}
           </Svg>

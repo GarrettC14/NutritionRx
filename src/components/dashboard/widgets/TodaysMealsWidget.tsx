@@ -9,10 +9,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { WidgetProps } from '@/types/dashboard';
-import { MEAL_TYPES } from '@/constants/mealTypes';
+import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { LogEntry } from '@/types/domain';
 
 interface MealSection {
-  type: string;
+  type: MealType;
   label: string;
   items: Array<{
     id: string;
@@ -28,18 +29,18 @@ export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
 
   // Group entries by meal type
-  const mealSections: MealSection[] = MEAL_TYPES.map((mealType) => {
-    const entries = entriesByMeal[mealType.id] || [];
-    const items = entries.map((entry) => ({
+  const mealSections: MealSection[] = MEAL_TYPE_ORDER.map((mealType: MealType) => {
+    const entries: LogEntry[] = entriesByMeal[mealType] || [];
+    const items = entries.map((entry: LogEntry) => ({
       id: entry.id,
       name: entry.foodName || 'Unknown food',
       calories: Math.round(entry.calories),
     }));
-    const totalCalories = items.reduce((sum, item) => sum + item.calories, 0);
+    const totalCalories = items.reduce((sum: number, item: { calories: number }) => sum + item.calories, 0);
 
     return {
-      type: mealType.id,
-      label: mealType.label,
+      type: mealType,
+      label: MEAL_TYPE_LABELS[mealType],
       items,
       totalCalories,
     };

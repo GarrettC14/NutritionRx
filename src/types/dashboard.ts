@@ -62,11 +62,14 @@ export interface WidgetProps {
  * Widget definition registry entry
  */
 export interface WidgetDefinition {
-  id: WidgetType;
+  type: WidgetType;
   name: string;
   description: string;
   icon: string;
   defaultSize: WidgetSize;
+  minSize?: WidgetSize;
+  maxSize?: WidgetSize;
+  category: 'nutrition' | 'meals' | 'progress';
   component: React.ComponentType<WidgetProps>;
   defaultConfig?: WidgetConfig;
 }
