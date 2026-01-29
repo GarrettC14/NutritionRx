@@ -124,6 +124,14 @@ export const waterRepository = {
     return this.update(date, { glasses: Math.max(0, glasses) });
   },
 
+  async getAll(): Promise<WaterLog[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<WaterLogRow>(
+      'SELECT * FROM water_log ORDER BY date ASC'
+    );
+    return rows.map(mapRowToWaterLog);
+  },
+
   async getRecentLogs(limit: number = 7): Promise<WaterLog[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<WaterLogRow>(

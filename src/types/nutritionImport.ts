@@ -4,7 +4,7 @@ import { MealType } from '@/constants/mealTypes';
 // Nutrition Import Types
 // ============================================================
 
-export type ImportSource = 'myfitnesspal' | 'cronometer' | 'loseit' | 'unknown';
+export type ImportSource = 'myfitnesspal' | 'cronometer' | 'loseit' | 'macrofactor' | 'nutritionrx' | 'unknown';
 export type ImportType = 'daily_totals' | 'individual_foods';
 export type ImportStatus = 'pending' | 'analyzing' | 'ready' | 'importing' | 'completed' | 'error';
 
@@ -62,6 +62,7 @@ export interface ImportSourceConfig {
   description: string;
   icon: string;
   supportsIndividualFoods: boolean;
+  isPremium: boolean;
   exportInstructions: string[];
 }
 
@@ -72,6 +73,7 @@ export const IMPORT_SOURCES: ImportSourceConfig[] = [
     description: 'Import meal totals from your MFP diary export',
     icon: 'nutrition-outline',
     supportsIndividualFoods: false,
+    isPremium: true,
     exportInstructions: [
       'Go to MyFitnessPal website (not the app)',
       'Click on "My Home" → "Food Diary"',
@@ -86,6 +88,7 @@ export const IMPORT_SOURCES: ImportSourceConfig[] = [
     description: 'Import from Cronometer with detailed food data',
     icon: 'analytics-outline',
     supportsIndividualFoods: true,
+    isPremium: true,
     exportInstructions: [
       'Open Cronometer on web or desktop',
       'Go to Settings → Account',
@@ -100,12 +103,40 @@ export const IMPORT_SOURCES: ImportSourceConfig[] = [
     description: 'Import your food history from Lose It!',
     icon: 'trending-down-outline',
     supportsIndividualFoods: false,
+    isPremium: true,
     exportInstructions: [
       'Open Lose It! on the web',
       'Go to Settings → Export Data',
       'Select "Food Log" as the export type',
       'Choose your date range',
       'Download the CSV file',
+    ],
+  },
+  {
+    id: 'macrofactor',
+    name: 'MacroFactor',
+    description: 'Import your food log from MacroFactor',
+    icon: 'barbell-outline',
+    supportsIndividualFoods: true,
+    isPremium: true,
+    exportInstructions: [
+      'Open MacroFactor app or web',
+      'Go to Settings → Export Data',
+      'Select "Food Log" export type',
+      'Choose CSV format',
+      'Save the file to your device',
+    ],
+  },
+  {
+    id: 'nutritionrx',
+    name: 'NutritionRx Backup',
+    description: 'Restore from a previous NutritionRx export',
+    icon: 'cloud-download-outline',
+    supportsIndividualFoods: true,
+    isPremium: false,
+    exportInstructions: [
+      'Select your previously exported NutritionRx backup file',
+      'This can be either CSV or JSON format',
     ],
   },
 ];
@@ -118,4 +149,131 @@ export interface ImportProgress {
   current: number;
   total: number;
   currentDate?: string;
+}
+
+// ============================================================
+// Import Conflicts & Resolution
+// ============================================================
+
+export type ConflictResolution = 'skip' | 'overwrite' | 'merge';
+
+export interface ImportConflict {
+  date: string;
+  existingData: ParsedNutritionDay;
+  importedData: ParsedNutritionDay;
+  resolution?: ConflictResolution;
+}
+
+export interface ImportResult {
+  success: boolean;
+  importedDays: number;
+  skippedDays: number;
+  mergedDays: number;
+  errors: ImportError[];
+}
+
+export interface ImportError {
+  date?: string;
+  line?: number;
+  message: string;
+  field?: string;
+}
+
+// ============================================================
+// Data Export Types
+// ============================================================
+
+export type ExportFormat = 'csv' | 'json';
+
+export type ExportDataType =
+  | 'food_logs'
+  | 'custom_foods'
+  | 'weight_entries'
+  | 'water_entries'
+  | 'settings'
+  | 'goals';
+
+export interface ExportOptions {
+  format: ExportFormat;
+  dataTypes: ExportDataType[];
+  startDate?: string;
+  endDate?: string;
+  includeMetadata: boolean;
+}
+
+export interface ExportResult {
+  success: boolean;
+  fileName: string;
+  filePath: string;
+  recordsExported: number;
+  exportedAt: string;
+  error?: string;
+}
+
+export interface ExportProgress {
+  status: 'preparing' | 'exporting' | 'compressing' | 'complete' | 'error';
+  currentType?: ExportDataType;
+  progress: number;
+  message?: string;
+}
+
+// ============================================================
+// NutritionRx Backup Format
+// ============================================================
+
+export interface NutritionRxBackup {
+  version: string;
+  exportedAt: string;
+  data: {
+    foodLogs?: ParsedNutritionDay[];
+    customFoods?: CustomFoodExport[];
+    weightEntries?: WeightEntryExport[];
+    waterEntries?: WaterEntryExport[];
+    settings?: SettingsExport;
+    goals?: GoalsExport;
+  };
+}
+
+export interface CustomFoodExport {
+  name: string;
+  brand?: string;
+  servingSize: string;
+  servingUnit: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  createdAt: string;
+}
+
+export interface WeightEntryExport {
+  date: string;
+  weight: number;
+  unit: 'lb' | 'kg';
+  notes?: string;
+}
+
+export interface WaterEntryExport {
+  date: string;
+  glasses: number;
+  glassSize: number;
+  unit: 'oz' | 'ml';
+}
+
+export interface SettingsExport {
+  weightUnit: 'lb' | 'kg';
+  waterUnit: 'oz' | 'ml';
+  glassSize: number;
+  dailyGlassGoal: number;
+}
+
+export interface GoalsExport {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
 }

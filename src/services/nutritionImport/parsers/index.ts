@@ -3,11 +3,15 @@ import { NutritionCSVParser } from './types';
 import { MyFitnessPalParser } from './myfitnesspal';
 import { CronometerParser } from './cronometer';
 import { LoseItParser } from './loseit';
+import { MacroFactorParser } from './macrofactor';
+import { NutritionRxParser, parseNutritionRxJSON, isNutritionRxJSON } from './nutritionrx';
 
 export { NutritionCSVParser, parserUtils } from './types';
 export { MyFitnessPalParser } from './myfitnesspal';
 export { CronometerParser } from './cronometer';
 export { LoseItParser } from './loseit';
+export { MacroFactorParser } from './macrofactor';
+export { NutritionRxParser, parseNutritionRxJSON, isNutritionRxJSON } from './nutritionrx';
 
 /**
  * All available parsers
@@ -16,6 +20,8 @@ const parsers: { source: ImportSource; parser: NutritionCSVParser }[] = [
   { source: 'myfitnesspal', parser: new MyFitnessPalParser() },
   { source: 'cronometer', parser: new CronometerParser() },
   { source: 'loseit', parser: new LoseItParser() },
+  { source: 'macrofactor', parser: new MacroFactorParser() },
+  { source: 'nutritionrx', parser: new NutritionRxParser() },
 ];
 
 /**

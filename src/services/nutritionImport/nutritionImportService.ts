@@ -10,7 +10,7 @@ import {
   ImportType,
   ImportProgress,
 } from '@/types/nutritionImport';
-import { detectParser, getParser } from './parsers';
+import { detectParser, getParser, isNutritionRxJSON, parseNutritionRxJSON } from './parsers';
 
 export interface AnalyzeResult {
   success: boolean;
@@ -25,12 +25,19 @@ export interface ImportResult {
 }
 
 /**
- * Pick a CSV file using the document picker
+ * Pick a CSV or JSON file using the document picker
  */
 export async function pickCSVFile(): Promise<{ uri: string; name: string } | null> {
   try {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ['text/csv', 'text/comma-separated-values', 'application/csv', '*/*'],
+      type: [
+        'text/csv',
+        'text/comma-separated-values',
+        'application/csv',
+        'application/json',
+        'text/json',
+        '*/*',
+      ],
       copyToCacheDirectory: true,
     });
 
@@ -41,7 +48,7 @@ export async function pickCSVFile(): Promise<{ uri: string; name: string } | nul
     const asset = result.assets[0];
     return { uri: asset.uri, name: asset.name };
   } catch (error) {
-    console.error('Error picking CSV file:', error);
+    console.error('Error picking file:', error);
     return null;
   }
 }
@@ -71,13 +78,45 @@ async function readCSVFile(uri: string): Promise<{ headers: string[]; data: Reco
 }
 
 /**
- * Analyze a CSV file and create an import session
+ * Analyze a CSV or JSON file and create an import session
  */
 export async function analyzeNutritionCSV(
   uri: string,
   fileName: string
 ): Promise<AnalyzeResult> {
   try {
+    // Read the file content first to check if it's JSON
+    const content = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+
+    // Check if it's a NutritionRx JSON backup
+    if (fileName.endsWith('.json') || isNutritionRxJSON(content)) {
+      const parsedDays = parseNutritionRxJSON(content);
+
+      if (parsedDays.length === 0) {
+        return {
+          success: false,
+          error: 'No valid nutrition data found in this JSON file.',
+        };
+      }
+
+      const session: NutritionImportSession = {
+        id: generateId(),
+        source: 'nutritionrx',
+        importType: 'individual_foods',
+        status: 'ready',
+        fileName,
+        parsedDays,
+        totalDays: parsedDays.length,
+        importedDays: 0,
+        createdAt: new Date(),
+      };
+
+      return { success: true, session };
+    }
+
+    // Otherwise, parse as CSV
     const { headers, data } = await readCSVFile(uri);
 
     // Detect the source
@@ -85,7 +124,7 @@ export async function analyzeNutritionCSV(
     if (!detected) {
       return {
         success: false,
-        error: 'Could not detect the format of this CSV file. Please ensure you exported from MyFitnessPal, Cronometer, or Lose It!',
+        error: 'Could not detect the format of this file. Please ensure you exported from MyFitnessPal, Cronometer, Lose It!, MacroFactor, or a NutritionRx backup.',
       };
     }
 
@@ -113,10 +152,10 @@ export async function analyzeNutritionCSV(
 
     return { success: true, session };
   } catch (error) {
-    console.error('Error analyzing CSV:', error);
+    console.error('Error analyzing file:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to analyze CSV file',
+      error: error instanceof Error ? error.message : 'Failed to analyze file',
     };
   }
 }
@@ -232,6 +271,10 @@ function getSourceDisplayName(source: ImportSource): string {
       return 'Cronometer';
     case 'loseit':
       return 'Lose It!';
+    case 'macrofactor':
+      return 'MacroFactor';
+    case 'nutritionrx':
+      return 'NutritionRx Backup';
     default:
       return 'Unknown';
   }

@@ -9,10 +9,17 @@ interface ImportSourceCardProps {
   source: ImportSourceConfig;
   onPress: () => void;
   selected?: boolean;
+  isPremiumUser?: boolean;
 }
 
-export function ImportSourceCard({ source, onPress, selected = false }: ImportSourceCardProps) {
+export function ImportSourceCard({
+  source,
+  onPress,
+  selected = false,
+  isPremiumUser = false,
+}: ImportSourceCardProps) {
   const { colors } = useTheme();
+  const showLock = source.isPremium && !isPremiumUser;
 
   return (
     <Pressable
@@ -33,13 +40,25 @@ export function ImportSourceCard({ source, onPress, selected = false }: ImportSo
         />
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>{source.name}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{source.name}</Text>
+          {showLock && (
+            <View style={[styles.premiumBadge, { backgroundColor: colors.accent + '20' }]}>
+              <Ionicons name="lock-closed" size={12} color={colors.accent} />
+              <Text style={[styles.premiumText, { color: colors.accent }]}>Premium</Text>
+            </View>
+          )}
+        </View>
         <Text style={[styles.description, { color: colors.textSecondary }]}>
           {source.description}
         </Text>
       </View>
       <View style={styles.chevronContainer}>
-        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        {showLock ? (
+          <Ionicons name="lock-closed" size={20} color={colors.textTertiary} />
+        ) : (
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        )}
       </View>
     </Pressable>
   );
@@ -64,8 +83,25 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
   title: {
     ...typography.body.large,
+    fontWeight: '600',
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+    gap: 4,
+  },
+  premiumText: {
+    fontSize: 10,
     fontWeight: '600',
   },
   description: {

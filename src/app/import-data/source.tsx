@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/Button';
 import { ImportSourceCard } from '@/components/nutritionImport';
 import { IMPORT_SOURCES, ImportSource } from '@/types/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 export default function ImportSourceScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { isPremium } = useSubscriptionStore();
   const [selectedSource, setSelectedSource] = useState<ImportSource | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
 
@@ -22,8 +24,25 @@ export default function ImportSourceScreen() {
 
   const selectedConfig = IMPORT_SOURCES.find((s) => s.id === selectedSource);
 
+  const handleSourceSelect = (sourceId: ImportSource) => {
+    const source = IMPORT_SOURCES.find((s) => s.id === sourceId);
+    if (source?.isPremium && !isPremium) {
+      // Redirect to paywall for premium sources
+      router.push('/paywall?context=analytics');
+      return;
+    }
+    setSelectedSource(sourceId);
+  };
+
   const handleContinue = async () => {
     if (!selectedSource) return;
+
+    // Double check premium status for premium sources
+    const source = IMPORT_SOURCES.find((s) => s.id === selectedSource);
+    if (source?.isPremium && !isPremium) {
+      router.push('/paywall?context=analytics');
+      return;
+    }
 
     const success = await pickAndAnalyzeFile();
     if (success) {
@@ -119,7 +138,8 @@ export default function ImportSourceScreen() {
               key={source.id}
               source={source}
               selected={selectedSource === source.id}
-              onPress={() => setSelectedSource(source.id)}
+              isPremiumUser={isPremium}
+              onPress={() => handleSourceSelect(source.id)}
             />
           ))}
         </View>
