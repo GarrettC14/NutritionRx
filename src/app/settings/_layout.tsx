@@ -25,6 +25,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="nutrition" />
       <Stack.Screen name="water" />
       <Stack.Screen name="data" />
+      <Stack.Screen name="export-data" />
       <Stack.Screen name="about" />
       <Stack.Screen name="health-notice" />
       <Stack.Screen name="privacy-policy" />

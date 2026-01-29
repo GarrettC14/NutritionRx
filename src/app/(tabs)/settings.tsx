@@ -15,6 +15,7 @@ interface SettingsItemProps {
   onPress: () => void;
   showChevron?: boolean;
   danger?: boolean;
+  showLock?: boolean;
 }
 
 function SettingsItem({
@@ -24,6 +25,7 @@ function SettingsItem({
   onPress,
   showChevron = true,
   danger = false,
+  showLock = false,
 }: SettingsItemProps) {
   const { colors } = useTheme();
 
@@ -59,9 +61,11 @@ function SettingsItem({
           </Text>
         )}
       </View>
-      {showChevron && (
+      {showLock ? (
+        <Ionicons name="lock-closed" size={20} color={colors.textTertiary} />
+      ) : showChevron ? (
         <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-      )}
+      ) : null}
     </Pressable>
   );
 }
@@ -314,9 +318,16 @@ export default function SettingsScreen() {
               />
             )}
             <SettingsItem
+              icon="cloud-upload-outline"
+              title="Export Data"
+              subtitle="Backup your data to CSV or JSON"
+              onPress={() => router.push('/settings/export-data')}
+              showLock={!isPremium}
+            />
+            <SettingsItem
               icon="cloud-download-outline"
               title="Import From Other Apps"
-              subtitle="MyFitnessPal, Cronometer, Lose It!"
+              subtitle="MyFitnessPal, Cronometer, Lose It!, MacroFactor"
               onPress={() => router.push('/import-data')}
             />
             <SettingsItem
