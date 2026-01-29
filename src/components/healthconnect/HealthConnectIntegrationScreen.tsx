@@ -303,7 +303,7 @@ export function HealthConnectIntegrationScreen() {
             <Text
               style={[styles.privacyNote, { color: colors.textTertiary }]}
             >
-              Your data stays private and secure on your device.
+              Your health data syncs securely with Health Connect.
             </Text>
           </View>
         </Card>
@@ -577,8 +577,8 @@ export function HealthConnectIntegrationScreen() {
 
       {/* Privacy notice */}
       <Text style={[styles.privacyText, { color: colors.textTertiary }]}>
-        Your data is stored securely on your device. We never see or store your
-        health information on our servers.
+        Your health data syncs directly with Health Connect. We never access
+        your health information directly.
       </Text>
 
       {/* Help section */}

@@ -177,14 +177,14 @@ describe('HealthKitPermissionModal', () => {
         'Your meals sync automatically to Apple Health',
         'Weight updates flow between apps',
         'Water intake stays in sync',
-        'Your data stays private and secure',
+        'Your health data stays secure',
       ];
 
       expect(benefits).toHaveLength(4);
       expect(benefits[0]).toContain('meals');
       expect(benefits[1]).toContain('Weight');
       expect(benefits[2]).toContain('Water');
-      expect(benefits[3]).toContain('private');
+      expect(benefits[3]).toContain('secure');
     });
   });
 });

@@ -72,8 +72,8 @@ export default function ImportWelcomeScreen() {
     },
     {
       icon: 'shield-checkmark-outline' as const,
-      title: 'Your data stays private',
-      description: 'Everything is processed on your device',
+      title: 'Secure import',
+      description: 'Your files are processed securely',
     },
     {
       icon: 'flash-outline' as const,

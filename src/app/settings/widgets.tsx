@@ -103,7 +103,7 @@ export default function WidgetsScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
-      edges={['bottom']}
+      edges={['top', 'bottom']}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>

@@ -47,7 +47,7 @@ export default function AboutScreen() {
             <View style={styles.featureItem}>
               <Ionicons name="shield-checkmark" size={20} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Privacy-first: Your data stays on your device
+                Privacy-first: Your data is always secure
               </Text>
             </View>
             <View style={styles.featureItem}>

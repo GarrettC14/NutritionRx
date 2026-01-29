@@ -438,9 +438,6 @@ export default function SettingsScreen() {
           <Text style={[styles.footerText, { color: colors.textTertiary }]}>
             Made with care by the NutritionRx team
           </Text>
-          <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-            Your data never leaves your device
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

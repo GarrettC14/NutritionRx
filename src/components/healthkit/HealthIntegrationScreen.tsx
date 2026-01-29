@@ -274,8 +274,8 @@ export function HealthIntegrationScreen() {
 
       {/* Privacy notice */}
       <Text style={[styles.privacyText, { color: colors.textTertiary }]}>
-        Your data is stored securely on your device. We never see or store your health
-        information on our servers.
+        Your health data syncs directly with Apple Health. We never access your health
+        information directly.
       </Text>
 
       {/* Help section */}

@@ -89,7 +89,7 @@ export function HealthKitPermissionScreen({
           />
           <BenefitRow
             icon="lock-closed-outline"
-            text="Your data stays private and secure"
+            text="Your health data stays secure"
           />
         </View>
       </View>
@@ -120,8 +120,8 @@ export function HealthKitPermissionScreen({
 
       {/* Privacy reassurance */}
       <Text style={[styles.privacyNote, { color: colors.textTertiary }]}>
-        Your data is stored securely on your device.{'\n'}
-        We never see or store your health information on our servers.
+        Your health data syncs directly with Apple Health.{'\n'}
+        We never access your health information directly.
       </Text>
     </ScrollView>
   );
