@@ -403,6 +403,7 @@ describe('Tooltip System Integration', () => {
         TOOLTIP_IDS.WEEKLY_SUMMARY,
         TOOLTIP_IDS.BARCODE_SCANNER,
         TOOLTIP_IDS.SERVING_SIZE,
+        TOOLTIP_IDS.MEAL_PLAN_COPY_DAY,
       ];
       mockOnboardingState.totalFoodsLogged = 100;
       mockOnboardingState.daysTracked = 30;

@@ -17,6 +17,10 @@ jest.mock('@/components/dashboard/widgets', () => ({
   GoalsSummaryWidget: jest.fn(() => null),
   MealIdeasWidget: jest.fn(() => null),
   NutritionOverviewWidget: jest.fn(() => null),
+  FastingTimerWidget: jest.fn(() => null),
+  MicronutrientSnapshotWidget: jest.fn(() => null),
+  AIDailyInsightWidget: jest.fn(() => null),
+  WeeklyRecapWidget: jest.fn(() => null),
 }));
 
 // Mock AsyncStorage before imports
@@ -45,7 +49,7 @@ import { useDashboardStore } from '@/stores/dashboardStore';
 
 describe('Widget Definitions', () => {
   describe('WIDGET_DEFINITIONS', () => {
-    it('defines all 12 widget types', () => {
+    it('defines all 16 widget types', () => {
       const widgetTypes: WidgetType[] = [
         'calorie_ring',
         'macro_bars',
@@ -59,6 +63,10 @@ describe('Widget Definitions', () => {
         'goals_summary',
         'meal_ideas',
         'nutrition_overview',
+        'fasting_timer',
+        'micronutrient_snapshot',
+        'ai_daily_insight',
+        'weekly_recap',
       ];
 
       widgetTypes.forEach((type) => {
@@ -144,7 +152,7 @@ describe('Widget Definitions', () => {
     it('returns all widget definitions', () => {
       const definitions = getAllWidgetDefinitions();
 
-      expect(definitions).toHaveLength(12);
+      expect(definitions).toHaveLength(16);
     });
 
     it('returns array of definition objects', () => {
