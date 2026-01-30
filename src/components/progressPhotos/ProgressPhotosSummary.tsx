@@ -1,6 +1,7 @@
 /**
  * ProgressPhotosSummary Component
  * Compact overview card for progress photos in the Progress tab
+ * Uses standardized LockedContentArea pattern for premium gating
  */
 
 import React from 'react';
@@ -10,12 +11,14 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { ProgressPhoto, PhotoStats } from '@/types/progressPhotos';
+import { LockedContentArea } from '@/components/premium';
 
 interface ProgressPhotosSummaryProps {
   stats: PhotoStats;
   recentPhotos: ProgressPhoto[];
   firstPhoto?: ProgressPhoto;
   latestPhoto?: ProgressPhoto;
+  isPremium?: boolean;
   onPress?: () => void;
   onAddPress?: () => void;
   onComparePress?: () => void;
@@ -26,6 +29,7 @@ export function ProgressPhotosSummary({
   recentPhotos,
   firstPhoto,
   latestPhoto,
+  isPremium = false,
   onPress,
   onAddPress,
   onComparePress,
@@ -48,49 +52,69 @@ export function ProgressPhotosSummary({
 
   const daysSince = getDaysSince();
 
+  // Empty state content
+  const emptyContentArea = (
+    <View style={styles.emptyContent}>
+      <Ionicons name="camera-outline" size={48} color={colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+        Track Your Progress
+      </Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+        Take photos to visualize your fitness journey
+      </Text>
+      <Pressable
+        style={[styles.addButton, { backgroundColor: colors.accent }]}
+        onPress={onAddPress}
+      >
+        <Ionicons name="add" size={20} color="#FFFFFF" />
+        <Text style={styles.addButtonText}>Take First Photo</Text>
+      </Pressable>
+    </View>
+  );
+
   // Empty state
   if (stats.totalPhotos === 0) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-        <View style={styles.emptyContent}>
-          <Ionicons name="camera-outline" size={48} color={colors.textTertiary} />
-          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-            Track Your Progress
-          </Text>
-          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            Take photos to visualize your fitness journey
-          </Text>
-          <Pressable
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
-            onPress={onAddPress}
-          >
-            <Ionicons name="add" size={20} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Take First Photo</Text>
-          </Pressable>
+        {/* Header - dimmed when locked */}
+        <View
+          style={[styles.header, !isPremium && styles.headerLocked]}
+          pointerEvents={isPremium ? 'auto' : 'none'}
+        >
+          <View style={styles.headerLeft}>
+            <Ionicons name="camera-outline" size={24} color={colors.accent} />
+            <View style={styles.headerText}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                Progress Photos
+              </Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                Track your journey
+              </Text>
+            </View>
+          </View>
         </View>
+
+        {/* Content area - locked for non-premium */}
+        {isPremium ? (
+          emptyContentArea
+        ) : (
+          <View style={styles.lockedWrapper}>
+            <LockedContentArea
+              context="progress_photos"
+              message="Upgrade to unlock"
+              minHeight={150}
+            >
+              {emptyContentArea}
+            </LockedContentArea>
+          </View>
+        )}
       </View>
     );
   }
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-      {/* Header */}
-      <Pressable style={styles.header} onPress={onPress}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="camera-outline" size={24} color={colors.accent} />
-          <View style={styles.headerText}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Progress Photos
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {stats.totalPhotos} photo{stats.totalPhotos !== 1 ? 's' : ''}
-              {daysSince !== null && ` • ${daysSince} days`}
-            </Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-      </Pressable>
-
+  // Main content area
+  const contentArea = (
+    <>
       {/* Quick comparison preview */}
       {firstPhoto && latestPhoto && firstPhoto.id !== latestPhoto.id && (
         <Pressable style={styles.comparisonPreview} onPress={onComparePress}>
@@ -197,6 +221,48 @@ export function ProgressPhotosSummary({
           <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Days</Text>
         </View>
       </View>
+    </>
+  );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
+      {/* Header - dimmed when locked */}
+      <Pressable
+        style={[styles.header, !isPremium && styles.headerLocked]}
+        onPress={isPremium ? onPress : undefined}
+        disabled={!isPremium}
+      >
+        <View style={styles.headerLeft}>
+          <Ionicons name="camera-outline" size={24} color={colors.accent} />
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              Progress Photos
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {stats.totalPhotos} photo{stats.totalPhotos !== 1 ? 's' : ''}
+              {daysSince !== null && ` • ${daysSince} days`}
+            </Text>
+          </View>
+        </View>
+        {isPremium && (
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        )}
+      </Pressable>
+
+      {/* Content area - locked for non-premium */}
+      {isPremium ? (
+        contentArea
+      ) : (
+        <View style={styles.lockedWrapper}>
+          <LockedContentArea
+            context="progress_photos"
+            message="Upgrade to unlock"
+            minHeight={150}
+          >
+            {contentArea}
+          </LockedContentArea>
+        </View>
+      )}
     </View>
   );
 }
@@ -211,6 +277,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing[4],
+  },
+  headerLocked: {
+    opacity: 0.5,
+  },
+  lockedWrapper: {
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
   },
   headerLeft: {
     flexDirection: 'row',

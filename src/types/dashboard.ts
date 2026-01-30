@@ -17,7 +17,12 @@ export type WidgetType =
   | 'quick_add'
   | 'goals_summary'
   | 'meal_ideas'
-  | 'nutrition_overview';
+  | 'nutrition_overview'
+  // Premium widgets
+  | 'fasting_timer'
+  | 'micronutrient_snapshot'
+  | 'ai_daily_insight'
+  | 'weekly_recap';
 
 /**
  * Widget-specific configuration options
@@ -73,6 +78,8 @@ export interface WidgetDefinition {
   category: 'nutrition' | 'meals' | 'progress';
   component: React.ComponentType<WidgetProps>;
   defaultConfig?: WidgetConfig;
+  /** Whether this widget requires premium subscription */
+  isPremium?: boolean;
 }
 
 /**

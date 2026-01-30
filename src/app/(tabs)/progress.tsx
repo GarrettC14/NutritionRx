@@ -508,12 +508,13 @@ export default function ProgressScreen() {
           />
         )}
 
-        {/* Progress Photos Section */}
+        {/* Progress Photos Section - Premium Feature */}
         <ProgressPhotosSummary
           stats={photoStats}
           recentPhotos={photos.slice(0, 5)}
           firstPhoto={getFirstPhoto()}
           latestPhoto={getLatestPhoto()}
+          isPremium={isPremium}
           onPress={() => console.log('Navigate to progress photos')}
           onAddPress={() => console.log('Navigate to photo capture')}
           onComparePress={() => console.log('Navigate to photo compare')}

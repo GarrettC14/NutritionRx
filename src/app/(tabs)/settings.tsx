@@ -8,6 +8,9 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useDashboardStore } from '@/stores/dashboardStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
+import { useProfileStore } from '@/stores/profileStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 
 interface SettingsItemProps {
@@ -132,7 +135,10 @@ export default function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium, expirationDate, hasBundle, isDevPremium, toggleDevPremium } = useSubscriptionStore();
-  const { resetToDefaults } = useDashboardStore();
+  const { resetToDefaults: resetDashboard } = useDashboardStore();
+  const { resetOnboarding, resetTooltips } = useOnboardingStore();
+  const { resetProfile } = useProfileStore();
+  const { resetToDefaults: resetSettings } = useSettingsStore();
   const { showConfirm } = useConfirmDialog();
 
   // Developer menu access - tap version 7 times
@@ -162,7 +168,30 @@ export default function SettingsScreen() {
       confirmLabel: 'Restore',
       cancelLabel: 'Cancel',
       onConfirm: () => {
-        resetToDefaults();
+        resetDashboard();
+      },
+    });
+  };
+
+  const handleFreshSession = () => {
+    showConfirm({
+      title: 'Start Fresh Session',
+      message: 'This will reset all app state and take you through onboarding as a new user. Use this to test the first-time user experience.',
+      icon: '🧪',
+      confirmLabel: 'Reset & Start',
+      cancelLabel: 'Cancel',
+      onConfirm: async () => {
+        // Reset all stores
+        await Promise.all([
+          resetOnboarding(),
+          resetProfile(),
+          resetSettings(),
+          resetTooltips(),
+        ]);
+        resetDashboard();
+
+        // Navigate to onboarding
+        router.replace('/onboarding');
       },
     });
   };
@@ -469,6 +498,24 @@ export default function SettingsScreen() {
                 {isDevPremium && (
                   <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                 )}
+              </Pressable>
+              <Pressable
+                style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
+                onPress={handleFreshSession}
+              >
+                <View
+                  style={[styles.settingsIcon, { backgroundColor: colors.warningBg }]}
+                >
+                  <Ionicons name="refresh-outline" size={20} color={colors.warning} />
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                    Fresh Session
+                  </Text>
+                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                    Reset all state and restart onboarding
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>

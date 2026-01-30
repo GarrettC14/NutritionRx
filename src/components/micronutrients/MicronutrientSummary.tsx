@@ -218,13 +218,15 @@ export function MicronutrientSummary({
       {isPremium ? (
         contentArea
       ) : (
-        <LockedContentArea
-          context="micronutrients"
-          message="Upgrade to unlock"
-          minHeight={150}
-        >
-          {contentArea}
-        </LockedContentArea>
+        <View style={styles.lockedWrapper}>
+          <LockedContentArea
+            context="micronutrients"
+            message="Upgrade to unlock"
+            minHeight={150}
+          >
+            {contentArea}
+          </LockedContentArea>
+        </View>
       )}
     </View>
   );
@@ -257,6 +259,10 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...typography.caption,
+  },
+  lockedWrapper: {
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
   },
   quickStats: {
     flexDirection: 'row',

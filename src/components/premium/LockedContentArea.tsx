@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
-import { spacing } from '@/constants/spacing';
+import { spacing, borderRadius as borderRadiusConstants } from '@/constants/spacing';
 
 interface LockedContentAreaProps {
   /** Content to show blurred behind the lock overlay */
@@ -21,6 +21,8 @@ interface LockedContentAreaProps {
   message?: string;
   /** Minimum height of the locked area */
   minHeight?: number;
+  /** Border radius to match parent container */
+  borderRadius?: number;
   /** Additional container styles */
   style?: ViewStyle;
 }
@@ -41,6 +43,7 @@ export function LockedContentArea({
   context = 'general',
   message = 'Upgrade to unlock',
   minHeight = 120,
+  borderRadius = borderRadiusConstants.lg,
   style,
 }: LockedContentAreaProps) {
   const router = useRouter();
@@ -51,7 +54,7 @@ export function LockedContentArea({
   };
 
   return (
-    <View style={[styles.container, { minHeight }, style]}>
+    <View style={[styles.container, { minHeight, borderRadius }, style]}>
       {/* Content rendered at very low opacity */}
       <View style={styles.content} pointerEvents="none">
         {children}
@@ -59,14 +62,14 @@ export function LockedContentArea({
 
       {/* Blur Overlay - tappable to open paywall */}
       <TouchableOpacity
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, { borderRadius }]}
         activeOpacity={0.9}
         onPress={handlePress}
       >
         <BlurView
           intensity={100}
           tint={isDark ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { borderRadius }]}
           experimentalBlurMethod="dimezisBlurView"
         />
 
@@ -74,13 +77,16 @@ export function LockedContentArea({
         <View
           style={[
             styles.fallbackOverlay,
-            { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.85)' },
+            {
+              backgroundColor: isDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+              borderRadius,
+            },
           ]}
         />
 
         {/* Lock Icon + Text */}
         <View style={styles.lockContainer}>
-          <View style={[styles.lockIcon, { backgroundColor: `${colors.accent}33` }]}>
+          <View style={[styles.lockIcon, { backgroundColor: `${colors.accent}20` }]}>
             <Ionicons name="lock-closed" size={20} color={colors.accent} />
           </View>
           <Text style={[styles.lockText, { color: colors.textSecondary }]}>

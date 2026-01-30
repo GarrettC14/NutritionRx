@@ -1,14 +1,17 @@
 /**
  * DailyInsightsSection Component
  * Main component that displays daily insights and deficiency alerts
+ * Uses standardized LockedContentArea pattern for premium gating
  */
 
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { LockedOverlay } from '@/components/premium/LockedOverlay';
+import { LockedContentArea } from '@/components/premium/LockedContentArea';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { typography } from '@/constants/typography';
+import { spacing, borderRadius } from '@/constants/spacing';
 
 import { useInsightsData } from '../hooks/useInsightsData';
 import { useInsightGeneration } from '../hooks/useInsightGeneration';
@@ -57,12 +60,12 @@ export function DailyInsightsSection() {
   const hasContent = insights.length > 0 || alerts.length > 0;
 
   // Content to render (will be blurred for non-premium)
-  const content = (
-    <View style={styles.content}>
+  const contentArea = (
+    <>
       {/* Download prompt for LLM */}
       {showDownloadPrompt && isPremium && (
         <TouchableOpacity
-          style={[styles.downloadPrompt, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}
+          style={[styles.downloadPrompt, { backgroundColor: colors.bgPrimary, borderColor: colors.borderDefault }]}
           onPress={downloadModel}
         >
           <View style={styles.downloadRow}>
@@ -112,73 +115,114 @@ export function DailyInsightsSection() {
           ))}
         </View>
       )}
-    </View>
+    </>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>AI Analysis</Text>
+    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
+      {/* Header with icon - dimmed when locked */}
+      <View
+        style={[styles.header, !isPremium && styles.headerLocked]}
+        pointerEvents={isPremium ? 'auto' : 'none'}
+      >
+        <View style={styles.headerLeft}>
+          <Ionicons name="sparkles-outline" size={24} color={colors.accent} />
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>AI Analysis</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Personalized insights
+            </Text>
+          </View>
+        </View>
         <TouchableOpacity onPress={refresh} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <LockedOverlay context="insights" message="Unlock AI-powered insights">
-        {content}
-      </LockedOverlay>
+      {/* Content area - locked for non-premium */}
+      {isPremium ? (
+        <View style={styles.content}>{contentArea}</View>
+      ) : (
+        <View style={styles.lockedWrapper}>
+          <LockedContentArea
+            context="insights"
+            message="Upgrade to unlock"
+            minHeight={150}
+          >
+            {contentArea}
+          </LockedContentArea>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    padding: spacing[4],
+  },
+  headerLocked: {
+    opacity: 0.5,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  headerText: {
+    gap: 2,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...typography.title.small,
+  },
+  subtitle: {
+    ...typography.caption,
   },
   content: {
-    minHeight: 150,
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
+  },
+  lockedWrapper: {
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
   },
   section: {
-    marginBottom: 16,
+    marginBottom: spacing[4],
   },
   sectionTitle: {
-    fontSize: 12,
+    ...typography.caption,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: spacing[2],
   },
   downloadPrompt: {
-    padding: 14,
-    borderRadius: 12,
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
   downloadRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing[3],
   },
   downloadText: {
     flex: 1,
   },
   downloadTitle: {
-    fontSize: 15,
+    ...typography.body.medium,
     fontWeight: '600',
     marginBottom: 2,
   },
   downloadSubtitle: {
-    fontSize: 13,
+    ...typography.body.small,
   },
 });

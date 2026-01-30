@@ -15,3 +15,9 @@ export { QuickAddWidget } from './QuickAddWidget';
 export { GoalsSummaryWidget } from './GoalsSummaryWidget';
 export { MealIdeasWidget } from './MealIdeasWidget';
 export { NutritionOverviewWidget } from './NutritionOverviewWidget';
+
+// Premium widgets
+export { FastingTimerWidget } from './FastingTimerWidget';
+export { MicronutrientSnapshotWidget } from './MicronutrientSnapshotWidget';
+export { AIDailyInsightWidget } from './AIDailyInsightWidget';
+export { WeeklyRecapWidget } from './WeeklyRecapWidget';

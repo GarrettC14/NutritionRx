@@ -1,6 +1,7 @@
 /**
  * Meal Ideas Widget
  * Suggests meals based on remaining macros for the day
+ * Premium feature - shows locked state for free users
  */
 
 import React, { useMemo } from 'react';
@@ -9,8 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore } from '@/stores';
+import { useGoalStore, useSubscriptionStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
+import { LockedContentArea } from '@/components/premium';
 
 interface MealSuggestion {
   id: string;
@@ -48,6 +50,7 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
   const { calorieGoal, proteinGoal } = useGoalStore();
+  const { isPremium } = useSubscriptionStore();
 
   // Determine what type of meal to suggest based on remaining macros
   const { suggestion, reason } = useMemo(() => {
@@ -102,23 +105,9 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
 
   const styles = createStyles(colors);
 
-  return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      activeOpacity={isEditMode ? 1 : 0.8}
-      disabled={isEditMode}
-    >
-      <View style={styles.header}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="bulb-outline" size={20} color={colors.accent} />
-        </View>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Meal Idea</Text>
-          <Text style={styles.reason}>{reason}</Text>
-        </View>
-      </View>
-
+  // Content to show (either directly or locked)
+  const contentArea = (
+    <>
       <View style={styles.suggestionCard}>
         <View style={styles.suggestionIcon}>
           <Ionicons name={suggestion.icon} size={24} color={colors.textPrimary} />
@@ -131,7 +120,44 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
       </View>
 
       <Text style={styles.tapHint}>Tap to log this meal</Text>
-    </TouchableOpacity>
+    </>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header - dimmed when locked */}
+      <View
+        style={[styles.header, !isPremium && styles.headerLocked]}
+        pointerEvents={isPremium ? 'auto' : 'none'}
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons name="bulb-outline" size={20} color={colors.accent} />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Meal Ideas</Text>
+          <Text style={styles.reason}>{isPremium ? reason : 'Smart suggestions based on macros'}</Text>
+        </View>
+      </View>
+
+      {/* Content - locked for non-premium */}
+      {isPremium ? (
+        <TouchableOpacity
+          onPress={handlePress}
+          activeOpacity={isEditMode ? 1 : 0.8}
+          disabled={isEditMode}
+        >
+          {contentArea}
+        </TouchableOpacity>
+      ) : (
+        <LockedContentArea
+          context="meal_ideas"
+          message="Upgrade to unlock"
+          minHeight={100}
+        >
+          {contentArea}
+        </LockedContentArea>
+      )}
+    </View>
   );
 }
 
@@ -143,11 +169,15 @@ const createStyles = (colors: any) =>
       padding: 16,
       borderWidth: 1,
       borderColor: colors.borderDefault,
+      overflow: 'hidden',
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 14,
+    },
+    headerLocked: {
+      opacity: 0.5,
     },
     iconContainer: {
       width: 36,

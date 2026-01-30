@@ -81,14 +81,21 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
         </View>
 
         <View style={styles.widgetInfo}>
-          <Text
-            style={[
-              styles.widgetName,
-              isAdded && styles.widgetNameDisabled,
-            ]}
-          >
-            {definition.name}
-          </Text>
+          <View style={styles.widgetNameRow}>
+            <Text
+              style={[
+                styles.widgetName,
+                isAdded && styles.widgetNameDisabled,
+              ]}
+            >
+              {definition.name}
+            </Text>
+            {definition.isPremium && (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.premiumBadgeText}>PRO</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.widgetDescription}>
             {definition.description}
           </Text>
@@ -222,14 +229,31 @@ const createStyles = (colors: any) =>
     widgetInfo: {
       flex: 1,
     },
+    widgetNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 2,
+    },
     widgetName: {
       fontSize: 16,
       fontWeight: '600',
       color: colors.textPrimary,
-      marginBottom: 2,
     },
     widgetNameDisabled: {
       color: colors.textTertiary,
+    },
+    premiumBadge: {
+      backgroundColor: colors.accent,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    premiumBadgeText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: '#FFFFFF',
+      letterSpacing: 0.5,
     },
     widgetDescription: {
       fontSize: 13,

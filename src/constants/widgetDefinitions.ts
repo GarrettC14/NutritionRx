@@ -18,6 +18,11 @@ import {
   GoalsSummaryWidget,
   MealIdeasWidget,
   NutritionOverviewWidget,
+  // Premium widgets
+  FastingTimerWidget,
+  MicronutrientSnapshotWidget,
+  AIDailyInsightWidget,
+  WeeklyRecapWidget,
 } from '@/components/dashboard/widgets';
 
 /**
@@ -144,6 +149,7 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
     maxSize: 'large',
     category: 'meals',
     component: MealIdeasWidget as ComponentType<WidgetProps>,
+    isPremium: true,
   },
   nutrition_overview: {
     type: 'nutrition_overview',
@@ -155,6 +161,56 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
     maxSize: 'large',
     category: 'nutrition',
     component: NutritionOverviewWidget as ComponentType<WidgetProps>,
+  },
+
+  // Premium Widgets
+  fasting_timer: {
+    type: 'fasting_timer',
+    name: 'Fasting Timer',
+    description: 'Track your intermittent fasting window',
+    icon: 'timer-outline',
+    defaultSize: 'medium',
+    minSize: 'medium',
+    maxSize: 'medium',
+    category: 'progress',
+    component: FastingTimerWidget as ComponentType<WidgetProps>,
+    isPremium: true,
+  },
+  micronutrient_snapshot: {
+    type: 'micronutrient_snapshot',
+    name: 'Nutrient Snapshot',
+    description: 'See your top nutrient gaps today',
+    icon: 'nutrition-outline',
+    defaultSize: 'medium',
+    minSize: 'medium',
+    maxSize: 'medium',
+    category: 'nutrition',
+    component: MicronutrientSnapshotWidget as ComponentType<WidgetProps>,
+    isPremium: true,
+  },
+  ai_daily_insight: {
+    type: 'ai_daily_insight',
+    name: 'Daily Insight',
+    description: 'Personalized AI-powered nutrition insight',
+    icon: 'sparkles',
+    defaultSize: 'medium',
+    minSize: 'medium',
+    maxSize: 'medium',
+    category: 'progress',
+    component: AIDailyInsightWidget as ComponentType<WidgetProps>,
+    isPremium: true,
+  },
+  weekly_recap: {
+    type: 'weekly_recap',
+    name: 'Weekly Recap',
+    description: 'Weekly summary with stats and AI insights',
+    icon: 'calendar-outline',
+    defaultSize: 'large',
+    minSize: 'large',
+    maxSize: 'large',
+    category: 'progress',
+    component: WeeklyRecapWidget as ComponentType<WidgetProps>,
+    isPremium: true,
   },
 };
 
