@@ -5,6 +5,35 @@
 
 import { MealType } from '@/constants/mealTypes';
 
+// MARK: - Fasting State
+
+/**
+ * Fasting state sent to the watch
+ */
+export interface WatchFastingState {
+  /** Whether fasting feature is enabled */
+  isEnabled: boolean;
+  /** Whether currently in fasting window */
+  isFasting: boolean;
+  /** Active fasting protocol */
+  fastingProtocol?: {
+    id: string;
+    name: string;
+    fastingHours: number;
+    eatingHours: number;
+  };
+  /** ISO 8601 timestamp when current fast started */
+  fastStartTime?: string;
+  /** Target fasting hours */
+  targetHours?: number;
+  /** Eating window start time (HH:mm format) */
+  eatingWindowStart?: string;
+  /** Eating window end time (HH:mm format) */
+  eatingWindowEnd?: string;
+  /** Current consecutive day streak */
+  currentStreak: number;
+}
+
 // MARK: - Watch Daily Data
 
 /**
@@ -31,6 +60,8 @@ export interface WatchDailyData {
   recentFoods: WatchSimpleFood[];
   /** Favorite foods for quick logging */
   favoriteFoods: WatchSimpleFood[];
+  /** Current fasting state (optional) */
+  fasting?: WatchFastingState;
 }
 
 /**

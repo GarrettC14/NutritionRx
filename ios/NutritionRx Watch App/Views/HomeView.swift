@@ -12,6 +12,9 @@ struct NutritionHomeView: View {
     @State private var showQuickAdd = false
     @State private var showRecentFoods = false
     @State private var showCalorieDetail = false
+    @State private var fastingCardNow = Date()
+
+    private let fastingCardTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private var dailyData: WatchDailyData? {
         connector.dailyData
@@ -67,6 +70,15 @@ struct NutritionHomeView: View {
                     fat: dailyData?.fat ?? 0
                 )
 
+                // Fasting Card
+                if let fasting = dailyData?.fasting, fasting.isEnabled {
+                    NavigationLink(destination: FastingTimerView()) {
+                        fastingCardContent(fasting)
+                            .watchCard()
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+
                 // Recent Foods Button
                 Button(action: { showRecentFoods = true }) {
                     HStack {
@@ -109,6 +121,64 @@ struct NutritionHomeView: View {
         .onAppear {
             connector.requestSync()
         }
+        .onReceive(fastingCardTimer) { time in
+            fastingCardNow = time
+        }
+    }
+
+    // MARK: - Fasting Card
+
+    @ViewBuilder
+    private func fastingCardContent(_ state: FastingState) -> some View {
+        HStack {
+            Image(systemName: state.isFasting ? "moon.fill" : "fork.knife")
+                .font(.system(size: 16))
+                .foregroundColor(state.isFasting ? AppColors.fasting : AppColors.eatingWindow)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(state.isFasting ? "Fasting" : "Eating Window")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text(fastingCardTimeRemaining(state))
+                    .font(.system(size: 12).monospacedDigit())
+                    .foregroundColor(AppColors.textSecondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(AppColors.textTertiary)
+        }
+    }
+
+    private func fastingCardTimeRemaining(_ state: FastingState) -> String {
+        if state.isFasting, let start = state.fastStartTime, let target = state.targetHours {
+            let elapsed = fastingCardNow.timeIntervalSince(start)
+            let remaining = max(0, Double(target) * 3600 - elapsed)
+            let hours = Int(remaining) / 3600
+            let minutes = (Int(remaining) % 3600) / 60
+            return "\(hours)h \(minutes)m remaining"
+        } else if let endStr = state.eatingWindowEnd {
+            let parts = endStr.split(separator: ":")
+            if parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) {
+                let calendar = Calendar.current
+                var components = calendar.dateComponents([.year, .month, .day], from: fastingCardNow)
+                components.hour = hour
+                components.minute = minute
+                components.second = 0
+                if let target = calendar.date(from: components) {
+                    var diff = target.timeIntervalSince(fastingCardNow)
+                    if diff < 0 { diff += 86400 }
+                    let h = Int(diff) / 3600
+                    let m = (Int(diff) % 3600) / 60
+                    return "\(h)h \(m)m until fast"
+                }
+            }
+            return ""
+        }
+        return ""
     }
 
     // MARK: - Remaining Calories Text

@@ -60,6 +60,8 @@ struct RectangularComplicationView: View {
     let calorieTarget: Int
     let waterGlasses: Int
     let waterTarget: Int
+    var isFasting: Bool = false
+    var fastingRemainingSeconds: Double = 0
 
     private var calorieProgress: Double {
         guard calorieTarget > 0 else { return 0 }
@@ -125,6 +127,27 @@ struct RectangularComplicationView: View {
                     .foregroundColor(AppColors.textSecondary)
 
                 Spacer()
+            }
+
+            // Fasting row (only during active fast)
+            if isFasting, fastingRemainingSeconds > 0 {
+                HStack(spacing: 4) {
+                    Image(systemName: "moon.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(AppColors.fasting)
+
+                    let hours = Int(fastingRemainingSeconds) / 3600
+                    let minutes = (Int(fastingRemainingSeconds) % 3600) / 60
+                    Text("\(hours)h \(minutes)m")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColors.textPrimary)
+
+                    Text("left")
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundColor(AppColors.textSecondary)
+
+                    Spacer()
+                }
             }
         }
         .padding(.horizontal, 4)

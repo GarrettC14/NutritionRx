@@ -46,7 +46,7 @@ class WaterComplicationService : ComplicationDataSourceService() {
                 goal = summary.waterGoal,
                 tapIntent = tapIntent
             )
-            ComplicationType.ICON -> createIconComplication(tapIntent = tapIntent)
+            ComplicationType.MONOCHROMATIC_IMAGE -> createIconComplication(tapIntent = tapIntent)
             else -> null
         }
 
@@ -65,7 +65,7 @@ class WaterComplicationService : ComplicationDataSourceService() {
                 goal = 8,
                 tapIntent = null
             )
-            ComplicationType.ICON -> createIconComplication(tapIntent = null)
+            ComplicationType.MONOCHROMATIC_IMAGE -> createIconComplication(tapIntent = null)
             else -> null
         }
     }

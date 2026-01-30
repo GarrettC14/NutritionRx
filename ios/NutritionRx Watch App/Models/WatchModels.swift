@@ -5,6 +5,28 @@
 
 import Foundation
 
+// MARK: - Fasting
+
+/// Fasting protocol configuration
+struct WatchFastingProtocol: Codable, Equatable {
+    let id: String
+    let name: String
+    let fastingHours: Int
+    let eatingHours: Int
+}
+
+/// Current fasting state synced from phone
+struct FastingState: Codable, Equatable {
+    let isEnabled: Bool
+    let isFasting: Bool
+    let fastingProtocol: WatchFastingProtocol?
+    let fastStartTime: Date?
+    let targetHours: Int?
+    let eatingWindowStart: String?
+    let eatingWindowEnd: String?
+    let currentStreak: Int
+}
+
 // MARK: - Daily Data
 
 /// Main data structure synced from phone to watch
@@ -19,6 +41,7 @@ struct WatchDailyData: Codable, Equatable {
     var fat: Int
     var recentFoods: [SimpleFood]
     var favoriteFoods: [SimpleFood]
+    var fasting: FastingState?
 
     static let empty = WatchDailyData(
         date: Date(),
@@ -30,7 +53,8 @@ struct WatchDailyData: Codable, Equatable {
         carbs: 0,
         fat: 0,
         recentFoods: [],
-        favoriteFoods: []
+        favoriteFoods: [],
+        fasting: nil
     )
 
     /// Check if this data is for today

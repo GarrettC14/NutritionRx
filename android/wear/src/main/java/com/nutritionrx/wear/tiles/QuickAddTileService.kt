@@ -5,6 +5,7 @@ import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders.argb
 import androidx.wear.protolayout.DimensionBuilders.dp
 import androidx.wear.protolayout.DimensionBuilders.expand
+import androidx.wear.protolayout.DimensionBuilders.sp
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.LayoutElementBuilders.Box
 import androidx.wear.protolayout.LayoutElementBuilders.Column
@@ -105,7 +106,7 @@ class QuickAddTileService : TileService() {
                             .setText("$calories cal")
                             .setFontStyle(
                                 LayoutElementBuilders.FontStyle.Builder()
-                                    .setSize(dp(16f))
+                                    .setSize(sp(16f))
                                     .setColor(argb(0xFF58A663.toInt()))
                                     .build()
                             )
@@ -173,7 +174,7 @@ class QuickAddTileService : TileService() {
                     .setText("+$calories")
                     .setFontStyle(
                         LayoutElementBuilders.FontStyle.Builder()
-                            .setSize(dp(12f))
+                            .setSize(sp(12f))
                             .setColor(argb(0xFFFFFFFF.toInt()))
                             .build()
                     )

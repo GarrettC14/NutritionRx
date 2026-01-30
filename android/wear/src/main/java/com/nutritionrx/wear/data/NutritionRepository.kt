@@ -26,6 +26,9 @@ class NutritionRepository(context: Context) {
     private val _recentFoods = MutableStateFlow(loadRecentFoods())
     val recentFoods: StateFlow<List<RecentFood>> = _recentFoods.asStateFlow()
 
+    private val _fastingState = MutableStateFlow(loadFastingState())
+    val fastingState: StateFlow<FastingState?> = _fastingState.asStateFlow()
+
     private val _syncStatus = MutableStateFlow(SyncStatus.IDLE)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
 
@@ -76,6 +79,14 @@ class NutritionRepository(context: Context) {
     fun updateRecentFoods(foods: List<RecentFood>) {
         _recentFoods.value = foods
         saveRecentFoods(foods)
+    }
+
+    /**
+     * Update fasting state from phone sync
+     */
+    fun updateFastingState(state: FastingState) {
+        _fastingState.value = state
+        saveFastingState(state)
     }
 
     /**
@@ -169,10 +180,20 @@ class NutritionRepository(context: Context) {
         prefs.edit().putString(KEY_RECENT_FOODS, json).apply()
     }
 
+    private fun loadFastingState(): FastingState? {
+        val json = prefs.getString(KEY_FASTING_STATE, null) ?: return null
+        return FastingState.fromJson(json)
+    }
+
+    private fun saveFastingState(state: FastingState) {
+        prefs.edit().putString(KEY_FASTING_STATE, state.toJson()).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "nutritionrx_wear"
         private const val KEY_DAILY_SUMMARY = "daily_summary"
         private const val KEY_RECENT_FOODS = "recent_foods"
+        private const val KEY_FASTING_STATE = "fasting_state"
 
         @Volatile
         private var instance: NutritionRepository? = null

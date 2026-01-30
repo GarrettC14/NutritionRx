@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
@@ -47,10 +49,12 @@ import com.nutritionrx.wear.theme.OnSurfaceVariant
 fun HomeScreen(
     repository: NutritionRepository,
     onNavigateToWater: () -> Unit,
-    onNavigateToQuickAdd: () -> Unit
+    onNavigateToQuickAdd: () -> Unit,
+    onNavigateToFasting: () -> Unit = {}
 ) {
     val summary by repository.dailySummary.collectAsState()
     val syncStatus by repository.syncStatus.collectAsState()
+    val fastingState by repository.fastingState.collectAsState()
 
     NutritionRxWearTheme {
         val listState = rememberScalingLazyListState()
@@ -122,6 +126,35 @@ fun HomeScreen(
                                 textAlign = TextAlign.Center
                             )
                         }
+                    }
+                }
+
+                // Fasting chip
+                if (fastingState?.isEnabled == true) {
+                    item {
+                        Chip(
+                            onClick = onNavigateToFasting,
+                            label = {
+                                Text(
+                                    if (fastingState?.isFasting == true)
+                                        "\uD83C\uDF19 Fasting"
+                                    else
+                                        "\uD83C\uDF7D\uFE0F Eating Window"
+                                )
+                            },
+                            secondaryLabel = {
+                                Text(
+                                    if (fastingState?.isFasting == true)
+                                        "Tap to view timer"
+                                    else
+                                        "Window open"
+                                )
+                            },
+                            colors = ChipDefaults.secondaryChipColors(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        )
                     }
                 }
 

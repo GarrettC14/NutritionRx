@@ -169,3 +169,43 @@ enum class MealType(val displayName: String) {
         }
     }
 }
+
+/**
+ * Fasting state synced from phone
+ */
+data class FastingState(
+    @SerializedName("isEnabled") val isEnabled: Boolean = false,
+    @SerializedName("isFasting") val isFasting: Boolean = false,
+    @SerializedName("protocol") val protocol: FastingProtocol? = null,
+    @SerializedName("fastStartTime") val fastStartTime: Long? = null,
+    @SerializedName("eatingWindowStart") val eatingWindowStart: String = "12:00",
+    @SerializedName("eatingWindowEnd") val eatingWindowEnd: String = "20:00",
+    @SerializedName("currentStreak") val currentStreak: Int = 0,
+    @SerializedName("fastingPhase") val fastingPhase: FastingPhase = FastingPhase.FED
+) {
+    companion object {
+        fun fromJson(json: String): FastingState? {
+            return try {
+                Gson().fromJson(json, FastingState::class.java)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    fun toJson(): String = Gson().toJson(this)
+}
+
+data class FastingProtocol(
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("fastingHours") val fastingHours: Int,
+    @SerializedName("eatingHours") val eatingHours: Int
+)
+
+enum class FastingPhase(val displayName: String, val hoursRequired: Int) {
+    FED("Fed State", 0),
+    FAT_BURNING("Fat Burning", 12),
+    KETOSIS("Ketosis", 16),
+    DEEP_KETOSIS("Deep Ketosis", 24)
+}

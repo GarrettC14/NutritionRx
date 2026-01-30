@@ -2,8 +2,10 @@ package com.nutritionrx.wear.tiles
 
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders.argb
+import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.DimensionBuilders.dp
 import androidx.wear.protolayout.DimensionBuilders.expand
+import androidx.wear.protolayout.DimensionBuilders.sp
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.LayoutElementBuilders.Arc
 import androidx.wear.protolayout.LayoutElementBuilders.ArcLine
@@ -112,13 +114,13 @@ class ProgressTileService : TileService() {
                 // Progress arc (background)
                 Arc.Builder()
                     .setAnchorAngle(
-                        LayoutElementBuilders.DegreesProp.Builder(270f).build()
+                        DimensionBuilders.DegreesProp.Builder(270f).build()
                     )
                     .setAnchorType(LayoutElementBuilders.ARC_ANCHOR_START)
                     .addContent(
                         ArcLine.Builder()
                             .setLength(
-                                LayoutElementBuilders.DegreesProp.Builder(360f).build()
+                                DimensionBuilders.DegreesProp.Builder(360f).build()
                             )
                             .setThickness(dp(8f))
                             .setColor(argb(0xFF333333.toInt()))
@@ -130,13 +132,13 @@ class ProgressTileService : TileService() {
                 // Progress arc (foreground)
                 Arc.Builder()
                     .setAnchorAngle(
-                        LayoutElementBuilders.DegreesProp.Builder(270f).build()
+                        DimensionBuilders.DegreesProp.Builder(270f).build()
                     )
                     .setAnchorType(LayoutElementBuilders.ARC_ANCHOR_START)
                     .addContent(
                         ArcLine.Builder()
                             .setLength(
-                                LayoutElementBuilders.DegreesProp.Builder(360f * progress).build()
+                                DimensionBuilders.DegreesProp.Builder(360f * progress).build()
                             )
                             .setThickness(dp(8f))
                             .setColor(argb(0xFF58A663.toInt()))
@@ -154,7 +156,7 @@ class ProgressTileService : TileService() {
                             .setText(remaining.toString())
                             .setFontStyle(
                                 LayoutElementBuilders.FontStyle.Builder()
-                                    .setSize(dp(32f))
+                                    .setSize(sp(32f))
                                     .setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
                                     .setColor(argb(0xFFFFFFFF.toInt()))
                                     .build()
@@ -166,7 +168,7 @@ class ProgressTileService : TileService() {
                             .setText("remaining")
                             .setFontStyle(
                                 LayoutElementBuilders.FontStyle.Builder()
-                                    .setSize(dp(12f))
+                                    .setSize(sp(12f))
                                     .setColor(argb(0xFFB3B3B3.toInt()))
                                     .build()
                             )
@@ -178,7 +180,7 @@ class ProgressTileService : TileService() {
                             .setText("\uD83D\uDCA7 $water/$waterGoal")
                             .setFontStyle(
                                 LayoutElementBuilders.FontStyle.Builder()
-                                    .setSize(dp(14f))
+                                    .setSize(sp(14f))
                                     .setColor(argb(0xFF7DBDE8.toInt()))
                                     .build()
                             )

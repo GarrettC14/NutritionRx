@@ -14,6 +14,10 @@ struct NutritionEntry: TimelineEntry {
     let calorieTarget: Int
     let waterGlasses: Int
     let waterTarget: Int
+    let isFasting: Bool
+    let fastingRemainingSeconds: Double
+    let fastingProgress: Double
+    let fastingProtocolName: String?
 
     static var placeholder: NutritionEntry {
         NutritionEntry(
@@ -21,7 +25,11 @@ struct NutritionEntry: TimelineEntry {
             caloriesConsumed: 1200,
             calorieTarget: 2000,
             waterGlasses: 4,
-            waterTarget: 8
+            waterTarget: 8,
+            isFasting: false,
+            fastingRemainingSeconds: 0,
+            fastingProgress: 0,
+            fastingProtocolName: nil
         )
     }
 
@@ -31,7 +39,11 @@ struct NutritionEntry: TimelineEntry {
             caloriesConsumed: 0,
             calorieTarget: 2000,
             waterGlasses: 0,
-            waterTarget: 8
+            waterTarget: 8,
+            isFasting: false,
+            fastingRemainingSeconds: 0,
+            fastingProgress: 0,
+            fastingProtocolName: nil
         )
     }
 }
@@ -62,11 +74,29 @@ struct NutritionTimelineProvider: TimelineProvider {
 
     private func loadCurrentEntry() -> NutritionEntry {
         // Load from App Group shared container
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         guard let defaults = UserDefaults(suiteName: "group.com.nutritionrx.app"),
               let data = defaults.data(forKey: "watchDailyData"),
-              let dailyData = try? JSONDecoder().decode(WatchDailyData.self, from: data)
+              let dailyData = try? decoder.decode(WatchDailyData.self, from: data)
         else {
             return .empty
+        }
+
+        // Compute fasting values
+        var isFasting = false
+        var fastingRemaining: Double = 0
+        var fastingProgress: Double = 0
+        var fastingProtocolName: String? = nil
+
+        if let fasting = dailyData.fasting, fasting.isEnabled, fasting.isFasting,
+           let start = fasting.fastStartTime, let target = fasting.targetHours {
+            isFasting = true
+            let elapsed = Date().timeIntervalSince(start)
+            let total = Double(target) * 3600
+            fastingRemaining = max(0, total - elapsed)
+            fastingProgress = min(elapsed / total, 1.0)
+            fastingProtocolName = fasting.fastingProtocol?.name
         }
 
         return NutritionEntry(
@@ -74,7 +104,11 @@ struct NutritionTimelineProvider: TimelineProvider {
             caloriesConsumed: dailyData.caloriesConsumed,
             calorieTarget: dailyData.calorieTarget,
             waterGlasses: dailyData.waterGlasses,
-            waterTarget: dailyData.waterTarget
+            waterTarget: dailyData.waterTarget,
+            isFasting: isFasting,
+            fastingRemainingSeconds: fastingRemaining,
+            fastingProgress: fastingProgress,
+            fastingProtocolName: fastingProtocolName
         )
     }
 }
@@ -97,7 +131,9 @@ struct NutritionComplicationEntryView: View {
                 caloriesConsumed: entry.caloriesConsumed,
                 calorieTarget: entry.calorieTarget,
                 waterGlasses: entry.waterGlasses,
-                waterTarget: entry.waterTarget
+                waterTarget: entry.waterTarget,
+                isFasting: entry.isFasting,
+                fastingRemainingSeconds: entry.fastingRemainingSeconds
             )
         case .accessoryCorner:
             CornerComplicationView(

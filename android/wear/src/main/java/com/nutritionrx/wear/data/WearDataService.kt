@@ -142,6 +142,15 @@ class WearDataService(private val context: Context) {
                             repository.updateRecentFoods(foods)
                         }
                     }
+                    PATH_FASTING_STATE -> {
+                        val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                        val json = dataMap.getString(KEY_DATA)
+                        json?.let {
+                            FastingState.fromJson(it)?.let { state ->
+                                repository.updateFastingState(state)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -181,6 +190,7 @@ class WearDataService(private val context: Context) {
         // Data paths
         const val PATH_DAILY_SUMMARY = "/data/daily_summary"
         const val PATH_RECENT_FOODS = "/data/recent_foods"
+        const val PATH_FASTING_STATE = "/data/fasting_state"
 
         // Data keys
         const val KEY_DATA = "data"

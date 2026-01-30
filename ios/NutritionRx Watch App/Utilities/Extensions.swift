@@ -57,6 +57,13 @@ enum AppColors {
     static let protein = Color(hex: "D4A574")        // Terracotta
     static let carbs = Color(hex: "7FB685")          // Sage Green
     static let fat = Color(hex: "7BA7BC")            // Soft Blue
+
+    // Neutral
+    static let warmNeutral = Color(hex: "C4A882")    // Warm Neutral
+
+    // Fasting aliases
+    static let fasting = accent                       // Sage Green
+    static let eatingWindow = accentSecondary         // Terracotta
 }
 
 // MARK: - Haptic Feedback

@@ -76,6 +76,10 @@ fun NutritionRxWearTheme(
     )
 }
 
+// Fasting Colors
+val Sage = Color(0xFF7C9A7C)
+val Terracotta = Color(0xFFC4A484)
+
 /**
  * Color extensions for consistent usage throughout the app
  */
@@ -87,4 +91,6 @@ object NutritionRxColors {
     val macroCarbs = MacroCarbs
     val macroFat = MacroFat
     val success = Success
+    val sage = Sage
+    val terracotta = Terracotta
 }

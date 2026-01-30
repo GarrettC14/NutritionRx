@@ -11,6 +11,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.nutritionrx.wear.data.NutritionRepository
 import com.nutritionrx.wear.data.WearDataService
+import com.nutritionrx.wear.screens.FastingTimerScreen
 import com.nutritionrx.wear.screens.HomeScreen
 import com.nutritionrx.wear.screens.QuickAddScreen
 import com.nutritionrx.wear.screens.RecentFoodsScreen
@@ -74,6 +75,9 @@ fun NutritionRxWearApp(
                     },
                     onNavigateToQuickAdd = {
                         navController.navigate(Screen.QuickAdd.route)
+                    },
+                    onNavigateToFasting = {
+                        navController.navigate(Screen.Fasting.route)
                     }
                 )
             }
@@ -110,6 +114,15 @@ fun NutritionRxWearApp(
                     }
                 )
             }
+
+            composable(Screen.Fasting.route) {
+                FastingTimerScreen(
+                    fastingState = repository.fastingState.value,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }
@@ -122,4 +135,5 @@ sealed class Screen(val route: String) {
     object Water : Screen("water")
     object QuickAdd : Screen("quickadd")
     object RecentFoods : Screen("recent")
+    object Fasting : Screen("fasting")
 }

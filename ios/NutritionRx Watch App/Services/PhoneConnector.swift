@@ -161,8 +161,10 @@ class PhoneConnector: NSObject, ObservableObject {
 
     private func handleReply(_ reply: [String: Any]) {
         // Process any updated data in reply
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         if let dailyDataRaw = reply["daily"] as? Data,
-           let daily = try? JSONDecoder().decode(WatchDailyData.self, from: dailyDataRaw) {
+           let daily = try? decoder.decode(WatchDailyData.self, from: dailyDataRaw) {
             dailyData = daily
             lastSyncTime = Date()
         }
@@ -243,8 +245,10 @@ extension PhoneConnector: WCSessionDelegate {
     }
 
     private func processApplicationContext(_ context: [String: Any]) {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         if let dailyDataRaw = context["daily"] as? Data,
-           let daily = try? JSONDecoder().decode(WatchDailyData.self, from: dailyDataRaw) {
+           let daily = try? decoder.decode(WatchDailyData.self, from: dailyDataRaw) {
             dailyData = daily
             lastSyncTime = Date()
             connectionError = nil
