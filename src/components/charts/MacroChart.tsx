@@ -28,14 +28,18 @@ function DonutChart({
   size = 120,
   strokeWidth = 20,
   centerText,
+  centerSubtext,
   centerColor,
+  subtextColor,
   bgColor,
 }: {
   segments: DonutSegment[];
   size?: number;
   strokeWidth?: number;
   centerText?: string;
+  centerSubtext?: string;
   centerColor?: string;
+  subtextColor?: string;
   bgColor?: string;
 }) {
   const radius = (size - strokeWidth) / 2;
@@ -80,13 +84,25 @@ function DonutChart({
       {centerText && (
         <SvgText
           x={center}
-          y={center + 6}
+          y={centerSubtext ? center : center + 6}
           fill={centerColor || '#F0F6FC'}
           fontSize={18}
           fontWeight="600"
           textAnchor="middle"
         >
           {centerText}
+        </SvgText>
+      )}
+      {/* Center subtext */}
+      {centerSubtext && (
+        <SvgText
+          x={center}
+          y={center + 16}
+          fill={subtextColor || '#8B949E'}
+          fontSize={10}
+          textAnchor="middle"
+        >
+          {centerSubtext}
         </SvgText>
       )}
     </Svg>
@@ -134,7 +150,9 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
         <DonutChart
           segments={segments}
           centerText={String(totals.calories)}
+          centerSubtext="calories"
           centerColor={colors.textPrimary}
+          subtextColor={colors.textTertiary}
           bgColor={colors.bgInteractive}
         />
 

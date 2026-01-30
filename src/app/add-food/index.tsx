@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,23 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 import { MealType } from '@/constants/mealTypes';
-import { useFoodSearchStore, useFavoritesStore } from '@/stores';
+import { useFoodSearchStore, useFavoritesStore, useRestaurantStore } from '@/stores';
 import { FoodItem } from '@/types/domain';
+import { RestaurantFood } from '@/types/restaurant';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
 import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { foodRepository } from '@/repositories/foodRepository';
+
+// Tab types
+type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
+
+const TAB_OPTIONS = [
+  { value: 'all' as AddFoodTab, label: 'All' },
+  { value: 'restaurants' as AddFoodTab, label: '🍽️ Restaurants' },
+  { value: 'my_foods' as AddFoodTab, label: 'My Foods' },
+];
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -49,22 +61,30 @@ export default function AddFoodScreen() {
   const mealType = (params.mealType as MealType) || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
-  // Local state
+  // Tab state
+  const [activeTab, setActiveTab] = useState<AddFoodTab>('all');
+
+  // Search state
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, SEARCH_SETTINGS.debounceMs);
+
+
+  // Custom foods state
+  const [customFoods, setCustomFoods] = useState<FoodItem[]>([]);
+  const [isLoadingCustom, setIsLoadingCustom] = useState(false);
+
+  // My Foods search results (local filtering)
+  const [myFoodsSearchResults, setMyFoodsSearchResults] = useState<FoodItem[]>([]);
 
   // Food search store
   const {
     results,
     recentFoods,
-    frequentFoods,
     isSearching,
     isLoaded,
-    error,
     search,
     clearSearch,
     loadRecentFoods,
-    loadFrequentFoods,
   } = useFoodSearchStore();
 
   // Favorites store
@@ -74,25 +94,105 @@ export default function AddFoodScreen() {
     loadFavorites,
   } = useFavoritesStore();
 
-  // Load recent, frequent foods and favorites on mount
+  // Restaurant store
+  const {
+    searchResults: restaurantSearchResults,
+    isSearching: isSearchingRestaurants,
+    searchFoods: searchRestaurantFoods,
+  } = useRestaurantStore();
+
+  // Load data on mount
   useEffect(() => {
     loadRecentFoods();
-    loadFrequentFoods();
     loadFavorites();
+    loadCustomFoods();
   }, []);
 
-  // Search when debounced value changes
-  useEffect(() => {
-    if (debouncedSearch.length >= SEARCH_SETTINGS.minQueryLength) {
-      search(debouncedSearch);
-    } else {
-      clearSearch();
+  const loadCustomFoods = async () => {
+    setIsLoadingCustom(true);
+    try {
+      const foods = await foodRepository.getUserCreated();
+      setCustomFoods(foods);
+    } catch (error) {
+      console.error('Failed to load custom foods:', error);
+    } finally {
+      setIsLoadingCustom(false);
     }
-  }, [debouncedSearch]);
+  };
+
+  // Handle tab changes - clear search
+  const handleTabChange = useCallback((tab: AddFoodTab) => {
+    setActiveTab(tab);
+    setSearchText('');
+    clearSearch();
+    setMyFoodsSearchResults([]);
+  }, [clearSearch]);
+
+  // Search based on active tab
+  useEffect(() => {
+    if (debouncedSearch.length < SEARCH_SETTINGS.minQueryLength) {
+      clearSearch();
+      setMyFoodsSearchResults([]);
+      return;
+    }
+
+    switch (activeTab) {
+      case 'all':
+        // Search both local DB and restaurant foods
+        search(debouncedSearch);
+        searchRestaurantFoods(debouncedSearch);
+        break;
+      case 'restaurants':
+        // Search restaurant foods only
+        searchRestaurantFoods(debouncedSearch);
+        break;
+      case 'my_foods':
+        // Local filter of favorites + custom foods
+        const query = debouncedSearch.toLowerCase();
+        const filteredFavorites = favorites.filter(f =>
+          f.name.toLowerCase().includes(query) ||
+          f.brand?.toLowerCase().includes(query)
+        );
+        const filteredCustom = customFoods.filter(f =>
+          f.name.toLowerCase().includes(query) ||
+          f.brand?.toLowerCase().includes(query)
+        );
+        // Dedupe by ID (favorites might include custom foods)
+        const seenIds = new Set<string>();
+        const combined: FoodItem[] = [];
+        [...filteredFavorites, ...filteredCustom].forEach(food => {
+          if (!seenIds.has(food.id)) {
+            seenIds.add(food.id);
+            combined.push(food);
+          }
+        });
+        setMyFoodsSearchResults(combined);
+        break;
+    }
+  }, [debouncedSearch, activeTab, favorites, customFoods]);
+
+  // Combine results for "All" tab when searching
+  const allSearchResults = useMemo(() => {
+    if (activeTab !== 'all') return [];
+    // Combine local results and restaurant results
+    // Restaurant foods need to be converted to a display format
+    return results;
+  }, [activeTab, results]);
 
   const handleFoodSelect = useCallback((food: FoodItem) => {
     router.push({
       pathname: '/add-food/log',
+      params: {
+        foodId: food.id,
+        mealType,
+        date,
+      },
+    });
+  }, [mealType, date, router]);
+
+  const handleRestaurantFoodSelect = useCallback((food: RestaurantFood) => {
+    router.push({
+      pathname: '/restaurant/food/[foodId]' as any,
       params: {
         foodId: food.id,
         mealType,
@@ -129,19 +229,19 @@ export default function AddFoodScreen() {
     });
   };
 
-  const handleRestaurants = () => {
+  const handleBrowseRestaurants = () => {
     router.push({
       pathname: '/restaurant' as any,
       params: { mealType, date },
     });
   };
 
-  const isSearching_ = searchText.length >= SEARCH_SETTINGS.minQueryLength;
-  const showResults = isSearching_ && results.length > 0;
-  const showNoResults = isSearching_ && results.length === 0 && !isSearching;
-  const showSections = !isSearching_;
-  const showEmpty = !isSearching_ && recentFoods.length === 0 && favorites.length === 0;
+  // Compute display states
+  const isActiveSearch = searchText.length >= SEARCH_SETTINGS.minQueryLength;
+  const isAnySearching = isSearching || isSearchingRestaurants;
 
+
+  // Render functions
   const renderFoodItem = ({ item }: { item: FoodItem }) => (
     <FoodSearchResult
       food={item}
@@ -157,6 +257,274 @@ export default function AddFoodScreen() {
       />
     </View>
   );
+
+  const renderRestaurantFoodItem = ({ item }: { item: RestaurantFood }) => (
+    <Pressable
+      style={[styles.restaurantFoodItem, { backgroundColor: colors.bgSecondary }]}
+      onPress={() => handleRestaurantFoodSelect(item)}
+    >
+      <View style={styles.restaurantFoodInfo}>
+        <Text style={[styles.restaurantFoodName, { color: colors.textPrimary }]} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={[styles.restaurantFoodBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+          {item.restaurantName}
+        </Text>
+      </View>
+      <Text style={[styles.restaurantFoodCalories, { color: colors.textSecondary }]}>
+        {item.nutrition.calories} cal
+      </Text>
+    </Pressable>
+  );
+
+  // Render "All" tab content
+  const renderAllTabContent = () => {
+    if (isActiveSearch) {
+      // Show combined search results
+      const hasLocalResults = results.length > 0;
+      const hasRestaurantResults = restaurantSearchResults.length > 0;
+      const hasNoResults = !hasLocalResults && !hasRestaurantResults && !isAnySearching;
+
+      if (hasNoResults) {
+        return renderNoResultsEmpty();
+      }
+
+      return (
+        <ScrollView
+          style={styles.sectionsContainer}
+          contentContainerStyle={styles.sectionsContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {hasLocalResults && (
+            <View style={styles.searchSection}>
+              <Text style={[styles.searchSectionTitle, { color: colors.textSecondary }]}>
+                Foods
+              </Text>
+              {results.map(renderFoodItemSimple)}
+            </View>
+          )}
+          {hasRestaurantResults && (
+            <View style={styles.searchSection}>
+              <Text style={[styles.searchSectionTitle, { color: colors.textSecondary }]}>
+                Restaurant Foods
+              </Text>
+              {restaurantSearchResults.map((food) => (
+                <View key={food.id} style={styles.foodItemWrapper}>
+                  {renderRestaurantFoodItem({ item: food })}
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      );
+    }
+
+    // Default view: Favorites + Recently Logged sections
+    const hasAnyContent = favorites.length > 0 || recentFoods.length > 0;
+
+    if (!hasAnyContent) {
+      return renderInitialEmpty();
+    }
+
+    return (
+      <ScrollView
+        style={styles.sectionsContainer}
+        contentContainerStyle={styles.sectionsContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <CollapsibleSection
+          title="Favorites"
+          itemCount={favorites.length}
+          defaultExpanded={true}
+          emptyMessage="Tap ★ on any food to save it here"
+        >
+          {favorites.map(renderFoodItemSimple)}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Recently Logged"
+          itemCount={recentFoods.length}
+          defaultExpanded={false}
+          emptyMessage="No recently logged foods"
+        >
+          {recentFoods.map(renderFoodItemSimple)}
+        </CollapsibleSection>
+      </ScrollView>
+    );
+  };
+
+  // Render "Restaurants" tab content
+  const renderRestaurantsTabContent = () => {
+    if (isActiveSearch) {
+      const hasResults = restaurantSearchResults.length > 0;
+      const hasNoResults = !hasResults && !isSearchingRestaurants;
+
+      if (hasNoResults) {
+        return renderNoResultsEmpty();
+      }
+
+      return (
+        <FlatList
+          data={restaurantSearchResults}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRestaurantFoodItem}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      );
+    }
+
+    // Default view: Browse all restaurants link
+    return (
+      <View style={styles.restaurantDefaultState}>
+        <Ionicons name="restaurant-outline" size={48} color={colors.textTertiary} />
+        <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+          Search restaurant foods
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+          Or browse our complete restaurant database
+        </Text>
+        <Pressable
+          style={[styles.browseButton, { backgroundColor: colors.accent }]}
+          onPress={handleBrowseRestaurants}
+        >
+          <Text style={styles.browseButtonText}>Browse all restaurants</Text>
+          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+        </Pressable>
+      </View>
+    );
+  };
+
+  // Render "My Foods" tab content
+  const renderMyFoodsTabContent = () => {
+    if (isActiveSearch) {
+      const hasResults = myFoodsSearchResults.length > 0;
+
+      if (!hasResults) {
+        return renderNoResultsEmpty();
+      }
+
+      return (
+        <FlatList
+          data={myFoodsSearchResults}
+          keyExtractor={(item) => item.id}
+          renderItem={renderFoodItem}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      );
+    }
+
+    // Default view: Favorites + Custom Foods sections
+    const hasAnyContent = favorites.length > 0 || customFoods.length > 0;
+
+    if (!hasAnyContent) {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="nutrition-outline" size={48} color={colors.textTertiary} />
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+            No saved foods yet
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            Create custom foods or favorite existing ones
+          </Text>
+          <Pressable
+            style={[styles.createFoodButton, { backgroundColor: colors.accent }]}
+            onPress={handleCreateFood}
+          >
+            <Ionicons name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.createFoodButtonText}>Create Food</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView
+        style={styles.sectionsContainer}
+        contentContainerStyle={styles.sectionsContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <CollapsibleSection
+          title="Favorites"
+          itemCount={favorites.length}
+          defaultExpanded={true}
+          emptyMessage="Tap ★ on any food to save it here"
+        >
+          {favorites.map(renderFoodItemSimple)}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Custom Foods"
+          itemCount={customFoods.length}
+          defaultExpanded={true}
+          emptyMessage="Create your first custom food"
+        >
+          {customFoods.map(renderFoodItemSimple)}
+        </CollapsibleSection>
+      </ScrollView>
+    );
+  };
+
+  // Render no results empty state
+  const renderNoResultsEmpty = () => (
+    <View style={styles.emptyState}>
+      <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+        No results found
+      </Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+        Try a different search or:
+      </Text>
+      <View style={styles.emptyActions}>
+        <Pressable
+          style={[styles.emptyActionButton, { backgroundColor: colors.accent }]}
+          onPress={handleAIPhoto}
+        >
+          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.emptyActionText}>AI Photo</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.emptyActionButton, { backgroundColor: colors.bgSecondary }]}
+          onPress={handleCreateFood}
+        >
+          <Ionicons name="create-outline" size={20} color={colors.accent} />
+          <Text style={[styles.emptyActionTextSecondary, { color: colors.textPrimary }]}>
+            Create Food
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  // Render initial empty state (no favorites, no recent)
+  const renderInitialEmpty = () => (
+    <View style={styles.emptyState}>
+      <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+        Search for a food or scan a barcode
+      </Text>
+    </View>
+  );
+
+  // Render tab content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'all':
+        return renderAllTabContent();
+      case 'restaurants':
+        return renderRestaurantsTabContent();
+      case 'my_foods':
+        return renderMyFoodsTabContent();
+    }
+  };
 
   // Show skeleton while initial data is loading
   if (!isLoaded || !favoritesLoaded) {
@@ -176,7 +544,7 @@ export default function AddFoodScreen() {
         </Text>
       </View>
 
-      {/* Search Bar */}
+      {/* Search Bar - UNCHANGED */}
       <View style={styles.searchContainer}>
         <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
@@ -203,124 +571,41 @@ export default function AddFoodScreen() {
         </Pressable>
       </View>
 
+      {/* Tab Filters */}
+      <View style={styles.tabContainer}>
+        <SegmentedControl
+          options={TAB_OPTIONS}
+          value={activeTab}
+          onChange={handleTabChange}
+        />
+      </View>
+
       {/* Content */}
       <View style={styles.content}>
-        {isSearching && (
+        {isAnySearching && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.accent} />
           </View>
         )}
 
-        {showResults && (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            renderItem={renderFoodItem}
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          />
-        )}
-
-        {showNoResults && (
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No foods found for "{searchText}"
-            </Text>
-            <Pressable
-              style={[styles.createButton, { borderColor: colors.accent }]}
-              onPress={handleCreateFood}
-            >
-              <Text style={[styles.createButtonText, { color: colors.accent }]}>
-                Create "{searchText}"
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {showSections && !showEmpty && (
-          <ScrollView
-            style={styles.sectionsContainer}
-            contentContainerStyle={styles.sectionsContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Favorites Section - expanded by default */}
-            <CollapsibleSection
-              title="Favorites"
-              itemCount={favorites.length}
-              defaultExpanded={true}
-              emptyMessage="No favorites yet. Add favorites when logging food."
-            >
-              {favorites.map(renderFoodItemSimple)}
-            </CollapsibleSection>
-
-            {/* Recently Logged Section - collapsed by default */}
-            <CollapsibleSection
-              title="Recently Logged"
-              itemCount={recentFoods.length}
-              defaultExpanded={false}
-              emptyMessage="No recently logged foods."
-            >
-              {recentFoods.map(renderFoodItemSimple)}
-            </CollapsibleSection>
-          </ScrollView>
-        )}
-
-        {showEmpty && (
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              Search for a food or scan a barcode
-            </Text>
-          </View>
-        )}
+        {!isAnySearching && renderTabContent()}
       </View>
 
-      {/* Restaurants Button */}
-      <View style={styles.restaurantsContainer}>
+      {/* Bottom Action Buttons */}
+      <View style={[styles.bottomButtonsContainer, { backgroundColor: colors.bgPrimary }]}>
         <Pressable
-          style={[styles.restaurantsButton, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}
-          onPress={handleRestaurants}
-        >
-          <Ionicons name="restaurant-outline" size={20} color={colors.accent} />
-          <Text style={[styles.restaurantsText, { color: colors.textPrimary }]}>
-            Browse Restaurants
-          </Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-        </Pressable>
-      </View>
-
-      {/* Bottom Actions */}
-      <View style={[styles.bottomActions, { borderTopColor: colors.borderDefault }]}>
-        <Pressable
-          style={[styles.actionButton, { backgroundColor: colors.accent }]}
+          style={[styles.bottomButton, { backgroundColor: colors.accent }]}
           onPress={handleAIPhoto}
         >
-          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-          <Text style={[styles.actionText, { color: '#FFFFFF' }]}>
-            AI Photo
-          </Text>
+          <Ionicons name="camera-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.bottomButtonText}>AI Photo</Text>
         </Pressable>
         <Pressable
-          style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
-          onPress={handleQuickAdd}
-        >
-          <Ionicons name="flash-outline" size={20} color={colors.accent} />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            Quick Add
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
+          style={[styles.bottomButton, { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.borderDefault }]}
           onPress={handleCreateFood}
         >
-          <Ionicons name="create-outline" size={20} color={colors.accent} />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            Create Food
-          </Text>
+          <Ionicons name="create-outline" size={22} color={colors.accent} />
+          <Text style={[styles.bottomButtonTextSecondary, { color: colors.textPrimary }]}>Create Food</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -363,6 +648,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  tabContainer: {
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingTop: spacing[3],
+    paddingBottom: spacing[2],
+  },
   content: {
     flex: 1,
   },
@@ -389,13 +679,37 @@ const styles = StyleSheet.create({
   foodItemWrapper: {
     marginBottom: spacing[2],
   },
-  sectionTitle: {
+  searchSection: {
+    marginBottom: spacing[4],
+  },
+  searchSectionTitle: {
     ...typography.caption,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginTop: spacing[4],
     marginBottom: spacing[2],
   },
+  // Restaurant food item styles
+  restaurantFoodItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing[3],
+    borderRadius: borderRadius.lg,
+  },
+  restaurantFoodInfo: {
+    flex: 1,
+  },
+  restaurantFoodName: {
+    ...typography.body.medium,
+    fontWeight: '500',
+  },
+  restaurantFoodBrand: {
+    ...typography.body.small,
+    marginTop: spacing[1],
+  },
+  restaurantFoodCalories: {
+    ...typography.body.small,
+  },
+  // Empty state styles
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -403,55 +717,96 @@ const styles = StyleSheet.create({
     paddingHorizontal: componentSpacing.screenEdgePadding,
     gap: spacing[3],
   },
-  emptyText: {
+  emptyTitle: {
+    ...typography.title.medium,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
     ...typography.body.medium,
     textAlign: 'center',
   },
-  createButton: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
+  emptyActions: {
+    flexDirection: 'row',
+    gap: spacing[3],
     marginTop: spacing[2],
   },
-  createButtonText: {
+  emptyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+  },
+  emptyActionText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  emptyActionTextSecondary: {
     ...typography.body.medium,
     fontWeight: '600',
   },
-  restaurantsContainer: {
+  // Restaurant tab empty state
+  restaurantDefaultState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingTop: spacing[2],
+    gap: spacing[3],
   },
-  restaurantsButton: {
+  browseButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing[3],
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
     gap: spacing[2],
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    marginTop: spacing[2],
   },
-  restaurantsText: {
+  browseButtonText: {
     ...typography.body.medium,
-    fontWeight: '500',
-    flex: 1,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
-  bottomActions: {
+  // My Foods tab empty create button
+  createFoodButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    marginTop: spacing[2],
+  },
+  createFoodButtonText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Bottom action buttons
+  bottomButtonsContainer: {
     flexDirection: 'row',
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[3],
+    paddingBottom: spacing[4],
     gap: spacing[3],
-    borderTopWidth: 1,
   },
-  actionButton: {
+  bottomButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: spacing[4],
+    borderRadius: borderRadius.lg,
     gap: spacing[2],
-    paddingVertical: spacing[3],
-    borderRadius: borderRadius.md,
   },
-  actionText: {
+  bottomButtonText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  bottomButtonTextSecondary: {
     ...typography.body.medium,
     fontWeight: '600',
   },

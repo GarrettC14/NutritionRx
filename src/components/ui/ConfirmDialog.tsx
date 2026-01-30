@@ -1,26 +1,14 @@
 import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
-
-const SPRING_CONFIG = {
-  damping: 15,
-  stiffness: 150,
-};
 
 export interface ConfirmDialogConfig {
   title: string;
   message: string;
   icon?: string;
   confirmLabel?: string;
-  cancelLabel?: string;
+  cancelLabel?: string | null; // Pass null to hide cancel button (for info dialogs)
   confirmStyle?: 'default' | 'destructive';
   onConfirm: () => void;
   onCancel?: () => void;
@@ -34,27 +22,6 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps) {
   const { colors } = useTheme();
-
-  const translateY = useSharedValue(300);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      opacity.value = withTiming(1, { duration: 200 });
-      translateY.value = withSpring(0, SPRING_CONFIG);
-    } else {
-      opacity.value = withTiming(0, { duration: 150 });
-      translateY.value = withTiming(300, { duration: 150 });
-    }
-  }, [visible]);
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
 
   const handleConfirm = () => {
     onDismiss();
@@ -75,25 +42,25 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
     message,
     icon,
     confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
+    cancelLabel,
     confirmStyle = 'default',
   } = config;
 
   const isDestructive = confirmStyle === 'destructive';
+  const showCancelButton = cancelLabel !== null;
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="fade"
       onRequestClose={handleCancel}
     >
-      <Animated.View style={[styles.overlay, overlayStyle]}>
+      <View style={styles.overlay}>
         <Pressable style={styles.overlayPress} onPress={handleCancel}>
-          <Animated.View
+          <View
             style={[
               styles.card,
-              cardStyle,
               {
                 backgroundColor: colors.bgElevated,
                 shadowColor: colors.textPrimary,
@@ -115,23 +82,26 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
               </Text>
 
               {/* Actions */}
-              <View style={styles.actions}>
-                <Pressable
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: colors.bgInteractive },
-                  ]}
-                  onPress={handleCancel}
-                >
-                  <Text
-                    style={[styles.actionText, { color: colors.textPrimary }]}
+              <View style={[styles.actions, !showCancelButton && styles.singleAction]}>
+                {showCancelButton && (
+                  <Pressable
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.bgInteractive },
+                    ]}
+                    onPress={handleCancel}
                   >
-                    {cancelLabel}
-                  </Text>
-                </Pressable>
+                    <Text
+                      style={[styles.actionText, { color: colors.textPrimary }]}
+                    >
+                      {cancelLabel}
+                    </Text>
+                  </Pressable>
+                )}
                 <Pressable
                   style={[
                     styles.actionButton,
+                    !showCancelButton && styles.singleActionButton,
                     {
                       backgroundColor: isDestructive
                         ? colors.error
@@ -146,9 +116,9 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
                 </Pressable>
               </View>
             </Pressable>
-          </Animated.View>
+          </View>
         </Pressable>
-      </Animated.View>
+      </View>
     </Modal>
   );
 }
@@ -194,12 +164,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing[3],
   },
+  singleAction: {
+    justifyContent: 'center',
+  },
   actionButton: {
     flex: 1,
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
     borderRadius: borderRadius.lg,
     minWidth: 100,
+  },
+  singleActionButton: {
+    flex: 0,
+    minWidth: 140,
   },
   actionText: {
     ...typography.body.medium,

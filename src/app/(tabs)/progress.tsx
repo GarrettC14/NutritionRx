@@ -7,7 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPhotoStore } from '@/stores';
-import { logEntryRepository } from '@/repositories';
+import { logEntryRepository, weightRepository } from '@/repositories';
 import { WeightChart, CalorieChart, MacroChart } from '@/components/charts';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
@@ -66,25 +66,45 @@ export default function ProgressScreen() {
     isLoaded: photosLoaded,
   } = useProgressPhotoStore();
 
+  // Independent time range states for each section
   const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('30d');
+  const [calorieTimeRange, setCalorieTimeRange] = useState<TimeRange>('30d');
+  const [macroTimeRange, setMacroTimeRange] = useState<TimeRange>('30d');
+  const [insightsTimeRange, setInsightsTimeRange] = useState<TimeRange>('30d');
+
+  // Data states
   const [calorieData, setCalorieData] = useState<Array<{ date: string; totals: DailyTotals }>>([]);
   const [avgMacros, setAvgMacros] = useState<DailyTotals>({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+  const [insightsData, setInsightsData] = useState<{ daysLogged: number; weightEntries: number; avgCalories: number }>({
+    daysLogged: 0,
+    weightEntries: 0,
+    avgCalories: 0,
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [daysLogged, setDaysLogged] = useState(0);
 
-  const loadData = useCallback(async () => {
+  // Load weight data based on weight time range
+  const loadWeightData = useCallback(async () => {
     const { start, end } = getDateRange(weightTimeRange);
     await loadEntriesForRange(start, end);
+  }, [weightTimeRange, loadEntriesForRange]);
 
-    // Load calorie data for the same range
+  // Load calorie data based on calorie time range
+  const loadCalorieData = useCallback(async () => {
+    const { start, end } = getDateRange(calorieTimeRange);
     const calorieHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
     setCalorieData(calorieHistory);
     setDaysLogged(calorieHistory.length);
+  }, [calorieTimeRange]);
 
-    // Calculate average macros
-    if (calorieHistory.length > 0) {
-      const totals = calorieHistory.reduce(
+  // Load average macros based on macro time range
+  const loadMacroData = useCallback(async () => {
+    const { start, end } = getDateRange(macroTimeRange);
+    const macroHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
+
+    if (macroHistory.length > 0) {
+      const totals = macroHistory.reduce(
         (acc, day) => ({
           calories: acc.calories + day.totals.calories,
           protein: acc.protein + day.totals.protein,
@@ -95,15 +115,44 @@ export default function ProgressScreen() {
       );
 
       setAvgMacros({
-        calories: Math.round(totals.calories / calorieHistory.length),
-        protein: Math.round(totals.protein / calorieHistory.length),
-        carbs: Math.round(totals.carbs / calorieHistory.length),
-        fat: Math.round(totals.fat / calorieHistory.length),
+        calories: Math.round(totals.calories / macroHistory.length),
+        protein: Math.round(totals.protein / macroHistory.length),
+        carbs: Math.round(totals.carbs / macroHistory.length),
+        fat: Math.round(totals.fat / macroHistory.length),
       });
     } else {
       setAvgMacros({ calories: 0, protein: 0, carbs: 0, fat: 0 });
     }
-  }, [weightTimeRange, loadEntriesForRange]);
+  }, [macroTimeRange]);
+
+  // Load insights data based on insights time range
+  const loadInsightsData = useCallback(async () => {
+    const { start, end } = getDateRange(insightsTimeRange);
+    const insightsHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
+
+    // Get weight entries count for the insights range (without affecting the weight store)
+    const insightsWeightEntries = await weightRepository.findByDateRange(start, end);
+
+    const avgCals = insightsHistory.length > 0
+      ? Math.round(insightsHistory.reduce((sum, day) => sum + day.totals.calories, 0) / insightsHistory.length)
+      : 0;
+
+    setInsightsData({
+      daysLogged: insightsHistory.length,
+      weightEntries: insightsWeightEntries.length,
+      avgCalories: avgCals,
+    });
+  }, [insightsTimeRange]);
+
+  // Combined load for initial load and refresh
+  const loadAllData = useCallback(async () => {
+    await Promise.all([
+      loadWeightData(),
+      loadCalorieData(),
+      loadMacroData(),
+      loadInsightsData(),
+    ]);
+  }, [loadWeightData, loadCalorieData, loadMacroData, loadInsightsData]);
 
   useEffect(() => {
     loadSettings();
@@ -111,27 +160,51 @@ export default function ProgressScreen() {
     loadPhotos();
   }, [loadSettings, loadNutrientProfile, loadPhotos]);
 
+  // Initial load
   useEffect(() => {
     const initialLoad = async () => {
-      await loadData();
-      // Load today's micronutrient data
+      await loadAllData();
       const today = new Date().toISOString().split('T')[0];
       await loadDailyIntake(today);
       setDataLoaded(true);
     };
     initialLoad();
-  }, [loadData, loadDailyIntake]);
+  }, []);
+
+  // Reload weight data when weight time range changes
+  useEffect(() => {
+    if (dataLoaded) {
+      loadWeightData();
+    }
+  }, [weightTimeRange]);
+
+  // Reload calorie data when calorie time range changes
+  useEffect(() => {
+    if (dataLoaded) {
+      loadCalorieData();
+    }
+  }, [calorieTimeRange]);
+
+  // Reload macro data when macro time range changes
+  useEffect(() => {
+    if (dataLoaded) {
+      loadMacroData();
+    }
+  }, [macroTimeRange]);
+
+  // Reload insights data when insights time range changes
+  useEffect(() => {
+    if (dataLoaded) {
+      loadInsightsData();
+    }
+  }, [insightsTimeRange]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadData();
+    await loadAllData();
     const today = new Date().toISOString().split('T')[0];
     await loadDailyIntake(today);
     setIsRefreshing(false);
-  };
-
-  const handleTimeRangeChange = (range: TimeRange) => {
-    setWeightTimeRange(range);
   };
 
   const hasEnoughData = daysLogged >= 3 || weightEntries.length >= 3;
@@ -231,7 +304,7 @@ export default function ProgressScreen() {
                     styles.timeRangeButton,
                     weightTimeRange === range && { backgroundColor: colors.bgInteractive },
                   ]}
-                  onPress={() => handleTimeRangeChange(range)}
+                  onPress={() => setWeightTimeRange(range)}
                 >
                   <Text
                     style={[
@@ -277,6 +350,32 @@ export default function ProgressScreen() {
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
               Calories
             </Text>
+            <View style={styles.timeRangeButtons}>
+              {timeRanges.map((range) => (
+                <Pressable
+                  key={range}
+                  style={[
+                    styles.timeRangeButton,
+                    calorieTimeRange === range && { backgroundColor: colors.bgInteractive },
+                  ]}
+                  onPress={() => setCalorieTimeRange(range)}
+                >
+                  <Text
+                    style={[
+                      styles.timeRangeText,
+                      {
+                        color:
+                          calorieTimeRange === range
+                            ? colors.textPrimary
+                            : colors.textTertiary,
+                      },
+                    ]}
+                  >
+                    {range === 'all' ? 'All' : range}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           {hasCalorieData ? (
@@ -306,9 +405,32 @@ export default function ProgressScreen() {
               <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                 Average Macros
               </Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-                {weightTimeRange === 'all' ? 'All time' : `Last ${weightTimeRange}`}
-              </Text>
+              <View style={styles.timeRangeButtons}>
+                {timeRanges.map((range) => (
+                  <Pressable
+                    key={range}
+                    style={[
+                      styles.timeRangeButton,
+                      macroTimeRange === range && { backgroundColor: colors.bgInteractive },
+                    ]}
+                    onPress={() => setMacroTimeRange(range)}
+                  >
+                    <Text
+                      style={[
+                        styles.timeRangeText,
+                        {
+                          color:
+                            macroTimeRange === range
+                              ? colors.textPrimary
+                              : colors.textTertiary,
+                        },
+                      ]}
+                    >
+                      {range === 'all' ? 'All' : range}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <MacroChart totals={avgMacros} showGoalComparison />
@@ -322,28 +444,54 @@ export default function ProgressScreen() {
               <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                 Insights
               </Text>
+              <View style={styles.timeRangeButtons}>
+                {timeRanges.map((range) => (
+                  <Pressable
+                    key={range}
+                    style={[
+                      styles.timeRangeButton,
+                      insightsTimeRange === range && { backgroundColor: colors.bgInteractive },
+                    ]}
+                    onPress={() => setInsightsTimeRange(range)}
+                  >
+                    <Text
+                      style={[
+                        styles.timeRangeText,
+                        {
+                          color:
+                            insightsTimeRange === range
+                              ? colors.textPrimary
+                              : colors.textTertiary,
+                        },
+                      ]}
+                    >
+                      {range === 'all' ? 'All' : range}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <View style={styles.insightsList}>
               <InsightCard
                 icon="calendar-outline"
                 title="Days Logged"
-                value={daysLogged.toString()}
-                subtitle={`in the last ${weightTimeRange === 'all' ? 'period' : weightTimeRange}`}
+                value={insightsData.daysLogged.toString()}
+                subtitle={`in the last ${insightsTimeRange === 'all' ? 'period' : insightsTimeRange}`}
                 colors={colors}
               />
               <InsightCard
                 icon="scale-outline"
                 title="Weight Entries"
-                value={weightEntries.length.toString()}
-                subtitle="total entries"
+                value={insightsData.weightEntries.toString()}
+                subtitle={`in the last ${insightsTimeRange === 'all' ? 'period' : insightsTimeRange}`}
                 colors={colors}
               />
-              {avgMacros.calories > 0 && (
+              {insightsData.avgCalories > 0 && (
                 <InsightCard
                   icon="flame-outline"
                   title="Avg. Daily Calories"
-                  value={avgMacros.calories.toLocaleString()}
+                  value={insightsData.avgCalories.toLocaleString()}
                   subtitle={`goal: ${settings.dailyCalorieGoal.toLocaleString()}`}
                   colors={colors}
                 />
@@ -352,12 +500,10 @@ export default function ProgressScreen() {
           </View>
         )}
 
-        {/* Micronutrients Section */}
+        {/* Micronutrients Section - Premium Feature */}
         {dailyIntake && dailyIntake.nutrients.length > 0 && (
           <MicronutrientSummary
             nutrients={dailyIntake.nutrients}
-            onPress={() => console.log('Navigate to micronutrients')}
-            onCategoryPress={(category) => console.log('Navigate to micronutrients category:', category)}
             isPremium={isPremium}
           />
         )}

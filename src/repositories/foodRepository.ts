@@ -232,4 +232,26 @@ export const foodRepository = {
     );
     return (result?.count ?? 0) > 0;
   },
+
+  async findByExactName(name: string, brand?: string): Promise<FoodItem | null> {
+    const db = getDatabase();
+    const normalizedName = name.trim().toLowerCase();
+    const normalizedBrand = brand?.trim().toLowerCase() || null;
+
+    let row: FoodItemRow | null;
+    if (normalizedBrand) {
+      row = await db.getFirstAsync<FoodItemRow>(
+        `SELECT * FROM food_items
+         WHERE LOWER(name) = ? AND LOWER(brand) = ?`,
+        [normalizedName, normalizedBrand]
+      );
+    } else {
+      row = await db.getFirstAsync<FoodItemRow>(
+        `SELECT * FROM food_items
+         WHERE LOWER(name) = ? AND (brand IS NULL OR brand = '')`,
+        [normalizedName]
+      );
+    }
+    return row ? mapFoodItemRowToDomain(row) : null;
+  },
 };

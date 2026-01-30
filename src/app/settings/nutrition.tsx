@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useProfileStore, useGoalStore, useSettingsStore, useWeightStore } from '@/stores';
 import { EatingStyle, ProteinPriority } from '@/types/domain';
 import { macroCalculator } from '@/services/macroCalculator';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 
 interface EatingStyleOption {
   value: EatingStyle;
@@ -92,6 +93,7 @@ const PROTEIN_PRIORITY_OPTIONS: ProteinPriorityOption[] = [
 export default function NutritionSettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { showConfirm } = useConfirmDialog();
   const { profile, updateProfile, isLoading, loadProfile } = useProfileStore();
   const { activeGoal, updateGoalTargets, loadActiveGoal } = useGoalStore();
   const { setDailyGoals } = useSettingsStore();
@@ -156,10 +158,25 @@ export default function NutritionSettingsScreen() {
       }
 
       setIsEditing(false);
-      Alert.alert('Success', 'Nutrition preferences updated. Your macro targets have been recalculated.');
+      showConfirm({
+        title: 'Success',
+        message: 'Nutrition preferences updated. Your macro targets have been recalculated.',
+        icon: '✅',
+        confirmLabel: 'OK',
+        cancelLabel: null,
+        onConfirm: () => {},
+      });
     } catch (error) {
       console.error('Failed to update nutrition preferences:', error);
-      Alert.alert('Error', 'Failed to update preferences. Please try again.');
+      showConfirm({
+        title: 'Error',
+        message: 'Failed to update preferences. Please try again.',
+        icon: '❌',
+        confirmLabel: 'OK',
+        cancelLabel: null,
+        confirmStyle: 'destructive',
+        onConfirm: () => {},
+      });
     } finally {
       setIsSaving(false);
     }

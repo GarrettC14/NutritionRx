@@ -13,17 +13,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, MEAL_TYPE_LABELS, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
 import { foodRepository, CreateFoodInput } from '@/repositories';
 import { useFoodLogStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { FoodItem } from '@/types/domain';
 
 export default function CreateFoodScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { showConfirm } = useConfirmDialog();
   const params = useLocalSearchParams<{
     mealType?: string;
     date?: string;
@@ -31,7 +34,6 @@ export default function CreateFoodScreen() {
 
   const { addLogEntry } = useFoodLogStore();
 
-  const mealType = (params.mealType as MealType) || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Form state
@@ -43,6 +45,7 @@ export default function CreateFoodScreen() {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -84,19 +87,42 @@ export default function CreateFoodScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) return;
+  const handleMealToggle = (meal: MealType) => {
+    setSelectedMealType((current) => (current === meal ? null : meal));
+  };
 
-    setIsSaving(true);
-    try {
-      // Create the food item
+  const saveFoodAndLog = async (existingFood?: FoodItem) => {
+    const trimmedName = name.trim();
+    const trimmedBrand = brand.trim() || undefined;
+    const foodCalories = parseInt(calories) || 0;
+    const foodProtein = parseInt(protein) || 0;
+    const foodCarbs = parseInt(carbs) || 0;
+    const foodFat = parseInt(fat) || 0;
+
+    let foodId: string;
+
+    if (existingFood) {
+      // Overwrite the existing food with new values
+      await foodRepository.update(existingFood.id, {
+        name: trimmedName,
+        brand: trimmedBrand,
+        calories: foodCalories,
+        protein: foodProtein,
+        carbs: foodCarbs,
+        fat: foodFat,
+        servingSize: parseFloat(servingSize) || 1,
+        servingUnit: servingUnit.trim(),
+      });
+      foodId = existingFood.id;
+    } else {
+      // Create a new food item
       const foodInput: CreateFoodInput = {
-        name: name.trim(),
-        brand: brand.trim() || undefined,
-        calories: parseInt(calories) || 0,
-        protein: parseInt(protein) || 0,
-        carbs: parseInt(carbs) || 0,
-        fat: parseInt(fat) || 0,
+        name: trimmedName,
+        brand: trimmedBrand,
+        calories: foodCalories,
+        protein: foodProtein,
+        carbs: foodCarbs,
+        fat: foodFat,
         servingSize: parseFloat(servingSize) || 1,
         servingUnit: servingUnit.trim(),
         source: 'user',
@@ -105,23 +131,64 @@ export default function CreateFoodScreen() {
       };
 
       const food = await foodRepository.create(foodInput);
+      foodId = food.id;
+    }
 
-      // Log the food entry
+    // Only log the food entry if a meal is selected
+    if (selectedMealType) {
       await addLogEntry({
-        foodItemId: food.id,
+        foodItemId: foodId,
         date,
-        mealType,
+        mealType: selectedMealType,
         servings: 1,
-        calories: food.calories,
-        protein: food.protein,
-        carbs: food.carbs,
-        fat: food.fat,
+        calories: foodCalories,
+        protein: foodProtein,
+        carbs: foodCarbs,
+        fat: foodFat,
       });
+    }
 
-      router.dismiss();
+    router.dismiss();
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    setIsSaving(true);
+    try {
+      const trimmedName = name.trim();
+      const trimmedBrand = brand.trim() || undefined;
+
+      // Check if a food with the same name (and brand) already exists
+      const existingFood = await foodRepository.findByExactName(trimmedName, trimmedBrand);
+
+      if (existingFood) {
+        // Show conflict dialog
+        setIsSaving(false);
+        showConfirm({
+          title: 'Food Already Exists',
+          message: `A food named "${trimmedName}"${trimmedBrand ? ` by ${trimmedBrand}` : ''} already exists. Would you like to overwrite it with the new values?`,
+          icon: '⚠️',
+          confirmLabel: 'Overwrite',
+          cancelLabel: 'Cancel',
+          confirmStyle: 'destructive',
+          onConfirm: async () => {
+            setIsSaving(true);
+            try {
+              await saveFoodAndLog(existingFood);
+            } catch (error) {
+              console.error('Failed to save food:', error);
+            } finally {
+              setIsSaving(false);
+            }
+          },
+        });
+      } else {
+        // No conflict, save directly
+        await saveFoodAndLog();
+      }
     } catch (error) {
       console.error('Failed to create food:', error);
-    } finally {
       setIsSaving(false);
     }
   };
@@ -171,6 +238,49 @@ export default function CreateFoodScreen() {
               onChangeText={setBrand}
               placeholder="e.g., Tyson"
             />
+          </View>
+
+          {/* Meal Selection */}
+          <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginBottom: 0 }]}>
+                Add to Meal
+              </Text>
+              <View style={[styles.optionalBadge, { backgroundColor: colors.bgInteractive }]}>
+                <Text style={[styles.optionalBadgeText, { color: colors.textTertiary }]}>
+                  Optional
+                </Text>
+              </View>
+            </View>
+            <View style={styles.mealOptions}>
+              {MEAL_TYPE_ORDER.map((meal) => (
+                <Pressable
+                  key={meal}
+                  style={[
+                    styles.mealOption,
+                    {
+                      backgroundColor:
+                        selectedMealType === meal ? colors.accent : 'transparent',
+                      borderColor:
+                        selectedMealType === meal ? colors.accent : colors.borderDefault,
+                    },
+                  ]}
+                  onPress={() => handleMealToggle(meal)}
+                >
+                  <Text
+                    style={[
+                      styles.mealOptionText,
+                      {
+                        color:
+                          selectedMealType === meal ? '#FFFFFF' : colors.textSecondary,
+                      },
+                    ]}
+                  >
+                    {MEAL_TYPE_LABELS[meal]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           {/* Serving Info */}
@@ -286,16 +396,20 @@ export default function CreateFoodScreen() {
               </View>
             </View>
           </View>
-        </ScrollView>
 
-        {/* Save Button */}
-        <View style={styles.footer}>
-          <Button
-            onPress={handleSave}
-            loading={isSaving}
-            fullWidth
-          >{`Create & Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
-        </View>
+          {/* Save Button */}
+          <View style={styles.footer}>
+            <Button
+              onPress={handleSave}
+              loading={isSaving}
+              fullWidth
+            >
+              {selectedMealType
+                ? `Create & Add to ${MEAL_TYPE_LABELS[selectedMealType]}`
+                : 'Create Food'}
+            </Button>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -323,7 +437,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingBottom: spacing[4],
+    paddingBottom: spacing[8],
     gap: spacing[3],
   },
   section: {
@@ -336,6 +450,23 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: spacing[1],
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[1],
+  },
+  optionalBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  optionalBadgeText: {
+    ...typography.caption,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   servingRow: {
     flexDirection: 'row',
@@ -373,8 +504,22 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     fontWeight: '500',
   },
+  mealOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
+  },
+  mealOption: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  mealOptionText: {
+    ...typography.body.medium,
+    fontWeight: '500',
+  },
   footer: {
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingVertical: spacing[4],
+    marginTop: spacing[2],
   },
 });

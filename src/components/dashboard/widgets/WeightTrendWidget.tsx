@@ -34,7 +34,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
     const cutoff = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
 
     const recentWeights = entries
-      .filter((w) => new Date(w.date) >= cutoff)
+      .filter((w) => new Date(w.date) >= cutoff && typeof w.weightKg === 'number')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-10);
 
@@ -45,8 +45,12 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
   }, [entries, chartRange]);
 
   const weights = chartData.map((d) => d.weight);
-  const latestWeight = weights.length > 0 ? weights[weights.length - 1] : null;
-  const startWeight = weights.length > 0 ? weights[0] : null;
+  const latestWeight = weights.length > 0 && typeof weights[weights.length - 1] === 'number'
+    ? weights[weights.length - 1]
+    : null;
+  const startWeight = weights.length > 0 && typeof weights[0] === 'number'
+    ? weights[0]
+    : null;
   const weightChange =
     latestWeight && startWeight ? latestWeight - startWeight : null;
 
@@ -115,7 +119,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Weight Trend</Text>
-        {weightChange !== null && (
+        {typeof weightChange === 'number' && (
           <Text
             style={[
               styles.change,
@@ -132,10 +136,10 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
         <View style={styles.stat}>
           <Text style={styles.statLabel}>Current</Text>
           <Text style={styles.statValue}>
-            {latestWeight ? `${latestWeight.toFixed(1)} lbs` : '--'}
+            {typeof latestWeight === 'number' ? `${latestWeight.toFixed(1)} lbs` : '--'}
           </Text>
         </View>
-        {targetWeight && (
+        {typeof targetWeight === 'number' && (
           <View style={styles.stat}>
             <Text style={styles.statLabel}>Goal</Text>
             <Text style={styles.statValue}>{targetWeight.toFixed(1)} lbs</Text>

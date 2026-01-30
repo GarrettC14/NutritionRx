@@ -12,3 +12,5 @@ export { ProgressBar, MacroBar } from './ProgressBar';
 export { CalorieRing } from './CalorieRing';
 
 export { SegmentedControl } from './SegmentedControl';
+
+export { FloatingActionButton } from './FloatingActionButton';

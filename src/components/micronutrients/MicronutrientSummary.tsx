@@ -4,18 +4,17 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { NutrientIntake, NutrientCategory } from '@/types/micronutrients';
 import { NUTRIENTS_BY_CATEGORY, CATEGORY_DISPLAY_NAMES } from '@/data/nutrients';
+import { LockedContentArea } from '@/components/premium';
 
 interface MicronutrientSummaryProps {
   nutrients: NutrientIntake[];
-  onPress?: () => void;
-  onCategoryPress?: (category: NutrientCategory) => void;
   isPremium?: boolean;
 }
 
@@ -34,8 +33,6 @@ interface CategorySummary {
 
 export function MicronutrientSummary({
   nutrients,
-  onPress,
-  onCategoryPress,
   isPremium = false,
 }: MicronutrientSummaryProps) {
   const { colors } = useTheme();
@@ -118,26 +115,9 @@ export function MicronutrientSummary({
     }
   };
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-      {/* Header with overall status */}
-      <Pressable style={styles.header} onPress={onPress}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
-          <View style={styles.headerText}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Micronutrients
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {nutrients.length} nutrients tracked
-            </Text>
-          </View>
-        </View>
-        {onPress && (
-          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-        )}
-      </Pressable>
-
+  // Content to show (either directly or blurred)
+  const contentArea = (
+    <>
       {/* Quick stats */}
       <View style={styles.quickStats}>
         {overallStats.deficient > 0 && (
@@ -169,10 +149,9 @@ export function MicronutrientSummary({
       {/* Category breakdown */}
       <View style={styles.categories}>
         {categorySummaries.map(summary => (
-          <Pressable
+          <View
             key={summary.category}
             style={[styles.categoryCard, { backgroundColor: colors.bgPrimary }]}
-            onPress={() => onCategoryPress?.(summary.category)}
           >
             <View style={styles.categoryHeader}>
               <Ionicons
@@ -209,18 +188,43 @@ export function MicronutrientSummary({
             <Text style={[styles.categoryPercent, { color: colors.textSecondary }]}>
               {Math.round(summary.averagePercent)}% avg
             </Text>
-          </Pressable>
+          </View>
         ))}
       </View>
+    </>
+  );
 
-      {/* Premium upsell for amino acids */}
-      {!isPremium && (
-        <View style={[styles.premiumBanner, { backgroundColor: colors.bgInteractive }]}>
-          <Ionicons name="lock-closed" size={14} color={colors.accent} />
-          <Text style={[styles.premiumText, { color: colors.textSecondary }]}>
-            Unlock 40+ amino acids & detailed tracking
-          </Text>
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
+      {/* Header with overall status - dimmed when locked */}
+      <View
+        style={[styles.header, !isPremium && styles.headerLocked]}
+        pointerEvents={isPremium ? 'auto' : 'none'}
+      >
+        <View style={styles.headerLeft}>
+          <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              Micronutrients
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {nutrients.length} nutrients tracked
+            </Text>
+          </View>
         </View>
+      </View>
+
+      {/* Content area - locked for non-premium */}
+      {isPremium ? (
+        contentArea
+      ) : (
+        <LockedContentArea
+          context="micronutrients"
+          message="Upgrade to unlock"
+          minHeight={150}
+        >
+          {contentArea}
+        </LockedContentArea>
       )}
     </View>
   );
@@ -236,6 +240,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing[4],
+  },
+  headerLocked: {
+    opacity: 0.5,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -309,16 +316,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   categoryPercent: {
-    ...typography.caption,
-  },
-  premiumBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    padding: spacing[3],
-  },
-  premiumText: {
     ...typography.caption,
   },
 });
