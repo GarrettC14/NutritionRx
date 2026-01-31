@@ -1,7 +1,8 @@
 /**
  * AI Daily Insight Widget
- * Shows one brief personalized insight from cloud LLM
+ * Shows one brief personalized insight powered by on-device LLM
  * Premium feature - shows locked state for free users
+ * Falls back to template-based insights when LLM unavailable or fails
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -12,6 +13,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useSubscriptionStore, useFoodLogStore, useGoalStore, useWaterStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
+import { LLMService } from '@/features/insights/services/LLMService';
+import { useInsightsStore } from '@/features/insights/stores/insightsStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface InsightData {
@@ -19,10 +22,36 @@ interface InsightData {
   icon: string;
   generatedAt: number;
   date: string;
+  source?: 'llm' | 'fallback';
 }
 
 const INSIGHT_CACHE_KEY = 'ai_daily_insight_cache';
 const CACHE_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+// Build prompt for single daily insight via on-device LLM
+function buildDailyWidgetPrompt(
+  todayCalories: number,
+  todayProtein: number,
+  calorieTarget: number,
+  proteinTarget: number,
+  waterPercent: number,
+  mealCount: number,
+  streak: number
+): string {
+  const calPercent = calorieTarget > 0 ? Math.round((todayCalories / calorieTarget) * 100) : 0;
+
+  return `You are a supportive nutrition assistant using the "Nourished Calm" voice: warm, encouraging, never judgmental. Based on today's eating:
+
+Calories: ${todayCalories} / ${calorieTarget} (${calPercent}%)
+Protein: ${todayProtein}g / ${proteinTarget}g
+Water: ${waterPercent}% of daily goal
+Meals logged: ${mealCount}
+${streak > 0 ? `Logging streak: ${streak} days` : ''}
+
+Provide ONE brief, encouraging insight (1-2 sentences). Focus on one actionable observation. Never use words like "failed", "cheated", "warning", or "deficiency".
+
+Output only the insight text, no labels or formatting.`;
+}
 
 // Fallback insight templates based on data patterns
 const INSIGHT_TEMPLATES = {
@@ -78,6 +107,7 @@ function generateFallbackInsight(
       ...INSIGHT_TEMPLATES.no_meals,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -88,11 +118,11 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.streak_celebrate.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
   const proteinPercent = proteinTarget > 0 ? Math.round((todayProtein / proteinTarget) * 100) : 0;
-  const caloriePercent = calorieTarget > 0 ? Math.round((todayCalories / calorieTarget) * 100) : 0;
   const remaining = calorieTarget - todayCalories;
 
   // Low protein (under 50%)
@@ -102,6 +132,7 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.protein_low.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -112,6 +143,7 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.protein_high.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -122,6 +154,7 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.water_low.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -132,6 +165,7 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.calories_over.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -142,6 +176,7 @@ function generateFallbackInsight(
       icon: INSIGHT_TEMPLATES.calories_under.icon,
       generatedAt: now,
       date: today,
+      source: 'fallback',
     };
   }
 
@@ -150,6 +185,7 @@ function generateFallbackInsight(
     ...INSIGHT_TEMPLATES.balanced_day,
     generatedAt: now,
     date: today,
+    source: 'fallback',
   };
 }
 
@@ -161,9 +197,23 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
   const { calorieGoal, proteinGoal } = useGoalStore();
   const { getTodayProgress } = useWaterStore();
 
+  // LLM state from insights store
+  const { llmStatus, setLLMStatus } = useInsightsStore();
+
   const [insight, setInsight] = useState<InsightData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadPercent, setDownloadPercent] = useState(0);
+
+  // Check LLM status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      const status = await LLMService.getStatus();
+      setLLMStatus(status);
+    };
+    checkStatus();
+  }, [setLLMStatus]);
 
   // Load cached insight
   useEffect(() => {
@@ -210,7 +260,51 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       const today = new Date().toISOString().split('T')[0];
       const mealCount = entries.filter(e => e.date === today).length;
 
-      // Generate fallback insight (in production, this would call cloud LLM)
+      // Check LLM status and try LLM generation first
+      const status = await LLMService.getStatus();
+      setLLMStatus(status);
+
+      if (status === 'ready') {
+        try {
+          const prompt = buildDailyWidgetPrompt(
+            todayCalories,
+            todayProtein,
+            calorieTarget,
+            proteinTarget,
+            waterPercent,
+            mealCount,
+            streak
+          );
+          const result = await LLMService.generate(prompt, 150);
+
+          if (result.success && result.text) {
+            const cleanText = result.text.trim();
+            if (cleanText.length > 10) {
+              const newInsight: InsightData = {
+                text: cleanText,
+                icon: '✨',
+                generatedAt: Date.now(),
+                date: today,
+                source: 'llm',
+              };
+              setInsight(newInsight);
+              await AsyncStorage.setItem(INSIGHT_CACHE_KEY, JSON.stringify(newInsight));
+              return;
+            }
+          }
+          // LLM returned empty/short text, fall through to fallback
+          console.log('[AIDailyInsightWidget] LLM returned insufficient text, using fallback');
+        } catch (error) {
+          console.log('[AIDailyInsightWidget] LLM generation failed, using fallback');
+        }
+      }
+
+      // If LLM not downloaded, don't generate fallback (show Enable AI prompt instead)
+      if (status === 'not_downloaded') {
+        return;
+      }
+
+      // Fall back to template-based insight (for unsupported devices or LLM failures)
       const newInsight = generateFallbackInsight(
         todayCalories,
         todayProtein,
@@ -222,8 +316,6 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       );
 
       setInsight(newInsight);
-
-      // Cache the insight
       await AsyncStorage.setItem(INSIGHT_CACHE_KEY, JSON.stringify(newInsight));
     } catch (error) {
       console.error('Failed to generate insight:', error);
@@ -231,7 +323,29 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [dailyTotals, entries, streak, getTodayProgress, calorieGoal, proteinGoal, isLoading]);
+  }, [dailyTotals, entries, streak, getTodayProgress, calorieGoal, proteinGoal, isLoading, setLLMStatus]);
+
+  const handleDownloadModel = async () => {
+    setIsDownloading(true);
+    setDownloadPercent(0);
+
+    try {
+      const result = await LLMService.downloadModel((progress) => {
+        setDownloadPercent(progress.percentage);
+      });
+
+      if (result.success) {
+        setLLMStatus('ready');
+        // Regenerate insight with LLM now that it's downloaded
+        setIsLoading(false); // Reset so generateInsight can run
+        await generateInsight();
+      }
+    } catch (error) {
+      console.error('[AIDailyInsightWidget] Download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleRefresh = async () => {
     if (isEditMode || isRefreshing) return;
@@ -248,6 +362,49 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
   const styles = createStyles(colors);
 
   const renderContent = () => {
+    // Show download progress
+    if (isDownloading) {
+      return (
+        <View style={styles.downloadContainer}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={styles.downloadText}>
+            Downloading AI model... {downloadPercent}%
+          </Text>
+          <View style={styles.progressBarTrack}>
+            <View
+              style={[
+                styles.progressBarFill,
+                { width: `${downloadPercent}%`, backgroundColor: colors.accent },
+              ]}
+            />
+          </View>
+        </View>
+      );
+    }
+
+    // Show "Enable AI" prompt when model not downloaded and no cached insight
+    if (llmStatus === 'not_downloaded' && !insight) {
+      return (
+        <TouchableOpacity
+          style={[styles.enableContainer, { borderColor: colors.borderDefault }]}
+          onPress={handleDownloadModel}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="sparkles" size={20} color={colors.accent} />
+          <View style={styles.enableTextContainer}>
+            <Text style={[styles.enableTitle, { color: colors.textPrimary }]}>
+              Enable AI Insights
+            </Text>
+            <Text style={[styles.enableSubtitle, { color: colors.textSecondary }]}>
+              Download 1GB model for personalized insights
+            </Text>
+          </View>
+          <Ionicons name="download-outline" size={20} color={colors.accent} />
+        </TouchableOpacity>
+      );
+    }
+
+    // Loading state
     if (isLoading && !insight) {
       return (
         <View style={styles.loadingContainer}>
@@ -257,6 +414,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       );
     }
 
+    // No insight available
     if (!insight) {
       return (
         <View style={styles.emptyContainer}>
@@ -265,6 +423,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       );
     }
 
+    // Show insight
     return (
       <View style={styles.insightContainer}>
         <Text style={styles.insightIcon}>{insight.icon}</Text>
@@ -407,5 +566,49 @@ const createStyles = (colors: any) =>
     emptyText: {
       fontSize: 14,
       color: colors.textSecondary,
+    },
+    // Enable AI prompt
+    enableContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      padding: 12,
+    },
+    enableTextContainer: {
+      flex: 1,
+    },
+    enableTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    enableSubtitle: {
+      fontSize: 12,
+    },
+    // Download progress
+    downloadContainer: {
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 8,
+    },
+    downloadText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    progressBarTrack: {
+      width: '100%',
+      height: 4,
+      backgroundColor: colors.borderDefault,
+      borderRadius: 2,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 2,
     },
   });

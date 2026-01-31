@@ -2,17 +2,20 @@
  * Weekly Recap Widget
  * Shows weekly summary with stats, trends, and AI-generated insights
  * Large widget - Premium feature with locked state for free users
- * Uses local LLM for personalized weekly analysis
+ * Uses on-device LLM for personalized weekly analysis with fallback to templates
  */
 
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useFoodLogStore, useGoalStore, useSubscriptionStore, useWaterStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
+import { LLMService } from '@/features/insights/services/LLMService';
+import { useInsightsStore } from '@/features/insights/stores/insightsStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface WeeklyStats {
   avgCalories: number;
@@ -39,6 +42,102 @@ interface DayData {
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKLY_INSIGHT_CACHE_KEY = 'llm_weekly_recap_cache';
+const WEEKLY_CACHE_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+interface CachedWeeklyInsight {
+  text: string;
+  generatedAt: number;
+  weekStart: string;
+  source: 'llm' | 'fallback';
+}
+
+// Build prompt for weekly recap via on-device LLM
+function buildWeeklyRecapPrompt(
+  dailyData: DayData[],
+  stats: WeeklyStats,
+  calorieTarget: number,
+  proteinTarget: number
+): string {
+  const daysWithData = dailyData.filter(d => d.mealCount > 0);
+  const dailySummaries = daysWithData
+    .map(d => `${d.dayName}: ${d.calories} cal, ${d.protein}g protein, ${d.mealCount} meals`)
+    .join('\n');
+
+  const weekStart = dailyData[0]?.date || '';
+  const weekEnd = dailyData[dailyData.length - 1]?.date || '';
+
+  return `You are a supportive nutrition coach using the "Nourished Calm" voice: warm, encouraging, never judgmental. Here's a user's week:
+
+Week of ${weekStart} to ${weekEnd}
+
+Daily Summaries:
+${dailySummaries || 'No meals logged this week'}
+
+Averages:
+- Calories: ${stats.avgCalories} / ${calorieTarget}
+- Protein: ${stats.avgProtein}g / ${proteinTarget}g
+- Consistency: ${stats.daysLogged}/7 days logged
+- Total meals: ${stats.totalMeals}
+${stats.calorieStreak >= 3 ? `- Calorie streak: ${stats.calorieStreak} days on target` : ''}
+${stats.proteinStreak >= 3 ? `- Protein streak: ${stats.proteinStreak} days on target` : ''}
+- Trend: Calories ${stats.trend === 'up' ? 'trending up' : stats.trend === 'down' ? 'trending down' : 'stable'}
+
+Provide a brief weekly recap in 2-3 sentences: start with a highlight (something positive), mention a pattern or trend, and end with a gentle suggestion for next week. Be warm and encouraging. Never use "failed", "cheated", "warning", or "deficiency".
+
+Output only the recap text, no labels or formatting.`;
+}
+
+// Fallback insight generation based on weekly stats (template-based)
+function generateFallbackWeeklyInsight(
+  stats: WeeklyStats,
+  calorieTarget: number,
+  proteinTarget: number
+): string {
+  const { avgCalories, avgProtein, daysLogged, calorieStreak, proteinStreak, bestDay, trend } = stats;
+
+  if (daysLogged === 0) {
+    return 'Start logging to see your weekly insights.';
+  }
+
+  const caloriePercent = calorieTarget > 0 ? Math.round((avgCalories / calorieTarget) * 100) : 0;
+  const proteinPercent = proteinTarget > 0 ? Math.round((avgProtein / proteinTarget) * 100) : 0;
+
+  // Priority insights
+  if (calorieStreak >= 5) {
+    return `Amazing consistency! You've hit your calorie target ${calorieStreak} days in a row.`;
+  }
+
+  if (proteinStreak >= 5) {
+    return `Great protein week! You've met your protein goal ${proteinStreak} consecutive days.`;
+  }
+
+  if (daysLogged >= 6 && caloriePercent >= 85 && caloriePercent <= 115) {
+    return `Excellent week! You averaged ${avgCalories} calories, right on target.`;
+  }
+
+  if (proteinPercent < 70) {
+    return `Protein averaged ${proteinPercent}% of your goal this week. Consider adding more lean protein sources.`;
+  }
+
+  if (caloriePercent > 115) {
+    return `You averaged ${caloriePercent}% of your calorie goal. Consider smaller portions this coming week.`;
+  }
+
+  if (trend === 'up') {
+    return `Calories are trending up toward the end of the week. Plan ahead for a balanced weekend.`;
+  }
+
+  if (bestDay) {
+    return `${bestDay} was your best day this week - balanced calories and strong protein.`;
+  }
+
+  if (daysLogged < 4) {
+    return `You logged ${daysLogged} days this week. Consistency helps build better habits.`;
+  }
+
+  return `You averaged ${avgCalories} calories and ${avgProtein}g protein across ${daysLogged} days.`;
+}
 
 export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
@@ -47,8 +146,26 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
   const { entries, streak } = useFoodLogStore();
   const { calorieGoal, proteinGoal } = useGoalStore();
 
+  // LLM state from insights store
+  const { llmStatus, setLLMStatus } = useInsightsStore();
+
+  // LLM insight state
+  const [llmInsight, setLlmInsight] = useState<string | null>(null);
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadPercent, setDownloadPercent] = useState(0);
+
+  // Check LLM status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      const status = await LLMService.getStatus();
+      setLLMStatus(status);
+    };
+    checkStatus();
+  }, [setLLMStatus]);
+
   // Calculate weekly data
-  const { weeklyStats, dailyData, insight } = useMemo(() => {
+  const { weeklyStats, dailyData } = useMemo(() => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
@@ -160,15 +277,130 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
       trend,
     };
 
-    // Generate insight
-    const insightText = generateInsight(stats, target, proteinTarget);
-
     return {
       weeklyStats: stats,
       dailyData: days,
-      insight: insightText,
     };
   }, [entries, calorieGoal, proteinGoal]);
+
+  // Generate or load weekly insight
+  useEffect(() => {
+    loadWeeklyInsight();
+  }, [weeklyStats, llmStatus]);
+
+  const loadWeeklyInsight = async () => {
+    // Try loading cached insight first
+    try {
+      const cached = await AsyncStorage.getItem(WEEKLY_INSIGHT_CACHE_KEY);
+      if (cached) {
+        const parsed: CachedWeeklyInsight = JSON.parse(cached);
+        const weekStart = dailyData[0]?.date || '';
+        const now = Date.now();
+
+        // Use cached if same week and not expired
+        if (
+          parsed.weekStart === weekStart &&
+          now - parsed.generatedAt < WEEKLY_CACHE_DURATION_MS
+        ) {
+          setLlmInsight(parsed.text);
+          return;
+        }
+      }
+    } catch {
+      // Ignore cache errors
+    }
+
+    // Generate new insight
+    await generateWeeklyInsight();
+  };
+
+  const generateWeeklyInsight = useCallback(async () => {
+    if (weeklyStats.daysLogged === 0) {
+      setLlmInsight(null);
+      return;
+    }
+
+    const target = calorieGoal || 2000;
+    const proteinTarget = proteinGoal || 150;
+
+    // Check LLM status
+    const status = await LLMService.getStatus();
+    setLLMStatus(status);
+
+    if (status === 'ready') {
+      setIsGeneratingInsight(true);
+      try {
+        const prompt = buildWeeklyRecapPrompt(dailyData, weeklyStats, target, proteinTarget);
+        const result = await LLMService.generate(prompt, 200);
+
+        if (result.success && result.text) {
+          const cleanText = result.text.trim();
+          if (cleanText.length > 15) {
+            setLlmInsight(cleanText);
+            // Cache the LLM result
+            const weekStart = dailyData[0]?.date || '';
+            await AsyncStorage.setItem(
+              WEEKLY_INSIGHT_CACHE_KEY,
+              JSON.stringify({
+                text: cleanText,
+                generatedAt: Date.now(),
+                weekStart,
+                source: 'llm',
+              } as CachedWeeklyInsight)
+            );
+            setIsGeneratingInsight(false);
+            return;
+          }
+        }
+        console.log('[WeeklyRecapWidget] LLM returned insufficient text, using fallback');
+      } catch (error) {
+        console.log('[WeeklyRecapWidget] LLM generation failed, using fallback');
+      }
+      setIsGeneratingInsight(false);
+    }
+
+    // If LLM not downloaded, don't generate fallback (show Enable AI prompt)
+    if (status === 'not_downloaded') {
+      return;
+    }
+
+    // Fall back to template-based insight
+    const fallbackText = generateFallbackWeeklyInsight(weeklyStats, target, proteinTarget);
+    setLlmInsight(fallbackText);
+
+    // Cache fallback too
+    const weekStart = dailyData[0]?.date || '';
+    await AsyncStorage.setItem(
+      WEEKLY_INSIGHT_CACHE_KEY,
+      JSON.stringify({
+        text: fallbackText,
+        generatedAt: Date.now(),
+        weekStart,
+        source: 'fallback',
+      } as CachedWeeklyInsight)
+    );
+  }, [weeklyStats, dailyData, calorieGoal, proteinGoal, setLLMStatus]);
+
+  const handleDownloadModel = async () => {
+    setIsDownloading(true);
+    setDownloadPercent(0);
+
+    try {
+      const result = await LLMService.downloadModel((progress) => {
+        setDownloadPercent(progress.percentage);
+      });
+
+      if (result.success) {
+        setLLMStatus('ready');
+        // Regenerate insight with LLM
+        await generateWeeklyInsight();
+      }
+    } catch (error) {
+      console.error('[WeeklyRecapWidget] Download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handlePress = () => {
     if (!isEditMode && isPremium) {
@@ -205,6 +437,67 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
         ))}
       </View>
     );
+  };
+
+  const renderInsightArea = () => {
+    // Show download progress
+    if (isDownloading) {
+      return (
+        <View style={styles.downloadContainer}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.downloadText, { color: colors.textSecondary }]}>
+            Downloading AI model... {downloadPercent}%
+          </Text>
+          <View style={styles.progressBarTrack}>
+            <View
+              style={[
+                styles.progressBarFill,
+                { width: `${downloadPercent}%`, backgroundColor: colors.accent },
+              ]}
+            />
+          </View>
+        </View>
+      );
+    }
+
+    // Show "Enable AI" prompt when model not downloaded
+    if (llmStatus === 'not_downloaded' && !llmInsight) {
+      return (
+        <TouchableOpacity
+          style={[styles.enableContainer, { borderColor: colors.borderDefault }]}
+          onPress={handleDownloadModel}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="sparkles" size={16} color={colors.accent} />
+          <Text style={[styles.enableText, { color: colors.accent }]}>
+            Enable AI for personalized recap
+          </Text>
+          <Ionicons name="download-outline" size={16} color={colors.accent} />
+        </TouchableOpacity>
+      );
+    }
+
+    // Show generating state
+    if (isGeneratingInsight) {
+      return (
+        <View style={styles.insightContainer}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={styles.insightText}>Analyzing your week...</Text>
+        </View>
+      );
+    }
+
+    // Show insight
+    if (llmInsight) {
+      return (
+        <View style={styles.insightContainer}>
+          <Text style={styles.insightIcon}>💡</Text>
+          <Text style={styles.insightText}>{llmInsight}</Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   const renderContent = () => {
@@ -270,11 +563,8 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
           </Text>
         </View>
 
-        {/* AI Insight */}
-        <View style={styles.insightContainer}>
-          <Text style={styles.insightIcon}>💡</Text>
-          <Text style={styles.insightText}>{insight}</Text>
-        </View>
+        {/* AI Insight / Enable prompt / Download progress */}
+        {renderInsightArea()}
       </View>
     );
   };
@@ -332,53 +622,6 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
-
-// Generate insight based on weekly stats
-function generateInsight(stats: WeeklyStats, calorieTarget: number, proteinTarget: number): string {
-  const { avgCalories, avgProtein, daysLogged, calorieStreak, proteinStreak, bestDay, trend } = stats;
-
-  if (daysLogged === 0) {
-    return 'Start logging to see your weekly insights.';
-  }
-
-  const caloriePercent = calorieTarget > 0 ? Math.round((avgCalories / calorieTarget) * 100) : 0;
-  const proteinPercent = proteinTarget > 0 ? Math.round((avgProtein / proteinTarget) * 100) : 0;
-
-  // Priority insights
-  if (calorieStreak >= 5) {
-    return `Amazing consistency! You've hit your calorie target ${calorieStreak} days in a row.`;
-  }
-
-  if (proteinStreak >= 5) {
-    return `Great protein week! You've met your protein goal ${proteinStreak} consecutive days.`;
-  }
-
-  if (daysLogged >= 6 && caloriePercent >= 85 && caloriePercent <= 115) {
-    return `Excellent week! You averaged ${avgCalories} calories, right on target.`;
-  }
-
-  if (proteinPercent < 70) {
-    return `Protein averaged ${proteinPercent}% of your goal this week. Consider adding more lean protein sources.`;
-  }
-
-  if (caloriePercent > 115) {
-    return `You averaged ${caloriePercent}% of your calorie goal. Consider smaller portions this coming week.`;
-  }
-
-  if (trend === 'up') {
-    return `Calories are trending up toward the end of the week. Plan ahead for a balanced weekend.`;
-  }
-
-  if (bestDay) {
-    return `${bestDay} was your best day this week - balanced calories and strong protein.`;
-  }
-
-  if (daysLogged < 4) {
-    return `You logged ${daysLogged} days this week. Consistency helps build better habits.`;
-  }
-
-  return `You averaged ${avgCalories} calories and ${avgProtein}g protein across ${daysLogged} days.`;
 }
 
 const createStyles = (colors: any) =>
@@ -509,6 +752,45 @@ const createStyles = (colors: any) =>
       fontSize: 13,
       lineHeight: 18,
       color: colors.textSecondary,
+    },
+    // Enable AI prompt
+    enableContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      marginTop: 12,
+    },
+    enableText: {
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    // Download progress
+    downloadContainer: {
+      alignItems: 'center',
+      gap: 6,
+      paddingTop: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.borderDefault,
+    },
+    downloadText: {
+      fontSize: 12,
+    },
+    progressBarTrack: {
+      width: '100%',
+      height: 3,
+      backgroundColor: colors.borderDefault,
+      borderRadius: 2,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 2,
     },
     // Empty state
     emptyContainer: {
