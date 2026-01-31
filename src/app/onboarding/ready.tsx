@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore, useSettingsStore } from '@/stores';
@@ -13,6 +14,7 @@ interface ActionOption {
   emoji: string;
   label: string;
   route: string;
+  testID: string;
 }
 
 const actionOptions: ActionOption[] = [
@@ -20,16 +22,19 @@ const actionOptions: ActionOption[] = [
     emoji: '📷',
     label: 'Scan a barcode',
     route: '/add-food/scan',
+    testID: TestIDs.Onboarding.ReadyScanBarcode,
   },
   {
     emoji: '🔍',
     label: 'Search for a food',
     route: '/add-food',
+    testID: TestIDs.Onboarding.ReadySearchFood,
   },
   {
     emoji: '👀',
     label: 'Explore the app first',
     route: '/(tabs)',
+    testID: TestIDs.Onboarding.ReadyExploreApp,
   },
 ];
 
@@ -57,10 +62,10 @@ export default function ReadyScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Onboarding.ReadyScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header with back button */}
       <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable testID={TestIDs.Onboarding.ReadyBackButton} onPress={handleBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
         </Pressable>
       </View>
@@ -98,6 +103,7 @@ export default function ReadyScreen() {
           {actionOptions.map((option, index) => (
             <Pressable
               key={option.route}
+              testID={option.testID}
               style={[
                 styles.optionCard,
                 { backgroundColor: colors.bgSecondary },

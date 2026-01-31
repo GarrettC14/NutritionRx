@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
@@ -20,6 +20,7 @@ import { WidgetPickerModal } from '@/components/dashboard/WidgetPickerModal';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { DashboardWidget } from '@/types/dashboard';
 import { DayTargets } from '@/types/planning';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function TodayScreen() {
   const { colors } = useTheme();
@@ -304,6 +305,7 @@ export default function TodayScreen() {
         {/* Row 1: Navigation arrows + Date */}
         <View style={styles.dateRow}>
           <Pressable
+            testID={TestIDs.Home.DatePrevButton}
             style={styles.navButton}
             onPress={() => navigateDate('prev')}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -311,11 +313,12 @@ export default function TodayScreen() {
             <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
           </Pressable>
           <Pressable onLongPress={goToToday} style={styles.dateContainer}>
-            <Text style={[styles.dateText, { color: colors.textPrimary }]}>
+            <Text testID={TestIDs.Home.DateLabel} style={[styles.dateText, { color: colors.textPrimary }]}>
               {formatDate(selectedDate)}
             </Text>
           </Pressable>
           <Pressable
+            testID={TestIDs.Home.DateNextButton}
             style={styles.navButton}
             onPress={() => navigateDate('next')}
             disabled={isToday}
@@ -347,6 +350,7 @@ export default function TodayScreen() {
         {/* Day menu button - shown when there are entries */}
         {hasEntries && !isEditMode && (
           <Pressable
+            testID={TestIDs.Home.DayMenuButton}
             style={styles.dayMenuButton}
             onPress={() => setShowDayMenu(true)}
           >
@@ -389,13 +393,14 @@ export default function TodayScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+      <SafeAreaView testID={TestIDs.Home.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         {/* Dashboard Header */}
         <View style={styles.dashboardHeader}>
           <Text style={[styles.dashboardTitle, { color: colors.textPrimary }]}>Dashboard</Text>
           <View style={styles.dashboardHeaderActions}>
             {isEditMode && (
               <TouchableOpacity
+                testID={TestIDs.Home.RestoreButton}
                 onPress={handleRestoreDefaults}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -405,6 +410,7 @@ export default function TodayScreen() {
               </TouchableOpacity>
             )}
             <TouchableOpacity
+              testID={TestIDs.Home.EditButton}
               onPress={() => setEditMode(!isEditMode)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
@@ -434,6 +440,7 @@ export default function TodayScreen() {
         {/* Floating Add Widget Button (Edit Mode only) */}
         {isEditMode && (
           <TouchableOpacity
+            testID={TestIDs.Home.AddWidgetButton}
             style={[styles.addWidgetButton, { backgroundColor: colors.accent }]}
             onPress={() => setShowWidgetPicker(true)}
           >

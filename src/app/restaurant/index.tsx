@@ -24,6 +24,7 @@ import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { RestaurantListSkeleton } from '@/components/ui/Skeleton';
 import { PremiumBanner } from '@/components/premium';
 import { usePremium, PremiumFeature } from '@/hooks/usePremium';
+import { TestIDs } from '@/constants/testIDs';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -54,6 +55,7 @@ export default function RestaurantListScreen() {
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState<Restaurant[]>([]);
   const [isSearchingLocal, setIsSearchingLocal] = useState(false);
+  const [hasLoadedRestaurants, setHasLoadedRestaurants] = useState(false);
   const debouncedSearch = useDebounce(searchText, SEARCH_SETTINGS.debounceMs);
 
   // Store state
@@ -91,6 +93,9 @@ export default function RestaurantListScreen() {
         }
 
         await Promise.all([loadRestaurants(), loadRecentRestaurants()]);
+        if (mounted) {
+          setHasLoadedRestaurants(true);
+        }
       } catch (err) {
         // Errors are handled by the store
         console.error('Restaurant initialization error:', err);
@@ -188,8 +193,8 @@ export default function RestaurantListScreen() {
     );
   }
 
-  // Show loading skeleton while initializing
-  if (!isDataInitialized || (isLoading && restaurants.length === 0)) {
+  // Show loading skeleton while initializing or until first load completes
+  if (!isDataInitialized || !hasLoadedRestaurants || (isLoading && restaurants.length === 0)) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <RestaurantListSkeleton />
@@ -198,10 +203,10 @@ export default function RestaurantListScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.Restaurant.ListScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable testID={TestIDs.Restaurant.BackButton} onPress={handleBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -214,6 +219,7 @@ export default function RestaurantListScreen() {
         <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
+            testID={TestIDs.Restaurant.SearchInput}
             style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder="Search restaurants..."
             placeholderTextColor={colors.textTertiary}
@@ -223,7 +229,7 @@ export default function RestaurantListScreen() {
             onSubmitEditing={() => Keyboard.dismiss()}
           />
           {searchText.length > 0 && (
-            <Pressable onPress={() => setSearchText('')}>
+            <Pressable testID={TestIDs.Restaurant.ClearSearchButton} onPress={() => setSearchText('')}>
               <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
             </Pressable>
           )}

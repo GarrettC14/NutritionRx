@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Linking } from 'react-native';
+import { useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Linking, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,9 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { PremiumSettingsRow } from '@/components/premium/PremiumSettingsRow';
+import { seedDatabase } from '@/utils/devTools/seedDatabase';
+import { DEFAULT_SEED_OPTIONS } from '@/utils/devTools/types';
+import { TestIDs } from '@/constants/testIDs';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -22,6 +25,7 @@ interface SettingsItemProps {
   showChevron?: boolean;
   danger?: boolean;
   showLock?: boolean;
+  testID?: string;
 }
 
 function SettingsItem({
@@ -32,11 +36,13 @@ function SettingsItem({
   showChevron = true,
   danger = false,
   showLock = false,
+  testID,
 }: SettingsItemProps) {
   const { colors } = useTheme();
 
   return (
     <Pressable
+      testID={testID}
       style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
       onPress={onPress}
     >
@@ -76,6 +82,12 @@ function SettingsItem({
   );
 }
 
+const THEME_TEST_IDS: Record<string, string> = {
+  system: TestIDs.Settings.ThemeSystem,
+  light: TestIDs.Settings.ThemeLight,
+  dark: TestIDs.Settings.ThemeDark,
+};
+
 function ThemeSelector() {
   const { colors, preference, setPreference } = useTheme();
 
@@ -100,6 +112,7 @@ function ThemeSelector() {
             return (
               <Pressable
                 key={option.value}
+                testID={THEME_TEST_IDS[option.value]}
                 style={[
                   styles.segmentOption,
                   isSelected && [
@@ -141,6 +154,24 @@ export default function SettingsScreen() {
   const { resetProfile } = useProfileStore();
   const { resetToDefaults: resetSettings } = useSettingsStore();
   const { showConfirm } = useConfirmDialog();
+
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeedDatabase = async () => {
+    setIsSeeding(true);
+    try {
+      const result = await seedDatabase(DEFAULT_SEED_OPTIONS);
+      if (result.success) {
+        Alert.alert('Seed Complete', `Inserted records in ${(result.duration / 1000).toFixed(1)}s.`);
+      } else {
+        Alert.alert('Seed Failed', result.errors.join('\n'));
+      }
+    } catch (e: any) {
+      Alert.alert('Seed Error', e.message ?? 'Unknown error');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Developer menu access - tap version 7 times
   const tapCountRef = useRef(0);
@@ -198,7 +229,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.Settings.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -207,6 +238,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView
+        testID={TestIDs.Settings.ScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -220,6 +252,7 @@ export default function SettingsScreen() {
             {isPremium ? (
               <>
                 <Pressable
+                  testID={TestIDs.Settings.PremiumRow}
                   style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
                   onPress={() => {
                     if (Platform.OS === 'ios') {
@@ -266,6 +299,7 @@ export default function SettingsScreen() {
               </>
             ) : (
               <SettingsItem
+                testID={TestIDs.Settings.PremiumRow}
                 icon="star-outline"
                 title="Upgrade to Premium"
                 subtitle="Unlock all features"
@@ -282,24 +316,28 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
+              testID={TestIDs.Settings.GoalsRow}
               icon="flag-outline"
               title="Your Goal"
               subtitle="Set up personalized targets"
               onPress={() => router.push('/settings/goals')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.NutritionRow}
               icon="nutrition-outline"
               title="Nutrition Preferences"
               subtitle="Eating style, protein priority"
               onPress={() => router.push('/settings/nutrition')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.MealPlanningRow}
               icon="calendar-outline"
               title="Meal Planning"
               subtitle="Plan meals in advance"
               onPress={() => router.push('/settings/meal-planning')}
             />
             <PremiumSettingsRow
+              testID={TestIDs.Settings.MacroCyclingRow}
               icon="repeat-outline"
               label="Macro Cycling"
               subtitle="Different targets for training vs rest days"
@@ -316,12 +354,14 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
+              testID={TestIDs.Settings.WaterRow}
               icon="water-outline"
               title="Water Tracking"
               subtitle="Daily glass goal, glass size"
               onPress={() => router.push('/settings/water')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.FastingRow}
               icon="timer-outline"
               title="Fasting Timer"
               subtitle="Intermittent fasting schedule"
@@ -337,12 +377,14 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
+              testID={TestIDs.Settings.ProfileRow}
               icon="person-outline"
               title="Profile"
               subtitle="Height, weight unit"
               onPress={() => router.push('/settings/profile')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.UnitsRow}
               icon="scale-outline"
               title="Units"
               subtitle="Weight unit preference"
@@ -360,6 +402,7 @@ export default function SettingsScreen() {
           <View style={styles.sectionContent}>
             {Platform.OS === 'ios' && (
               <SettingsItem
+                testID={TestIDs.Settings.AppleHealthRow}
                 icon="heart-outline"
                 title="Apple Health"
                 subtitle="Sync nutrition, weight, and water"
@@ -368,6 +411,7 @@ export default function SettingsScreen() {
             )}
             {Platform.OS === 'android' && (
               <SettingsItem
+                testID={TestIDs.Settings.HealthConnectRow}
                 icon="fitness-outline"
                 title="Health Connect"
                 subtitle="Sync nutrition, weight, and water"
@@ -375,18 +419,21 @@ export default function SettingsScreen() {
               />
             )}
             <SettingsItem
+              testID={TestIDs.Settings.WidgetsRow}
               icon="apps-outline"
               title="Widgets"
               subtitle="Home screen widgets setup"
               onPress={() => router.push('/settings/widgets')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.RestoreLayoutRow}
               icon="refresh-outline"
               title="Restore Default Layout"
               subtitle="Reset dashboard to default widgets"
               onPress={handleRestoreDefaultLayout}
             />
             <SettingsItem
+              testID={TestIDs.Settings.ImportRow}
               icon="cloud-download-outline"
               title="Import From Other Apps"
               subtitle="MyFitnessPal, Cronometer, Lose It!, MacroFactor"
@@ -402,11 +449,13 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
+              testID={TestIDs.Settings.HelpRow}
               icon="help-circle-outline"
               title="Help & Feedback"
               onPress={() => {}}
             />
             <SettingsItem
+              testID={TestIDs.Settings.HealthNoticeRow}
               icon="heart-outline"
               title="Health & Safety Notice"
               subtitle="Review the health disclaimer"
@@ -422,6 +471,7 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <Pressable
+              testID={TestIDs.Settings.AboutRow}
               style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
               onPress={() => router.push('/settings/about')}
               onLongPress={handleVersionTap}
@@ -445,11 +495,13 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
             </Pressable>
             <SettingsItem
+              testID={TestIDs.Settings.TermsRow}
               icon="document-text-outline"
               title="Terms of Service"
               onPress={() => router.push('/settings/terms-of-service')}
             />
             <SettingsItem
+              testID={TestIDs.Settings.PrivacyRow}
               icon="shield-outline"
               title="Privacy Policy"
               onPress={() => router.push('/settings/privacy-policy')}
@@ -464,6 +516,7 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
+              testID={TestIDs.Settings.DeleteAllDataRow}
               icon="trash-outline"
               title="Delete All Data"
               onPress={() => {}}
@@ -480,6 +533,7 @@ export default function SettingsScreen() {
             </Text>
             <View style={styles.sectionContent}>
               <Pressable
+                testID={TestIDs.Settings.DevPremiumToggle}
                 style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
                 onPress={toggleDevPremium}
               >
@@ -508,6 +562,7 @@ export default function SettingsScreen() {
                 )}
               </Pressable>
               <Pressable
+                testID={TestIDs.Settings.DevFreshSession}
                 style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
                 onPress={handleFreshSession}
               >
@@ -522,6 +577,30 @@ export default function SettingsScreen() {
                   </Text>
                   <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
                     Reset all state and restart onboarding
+                  </Text>
+                </View>
+              </Pressable>
+              <Pressable
+                testID={TestIDs.Settings.DevSeedDatabase}
+                style={[styles.settingsItem, { backgroundColor: colors.bgSecondary, opacity: isSeeding ? 0.6 : 1 }]}
+                onPress={handleSeedDatabase}
+                disabled={isSeeding}
+              >
+                <View
+                  style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}
+                >
+                  {isSeeding ? (
+                    <ActivityIndicator size="small" color={colors.accent} />
+                  ) : (
+                    <Ionicons name="server-outline" size={20} color={colors.accent} />
+                  )}
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                    Seed Database
+                  </Text>
+                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                    Fill app with 6 months of realistic data
                   </Text>
                 </View>
               </Pressable>

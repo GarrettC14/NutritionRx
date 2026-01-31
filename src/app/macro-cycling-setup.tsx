@@ -20,6 +20,7 @@ import { MacroCyclePatternType, DayTargets, MacroAdjustment } from '@/types/plan
 import { PremiumGate } from '@/components/premium';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { MacroCyclingSetupSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs, macroCyclingPatternOption, macroCyclingDayPill } from '@/constants/testIDs';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -123,13 +124,14 @@ export default function MacroCyclingSetupScreen() {
             headerTintColor: colors.textPrimary,
             presentation: 'modal',
             headerLeft: () => (
-              <Pressable onPress={() => router.back()}>
+              <Pressable testID={TestIDs.MacroCycling.CloseButton} onPress={() => router.back()}>
                 <Ionicons name="close" size={24} color={colors.textPrimary} />
               </Pressable>
             ),
           }}
         />
         <SafeAreaView
+          testID={TestIDs.MacroCycling.Screen}
           edges={['bottom']}
           style={[styles.container, { backgroundColor: colors.bgPrimary }]}
         >
@@ -231,6 +233,7 @@ export default function MacroCyclingSetupScreen() {
         {PATTERN_OPTIONS.map((option) => (
           <Pressable
             key={option.value}
+            testID={macroCyclingPatternOption(option.value)}
             style={[
               styles.optionCard,
               {
@@ -291,6 +294,7 @@ export default function MacroCyclingSetupScreen() {
         {DAY_LABELS.map((label, index) => (
           <Pressable
             key={index}
+            testID={macroCyclingDayPill(index)}
             style={[
               styles.dayPill,
               {
@@ -367,6 +371,7 @@ export default function MacroCyclingSetupScreen() {
         {DAY_LABELS.map((label, index) => (
           <Pressable
             key={index}
+            testID={macroCyclingDayPill(index)}
             style={[
               styles.dayPill,
               {
@@ -580,13 +585,14 @@ export default function MacroCyclingSetupScreen() {
           headerTintColor: colors.textPrimary,
           presentation: 'modal',
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable testID={TestIDs.MacroCycling.CloseButton} onPress={() => router.back()}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
             </Pressable>
           ),
         }}
       />
       <SafeAreaView
+        testID={TestIDs.MacroCycling.Screen}
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       >
@@ -606,6 +612,7 @@ export default function MacroCyclingSetupScreen() {
         </View>
 
         <ScrollView
+          testID={TestIDs.MacroCycling.ScrollView}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -617,6 +624,7 @@ export default function MacroCyclingSetupScreen() {
         <View style={styles.footer}>
           {config?.enabled && step === 1 && (
             <Button
+              testID={TestIDs.MacroCycling.DisableButton}
               label="Disable Cycling"
               variant="secondary"
               onPress={handleDisable}
@@ -627,6 +635,7 @@ export default function MacroCyclingSetupScreen() {
           <View style={styles.footerButtons}>
             {step > 1 && (
               <Button
+                testID={TestIDs.MacroCycling.BackStepButton}
                 label="Back"
                 variant="secondary"
                 onPress={() => setStep(step - 1)}
@@ -635,6 +644,7 @@ export default function MacroCyclingSetupScreen() {
             )}
             {step < 3 ? (
               <Button
+                testID={TestIDs.MacroCycling.ContinueButton}
                 label="Continue"
                 onPress={() => setStep(step + 1)}
                 style={{ flex: step > 1 ? 1 : undefined }}
@@ -642,6 +652,7 @@ export default function MacroCyclingSetupScreen() {
               />
             ) : (
               <Button
+                testID={TestIDs.MacroCycling.EnableButton}
                 label="Enable Macro Cycling"
                 onPress={handleSave}
                 loading={isSaving}
@@ -662,6 +673,7 @@ function AdjustmentRow({
   prefix,
   onChange,
   colors,
+  testID,
 }: {
   label: string;
   value: number;
@@ -669,6 +681,7 @@ function AdjustmentRow({
   prefix?: string;
   onChange: (value: number) => void;
   colors: any;
+  testID?: string;
 }) {
   const increment = label === 'Calories' ? 50 : 5;
 
@@ -677,6 +690,7 @@ function AdjustmentRow({
       <Text style={[adjustmentStyles.label, { color: colors.textPrimary }]}>{label}</Text>
       <View style={adjustmentStyles.controls}>
         <Pressable
+          testID={testID ? `${testID}-minus` : undefined}
           style={[adjustmentStyles.button, { backgroundColor: colors.bgInteractive }]}
           onPress={() => onChange(value - increment)}
         >
@@ -686,6 +700,7 @@ function AdjustmentRow({
           {prefix || ''}{value >= 0 ? '+' : ''}{value}{unit || ''}
         </Text>
         <Pressable
+          testID={testID ? `${testID}-plus` : undefined}
           style={[adjustmentStyles.button, { backgroundColor: colors.bgInteractive }]}
           onPress={() => onChange(value + increment)}
         >
@@ -701,16 +716,19 @@ function CustomInput({
   value,
   onChange,
   colors,
+  testID,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   colors: any;
+  testID?: string;
 }) {
   return (
     <View style={customInputStyles.container}>
       <Text style={[customInputStyles.label, { color: colors.textTertiary }]}>{label}</Text>
       <TextInput
+        testID={testID}
         style={[
           customInputStyles.input,
           { backgroundColor: colors.bgInteractive, color: colors.textPrimary },

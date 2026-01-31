@@ -16,6 +16,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWeightStore, useSettingsStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
+import { TestIDs } from '@/constants/testIDs';
 
 // Convert kg to lbs
 const kgToLbs = (kg: number): number => Math.round(kg * 2.20462 * 10) / 10;
@@ -108,14 +109,14 @@ export default function LogWeightScreen() {
   const isValid = weightNum > 0 && weightNum < 1000;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.LogWeight.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
+          <Pressable testID={TestIDs.LogWeight.CloseButton} onPress={() => router.back()}>
             <Ionicons name="close" size={28} color={colors.textPrimary} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -139,6 +140,7 @@ export default function LogWeightScreen() {
           <View style={[styles.weightCard, { backgroundColor: colors.bgSecondary }]}>
             <View style={styles.weightInputRow}>
               <Pressable
+                testID={TestIDs.LogWeight.MinusButton}
                 style={[styles.adjustButton, { backgroundColor: colors.bgInteractive }]}
                 onPress={() => handleIncrement(-0.5)}
               >
@@ -147,6 +149,7 @@ export default function LogWeightScreen() {
 
               <View style={styles.weightDisplay}>
                 <TextInput
+                  testID={TestIDs.LogWeight.WeightInput}
                   style={[styles.weightInput, { color: colors.textPrimary }]}
                   value={weight}
                   onChangeText={handleWeightChange}
@@ -162,6 +165,7 @@ export default function LogWeightScreen() {
               </View>
 
               <Pressable
+                testID={TestIDs.LogWeight.PlusButton}
                 style={[styles.adjustButton, { backgroundColor: colors.bgInteractive }]}
                 onPress={() => handleIncrement(0.5)}
               >
@@ -171,9 +175,15 @@ export default function LogWeightScreen() {
 
             {/* Quick adjust buttons */}
             <View style={styles.quickAdjustRow}>
-              {[-1, -0.5, 0.5, 1].map((amount) => (
+              {([
+                { amount: -1, testID: TestIDs.LogWeight.QuickMinus1 },
+                { amount: -0.5, testID: TestIDs.LogWeight.QuickMinus05 },
+                { amount: 0.5, testID: TestIDs.LogWeight.QuickPlus05 },
+                { amount: 1, testID: TestIDs.LogWeight.QuickPlus1 },
+              ]).map(({ amount, testID }) => (
                 <Pressable
                   key={amount}
+                  testID={testID}
                   style={[styles.quickAdjustButton, { borderColor: colors.borderDefault }]}
                   onPress={() => handleIncrement(amount)}
                 >
@@ -192,6 +202,7 @@ export default function LogWeightScreen() {
               Notes (optional)
             </Text>
             <TextInput
+              testID={TestIDs.LogWeight.NotesInput}
               style={[styles.notesInput, { color: colors.textPrimary, borderColor: colors.borderDefault }]}
               value={notes}
               onChangeText={setNotes}
@@ -235,6 +246,7 @@ export default function LogWeightScreen() {
         {/* Save Button */}
         <View style={styles.footer}>
           <Button
+            testID={TestIDs.LogWeight.SaveButton}
             label={existingEntry ? 'Update Weight' : 'Save Weight'}
             onPress={handleSave}
             loading={isSaving}

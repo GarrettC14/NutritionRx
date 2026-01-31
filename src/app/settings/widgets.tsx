@@ -16,6 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { usePinToWidget, PinnedItem } from '@/modules/widgets';
+import { TestIDs, settingsWidgetsRemovePinnedItem } from '@/constants/testIDs';
 
 const WIDGET_TYPES = [
   {
@@ -104,10 +105,11 @@ export default function WidgetsScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['top', 'bottom']}
+      testID={TestIDs.SettingsWidgets.Screen}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsWidgets.BackButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -120,6 +122,7 @@ export default function WidgetsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        testID={TestIDs.SettingsWidgets.ScrollView}
       >
         {/* Setup Instructions */}
         <View style={styles.section}>
@@ -190,7 +193,7 @@ export default function WidgetsScreen() {
               PINNED FOODS ({pinnedItems.length}/{maxItems})
             </Text>
             {pinnedItems.length > 0 && (
-              <Pressable onPress={handleClearAll}>
+              <Pressable onPress={handleClearAll} testID={TestIDs.SettingsWidgets.ClearAllButton}>
                 <Text style={[styles.clearButton, { color: colors.error }]}>
                   Clear All
                 </Text>
@@ -237,6 +240,7 @@ export default function WidgetsScreen() {
                     onPress={() => handleRemoveItem(item)}
                     disabled={removingId === item.id}
                     style={styles.removeButton}
+                    testID={settingsWidgetsRemovePinnedItem(item.id)}
                   >
                     {removingId === item.id ? (
                       <ActivityIndicator size="small" color={colors.textTertiary} />

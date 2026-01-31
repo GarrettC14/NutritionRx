@@ -8,6 +8,7 @@ import { spacing, componentSpacing } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { ImportTypeOption } from '@/components/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportTypeScreen() {
   const { colors } = useTheme();
@@ -25,10 +26,10 @@ export default function ImportTypeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.TypeScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable testID={TestIDs.Import.TypeBackButton} onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Import Type</Text>
@@ -36,6 +37,7 @@ export default function ImportTypeScreen() {
       </View>
 
       <ScrollView
+        testID={TestIDs.Import.TypeScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -70,6 +72,7 @@ export default function ImportTypeScreen() {
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
         <Button
+          testID={TestIDs.Import.TypeContinueButton}
           label="Continue"
           variant="primary"
           size="lg"

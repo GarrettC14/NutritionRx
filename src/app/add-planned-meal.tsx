@@ -24,6 +24,7 @@ import { MealSlot } from '@/types/planning';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
 import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { TestIDs } from '@/constants/testIDs';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -184,7 +185,7 @@ export default function AddPlannedMealScreen() {
   // Show skeleton while initial data is loading
   if (!isLoaded || !favoritesLoaded) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']}>
+      <SafeAreaView testID={TestIDs.AddPlannedMeal.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']}>
         <Stack.Screen
           options={{
             headerShown: true,
@@ -208,7 +209,7 @@ export default function AddPlannedMealScreen() {
           headerTintColor: colors.textPrimary,
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']}>
+      <SafeAreaView testID={TestIDs.AddPlannedMeal.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']}>
         {/* Header Info */}
         <View style={[styles.headerInfo, { backgroundColor: colors.bgSecondary }]}>
           <View style={styles.headerInfoRow}>
@@ -233,7 +234,7 @@ export default function AddPlannedMealScreen() {
                 <Text style={[styles.selectedLabel, { color: colors.textSecondary }]}>
                   Selected Food
                 </Text>
-                <Pressable onPress={handleClearSelection}>
+                <Pressable testID={TestIDs.AddPlannedMeal.ClearSelectionButton} onPress={handleClearSelection}>
                   <Ionicons name="close-circle" size={22} color={colors.textTertiary} />
                 </Pressable>
               </View>
@@ -253,6 +254,7 @@ export default function AddPlannedMealScreen() {
                 </Text>
                 <View style={styles.servingsControls}>
                   <Pressable
+                    testID={TestIDs.AddPlannedMeal.ServingsMinusButton}
                     style={[styles.servingsButton, { backgroundColor: colors.bgElevated }]}
                     onPress={() => {
                       const newVal = Math.max(0.5, servingsNum - 0.5);
@@ -262,6 +264,7 @@ export default function AddPlannedMealScreen() {
                     <Ionicons name="remove" size={18} color={colors.textPrimary} />
                   </Pressable>
                   <TextInput
+                    testID={TestIDs.AddPlannedMeal.ServingsInput}
                     style={[styles.servingsInput, { color: colors.textPrimary, backgroundColor: colors.bgElevated }]}
                     value={servings}
                     onChangeText={setServings}
@@ -269,6 +272,7 @@ export default function AddPlannedMealScreen() {
                     textAlign="center"
                   />
                   <Pressable
+                    testID={TestIDs.AddPlannedMeal.ServingsPlusButton}
                     style={[styles.servingsButton, { backgroundColor: colors.bgElevated }]}
                     onPress={() => {
                       const newVal = servingsNum + 0.5;
@@ -313,6 +317,7 @@ export default function AddPlannedMealScreen() {
 
             {/* Add Button */}
             <Pressable
+              testID={TestIDs.AddPlannedMeal.AddButton}
               style={[styles.addButton, { backgroundColor: SAGE_GREEN }]}
               onPress={handleAddToMealPlan}
               disabled={isAdding}
@@ -334,6 +339,7 @@ export default function AddPlannedMealScreen() {
               <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
                 <Ionicons name="search" size={20} color={colors.textSecondary} />
                 <TextInput
+                  testID={TestIDs.AddPlannedMeal.SearchInput}
                   style={[styles.searchInput, { color: colors.textPrimary }]}
                   placeholder="Search foods..."
                   placeholderTextColor={colors.textTertiary}
@@ -344,7 +350,7 @@ export default function AddPlannedMealScreen() {
                   autoFocus
                 />
                 {searchText.length > 0 && (
-                  <Pressable onPress={() => setSearchText('')}>
+                  <Pressable testID={TestIDs.AddPlannedMeal.ClearSearchButton} onPress={() => setSearchText('')}>
                     <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
                   </Pressable>
                 )}
@@ -382,6 +388,7 @@ export default function AddPlannedMealScreen() {
 
               {showSections && (
                 <ScrollView
+                  testID={TestIDs.AddPlannedMeal.SectionsScrollView}
                   style={styles.sectionsContainer}
                   contentContainerStyle={styles.sectionsContent}
                   showsVerticalScrollIndicator={false}

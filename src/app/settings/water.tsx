@@ -8,6 +8,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWaterStore } from '@/stores';
 import { DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from '@/repositories';
+import { TestIDs, settingsWaterGlassGoalOption, settingsWaterGlassSizeOption } from '@/constants/testIDs';
 
 const GLASS_GOAL_OPTIONS = [6, 8, 10, 12];
 const GLASS_SIZE_OPTIONS = [
@@ -70,7 +71,7 @@ export default function WaterSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsWater.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -79,11 +80,13 @@ export default function WaterSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsWater.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsWater.ScrollView}
         >
           {/* Summary Card */}
           <View style={[styles.summaryCard, { backgroundColor: colors.bgSecondary }]}>
@@ -117,6 +120,7 @@ export default function WaterSettingsScreen() {
                     },
                   ]}
                   onPress={() => handleGoalSelect(option)}
+                  testID={settingsWaterGlassGoalOption(option)}
                 >
                   <Text
                     style={[
@@ -148,6 +152,7 @@ export default function WaterSettingsScreen() {
                 },
               ]}
               onPress={toggleCustomGoal}
+              testID={TestIDs.SettingsWater.CustomGoalButton}
             >
               {showCustomGoal ? (
                 <View style={styles.customInputContainer}>
@@ -158,6 +163,7 @@ export default function WaterSettingsScreen() {
                     keyboardType="number-pad"
                     maxLength={2}
                     autoFocus
+                    testID={TestIDs.SettingsWater.CustomGoalInput}
                   />
                   <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>
                     glasses
@@ -195,6 +201,7 @@ export default function WaterSettingsScreen() {
                     },
                   ]}
                   onPress={() => setGlassSizeMl(option.value)}
+                  testID={settingsWaterGlassSizeOption(option.value)}
                 >
                   <View style={styles.optionContent}>
                     <Text

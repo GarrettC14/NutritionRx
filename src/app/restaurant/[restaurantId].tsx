@@ -24,6 +24,7 @@ import { RestaurantFood, MenuCategory } from '@/types/restaurant';
 import { RestaurantFoodCard } from '@/components/restaurant/RestaurantFoodCard';
 import { CategoryChip } from '@/components/restaurant/CategoryChip';
 import { RestaurantMenuSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs } from '@/constants/testIDs';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -140,10 +141,10 @@ export default function RestaurantMenuScreen() {
   const branding = getRestaurantBranding(currentRestaurant.id, currentRestaurant.name);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.Restaurant.MenuScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable testID={TestIDs.Restaurant.MenuBackButton} onPress={handleBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <View style={[styles.headerBadge, { backgroundColor: branding.backgroundColor }]}>
@@ -166,6 +167,7 @@ export default function RestaurantMenuScreen() {
         <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
+            testID={TestIDs.Restaurant.MenuSearchInput}
             style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder={`Search ${currentRestaurant.name}...`}
             placeholderTextColor={colors.textTertiary}
@@ -191,6 +193,7 @@ export default function RestaurantMenuScreen() {
             contentContainerStyle={styles.categoryScroll}
           >
             <CategoryChip
+              testID={TestIDs.Restaurant.CategoryAll}
               label="All"
               isSelected={currentCategory === null}
               onPress={() => handleCategorySelect(null)}

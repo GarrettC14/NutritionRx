@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 export interface ConfirmDialogConfig {
   title: string;
@@ -51,6 +52,7 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
 
   return (
     <Modal
+      testID={TestIDs.UI.ConfirmDialog}
       visible={visible}
       transparent
       animationType="fade"
@@ -85,6 +87,7 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
               <View style={[styles.actions, !showCancelButton && styles.singleAction]}>
                 {showCancelButton && (
                   <Pressable
+                    testID={TestIDs.UI.ConfirmDialogCancel}
                     style={[
                       styles.actionButton,
                       { backgroundColor: colors.bgInteractive },
@@ -99,6 +102,7 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
                   </Pressable>
                 )}
                 <Pressable
+                  testID={TestIDs.UI.ConfirmDialogConfirm}
                   style={[
                     styles.actionButton,
                     !showCancelButton && styles.singleActionButton,

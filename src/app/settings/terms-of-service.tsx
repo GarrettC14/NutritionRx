@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 const TERMS_SECTIONS = [
   {
@@ -69,10 +70,11 @@ export default function TermsOfServiceScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['bottom']}
+      testID={TestIDs.SettingsTermsOfService.Screen}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsTermsOfService.BackButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -85,6 +87,7 @@ export default function TermsOfServiceScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        testID={TestIDs.SettingsTermsOfService.ScrollView}
       >
         {/* Last Updated */}
         <Text style={[styles.lastUpdated, { color: colors.textTertiary }]}>

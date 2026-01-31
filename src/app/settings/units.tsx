@@ -7,6 +7,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useSettingsStore } from '@/stores';
 import { WeightUnit } from '@/constants/defaults';
+import { TestIDs, settingsWeightUnitOption } from '@/constants/testIDs';
 
 export default function UnitsSettingsScreen() {
   const { colors } = useTheme();
@@ -27,7 +28,7 @@ export default function UnitsSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsUnits.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -36,11 +37,13 @@ export default function UnitsSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsUnits.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsUnits.ScrollView}
         >
           {/* Weight Unit */}
           <View style={styles.section}>
@@ -63,6 +66,7 @@ export default function UnitsSettingsScreen() {
                     },
                   ]}
                   onPress={() => setWeightUnit(option.value)}
+                  testID={settingsWeightUnitOption(option.value)}
                 >
                   <View style={styles.optionContent}>
                     <Text

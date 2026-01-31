@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { useProfileStore, useSettingsStore } from '@/stores';
 import { ActivityLevel, Sex } from '@/types/domain';
 import { ACTIVITY_OPTIONS } from '@/constants/defaults';
+import { TestIDs, settingsActivityLevel } from '@/constants/testIDs';
 
 const cmToFeetInches = (cm: number): { feet: number; inches: number } => {
   const totalInches = cm / 2.54;
@@ -127,7 +128,7 @@ export default function ProfileSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsProfile.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -136,11 +137,13 @@ export default function ProfileSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsProfile.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsProfile.ScrollView}
         >
           {/* View Mode */}
           {!isEditing ? (
@@ -184,6 +187,7 @@ export default function ProfileSettingsScreen() {
                   variant="secondary"
                   onPress={() => setIsEditing(true)}
                   fullWidth
+                  testID={TestIDs.SettingsProfile.EditButton}
                 />
               </View>
 
@@ -214,6 +218,7 @@ export default function ProfileSettingsScreen() {
                         },
                       ]}
                       onPress={() => setSex(option.value)}
+                      testID={option.value === 'male' ? TestIDs.SettingsProfile.SexMale : TestIDs.SettingsProfile.SexFemale}
                     >
                       <Ionicons
                         name={option.icon}
@@ -241,6 +246,7 @@ export default function ProfileSettingsScreen() {
                 <Pressable
                   style={[styles.dateButton, { backgroundColor: colors.bgSecondary }]}
                   onPress={() => setShowDatePicker(true)}
+                  testID={TestIDs.SettingsProfile.BirthdayButton}
                 >
                   <Ionicons name="calendar-outline" size={24} color={colors.textSecondary} />
                   <Text style={[styles.dateText, { color: colors.textPrimary }]}>
@@ -275,6 +281,7 @@ export default function ProfileSettingsScreen() {
                         variant="secondary"
                         onPress={() => setShowDatePicker(false)}
                         style={{ marginTop: spacing[3] }}
+                        testID={TestIDs.SettingsProfile.DatePickerDone}
                       />
                     )}
                   </View>
@@ -285,7 +292,7 @@ export default function ProfileSettingsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>HEIGHT</Text>
-                  <Pressable onPress={() => setUseFeetInches(!useFeetInches)}>
+                  <Pressable onPress={() => setUseFeetInches(!useFeetInches)} testID={TestIDs.SettingsProfile.HeightUnitToggle}>
                     <Text style={[styles.unitToggle, { color: colors.accent }]}>
                       {useFeetInches ? 'Use cm' : 'Use ft/in'}
                     </Text>
@@ -296,6 +303,7 @@ export default function ProfileSettingsScreen() {
                     <Pressable
                       style={[styles.heightButton, { backgroundColor: colors.bgInteractive }]}
                       onPress={() => handleHeightAdjust(useFeetInches ? -3 : -1)}
+                      testID={TestIDs.SettingsProfile.HeightMinus}
                     >
                       <Ionicons name="remove" size={24} color={colors.textPrimary} />
                     </Pressable>
@@ -307,6 +315,7 @@ export default function ProfileSettingsScreen() {
                     <Pressable
                       style={[styles.heightButton, { backgroundColor: colors.bgInteractive }]}
                       onPress={() => handleHeightAdjust(useFeetInches ? 3 : 1)}
+                      testID={TestIDs.SettingsProfile.HeightPlus}
                     >
                       <Ionicons name="add" size={24} color={colors.textPrimary} />
                     </Pressable>
@@ -335,6 +344,7 @@ export default function ProfileSettingsScreen() {
                         },
                       ]}
                       onPress={() => setActivityLevel(option.value as ActivityLevel)}
+                      testID={settingsActivityLevel(option.value)}
                     >
                       <View style={styles.activityContent}>
                         <Text
@@ -374,8 +384,9 @@ export default function ProfileSettingsScreen() {
               onPress={() => setIsEditing(false)}
               fullWidth
               style={{ marginBottom: spacing[3] }}
+              testID={TestIDs.SettingsProfile.CancelButton}
             />
-            <Button label="Save Changes" onPress={handleSave} loading={isLoading} fullWidth />
+            <Button label="Save Changes" onPress={handleSave} loading={isLoading} fullWidth testID={TestIDs.SettingsProfile.SaveButton} />
           </View>
         )}
       </SafeAreaView>

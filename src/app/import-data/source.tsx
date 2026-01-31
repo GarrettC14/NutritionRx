@@ -11,6 +11,7 @@ import { ImportSourceCard } from '@/components/nutritionImport';
 import { IMPORT_SOURCES, ImportSource } from '@/types/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportSourceScreen() {
   const { colors } = useTheme();
@@ -58,10 +59,10 @@ export default function ImportSourceScreen() {
 
   if (showInstructions && selectedConfig) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+      <SafeAreaView testID={TestIDs.Import.SourceScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => setShowInstructions(false)} style={styles.backButton}>
+          <Pressable testID={TestIDs.Import.SourceInstructionsBackButton} onPress={() => setShowInstructions(false)} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -71,6 +72,7 @@ export default function ImportSourceScreen() {
         </View>
 
         <ScrollView
+          testID={TestIDs.Import.SourceInstructionsScrollView}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -100,6 +102,7 @@ export default function ImportSourceScreen() {
 
         <View style={styles.bottomActions}>
           <Button
+            testID={TestIDs.Import.SourceCSVButton}
             label="I Have My CSV File"
             variant="primary"
             size="lg"
@@ -113,10 +116,10 @@ export default function ImportSourceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.SourceScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable testID={TestIDs.Import.SourceBackButton} onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Select Source</Text>
@@ -124,6 +127,7 @@ export default function ImportSourceScreen() {
       </View>
 
       <ScrollView
+        testID={TestIDs.Import.SourceScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -148,7 +152,7 @@ export default function ImportSourceScreen() {
           <View style={[styles.errorBox, { backgroundColor: colors.errorBg }]}>
             <Ionicons name="alert-circle" size={20} color={colors.error} />
             <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
-            <Pressable onPress={clearError}>
+            <Pressable testID={TestIDs.Import.ClearErrorButton} onPress={clearError}>
               <Ionicons name="close" size={20} color={colors.error} />
             </Pressable>
           </View>
@@ -158,6 +162,7 @@ export default function ImportSourceScreen() {
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
         <Button
+          testID={TestIDs.Import.SourceContinueButton}
           label="Continue"
           variant="primary"
           size="lg"

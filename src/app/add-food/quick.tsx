@@ -16,6 +16,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 import { useFoodLogStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function QuickAddScreen() {
   const { colors } = useTheme();
@@ -85,10 +86,10 @@ export default function QuickAddScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.QuickAdd.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable testID={TestIDs.QuickAdd.BackButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -110,6 +111,7 @@ export default function QuickAddScreen() {
           </Text>
           <View style={styles.inputRow}>
             <TextInput
+              testID={TestIDs.QuickAdd.CaloriesInput}
               style={[
                 styles.calorieInput,
                 { color: colors.textPrimary, borderColor: colors.borderDefault },
@@ -141,6 +143,7 @@ export default function QuickAddScreen() {
                 ]}
               />
               <TextInput
+                testID={TestIDs.QuickAdd.ProteinInput}
                 style={[
                   styles.macroInput,
                   { color: colors.textPrimary, borderColor: colors.borderDefault },
@@ -163,6 +166,7 @@ export default function QuickAddScreen() {
                 ]}
               />
               <TextInput
+                testID={TestIDs.QuickAdd.CarbsInput}
                 style={[
                   styles.macroInput,
                   { color: colors.textPrimary, borderColor: colors.borderDefault },
@@ -185,6 +189,7 @@ export default function QuickAddScreen() {
                 ]}
               />
               <TextInput
+                testID={TestIDs.QuickAdd.FatInput}
                 style={[
                   styles.macroInput,
                   { color: colors.textPrimary, borderColor: colors.borderDefault },
@@ -211,6 +216,12 @@ export default function QuickAddScreen() {
             {mealOptions.map((option) => (
               <Pressable
                 key={option.value}
+                testID={
+                  option.value === MealType.Breakfast ? TestIDs.QuickAdd.MealBreakfast :
+                  option.value === MealType.Lunch ? TestIDs.QuickAdd.MealLunch :
+                  option.value === MealType.Dinner ? TestIDs.QuickAdd.MealDinner :
+                  TestIDs.QuickAdd.MealSnack
+                }
                 style={[
                   styles.mealOption,
                   {
@@ -244,6 +255,7 @@ export default function QuickAddScreen() {
             Description (Optional)
           </Text>
           <TextInput
+            testID={TestIDs.QuickAdd.DescriptionInput}
             style={[
               styles.descriptionInput,
               { color: colors.textPrimary, borderColor: colors.borderDefault },
@@ -261,6 +273,7 @@ export default function QuickAddScreen() {
       {/* Save Button */}
       <View style={styles.footer}>
         <Button
+          testID={TestIDs.QuickAdd.AddButton}
           onPress={handleSave}
           loading={isSaving}
           disabled={!isValid}

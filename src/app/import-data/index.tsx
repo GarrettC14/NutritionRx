@@ -8,6 +8,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { seedMicronutrientData, clearSeedData } from '@/services/seedDataService';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportWelcomeScreen() {
   const { colors } = useTheme();
@@ -83,15 +84,16 @@ export default function ImportWelcomeScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.IndexScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable testID={TestIDs.Import.IndexBackButton} onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </Pressable>
       </View>
 
       <ScrollView
+        testID={TestIDs.Import.IndexScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -158,6 +160,7 @@ export default function ImportWelcomeScreen() {
               </View>
               <View style={styles.devButtons}>
                 <Pressable
+                  testID={TestIDs.Import.SeedDataButton}
                   style={[styles.devButton, { backgroundColor: colors.accent }]}
                   onPress={handleSeedData}
                   disabled={isSeeding}
@@ -168,6 +171,7 @@ export default function ImportWelcomeScreen() {
                   </Text>
                 </Pressable>
                 <Pressable
+                  testID={TestIDs.Import.ClearSeedDataButton}
                   style={[styles.devButton, styles.devButtonSecondary, { borderColor: colors.borderDefault }]}
                   onPress={handleClearSeedData}
                   disabled={isClearing}
@@ -186,6 +190,7 @@ export default function ImportWelcomeScreen() {
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
         <Button
+          testID={TestIDs.Import.IndexGetStartedButton}
           label="Get Started"
           variant="primary"
           size="lg"

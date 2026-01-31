@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 const PRIVACY_SECTIONS = [
   {
@@ -49,10 +50,11 @@ export default function PrivacyPolicyScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['bottom']}
+      testID={TestIDs.SettingsPrivacyPolicy.Screen}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsPrivacyPolicy.BackButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -65,6 +67,7 @@ export default function PrivacyPolicyScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        testID={TestIDs.SettingsPrivacyPolicy.ScrollView}
       >
         {/* Last Updated */}
         <Text style={[styles.lastUpdated, { color: colors.textTertiary }]}>

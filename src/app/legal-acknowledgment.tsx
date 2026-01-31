@@ -19,6 +19,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { DisclaimerCard } from '@/features/legal/components/DisclaimerCard';
@@ -94,10 +95,12 @@ export default function LegalAcknowledgmentScreen() {
 
   return (
     <SafeAreaView
+      testID={TestIDs.Legal.Screen}
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['top', 'bottom']}
     >
       <ScrollView
+        testID={TestIDs.Legal.ScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         onScroll={handleScroll}
@@ -128,6 +131,7 @@ export default function LegalAcknowledgmentScreen() {
         <View style={styles.acknowledgmentSection}>
           {/* Checkbox */}
           <Pressable
+            testID={TestIDs.Legal.Checkbox}
             style={[
               styles.checkbox,
               {
@@ -178,6 +182,7 @@ export default function LegalAcknowledgmentScreen() {
 
           {/* Proceed Button */}
           <Button
+            testID={TestIDs.Legal.ProceedButton}
             onPress={handleProceed}
             disabled={!canProceed}
             loading={isSubmitting}
@@ -188,7 +193,7 @@ export default function LegalAcknowledgmentScreen() {
           </Button>
 
           {/* Terms Link */}
-          <Pressable onPress={handleTermsPress} style={styles.termsLink}>
+          <Pressable testID={TestIDs.Legal.TermsLink} onPress={handleTermsPress} style={styles.termsLink}>
             <Text style={[styles.termsText, { color: colors.textTertiary }]}>
               Read full Terms of Service
             </Text>

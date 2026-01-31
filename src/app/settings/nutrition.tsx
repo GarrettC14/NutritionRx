@@ -11,6 +11,7 @@ import { useProfileStore, useGoalStore, useSettingsStore, useWeightStore } from 
 import { EatingStyle, ProteinPriority } from '@/types/domain';
 import { macroCalculator } from '@/services/macroCalculator';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { TestIDs, settingsNutritionEatingStyleOption, settingsNutritionProteinPriorityOption } from '@/constants/testIDs';
 
 interface EatingStyleOption {
   value: EatingStyle;
@@ -207,7 +208,7 @@ export default function NutritionSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsNutrition.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -216,11 +217,13 @@ export default function NutritionSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsNutrition.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsNutrition.ScrollView}
         >
           {/* View Mode */}
           {!isEditing ? (
@@ -252,6 +255,7 @@ export default function NutritionSettingsScreen() {
                   variant="secondary"
                   onPress={() => setIsEditing(true)}
                   fullWidth
+                  testID={TestIDs.SettingsNutrition.EditButton}
                 />
               </View>
 
@@ -321,6 +325,7 @@ export default function NutritionSettingsScreen() {
                         },
                       ]}
                       onPress={() => setEatingStyle(option.value)}
+                      testID={settingsNutritionEatingStyleOption(option.value)}
                     >
                       <View
                         style={[
@@ -392,6 +397,7 @@ export default function NutritionSettingsScreen() {
                         },
                       ]}
                       onPress={() => setProteinPriority(option.value)}
+                      testID={settingsNutritionProteinPriorityOption(option.value)}
                     >
                       <View
                         style={[
@@ -500,12 +506,14 @@ export default function NutritionSettingsScreen() {
               }}
               fullWidth
               style={{ marginBottom: spacing[3] }}
+              testID={TestIDs.SettingsNutrition.CancelButton}
             />
             <Button
               label="Save Changes"
               onPress={handleSave}
               loading={isSaving}
               fullWidth
+              testID={TestIDs.SettingsNutrition.SaveButton}
             />
           </View>
         )}

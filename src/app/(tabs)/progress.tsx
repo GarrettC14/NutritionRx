@@ -15,8 +15,16 @@ import { MicronutrientSummary } from '@/components/micronutrients';
 import { ProgressPhotosSummary } from '@/components/progressPhotos';
 import { usePremium } from '@/hooks/usePremium';
 import { DailyInsightsSection } from '@/features/insights';
+import { TestIDs } from '@/constants/testIDs';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
+
+const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
+  '7d': TestIDs.Progress.TimeRange7d,
+  '30d': TestIDs.Progress.TimeRange30d,
+  '90d': TestIDs.Progress.TimeRange90d,
+  all: TestIDs.Progress.TimeRangeAll,
+};
 
 const getDateRange = (range: TimeRange): { start: string; end: string } => {
   const end = new Date();
@@ -224,13 +232,14 @@ export default function ProgressScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.Progress.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Your Journey
         </Text>
         <Pressable
+          testID={TestIDs.Progress.LogWeightButton}
           style={[styles.logWeightButton, { backgroundColor: colors.bgInteractive }]}
           onPress={() => router.push('/log-weight')}
         >
@@ -300,6 +309,7 @@ export default function ProgressScreen() {
               {timeRanges.map((range) => (
                 <Pressable
                   key={range}
+                  testID={TIME_RANGE_TEST_IDS[range]}
                   style={[
                     styles.timeRangeButton,
                     weightTimeRange === range && { backgroundColor: colors.bgInteractive },
@@ -354,6 +364,7 @@ export default function ProgressScreen() {
               {timeRanges.map((range) => (
                 <Pressable
                   key={range}
+                  testID={TIME_RANGE_TEST_IDS[range]}
                   style={[
                     styles.timeRangeButton,
                     calorieTimeRange === range && { backgroundColor: colors.bgInteractive },
@@ -409,6 +420,7 @@ export default function ProgressScreen() {
                 {timeRanges.map((range) => (
                   <Pressable
                     key={range}
+                    testID={TIME_RANGE_TEST_IDS[range]}
                     style={[
                       styles.timeRangeButton,
                       macroTimeRange === range && { backgroundColor: colors.bgInteractive },
@@ -448,6 +460,7 @@ export default function ProgressScreen() {
                 {timeRanges.map((range) => (
                   <Pressable
                     key={range}
+                    testID={TIME_RANGE_TEST_IDS[range]}
                     style={[
                       styles.timeRangeButton,
                       insightsTimeRange === range && { backgroundColor: colors.bgInteractive },

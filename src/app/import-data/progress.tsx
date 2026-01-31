@@ -8,6 +8,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { ImportProgressBar } from '@/components/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportProgressScreen() {
   const { colors } = useTheme();
@@ -37,7 +38,7 @@ export default function ImportProgressScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+      <SafeAreaView testID={TestIDs.Import.ProgressScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.content}>
           <View style={[styles.errorIcon, { backgroundColor: colors.errorBg }]}>
             <Ionicons name="alert-circle" size={48} color={colors.error} />
@@ -50,7 +51,7 @@ export default function ImportProgressScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.ProgressScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         {/* Icon */}
         <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>

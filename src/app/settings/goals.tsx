@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useGoalStore, useSettingsStore, useWeightStore, useProfileStore } from '@/stores';
 import { GoalType } from '@/types/domain';
 import { ACTIVITY_OPTIONS, RATE_OPTIONS } from '@/constants/defaults';
+import { TestIDs, settingsRateOption } from '@/constants/testIDs';
 
 const kgToLbs = (kg: number): number => Math.round(kg * 2.20462 * 10) / 10;
 const lbsToKg = (lbs: number): number => Math.round((lbs / 2.20462) * 100) / 100;
@@ -133,7 +134,7 @@ export default function GoalsSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsGoals.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -142,11 +143,13 @@ export default function GoalsSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsGoals.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsGoals.ScrollView}
         >
           {/* Current Goal Display */}
           {activeGoal && !isEditing ? (
@@ -253,6 +256,7 @@ export default function GoalsSettingsScreen() {
                   variant="secondary"
                   onPress={() => setIsEditing(true)}
                   fullWidth
+                  testID={TestIDs.SettingsGoals.EditButton}
                 />
               </View>
             </View>
@@ -279,6 +283,7 @@ export default function GoalsSettingsScreen() {
                         },
                       ]}
                       onPress={() => setSelectedGoalType(option.value)}
+                      testID={option.value === 'lose' ? TestIDs.SettingsGoals.GoalLose : option.value === 'maintain' ? TestIDs.SettingsGoals.GoalMaintain : TestIDs.SettingsGoals.GoalGain}
                     >
                       <Ionicons
                         name={option.icon}
@@ -321,6 +326,7 @@ export default function GoalsSettingsScreen() {
                         placeholder={isLbs ? '150' : '68'}
                         placeholderTextColor={colors.textTertiary}
                         maxLength={5}
+                        testID={TestIDs.SettingsGoals.TargetWeightInput}
                       />
                       <Text style={[styles.inputUnit, { color: colors.textSecondary }]}>
                         {isLbs ? 'lbs' : 'kg'}
@@ -355,6 +361,7 @@ export default function GoalsSettingsScreen() {
                           },
                         ]}
                         onPress={() => setSelectedRate(option.value)}
+                        testID={settingsRateOption(String(option.value))}
                       >
                         <View style={styles.rateContent}>
                           <Text
@@ -396,6 +403,7 @@ export default function GoalsSettingsScreen() {
                 onPress={() => setIsEditing(false)}
                 fullWidth
                 style={{ marginBottom: spacing[3] }}
+                testID={TestIDs.SettingsGoals.CancelButton}
               />
             )}
             <Button
@@ -403,6 +411,7 @@ export default function GoalsSettingsScreen() {
               onPress={handleSave}
               loading={isLoading}
               fullWidth
+              testID={TestIDs.SettingsGoals.SaveButton}
             />
           </View>
         )}

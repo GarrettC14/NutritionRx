@@ -17,6 +17,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType } from '@/constants/mealTypes';
 import { openFoodFactsApi } from '@/services/openFoodFactsApi';
 import { Button } from '@/components/ui/Button';
+import { TestIDs } from '@/constants/testIDs';
 
 const { width } = Dimensions.get('window');
 const SCAN_AREA_SIZE = width * 0.7;
@@ -112,10 +113,12 @@ export default function BarcodeScanScreen() {
           </Text>
           <View style={styles.permissionButtons}>
             <Button
+              testID={TestIDs.Scanner.AllowCameraButton}
               label="Allow Camera Access"
               onPress={requestPermission}
             />
             <Pressable
+              testID={TestIDs.Scanner.GoBackButton}
               style={styles.textButton}
               onPress={() => router.back()}
             >
@@ -130,7 +133,7 @@ export default function BarcodeScanScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View testID={TestIDs.Scanner.Screen} style={styles.container}>
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing="back"
@@ -146,6 +149,7 @@ export default function BarcodeScanScreen() {
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Pressable
+            testID={TestIDs.Scanner.CloseButton}
             style={[styles.closeButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
             onPress={() => router.back()}
           >
@@ -153,6 +157,7 @@ export default function BarcodeScanScreen() {
           </Pressable>
           <Text style={styles.headerTitle}>Scan Barcode</Text>
           <Pressable
+            testID={TestIDs.Scanner.FlashToggle}
             style={[
               styles.closeButton,
               { backgroundColor: flashOn ? colors.accent : 'rgba(0,0,0,0.5)' },
@@ -199,12 +204,14 @@ export default function BarcodeScanScreen() {
               </Text>
               <View style={styles.errorButtons}>
                 <Pressable
+                  testID={TestIDs.Scanner.ScanAgainButton}
                   style={[styles.errorButton, { backgroundColor: colors.accent }]}
                   onPress={handleTryAgain}
                 >
                   <Text style={styles.errorButtonText}>Scan Again</Text>
                 </Pressable>
                 <Pressable
+                  testID={TestIDs.Scanner.EnterManuallyButton}
                   style={[styles.errorButton, { borderColor: colors.borderDefault, borderWidth: 1 }]}
                   onPress={handleManualEntry}
                 >

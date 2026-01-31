@@ -9,6 +9,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { useGoalStore, useSettingsStore } from '@/stores';
 import { DataQuality } from '@/types/domain';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function WeeklyReflectionScreen() {
   const { colors } = useTheme();
@@ -121,12 +122,12 @@ export default function WeeklyReflectionScreen() {
     pendingReflection.newTargetCalories !== activeGoal.currentTargetCalories;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Reflection.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Week {pendingReflection.weekNumber} Check-in
         </Text>
-        <Pressable onPress={() => router.back()}>
+        <Pressable testID={TestIDs.Reflection.CloseButton} onPress={() => router.back()}>
           <Ionicons name="close" size={28} color={colors.textPrimary} />
         </Pressable>
       </View>
@@ -269,6 +270,7 @@ export default function WeeklyReflectionScreen() {
             NOTES (OPTIONAL)
           </Text>
           <TextInput
+            testID={TestIDs.Reflection.NotesInput}
             style={[
               styles.notesInput,
               { color: colors.textPrimary, borderColor: colors.bgInteractive },
@@ -288,6 +290,7 @@ export default function WeeklyReflectionScreen() {
         {hasCalorieAdjustment ? (
           <>
             <Button
+              testID={TestIDs.Reflection.KeepTargetsButton}
               label="Keep Current Targets"
               variant="secondary"
               onPress={handleDecline}
@@ -296,6 +299,7 @@ export default function WeeklyReflectionScreen() {
               loading={isLoading}
             />
             <Button
+              testID={TestIDs.Reflection.AcceptNewButton}
               label="Accept New Targets"
               onPress={handleAccept}
               fullWidth
@@ -304,6 +308,7 @@ export default function WeeklyReflectionScreen() {
           </>
         ) : (
           <Button
+            testID={TestIDs.Reflection.DoneButton}
             label="Done"
             onPress={() => router.back()}
             fullWidth

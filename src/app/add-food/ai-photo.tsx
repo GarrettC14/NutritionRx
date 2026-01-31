@@ -35,6 +35,7 @@ import {
   ProcessedImage,
 } from '@/types/ai-photo';
 import { Button } from '@/components/ui/Button';
+import { TestIDs } from '@/constants/testIDs';
 
 const { width, height } = Dimensions.get('window');
 
@@ -332,7 +333,7 @@ export default function AIPhotoScreen() {
   // Capture step
   if (screenState.step === 'capture') {
     return (
-      <View style={styles.container}>
+      <View testID={TestIDs.AIPhoto.Screen} style={styles.container}>
         <CameraView
           ref={cameraRef}
           style={StyleSheet.absoluteFillObject}
@@ -345,6 +346,7 @@ export default function AIPhotoScreen() {
           {/* Header */}
           <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
             <Pressable
+              testID={TestIDs.AIPhoto.CloseButton}
               style={[styles.headerButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
               onPress={() => router.back()}
             >
@@ -352,6 +354,7 @@ export default function AIPhotoScreen() {
             </Pressable>
             <Text style={styles.headerTitle}>AI Food Photo</Text>
             <Pressable
+              testID={TestIDs.AIPhoto.FlashToggle}
               style={[
                 styles.headerButton,
                 { backgroundColor: flashOn ? colors.accent : 'rgba(0,0,0,0.5)' },
@@ -388,12 +391,13 @@ export default function AIPhotoScreen() {
           {/* Bottom controls */}
           <View style={[styles.bottomControls, { paddingBottom: insets.bottom + 20 }]}>
             <Pressable
+              testID={TestIDs.AIPhoto.GalleryButton}
               style={[styles.galleryButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
               onPress={handlePickFromGallery}
             >
               <Ionicons name="images-outline" size={28} color="#FFFFFF" />
             </Pressable>
-            <Pressable style={styles.captureButton} onPress={handleTakePhoto}>
+            <Pressable testID={TestIDs.AIPhoto.CaptureButton} style={styles.captureButton} onPress={handleTakePhoto}>
               <View style={[styles.captureButtonInner, { backgroundColor: colors.accent }]} />
             </Pressable>
             <View style={{ width: 60 }} />
@@ -428,6 +432,7 @@ export default function AIPhotoScreen() {
         {/* Bottom actions */}
         <View style={[styles.previewActions, { paddingBottom: insets.bottom + 20 }]}>
           <Pressable
+            testID={TestIDs.AIPhoto.RetakeButton}
             style={[styles.previewButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
             onPress={handleRetake}
           >
@@ -435,6 +440,7 @@ export default function AIPhotoScreen() {
             <Text style={styles.previewButtonText}>Retake</Text>
           </Pressable>
           <Pressable
+            testID={TestIDs.AIPhoto.AnalyzeButton}
             style={[styles.previewButton, styles.analyzeButton, { backgroundColor: colors.accent }]}
             onPress={handleAnalyze}
           >
@@ -622,6 +628,7 @@ export default function AIPhotoScreen() {
         {/* Bottom action */}
         <View style={[styles.resultsFooter, { paddingBottom: insets.bottom + 16 }]}>
           <Button
+            testID={TestIDs.AIPhoto.AddToMealButton}
             onPress={handleLogFoods}
             loading={isSaving}
             disabled={selectedFoods.length === 0}

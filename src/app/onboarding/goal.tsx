@@ -5,11 +5,19 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { useOnboardingStore } from '@/stores';
 import { GoalPath } from '@/repositories/onboardingRepository';
+
+const goalTestIDs: Record<GoalPath, string> = {
+  lose: TestIDs.Onboarding.GoalOptionLose,
+  maintain: TestIDs.Onboarding.GoalOptionMaintain,
+  gain: TestIDs.Onboarding.GoalOptionBuild,
+  track: TestIDs.Onboarding.GoalOptionTrack,
+};
 
 interface GoalOption {
   value: GoalPath;
@@ -63,10 +71,10 @@ export default function GoalPathScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Onboarding.GoalScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header with back button */}
       <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable testID={TestIDs.Onboarding.GoalBackButton} onPress={handleBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
         </Pressable>
       </View>
@@ -86,6 +94,7 @@ export default function GoalPathScreen() {
           {goalOptions.map((option) => (
             <Pressable
               key={option.value}
+              testID={goalTestIDs[option.value]}
               style={[
                 styles.optionCard,
                 {
@@ -126,6 +135,7 @@ export default function GoalPathScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         <Button
+          testID={TestIDs.Onboarding.GoalContinueButton}
           label="Continue"
           onPress={handleContinue}
           fullWidth

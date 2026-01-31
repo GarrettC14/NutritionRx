@@ -11,6 +11,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useTooltipContext, TooltipAction } from '@/contexts/TooltipContext';
+import { TestIDs } from '@/constants/testIDs';
 
 const SPRING_CONFIG = {
   damping: 15,
@@ -64,13 +65,14 @@ export function TooltipModal() {
 
   return (
     <Modal
+      testID={TestIDs.UI.TooltipModal}
       visible={!!activeTooltip}
       transparent
       animationType="none"
       onRequestClose={handleDefaultDismiss}
     >
       <Animated.View style={[styles.overlay, overlayStyle]}>
-        <Pressable style={styles.overlayPress} onPress={handleDefaultDismiss}>
+        <Pressable testID={TestIDs.UI.TooltipDismiss} style={styles.overlayPress} onPress={handleDefaultDismiss}>
           <Animated.View
             style={[
               styles.card,

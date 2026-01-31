@@ -22,6 +22,7 @@ import {
   DEFAULT_SEED_OPTIONS,
 } from '@/utils/devTools';
 import type { SeedOptions, SeedProgress, SeedResult } from '@/utils/devTools';
+import { TestIDs } from '@/constants/testIDs';
 
 // ============================================================
 // Types
@@ -246,7 +247,7 @@ export default function DeveloperScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsDeveloper.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -255,11 +256,13 @@ export default function DeveloperScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsDeveloper.Screen}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsDeveloper.ScrollView}
         >
           {/* Warning Banner */}
           <View style={[styles.warningBanner, { backgroundColor: colors.warningBg }]}>
@@ -315,6 +318,7 @@ export default function DeveloperScreen() {
                 value={seedOptions.clearExisting}
                 onToggle={(v) => updateOption('clearExisting', v)}
                 colors={colors}
+                testID={TestIDs.SettingsDeveloper.ClearExistingToggle}
               />
               <View style={[styles.optionDivider, { borderBottomColor: colors.borderDefault }]} />
               <OptionToggle
@@ -322,6 +326,7 @@ export default function DeveloperScreen() {
                 value={seedOptions.includeEdgeCases}
                 onToggle={(v) => updateOption('includeEdgeCases', v)}
                 colors={colors}
+                testID={TestIDs.SettingsDeveloper.EdgeCasesToggle}
               />
               <View style={[styles.optionDivider, { borderBottomColor: colors.borderDefault }]} />
               <View style={styles.optionRow}>
@@ -332,6 +337,7 @@ export default function DeveloperScreen() {
                   <Pressable
                     onPress={() => adjustMonths(-1)}
                     style={[styles.stepperButton, { backgroundColor: colors.bgInteractive }]}
+                    testID={TestIDs.SettingsDeveloper.MonthsMinus}
                   >
                     <Ionicons name="remove" size={18} color={colors.textPrimary} />
                   </Pressable>
@@ -341,6 +347,7 @@ export default function DeveloperScreen() {
                   <Pressable
                     onPress={() => adjustMonths(1)}
                     style={[styles.stepperButton, { backgroundColor: colors.bgInteractive }]}
+                    testID={TestIDs.SettingsDeveloper.MonthsPlus}
                   >
                     <Ionicons name="add" size={18} color={colors.textPrimary} />
                   </Pressable>
@@ -352,6 +359,7 @@ export default function DeveloperScreen() {
                 value={seedOptions.verboseLogging}
                 onToggle={(v) => updateOption('verboseLogging', v)}
                 colors={colors}
+                testID={TestIDs.SettingsDeveloper.VerboseToggle}
               />
             </View>
           </View>
@@ -438,6 +446,7 @@ export default function DeveloperScreen() {
               <Pressable
                 onPress={() => setSeedResult(null)}
                 style={styles.resultDismiss}
+                testID={TestIDs.SettingsDeveloper.DismissResultButton}
               >
                 <Text style={[styles.resultDismissText, { color: colors.textSecondary }]}>
                   Dismiss
@@ -456,6 +465,7 @@ export default function DeveloperScreen() {
                 style={[styles.actionButton, { backgroundColor: colors.accent }]}
                 onPress={handleSeedData}
                 disabled={isSeeding || isClearing}
+                testID={TestIDs.SettingsDeveloper.SeedButton}
               >
                 {isSeeding ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
@@ -471,6 +481,7 @@ export default function DeveloperScreen() {
                 style={[styles.actionButton, { backgroundColor: colors.warning }]}
                 onPress={handleClearUserData}
                 disabled={isSeeding || isClearing}
+                testID={TestIDs.SettingsDeveloper.ClearDataButton}
               >
                 {isClearing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
@@ -486,6 +497,7 @@ export default function DeveloperScreen() {
                 style={[styles.actionButton, { backgroundColor: colors.error }]}
                 onPress={handleResetApp}
                 disabled={isSeeding || isClearing}
+                testID={TestIDs.SettingsDeveloper.ResetButton}
               >
                 {isClearing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
@@ -503,6 +515,7 @@ export default function DeveloperScreen() {
                   setIsLoading(true);
                   loadStats();
                 }}
+                testID={TestIDs.SettingsDeveloper.RefreshButton}
               >
                 <Ionicons name="refresh-outline" size={20} color={colors.textPrimary} />
                 <Text style={[styles.actionButtonText, { color: colors.textPrimary }]}>
@@ -562,11 +575,13 @@ function OptionToggle({
   value,
   onToggle,
   colors,
+  testID,
 }: {
   label: string;
   value: boolean;
   onToggle: (value: boolean) => void;
   colors: any;
+  testID?: string;
 }) {
   return (
     <View style={styles.optionRow}>
@@ -576,6 +591,7 @@ function OptionToggle({
         onValueChange={onToggle}
         trackColor={{ false: colors.bgInteractive, true: colors.accent }}
         thumbColor="#FFFFFF"
+        testID={testID}
       />
     </View>
   );

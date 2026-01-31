@@ -1,4 +1,5 @@
-import { View, Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Pressable, Text, StyleSheet, ViewStyle, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -26,6 +27,16 @@ export function SegmentedControl<T extends string | number>({
 
   const selectedIndex = options.findIndex((opt) => opt.value === value);
   const segmentWidth = 100 / options.length;
+  const animatedPosition = useRef(new Animated.Value(selectedIndex)).current;
+
+  useEffect(() => {
+    Animated.spring(animatedPosition, {
+      toValue: selectedIndex,
+      useNativeDriver: false,
+      speed: 20,
+      bounciness: 0,
+    }).start();
+  }, [selectedIndex]);
 
   const handlePress = async (optionValue: T) => {
     if (optionValue !== value) {
@@ -33,6 +44,11 @@ export function SegmentedControl<T extends string | number>({
       onChange(optionValue);
     }
   };
+
+  const leftPercent = animatedPosition.interpolate({
+    inputRange: options.map((_, i) => i),
+    outputRange: options.map((_, i) => `${i * segmentWidth}%`),
+  });
 
   return (
     <View
@@ -42,12 +58,12 @@ export function SegmentedControl<T extends string | number>({
         style,
       ]}
     >
-      <View
+      <Animated.View
         style={[
           styles.indicator,
           {
             backgroundColor: colors.bgElevated,
-            left: `${selectedIndex * segmentWidth}%`,
+            left: leftPercent,
             width: `${segmentWidth}%`,
           },
         ]}

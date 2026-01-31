@@ -23,6 +23,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 import { useTooltipContext } from '@/contexts/TooltipContext';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';
+import { TestIDs, settingsMealPlanningDayCell, settingsMealPlanningAddMealButton, settingsMealPlanningDeleteMealButton } from '@/constants/testIDs';
 
 const SAGE_GREEN = '#9CAF88';
 
@@ -232,7 +233,7 @@ export default function MealPlanningScreen() {
   }
 
   const content = (
-    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} testID={TestIDs.SettingsMealPlanning.ScrollView}>
       {/* Enable Toggle */}
       <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
         <View style={styles.toggleRow}>
@@ -249,6 +250,7 @@ export default function MealPlanningScreen() {
             onValueChange={handleToggleEnabled}
             trackColor={{ false: colors.bgElevated, true: SAGE_GREEN }}
             thumbColor="#fff"
+            testID={TestIDs.SettingsMealPlanning.EnableToggle}
           />
         </View>
       </View>
@@ -271,6 +273,7 @@ export default function MealPlanningScreen() {
                 onValueChange={handleToggleShowOnToday}
                 trackColor={{ false: colors.bgElevated, true: SAGE_GREEN }}
                 thumbColor="#fff"
+                testID={TestIDs.SettingsMealPlanning.ShowOnTodayToggle}
               />
             </View>
           </View>
@@ -280,6 +283,7 @@ export default function MealPlanningScreen() {
             <Pressable
               style={styles.weekNavButton}
               onPress={() => navigateWeek('prev')}
+              testID={TestIDs.SettingsMealPlanning.WeekPrevButton}
             >
               <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
             </Pressable>
@@ -289,6 +293,7 @@ export default function MealPlanningScreen() {
             <Pressable
               style={styles.weekNavButton}
               onPress={() => navigateWeek('next')}
+              testID={TestIDs.SettingsMealPlanning.WeekNextButton}
             >
               <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
             </Pressable>
@@ -301,7 +306,7 @@ export default function MealPlanningScreen() {
               <Text style={styles.copyModeText}>
                 Tap a day to paste meals
               </Text>
-              <Pressable onPress={() => setCopySourceDate(null)}>
+              <Pressable onPress={() => setCopySourceDate(null)} testID={TestIDs.SettingsMealPlanning.CancelCopyButton}>
                 <Ionicons name="close-circle" size={22} color="#fff" />
               </Pressable>
             </View>
@@ -344,6 +349,7 @@ export default function MealPlanningScreen() {
                       isTodayDate && { borderColor: SAGE_GREEN, borderWidth: 2 },
                       isCopySource && { backgroundColor: SAGE_GREEN + '20' },
                     ]}
+                    testID={settingsMealPlanningDayCell(date)}
                     onPress={() => {
                       if (copySourceDate) {
                         handlePasteDay(date);
@@ -398,7 +404,7 @@ export default function MealPlanningScreen() {
           headerTintColor: colors.textPrimary,
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['bottom']} testID={TestIDs.SettingsMealPlanning.Screen}>
         {isPremium ? (
           content
         ) : (
@@ -427,10 +433,12 @@ export default function MealPlanningScreen() {
         <Pressable
           style={styles.modalOverlay}
           onPress={() => setShowDayMenu(false)}
+          testID={TestIDs.SettingsMealPlanning.ModalOverlay}
         >
           <Pressable
             style={[styles.modalContent, { backgroundColor: colors.bgSecondary }]}
             onPress={(e) => e.stopPropagation()}
+            testID={TestIDs.SettingsMealPlanning.ModalContent}
           >
             {/* Modal Header */}
             <View style={styles.modalHeader}>
@@ -441,12 +449,12 @@ export default function MealPlanningScreen() {
                   day: 'numeric',
                 })}
               </Text>
-              <Pressable onPress={() => setShowDayMenu(false)}>
+              <Pressable onPress={() => setShowDayMenu(false)} testID={TestIDs.SettingsMealPlanning.ModalCloseButton}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </Pressable>
             </View>
 
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false} testID={TestIDs.SettingsMealPlanning.ModalScrollView}>
               {/* Meal Slots */}
               {MEAL_SLOTS.map(({ slot, label, icon }) => {
                 const meals = selectedDayMeals?.[slot] || [];
@@ -461,6 +469,7 @@ export default function MealPlanningScreen() {
                       <Pressable
                         style={[styles.addMealButton, { backgroundColor: SAGE_GREEN }]}
                         onPress={() => handleAddMeal(selectedDate!, slot)}
+                        testID={settingsMealPlanningAddMealButton(slot)}
                       >
                         <Ionicons name="add" size={16} color="#fff" />
                       </Pressable>
@@ -483,6 +492,7 @@ export default function MealPlanningScreen() {
                           <Pressable
                             onPress={() => handleDeleteMeal(meal)}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            testID={settingsMealPlanningDeleteMealButton(meal.id)}
                           >
                             <Ionicons name="trash-outline" size={18} color={colors.error} />
                           </Pressable>
@@ -502,6 +512,7 @@ export default function MealPlanningScreen() {
                 <Pressable
                   style={[styles.dayActionButton, { backgroundColor: colors.bgElevated }]}
                   onPress={handleCopyDay}
+                  testID={TestIDs.SettingsMealPlanning.CopyDayButton}
                 >
                   <Ionicons name="copy-outline" size={18} color={colors.textPrimary} />
                   <Text style={[styles.dayActionText, { color: colors.textPrimary }]}>
@@ -513,6 +524,7 @@ export default function MealPlanningScreen() {
                   <Pressable
                     style={[styles.dayActionButton, { backgroundColor: colors.bgElevated }]}
                     onPress={handleClearDay}
+                    testID={TestIDs.SettingsMealPlanning.ClearDayButton}
                   >
                     <Ionicons name="trash-outline" size={18} color={colors.error} />
                     <Text style={[styles.dayActionText, { color: colors.error }]}>

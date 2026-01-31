@@ -28,6 +28,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { foodRepository } from '@/repositories/foodRepository';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { micronutrientRepository } from '@/repositories/micronutrientRepository';
+import { TestIDs } from '@/constants/testIDs';
 
 // Tab types
 type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
@@ -440,6 +441,7 @@ export default function AddFoodScreen() {
           Or browse our complete restaurant database
         </Text>
         <Pressable
+          testID={TestIDs.AddFood.BrowseRestaurantsButton}
           style={[styles.browseButton, { backgroundColor: colors.accent }]}
           onPress={handleBrowseRestaurants}
         >
@@ -587,7 +589,7 @@ export default function AddFoodScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.AddFood.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -600,6 +602,7 @@ export default function AddFoodScreen() {
         <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
+            testID={TestIDs.AddFood.SearchInput}
             style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder="Search foods..."
             placeholderTextColor={colors.textTertiary}
@@ -609,12 +612,13 @@ export default function AddFoodScreen() {
             onSubmitEditing={() => Keyboard.dismiss()}
           />
           {searchText.length > 0 && (
-            <Pressable onPress={() => setSearchText('')}>
+            <Pressable testID={TestIDs.AddFood.ClearSearchButton} onPress={() => setSearchText('')}>
               <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
             </Pressable>
           )}
         </View>
         <Pressable
+          testID={TestIDs.AddFood.ScanFAB}
           style={[styles.scanButton, { backgroundColor: colors.accent }]}
           onPress={handleScanBarcode}
         >
@@ -645,6 +649,7 @@ export default function AddFoodScreen() {
       {/* Bottom Action Buttons */}
       <View style={[styles.bottomButtonsContainer, { backgroundColor: colors.bgPrimary }]}>
         <Pressable
+          testID={TestIDs.AddFood.AIPhotoButton}
           style={[styles.bottomButton, { backgroundColor: colors.accent }]}
           onPress={handleAIPhoto}
         >
@@ -652,6 +657,7 @@ export default function AddFoodScreen() {
           <Text style={styles.bottomButtonText}>AI Photo</Text>
         </Pressable>
         <Pressable
+          testID={TestIDs.AddFood.CreateFoodButton}
           style={[styles.bottomButton, { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.borderDefault }]}
           onPress={handleCreateFood}
         >

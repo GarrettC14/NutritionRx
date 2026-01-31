@@ -11,18 +11,20 @@ import { useTheme } from '@/hooks/useTheme';
 import { HealthIntegrationScreen } from '@/components/healthkit';
 import { spacing } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function AppleHealthScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']} testID={TestIDs.SettingsAppleHealth.Screen}>
       {/* Header with back button */}
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
           style={[styles.backButton, { backgroundColor: colors.bgInteractive }]}
+          testID={TestIDs.SettingsAppleHealth.BackButton}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>

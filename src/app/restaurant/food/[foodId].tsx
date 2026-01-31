@@ -21,6 +21,7 @@ import { RestaurantFood } from '@/types/restaurant';
 import { Button } from '@/components/ui/Button';
 import { PremiumBadge } from '@/components/premium/PremiumBadge';
 import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function RestaurantFoodDetailScreen() {
   const { colors } = useTheme();
@@ -103,10 +104,10 @@ export default function RestaurantFoodDetailScreen() {
   };
 
   const mealOptions = [
-    { label: 'Breakfast', value: MealType.Breakfast },
-    { label: 'Lunch', value: MealType.Lunch },
-    { label: 'Dinner', value: MealType.Dinner },
-    { label: 'Snack', value: MealType.Snack },
+    { label: 'Breakfast', value: MealType.Breakfast, testID: TestIDs.Restaurant.FoodMealBreakfast },
+    { label: 'Lunch', value: MealType.Lunch, testID: TestIDs.Restaurant.FoodMealLunch },
+    { label: 'Dinner', value: MealType.Dinner, testID: TestIDs.Restaurant.FoodMealDinner },
+    { label: 'Snack', value: MealType.Snack, testID: TestIDs.Restaurant.FoodMealSnack },
   ];
 
   const qty = parseFloat(quantity) || 0;
@@ -135,10 +136,10 @@ export default function RestaurantFoodDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.Restaurant.FoodScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable testID={TestIDs.Restaurant.FoodBackButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -183,6 +184,7 @@ export default function RestaurantFoodDetailScreen() {
 
           <View style={[styles.quantityCard, { backgroundColor: colors.bgSecondary }]}>
             <TextInput
+              testID={TestIDs.Restaurant.FoodAmountInput}
               style={[styles.quantityInput, { color: colors.textPrimary }]}
               value={quantity}
               onChangeText={handleQuantityChange}
@@ -206,6 +208,7 @@ export default function RestaurantFoodDetailScreen() {
             {mealOptions.map((option) => (
               <Pressable
                 key={option.value}
+                testID={option.testID}
                 style={[
                   styles.mealOption,
                   {
@@ -300,6 +303,7 @@ export default function RestaurantFoodDetailScreen() {
       <View style={styles.footer}>
         <View style={styles.buttonRow}>
           <Button
+            testID={TestIDs.Restaurant.FoodAddButton}
             onPress={handleSave}
             loading={isSaving}
             disabled={!isValid}

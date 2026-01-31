@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { ImportPreviewCard, ImportSampleDay } from '@/components/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
 import { ImportPreviewSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportPreviewScreen() {
   const { colors } = useTheme();
@@ -34,10 +35,10 @@ export default function ImportPreviewScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.PreviewScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable testID={TestIDs.Import.PreviewBackButton} onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Preview</Text>
@@ -45,6 +46,7 @@ export default function ImportPreviewScreen() {
       </View>
 
       <ScrollView
+        testID={TestIDs.Import.PreviewScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -80,7 +82,7 @@ export default function ImportPreviewScreen() {
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <Button label="Start Import" variant="primary" size="lg" fullWidth onPress={handleImport} />
+        <Button testID={TestIDs.Import.PreviewImportButton} label="Start Import" variant="primary" size="lg" fullWidth onPress={handleImport} />
       </View>
     </SafeAreaView>
   );

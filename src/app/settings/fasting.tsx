@@ -19,6 +19,7 @@ import { useFastingStore, useSubscriptionStore } from '@/stores';
 import { FastingProtocol, FastingSession } from '@/types/planning';
 import { PremiumGate } from '@/components/premium';
 import { SettingsSubscreenSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs, settingsFastingProtocolOption } from '@/constants/testIDs';
 
 const FASTING_GREEN = '#9CAF88';
 
@@ -206,7 +207,7 @@ export default function FastingSettingsScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsFasting.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -215,12 +216,14 @@ export default function FastingSettingsScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsFasting.Screen}
       >
         {isPremium ? (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          testID={TestIDs.SettingsFasting.ScrollView}
         >
           {/* Enable Toggle */}
           <View style={styles.section}>
@@ -239,6 +242,7 @@ export default function FastingSettingsScreen() {
                   onValueChange={handleToggleEnabled}
                   trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                   thumbColor="#FFFFFF"
+                  testID={TestIDs.SettingsFasting.EnableToggle}
                 />
               </View>
             </View>
@@ -267,6 +271,7 @@ export default function FastingSettingsScreen() {
                         },
                       ]}
                       onPress={() => handleProtocolSelect(option.value)}
+                      testID={settingsFastingProtocolOption(option.value)}
                     >
                       <View style={styles.optionContent}>
                         <Text
@@ -311,6 +316,7 @@ export default function FastingSettingsScreen() {
                   <Pressable
                     style={styles.timeRow}
                     onPress={() => setShowStartPicker(true)}
+                    testID={TestIDs.SettingsFasting.StartTimeButton}
                   >
                     <Text style={[styles.timeLabel, { color: colors.textPrimary }]}>
                       Start eating
@@ -330,6 +336,7 @@ export default function FastingSettingsScreen() {
                   <Pressable
                     style={styles.timeRow}
                     onPress={() => setShowEndPicker(true)}
+                    testID={TestIDs.SettingsFasting.EndTimeButton}
                   >
                     <Text style={[styles.timeLabel, { color: colors.textPrimary }]}>
                       Stop eating
@@ -361,6 +368,7 @@ export default function FastingSettingsScreen() {
                       onValueChange={(v) => handleNotificationToggle('windowOpens', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
+                      testID={TestIDs.SettingsFasting.NotifyWindowOpens}
                     />
                   </View>
 
@@ -375,6 +383,7 @@ export default function FastingSettingsScreen() {
                       onValueChange={(v) => handleNotificationToggle('windowClosesSoon', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
+                      testID={TestIDs.SettingsFasting.NotifyWindowCloses}
                     />
                   </View>
 
@@ -389,6 +398,7 @@ export default function FastingSettingsScreen() {
                       onValueChange={(v) => handleNotificationToggle('fastComplete', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
+                      testID={TestIDs.SettingsFasting.NotifyFastComplete}
                     />
                   </View>
                 </View>

@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +17,7 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Onboarding.WelcomeScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         {/* Emoji with fade-in animation */}
         <Animated.View
@@ -49,6 +50,7 @@ export default function WelcomeScreen() {
         style={styles.footer}
       >
         <Button
+          testID={TestIDs.Onboarding.BeginButton}
           label="Let's Begin"
           onPress={handleBegin}
           fullWidth

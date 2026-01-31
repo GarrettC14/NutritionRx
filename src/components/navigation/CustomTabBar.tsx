@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { componentSpacing } from '@/constants/spacing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
+import { TestIDs } from '@/constants/testIDs';
 
 interface TabItem {
   name: string;
@@ -14,6 +15,12 @@ interface TabItem {
   href: string;
   matchPaths?: string[];
 }
+
+const TAB_TEST_IDS: Record<string, string> = {
+  index: TestIDs.TabBar.HomeTab,
+  progress: TestIDs.TabBar.ProgressTab,
+  settings: TestIDs.TabBar.SettingsTab,
+};
 
 const TABS: TabItem[] = [
   {
@@ -101,6 +108,7 @@ export function CustomTabBar() {
   return (
     <View style={[styles.wrapper, { backgroundColor: colors.bgSecondary }]}>
       <View
+        testID={TestIDs.TabBar.Container}
         style={[
           styles.container,
           {
@@ -116,6 +124,7 @@ export function CustomTabBar() {
           return (
             <Pressable
               key={tab.name}
+              testID={TAB_TEST_IDS[tab.name]}
               style={styles.tab}
               onPress={() => handleTabPress(tab)}
             >

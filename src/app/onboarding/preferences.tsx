@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
@@ -15,16 +16,17 @@ type WeightUnit = 'lbs' | 'kg';
 interface ToggleOption<T> {
   value: T;
   label: string;
+  testID?: string;
 }
 
 const energyOptions: ToggleOption<EnergyUnit>[] = [
-  { value: 'calories', label: 'Calories' },
-  { value: 'kilojoules', label: 'Kilojoules' },
+  { value: 'calories', label: 'Calories', testID: TestIDs.Onboarding.EnergyCalories },
+  { value: 'kilojoules', label: 'Kilojoules', testID: TestIDs.Onboarding.EnergyKilojoules },
 ];
 
 const weightOptions: ToggleOption<WeightUnit>[] = [
-  { value: 'lbs', label: 'lbs' },
-  { value: 'kg', label: 'kg' },
+  { value: 'lbs', label: 'lbs', testID: TestIDs.Onboarding.WeightLbs },
+  { value: 'kg', label: 'kg', testID: TestIDs.Onboarding.WeightKg },
 ];
 
 interface ToggleButtonGroupProps<T> {
@@ -45,6 +47,7 @@ function ToggleButtonGroup<T extends string>({
       {options.map((option) => (
         <Pressable
           key={option.value}
+          testID={option.testID}
           style={[
             styles.toggleButton,
             value === option.value && { backgroundColor: colors.accent },
@@ -82,10 +85,10 @@ export default function PreferencesScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Onboarding.PreferencesScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header with back button */}
       <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable testID={TestIDs.Onboarding.PreferencesBackButton} onPress={handleBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
         </Pressable>
       </View>
@@ -124,6 +127,7 @@ export default function PreferencesScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         <Button
+          testID={TestIDs.Onboarding.PreferencesContinueButton}
           label="Continue"
           onPress={handleContinue}
           fullWidth

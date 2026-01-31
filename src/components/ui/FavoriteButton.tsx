@@ -16,6 +16,7 @@ interface FavoriteButtonProps {
   size?: number;
   disabled?: boolean;
   style?: ViewStyle;
+  testID?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -26,6 +27,7 @@ export function FavoriteButton({
   size = 24,
   disabled = false,
   style,
+  testID,
 }: FavoriteButtonProps) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
@@ -51,6 +53,7 @@ export function FavoriteButton({
 
   return (
     <AnimatedPressable
+      testID={testID}
       onPress={handlePress}
       disabled={disabled}
       style={[styles.container, animatedStyle, style]}

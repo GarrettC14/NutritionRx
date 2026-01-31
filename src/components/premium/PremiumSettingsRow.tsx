@@ -11,6 +11,7 @@ interface PremiumSettingsRowProps {
   href?: string;
   context?: string;
   subtitle?: string;
+  testID?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ export function PremiumSettingsRow({
   href,
   context = 'general',
   subtitle,
+  testID,
 }: PremiumSettingsRowProps) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -37,7 +39,7 @@ export function PremiumSettingsRow({
   };
 
   return (
-    <TouchableOpacity style={styles.row} onPress={handlePress}>
+    <TouchableOpacity testID={testID} style={styles.row} onPress={handlePress}>
       {icon && (
         <View style={[styles.iconContainer, { backgroundColor: colors.accent + '26' }]}>
           <Ionicons name={icon} size={18} color={colors.accent} />

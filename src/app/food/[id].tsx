@@ -20,6 +20,7 @@ import { FoodItem, DataSource } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
+import { TestIDs } from '@/constants/testIDs';
 
 const SOURCE_LABELS: Record<DataSource, string> = {
   open_food_facts: 'Open Food Facts',
@@ -108,13 +109,14 @@ export default function FoodDetailScreen() {
             headerStyle: { backgroundColor: colors.bgPrimary },
             headerTintColor: colors.textPrimary,
             headerLeft: () => (
-              <Pressable onPress={() => router.back()}>
+              <Pressable testID={TestIDs.FoodDetail.BackButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={24} color={colors.accent} />
               </Pressable>
             ),
           }}
         />
         <SafeAreaView
+          testID={TestIDs.FoodDetail.Screen}
           edges={['bottom']}
           style={[styles.container, { backgroundColor: colors.bgPrimary }]}
         >
@@ -135,20 +137,21 @@ export default function FoodDetailScreen() {
             headerStyle: { backgroundColor: colors.bgPrimary },
             headerTintColor: colors.textPrimary,
             headerLeft: () => (
-              <Pressable onPress={() => router.back()}>
+              <Pressable testID={TestIDs.FoodDetail.BackButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={24} color={colors.accent} />
               </Pressable>
             ),
           }}
         />
         <SafeAreaView
+          testID={TestIDs.FoodDetail.Screen}
           edges={['bottom']}
           style={[styles.container, { backgroundColor: colors.bgPrimary }]}
         >
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={48} color={colors.textTertiary} />
             <Text style={[styles.errorText, { color: colors.textSecondary }]}>Food not found</Text>
-            <Button onPress={() => router.back()}>Go Back</Button>
+            <Button testID={TestIDs.FoodDetail.GoBackButton} onPress={() => router.back()}>Go Back</Button>
           </View>
         </SafeAreaView>
       </>
@@ -164,17 +167,19 @@ export default function FoodDetailScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable testID={TestIDs.FoodDetail.BackButton} onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
         }}
       />
       <SafeAreaView
+        testID={TestIDs.FoodDetail.Screen}
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       >
         <ScrollView
+          testID={TestIDs.FoodDetail.ScrollView}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -312,6 +317,7 @@ export default function FoodDetailScreen() {
           {/* Delete Button for User Created Foods */}
           {food.isUserCreated && (
             <Pressable
+              testID={TestIDs.FoodDetail.DeleteButton}
               style={[styles.deleteButton, { borderColor: colors.error }]}
               onPress={handleDelete}
               disabled={isDeleting}
@@ -332,7 +338,7 @@ export default function FoodDetailScreen() {
 
         {/* Add to Log Button */}
         <View style={styles.footer}>
-          <Button onPress={handleAddToLog} fullWidth>
+          <Button testID={TestIDs.FoodDetail.AddToLogButton} onPress={handleAddToLog} fullWidth>
             Add to Log
           </Button>
         </View>

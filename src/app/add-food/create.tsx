@@ -22,6 +22,7 @@ import { useFoodLogStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FoodItem } from '@/types/domain';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function CreateFoodScreen() {
   const { colors } = useTheme();
@@ -196,14 +197,14 @@ export default function CreateFoodScreen() {
   const commonUnits = ['serving', 'g', 'oz', 'cup', 'tbsp', 'tsp', 'piece', 'slice'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.CreateFood.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
+          <Pressable testID={TestIDs.CreateFood.BackButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -225,6 +226,7 @@ export default function CreateFoodScreen() {
             </Text>
 
             <Input
+              testID={TestIDs.CreateFood.NameInput}
               label="Name"
               value={name}
               onChangeText={setName}
@@ -233,6 +235,7 @@ export default function CreateFoodScreen() {
             />
 
             <Input
+              testID={TestIDs.CreateFood.BrandInput}
               label="Brand (optional)"
               value={brand}
               onChangeText={setBrand}
@@ -292,6 +295,7 @@ export default function CreateFoodScreen() {
             <View style={styles.servingRow}>
               <View style={styles.servingSizeInput}>
                 <Input
+                  testID={TestIDs.CreateFood.ServingAmountInput}
                   label="Amount"
                   value={servingSize}
                   onChangeText={(v) => handleNumberInput(v, setServingSize, true)}
@@ -301,6 +305,7 @@ export default function CreateFoodScreen() {
               </View>
               <View style={styles.servingUnitInput}>
                 <Input
+                  testID={TestIDs.CreateFood.ServingUnitInput}
                   label="Unit"
                   value={servingUnit}
                   onChangeText={setServingUnit}
@@ -344,6 +349,7 @@ export default function CreateFoodScreen() {
             </Text>
 
             <Input
+              testID={TestIDs.CreateFood.CaloriesInput}
               label="Calories"
               value={calories}
               onChangeText={(v) => handleNumberInput(v, setCalories)}
@@ -360,6 +366,7 @@ export default function CreateFoodScreen() {
             <View style={styles.macroRow}>
               <View style={styles.macroInput}>
                 <Input
+                  testID={TestIDs.CreateFood.ProteinInput}
                   label="Protein"
                   value={protein}
                   onChangeText={(v) => handleNumberInput(v, setProtein)}
@@ -372,6 +379,7 @@ export default function CreateFoodScreen() {
               </View>
               <View style={styles.macroInput}>
                 <Input
+                  testID={TestIDs.CreateFood.CarbsInput}
                   label="Carbs"
                   value={carbs}
                   onChangeText={(v) => handleNumberInput(v, setCarbs)}
@@ -384,6 +392,7 @@ export default function CreateFoodScreen() {
               </View>
               <View style={styles.macroInput}>
                 <Input
+                  testID={TestIDs.CreateFood.FatInput}
                   label="Fat"
                   value={fat}
                   onChangeText={(v) => handleNumberInput(v, setFat)}
@@ -400,6 +409,7 @@ export default function CreateFoodScreen() {
           {/* Save Button */}
           <View style={styles.footer}>
             <Button
+              testID={TestIDs.CreateFood.CreateButton}
               onPress={handleSave}
               loading={isSaving}
               fullWidth

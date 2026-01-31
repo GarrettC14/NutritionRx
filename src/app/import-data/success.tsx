@@ -8,6 +8,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
 import { useFoodLogStore } from '@/stores/foodLogStore';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function ImportSuccessScreen() {
   const { colors } = useTheme();
@@ -26,7 +27,7 @@ export default function ImportSuccessScreen() {
   const importedDays = currentSession?.importedDays ?? 0;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.Import.SuccessScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         {/* Success Icon */}
         <View style={[styles.iconContainer, { backgroundColor: colors.successBg }]}>
@@ -66,7 +67,7 @@ export default function ImportSuccessScreen() {
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <Button label="View My Diary" variant="primary" size="lg" fullWidth onPress={handleDone} />
+        <Button testID={TestIDs.Import.SuccessDoneButton} label="View My Diary" variant="primary" size="lg" fullWidth onPress={handleDone} />
       </View>
     </SafeAreaView>
   );

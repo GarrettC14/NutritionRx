@@ -31,6 +31,7 @@ import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { NUTRIENT_BY_ID } from '@/data/nutrients';
 import { MicronutrientData } from '@/services/usda/types';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function LogFoodScreen() {
   const { colors } = useTheme();
@@ -228,16 +229,17 @@ export default function LogFoodScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+    <SafeAreaView testID={TestIDs.LogFood.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable testID={TestIDs.LogFood.BackButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Add to {MEAL_TYPE_LABELS[mealType]}
         </Text>
         <FavoriteButton
+          testID={TestIDs.LogFood.FavoriteButton}
           isFavorite={isFavorite(food.id)}
           onPress={handleToggleFavorite}
           size={26}
@@ -275,6 +277,7 @@ export default function LogFoodScreen() {
           {/* Amount Input */}
           <View style={[styles.amountCard, { backgroundColor: colors.bgSecondary }]}>
             <TextInput
+              testID={TestIDs.LogFood.AmountInput}
               style={[styles.amountInput, { color: colors.textPrimary }]}
               value={amount}
               onChangeText={handleAmountChange}
@@ -328,6 +331,12 @@ export default function LogFoodScreen() {
             {mealOptions.map((option) => (
               <Pressable
                 key={option.value}
+                testID={
+                  option.value === MealType.Breakfast ? TestIDs.LogFood.MealBreakfast :
+                  option.value === MealType.Lunch ? TestIDs.LogFood.MealLunch :
+                  option.value === MealType.Dinner ? TestIDs.LogFood.MealDinner :
+                  TestIDs.LogFood.MealSnack
+                }
                 style={[
                   styles.mealOption,
                   {
@@ -458,6 +467,7 @@ export default function LogFoodScreen() {
       {/* Save Button */}
       <View style={styles.footer}>
         <Button
+          testID={TestIDs.LogFood.AddButton}
           onPress={handleSave}
           loading={isSaving}
           disabled={!isValid}

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
@@ -19,7 +20,7 @@ export default function AboutScreen() {
           headerStyle: { backgroundColor: colors.bgPrimary },
           headerTintColor: colors.textPrimary,
           headerLeft: () => (
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()} testID={TestIDs.SettingsAbout.BackButton}>
               <Ionicons name="chevron-back" size={24} color={colors.accent} />
             </Pressable>
           ),
@@ -28,6 +29,7 @@ export default function AboutScreen() {
       <SafeAreaView
         edges={['bottom']}
         style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+        testID={TestIDs.SettingsAbout.Screen}
       >
         <View style={styles.content}>
           <View style={[styles.logoContainer, { backgroundColor: colors.bgSecondary }]}>

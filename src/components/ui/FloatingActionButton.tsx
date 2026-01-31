@@ -17,6 +17,7 @@ import Animated, {
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius, shadows } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 interface FABMenuItem {
   icon: keyof typeof Ionicons.glyphMap;
@@ -182,6 +183,7 @@ export function FloatingActionButton({
       {!isExpanded && (
         <View style={styles.fabContainerFixed}>
           <Pressable
+            testID={TestIDs.UI.FloatingActionButton}
             style={[
               styles.primaryButton,
               { backgroundColor: colors.accent },

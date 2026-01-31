@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { HealthConnectIntegrationScreen } from '@/components/healthconnect';
 import { spacing } from '@/constants/spacing';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function HealthConnectScreen() {
   const { colors } = useTheme();
@@ -20,12 +21,14 @@ export default function HealthConnectScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['top']}
+      testID={TestIDs.SettingsHealthConnect.Screen}
     >
       {/* Header with back button */}
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
           style={[styles.backButton, { backgroundColor: colors.bgInteractive }]}
+          testID={TestIDs.SettingsHealthConnect.BackButton}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>

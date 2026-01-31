@@ -8,6 +8,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { DisclaimerCard } from '@/features/legal/components/DisclaimerCard';
 import { NUTRITION_DISCLAIMER_CONTENT } from '@/features/legal/content/nutritionrx';
 import { useLegalAcknowledgment } from '@/features/legal/hooks/useLegalAcknowledgment';
+import { TestIDs } from '@/constants/testIDs';
 
 export default function HealthNoticeScreen() {
   const { colors } = useTheme();
@@ -30,10 +31,11 @@ export default function HealthNoticeScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['bottom']}
+      testID={TestIDs.SettingsHealthNotice.Screen}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsHealthNotice.BackButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -46,6 +48,7 @@ export default function HealthNoticeScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        testID={TestIDs.SettingsHealthNotice.ScrollView}
       >
         {/* Disclaimer Sections */}
         {content.sections.map((section, index) => (
