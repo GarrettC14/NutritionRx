@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -14,8 +14,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { getDatabase } from '@/db/database';
-import { seedMockData } from '@/db/migrations/006_seed_mock_data';
+import { getDatabase, resetDatabase } from '@/db/database';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import {
+  seedDatabase,
+  clearAllData,
+  DEFAULT_SEED_OPTIONS,
+} from '@/utils/devTools';
+import type { SeedOptions, SeedProgress, SeedResult } from '@/utils/devTools';
+
+// ============================================================
+// Types
+// ============================================================
 
 interface DatabaseStats {
   foodItems: number;
@@ -24,145 +34,208 @@ interface DatabaseStats {
   weightEntries: number;
   goals: number;
   weeklyReflections: number;
+  dailyMetabolism: number;
+  waterLog: number;
+  favoriteFoods: number;
+  fastingSessions: number;
+  plannedMeals: number;
+  macroCycleOverrides: number;
+  restaurantFoodLogs: number;
+  progressPhotos: number;
+  dailyNutrientIntake: number;
+  nutrientContributors: number;
+  healthSyncLog: number;
 }
+
+const STAT_QUERIES: Array<{ key: keyof DatabaseStats; label: string; sql: string }> = [
+  { key: 'foodItems', label: 'Food items', sql: 'SELECT COUNT(*) as count FROM food_items' },
+  { key: 'logEntries', label: 'Log entries', sql: 'SELECT COUNT(*) as count FROM log_entries' },
+  { key: 'quickAddEntries', label: 'Quick add entries', sql: 'SELECT COUNT(*) as count FROM quick_add_entries' },
+  { key: 'weightEntries', label: 'Weight entries', sql: 'SELECT COUNT(*) as count FROM weight_entries' },
+  { key: 'goals', label: 'Goals', sql: 'SELECT COUNT(*) as count FROM goals' },
+  { key: 'weeklyReflections', label: 'Weekly reflections', sql: 'SELECT COUNT(*) as count FROM weekly_reflections' },
+  { key: 'dailyMetabolism', label: 'Daily metabolism', sql: 'SELECT COUNT(*) as count FROM daily_metabolism' },
+  { key: 'waterLog', label: 'Water log', sql: 'SELECT COUNT(*) as count FROM water_log' },
+  { key: 'favoriteFoods', label: 'Favorite foods', sql: 'SELECT COUNT(*) as count FROM favorite_foods' },
+  { key: 'fastingSessions', label: 'Fasting sessions', sql: 'SELECT COUNT(*) as count FROM fasting_sessions' },
+  { key: 'plannedMeals', label: 'Planned meals', sql: 'SELECT COUNT(*) as count FROM planned_meals' },
+  { key: 'macroCycleOverrides', label: 'Macro overrides', sql: 'SELECT COUNT(*) as count FROM macro_cycle_overrides' },
+  { key: 'restaurantFoodLogs', label: 'Restaurant logs', sql: 'SELECT COUNT(*) as count FROM restaurant_food_logs' },
+  { key: 'progressPhotos', label: 'Progress photos', sql: 'SELECT COUNT(*) as count FROM progress_photos' },
+  { key: 'dailyNutrientIntake', label: 'Nutrient intake', sql: 'SELECT COUNT(*) as count FROM daily_nutrient_intake' },
+  { key: 'nutrientContributors', label: 'Nutrient contributors', sql: 'SELECT COUNT(*) as count FROM nutrient_contributors' },
+  { key: 'healthSyncLog', label: 'Health sync log', sql: 'SELECT COUNT(*) as count FROM health_sync_log' },
+];
+
+// ============================================================
+// Main Component
+// ============================================================
 
 export default function DeveloperScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { showConfirm } = useConfirmDialog();
 
   const [stats, setStats] = useState<DatabaseStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
-  const loadStats = async () => {
+  // Seed options
+  const [seedOptions, setSeedOptions] = useState<SeedOptions>({ ...DEFAULT_SEED_OPTIONS });
+
+  // Progress state
+  const [progress, setProgress] = useState<SeedProgress | null>(null);
+  const [seedResult, setSeedResult] = useState<SeedResult | null>(null);
+
+  // ============================================================
+  // Data Loading
+  // ============================================================
+
+  const loadStats = useCallback(async () => {
     try {
       const db = getDatabase();
-      const [foodItems, logEntries, quickAddEntries, weightEntries, goals, weeklyReflections] =
-        await Promise.all([
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM food_items'),
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM log_entries'),
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM quick_add_entries'),
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM weight_entries'),
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM goals'),
-          db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM weekly_reflections'),
-        ]);
+      const result: Record<string, number> = {};
 
-      setStats({
-        foodItems: foodItems?.count ?? 0,
-        logEntries: logEntries?.count ?? 0,
-        quickAddEntries: quickAddEntries?.count ?? 0,
-        weightEntries: weightEntries?.count ?? 0,
-        goals: goals?.count ?? 0,
-        weeklyReflections: weeklyReflections?.count ?? 0,
-      });
+      for (const query of STAT_QUERIES) {
+        try {
+          const row = await db.getFirstAsync<{ count: number }>(query.sql);
+          result[query.key] = row?.count ?? 0;
+        } catch {
+          result[query.key] = 0;
+        }
+      }
+
+      setStats(result as unknown as DatabaseStats);
     } catch (error) {
       console.error('Failed to load stats:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadStats();
-  }, []);
+  }, [loadStats]);
 
-  const handleSeedData = async () => {
-    Alert.alert(
-      'Seed Mock Data',
-      'This will add mock data to the database. Existing data will NOT be deleted. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Seed Data',
-          onPress: async () => {
-            setIsSeeding(true);
-            try {
-              const db = getDatabase();
-              await seedMockData(db);
-              await loadStats();
-              Alert.alert('Success', 'Mock data has been seeded successfully.');
-            } catch (error) {
-              console.error('Failed to seed data:', error);
-              Alert.alert('Error', 'Failed to seed mock data. Check console for details.');
-            } finally {
-              setIsSeeding(false);
-            }
-          },
-        },
-      ]
-    );
+  // ============================================================
+  // Actions
+  // ============================================================
+
+  const handleSeedData = () => {
+    showConfirm({
+      title: 'Seed Database',
+      message: seedOptions.clearExisting
+        ? `This will clear existing data and seed ${seedOptions.monthsOfHistory} months of mock data.`
+        : `This will add ${seedOptions.monthsOfHistory} months of mock data to existing data.`,
+      icon: '\u{1F331}',
+      confirmLabel: 'Seed Data',
+      cancelLabel: 'Cancel',
+      onConfirm: async () => {
+        setIsSeeding(true);
+        setSeedResult(null);
+        setProgress(null);
+
+        try {
+          const result = await seedDatabase(seedOptions, (p) => {
+            setProgress({ ...p });
+          });
+
+          setSeedResult(result);
+          await loadStats();
+        } catch (error) {
+          console.error('Failed to seed data:', error);
+          setSeedResult({
+            success: false,
+            duration: 0,
+            counts: {},
+            errors: [`${error}`],
+            warnings: [],
+          });
+        } finally {
+          setIsSeeding(false);
+          setProgress(null);
+        }
+      },
+    });
   };
 
-  const handleClearUserData = async () => {
-    Alert.alert(
-      'Clear User Data',
-      'This will delete all log entries, weight entries, quick adds, and goals. Food items will be preserved. This cannot be undone!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear Data',
-          style: 'destructive',
-          onPress: async () => {
-            setIsClearing(true);
-            try {
-              const db = getDatabase();
-              await db.runAsync('DELETE FROM log_entries');
-              await db.runAsync('DELETE FROM quick_add_entries');
-              await db.runAsync('DELETE FROM weight_entries');
-              await db.runAsync('DELETE FROM weekly_reflections');
-              await db.runAsync('DELETE FROM daily_metabolism');
-              await db.runAsync('DELETE FROM goals');
-              await loadStats();
-              Alert.alert('Success', 'User data has been cleared.');
-            } catch (error) {
-              console.error('Failed to clear data:', error);
-              Alert.alert('Error', 'Failed to clear data. Check console for details.');
-            } finally {
-              setIsClearing(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleClearUserData = () => {
+    showConfirm({
+      title: 'Clear All User Data',
+      message:
+        'This will delete all user data from all tables. Seed foods and restaurant data will be preserved. This cannot be undone.',
+      icon: '\u{1F5D1}\u{FE0F}',
+      confirmLabel: 'Clear Data',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        setIsClearing(true);
+        setSeedResult(null);
+        try {
+          const db = getDatabase();
+          await clearAllData(db, true);
+          await loadStats();
+        } catch (error) {
+          console.error('Failed to clear data:', error);
+        } finally {
+          setIsClearing(false);
+        }
+      },
+    });
   };
 
-  const handleResetApp = async () => {
-    Alert.alert(
-      'Reset App',
-      'This will delete ALL data including food items and reset the app to a fresh state. This cannot be undone!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset Everything',
-          style: 'destructive',
-          onPress: async () => {
-            setIsClearing(true);
-            try {
-              const db = getDatabase();
-              await db.runAsync('DELETE FROM log_entries');
-              await db.runAsync('DELETE FROM quick_add_entries');
-              await db.runAsync('DELETE FROM weight_entries');
-              await db.runAsync('DELETE FROM weekly_reflections');
-              await db.runAsync('DELETE FROM daily_metabolism');
-              await db.runAsync('DELETE FROM goals');
-              await db.runAsync('DELETE FROM food_items WHERE source = ?', ['user']);
-              await db.runAsync('UPDATE food_items SET usage_count = 0, last_used_at = NULL');
-              await db.runAsync('DELETE FROM user_profile');
-              await db.runAsync('DELETE FROM user_settings');
-              await loadStats();
-              Alert.alert('Success', 'App has been reset. Please restart the app.');
-            } catch (error) {
-              console.error('Failed to reset app:', error);
-              Alert.alert('Error', 'Failed to reset app. Check console for details.');
-            } finally {
-              setIsClearing(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleResetApp = () => {
+    showConfirm({
+      title: 'Reset to Fresh Install',
+      message:
+        'This will delete the ENTIRE database and recreate it from scratch. The app will return to the onboarding screen. This cannot be undone.',
+      icon: '\u{26A0}\u{FE0F}',
+      confirmLabel: 'Reset Everything',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        setIsClearing(true);
+        setSeedResult(null);
+        try {
+          await resetDatabase();
+          await loadStats();
+        } catch (error) {
+          console.error('Failed to reset app:', error);
+        } finally {
+          setIsClearing(false);
+        }
+      },
+    });
   };
+
+  // ============================================================
+  // Option Helpers
+  // ============================================================
+
+  const updateOption = <K extends keyof SeedOptions>(key: K, value: SeedOptions[K]) => {
+    setSeedOptions((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const adjustMonths = (delta: number) => {
+    setSeedOptions((prev) => ({
+      ...prev,
+      monthsOfHistory: Math.max(1, Math.min(24, prev.monthsOfHistory + delta)),
+    }));
+  };
+
+  // ============================================================
+  // Render Helpers
+  // ============================================================
+
+  const totalRecords = stats
+    ? Object.values(stats).reduce((sum, val) => sum + val, 0)
+    : 0;
+
+  const progressPercent =
+    progress && progress.totalCount > 0
+      ? Math.round((progress.currentCount / progress.totalCount) * 100)
+      : 0;
 
   return (
     <>
@@ -198,26 +271,31 @@ export default function DeveloperScreen() {
 
           {/* Database Stats */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-              DATABASE STATS
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                DATABASE STATS
+              </Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+                {totalRecords.toLocaleString()} total
+              </Text>
+            </View>
             <View style={[styles.statsCard, { backgroundColor: colors.bgSecondary }]}>
               {isLoading ? (
-                <ActivityIndicator size="small" color={colors.accent} />
+                <ActivityIndicator
+                  size="small"
+                  color={colors.accent}
+                  style={styles.statsLoader}
+                />
               ) : stats ? (
-                <>
-                  <StatRow label="Food items" value={stats.foodItems} colors={colors} />
-                  <StatRow label="Log entries" value={stats.logEntries} colors={colors} />
-                  <StatRow label="Quick add entries" value={stats.quickAddEntries} colors={colors} />
-                  <StatRow label="Weight entries" value={stats.weightEntries} colors={colors} />
-                  <StatRow label="Goals" value={stats.goals} colors={colors} />
+                STAT_QUERIES.map((query, index) => (
                   <StatRow
-                    label="Weekly reflections"
-                    value={stats.weeklyReflections}
+                    key={query.key}
+                    label={query.label}
+                    value={stats[query.key]}
                     colors={colors}
-                    isLast
+                    isLast={index === STAT_QUERIES.length - 1}
                   />
-                </>
+                ))
               ) : (
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   Failed to load stats
@@ -225,6 +303,148 @@ export default function DeveloperScreen() {
               )}
             </View>
           </View>
+
+          {/* Seed Options */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              SEED OPTIONS
+            </Text>
+            <View style={[styles.optionsCard, { backgroundColor: colors.bgSecondary }]}>
+              <OptionToggle
+                label="Clear existing data first"
+                value={seedOptions.clearExisting}
+                onToggle={(v) => updateOption('clearExisting', v)}
+                colors={colors}
+              />
+              <View style={[styles.optionDivider, { borderBottomColor: colors.borderDefault }]} />
+              <OptionToggle
+                label="Include edge case data"
+                value={seedOptions.includeEdgeCases}
+                onToggle={(v) => updateOption('includeEdgeCases', v)}
+                colors={colors}
+              />
+              <View style={[styles.optionDivider, { borderBottomColor: colors.borderDefault }]} />
+              <View style={styles.optionRow}>
+                <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
+                  Months of history
+                </Text>
+                <View style={styles.stepperContainer}>
+                  <Pressable
+                    onPress={() => adjustMonths(-1)}
+                    style={[styles.stepperButton, { backgroundColor: colors.bgInteractive }]}
+                  >
+                    <Ionicons name="remove" size={18} color={colors.textPrimary} />
+                  </Pressable>
+                  <Text style={[styles.stepperValue, { color: colors.accent }]}>
+                    {seedOptions.monthsOfHistory}
+                  </Text>
+                  <Pressable
+                    onPress={() => adjustMonths(1)}
+                    style={[styles.stepperButton, { backgroundColor: colors.bgInteractive }]}
+                  >
+                    <Ionicons name="add" size={18} color={colors.textPrimary} />
+                  </Pressable>
+                </View>
+              </View>
+              <View style={[styles.optionDivider, { borderBottomColor: colors.borderDefault }]} />
+              <OptionToggle
+                label="Verbose console logging"
+                value={seedOptions.verboseLogging}
+                onToggle={(v) => updateOption('verboseLogging', v)}
+                colors={colors}
+              />
+            </View>
+          </View>
+
+          {/* Progress Bar (visible during seeding) */}
+          {isSeeding && progress && (
+            <View style={[styles.progressCard, { backgroundColor: colors.bgSecondary }]}>
+              <Text style={[styles.progressPhase, { color: colors.accent }]}>
+                {progress.phase}
+              </Text>
+              <Text style={[styles.progressEntity, { color: colors.textPrimary }]}>
+                {progress.currentEntity}
+              </Text>
+              <View style={[styles.progressBarBg, { backgroundColor: colors.bgInteractive }]}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { backgroundColor: colors.accent, width: `${progressPercent}%` },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.progressCount, { color: colors.textSecondary }]}>
+                {progress.currentCount.toLocaleString()} / {progress.totalCount.toLocaleString()}
+                {' '}({progressPercent}%)
+              </Text>
+            </View>
+          )}
+
+          {/* Seed Results */}
+          {seedResult && !isSeeding && (
+            <View
+              style={[
+                styles.resultCard,
+                {
+                  backgroundColor: colors.bgSecondary,
+                  borderLeftColor: seedResult.success ? colors.accent : colors.error,
+                },
+              ]}
+            >
+              <View style={styles.resultHeader}>
+                <Ionicons
+                  name={seedResult.success ? 'checkmark-circle' : 'alert-circle'}
+                  size={20}
+                  color={seedResult.success ? colors.accent : colors.error}
+                />
+                <Text
+                  style={[
+                    styles.resultTitle,
+                    { color: seedResult.success ? colors.accent : colors.error },
+                  ]}
+                >
+                  {seedResult.success ? 'Seeding Complete' : 'Seeding Failed'}
+                </Text>
+                <Text style={[styles.resultDuration, { color: colors.textSecondary }]}>
+                  {(seedResult.duration / 1000).toFixed(1)}s
+                </Text>
+              </View>
+
+              {Object.keys(seedResult.counts).length > 0 && (
+                <View style={styles.resultCounts}>
+                  {Object.entries(seedResult.counts).map(([entity, count]) => (
+                    <View key={entity} style={styles.resultCountRow}>
+                      <Text style={[styles.resultCountLabel, { color: colors.textSecondary }]}>
+                        {entity}
+                      </Text>
+                      <Text style={[styles.resultCountValue, { color: colors.textPrimary }]}>
+                        {count.toLocaleString()}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {seedResult.errors.length > 0 && (
+                <View style={styles.resultErrors}>
+                  {seedResult.errors.map((err, i) => (
+                    <Text key={i} style={[styles.resultErrorText, { color: colors.error }]}>
+                      {err}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              <Pressable
+                onPress={() => setSeedResult(null)}
+                style={styles.resultDismiss}
+              >
+                <Text style={[styles.resultDismissText, { color: colors.textSecondary }]}>
+                  Dismiss
+                </Text>
+              </Pressable>
+            </View>
+          )}
 
           {/* Actions */}
           <View style={styles.section}>
@@ -235,14 +455,14 @@ export default function DeveloperScreen() {
               <Pressable
                 style={[styles.actionButton, { backgroundColor: colors.accent }]}
                 onPress={handleSeedData}
-                disabled={isSeeding}
+                disabled={isSeeding || isClearing}
               >
                 {isSeeding ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
                     <Ionicons name="leaf" size={20} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Seed Mock Data</Text>
+                    <Text style={styles.actionButtonText}>Seed Database</Text>
                   </>
                 )}
               </Pressable>
@@ -250,14 +470,14 @@ export default function DeveloperScreen() {
               <Pressable
                 style={[styles.actionButton, { backgroundColor: colors.warning }]}
                 onPress={handleClearUserData}
-                disabled={isClearing}
+                disabled={isSeeding || isClearing}
               >
                 {isClearing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
                     <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Clear User Data</Text>
+                    <Text style={styles.actionButtonText}>Clear All Data</Text>
                   </>
                 )}
               </Pressable>
@@ -265,21 +485,24 @@ export default function DeveloperScreen() {
               <Pressable
                 style={[styles.actionButton, { backgroundColor: colors.error }]}
                 onPress={handleResetApp}
-                disabled={isClearing}
+                disabled={isSeeding || isClearing}
               >
                 {isClearing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
                     <Ionicons name="refresh" size={20} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Reset App</Text>
+                    <Text style={styles.actionButtonText}>Reset to Fresh Install</Text>
                   </>
                 )}
               </Pressable>
 
               <Pressable
                 style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
-                onPress={loadStats}
+                onPress={() => {
+                  setIsLoading(true);
+                  loadStats();
+                }}
               >
                 <Ionicons name="refresh-outline" size={20} color={colors.textPrimary} />
                 <Text style={[styles.actionButtonText, { color: colors.textPrimary }]}>
@@ -293,8 +516,9 @@ export default function DeveloperScreen() {
           <View style={[styles.infoCard, { backgroundColor: colors.bgSecondary }]}>
             <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              Mock data includes 45 days of weight entries, 14 days of food logs, sample goals, and
-              weekly reflections for testing the app's features.
+              Seed data generates realistic entries across all tables: weight, food logs,
+              water, fasting, meal plans, macro cycling, progress photos, micronutrients,
+              and more. Volume scales with months of history.
             </Text>
           </View>
         </ScrollView>
@@ -302,6 +526,10 @@ export default function DeveloperScreen() {
     </>
   );
 }
+
+// ============================================================
+// Sub-Components
+// ============================================================
 
 function StatRow({
   label,
@@ -322,10 +550,40 @@ function StatRow({
       ]}
     >
       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
-      <Text style={[styles.statValue, { color: colors.textPrimary }]}>{value}</Text>
+      <Text style={[styles.statValue, { color: colors.textPrimary }]}>
+        {value.toLocaleString()}
+      </Text>
     </View>
   );
 }
+
+function OptionToggle({
+  label,
+  value,
+  onToggle,
+  colors,
+}: {
+  label: string;
+  value: boolean;
+  onToggle: (value: boolean) => void;
+  colors: any;
+}) {
+  return (
+    <View style={styles.optionRow}>
+      <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={onToggle}
+        trackColor={{ false: colors.bgInteractive, true: colors.accent }}
+        thumbColor="#FFFFFF"
+      />
+    </View>
+  );
+}
+
+// ============================================================
+// Styles
+// ============================================================
 
 const styles = StyleSheet.create({
   container: {
@@ -340,6 +598,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[8],
     gap: spacing[4],
   },
+
+  // Warning
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,16 +611,32 @@ const styles = StyleSheet.create({
     ...typography.body.small,
     flex: 1,
   },
+
+  // Sections
   section: {
     gap: spacing[2],
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing[2],
   },
   sectionTitle: {
     ...typography.overline,
     paddingHorizontal: spacing[2],
   },
+  sectionSubtitle: {
+    ...typography.caption,
+  },
+
+  // Stats
   statsCard: {
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
+  },
+  statsLoader: {
+    padding: spacing[4],
   },
   statRow: {
     flexDirection: 'row',
@@ -382,6 +658,126 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     textAlign: 'center',
   },
+
+  // Options
+  optionsCard: {
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  optionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+  },
+  optionLabel: {
+    ...typography.body.medium,
+    flex: 1,
+  },
+  optionDivider: {
+    borderBottomWidth: 1,
+    marginHorizontal: spacing[4],
+  },
+
+  // Stepper
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  stepperButton: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepperValue: {
+    ...typography.body.large,
+    fontWeight: '700',
+    fontFamily: 'monospace',
+    minWidth: 24,
+    textAlign: 'center',
+  },
+
+  // Progress
+  progressCard: {
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    gap: spacing[2],
+  },
+  progressPhase: {
+    ...typography.overline,
+  },
+  progressEntity: {
+    ...typography.title.small,
+  },
+  progressBarBg: {
+    height: 8,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+  },
+  progressCount: {
+    ...typography.caption,
+    textAlign: 'right',
+  },
+
+  // Results
+  resultCard: {
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    borderLeftWidth: 4,
+    gap: spacing[3],
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  resultTitle: {
+    ...typography.title.small,
+    flex: 1,
+  },
+  resultDuration: {
+    ...typography.caption,
+  },
+  resultCounts: {
+    gap: spacing[1],
+  },
+  resultCountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resultCountLabel: {
+    ...typography.body.small,
+  },
+  resultCountValue: {
+    ...typography.body.small,
+    fontWeight: '600',
+    fontFamily: 'monospace',
+  },
+  resultErrors: {
+    gap: spacing[1],
+  },
+  resultErrorText: {
+    ...typography.body.small,
+  },
+  resultDismiss: {
+    alignSelf: 'center',
+    paddingVertical: spacing[1],
+  },
+  resultDismissText: {
+    ...typography.body.small,
+    fontWeight: '600',
+  },
+
+  // Actions
   actionsContainer: {
     gap: spacing[2],
   },
@@ -398,6 +794,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+
+  // Info
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
