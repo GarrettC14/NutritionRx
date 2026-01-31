@@ -18,3 +18,13 @@ export const USDA_CACHE_DURATIONS = {
   searchResults: 24 * 60 * 60 * 1000,       // 24 hours
   foodDetails: 30 * 24 * 60 * 60 * 1000,    // 30 days
 } as const;
+
+// OpenAI API Configuration
+export const openaiConfig = {
+  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+  model: 'gpt-4o-mini' as const,
+  maxTokens: 500,
+  temperature: 0.7,
+  maxConversationHistory: 10,  // Keep last 10 messages for context
+  maxMessagesPerDay: 50,       // Rate limit for premium users
+} as const;
