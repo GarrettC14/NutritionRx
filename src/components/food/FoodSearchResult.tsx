@@ -45,16 +45,33 @@ export function FoodSearchResult({ food, onPress }: FoodSearchResultProps) {
         </View>
       </View>
 
-      <View style={styles.calorieContainer}>
-        <Text style={[styles.calories, { color: colors.textPrimary }]}>
-          {food.calories}
-        </Text>
-        <Text style={[styles.calorieUnit, { color: colors.textSecondary }]}>
-          kcal
-        </Text>
+      <View style={styles.rightSection}>
+        <View style={styles.calorieContainer}>
+          <Text style={[styles.calories, { color: colors.textPrimary }]}>
+            {food.calories}
+          </Text>
+          <Text style={[styles.calorieUnit, { color: colors.textSecondary }]}>
+            kcal
+          </Text>
+        </View>
+
+        {food.usdaNutrientCount > 0 && (
+          <View style={[styles.nutrientBadge, { backgroundColor: colors.accent + '20' }]}>
+            <Ionicons name="checkmark" size={10} color={colors.accent} />
+            <Text style={[styles.nutrientBadgeText, { color: colors.accent }]}>
+              {food.usdaNutrientCount}
+            </Text>
+          </View>
+        )}
       </View>
 
-      {food.isVerified && (
+      {food.source === 'usda' && (
+        <View style={[styles.sourceBadge, { backgroundColor: colors.accent + '15' }]}>
+          <Text style={[styles.sourceBadgeText, { color: colors.accent }]}>USDA</Text>
+        </View>
+      )}
+
+      {food.isVerified && food.source !== 'usda' && (
         <Ionicons
           name="checkmark-circle"
           size={16}
@@ -104,9 +121,35 @@ const styles = StyleSheet.create({
     ...typography.caption,
     fontSize: 11,
   },
+  rightSection: {
+    alignItems: 'flex-end',
+    gap: spacing[1],
+  },
   calorieContainer: {
     alignItems: 'flex-end',
     minWidth: 50,
+  },
+  nutrientBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    gap: 2,
+  },
+  nutrientBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  sourceBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  sourceBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   calories: {
     ...typography.body.medium,

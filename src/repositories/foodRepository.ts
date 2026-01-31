@@ -23,6 +23,8 @@ export interface CreateFoodInput {
   sourceId?: string;
   isVerified?: boolean;
   isUserCreated?: boolean;
+  usdaFdcId?: number;
+  usdaNutrientCount?: number;
 }
 
 export const foodRepository = {
@@ -109,8 +111,9 @@ export const foodRepository = {
         id, name, brand, barcode, calories, protein, carbs, fat,
         fiber, sugar, sodium, serving_size, serving_unit, serving_size_grams,
         source, source_id, is_verified, is_user_created,
-        last_used_at, usage_count, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        last_used_at, usage_count, usda_fdc_id, usda_nutrient_count,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -132,6 +135,8 @@ export const foodRepository = {
         input.isUserCreated ? 1 : 0,
         null,
         0,
+        input.usdaFdcId ?? null,
+        input.usdaNutrientCount ?? 0,
         now,
         now,
       ]
@@ -231,6 +236,24 @@ export const foodRepository = {
       [barcode]
     );
     return (result?.count ?? 0) > 0;
+  },
+
+  async findByFdcId(fdcId: number): Promise<FoodItem | null> {
+    const db = getDatabase();
+    const row = await db.getFirstAsync<FoodItemRow>(
+      'SELECT * FROM food_items WHERE usda_fdc_id = ?',
+      [fdcId]
+    );
+    return row ? mapFoodItemRowToDomain(row) : null;
+  },
+
+  async updateUsdaFields(id: string, fdcId: number, nutrientCount: number): Promise<void> {
+    const db = getDatabase();
+    const now = new Date().toISOString();
+    await db.runAsync(
+      `UPDATE food_items SET usda_fdc_id = ?, usda_nutrient_count = ?, updated_at = ? WHERE id = ?`,
+      [fdcId, nutrientCount, now, id]
+    );
   },
 
   async findByExactName(name: string, brand?: string): Promise<FoodItem | null> {

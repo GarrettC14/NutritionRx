@@ -39,6 +39,8 @@ export interface FoodItemRow {
   is_user_created: number;
   last_used_at: string | null;
   usage_count: number;
+  usda_fdc_id: number | null;
+  usda_nutrient_count: number;
   created_at: string;
   updated_at: string;
 }

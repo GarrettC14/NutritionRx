@@ -47,6 +47,8 @@ export function mapFoodItemRowToDomain(row: FoodItemRow): FoodItem {
     isUserCreated: row.is_user_created === 1,
     lastUsedAt: row.last_used_at ? new Date(row.last_used_at) : undefined,
     usageCount: row.usage_count,
+    usdaFdcId: row.usda_fdc_id ?? undefined,
+    usdaNutrientCount: row.usda_nutrient_count ?? 0,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

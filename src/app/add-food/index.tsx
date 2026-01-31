@@ -26,6 +26,8 @@ import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { foodRepository } from '@/repositories/foodRepository';
+import { USDAFoodService } from '@/services/usda/USDAFoodService';
+import { micronutrientRepository } from '@/repositories/micronutrientRepository';
 
 // Tab types
 type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
@@ -179,11 +181,60 @@ export default function AddFoodScreen() {
     return results;
   }, [activeTab, results]);
 
-  const handleFoodSelect = useCallback((food: FoodItem) => {
+  const handleFoodSelect = useCallback(async (food: FoodItem) => {
+    let foodId = food.id;
+
+    // If this is an unsaved USDA food (prefixed ID), persist it first
+    if (food.id.startsWith('usda-') && food.usdaFdcId) {
+      try {
+        // Check if already saved locally
+        const existing = await foodRepository.findByFdcId(food.usdaFdcId);
+        if (existing) {
+          foodId = existing.id;
+        } else {
+          // Save to local database
+          const saved = await foodRepository.create({
+            name: food.name,
+            brand: food.brand,
+            calories: food.calories,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            fiber: food.fiber,
+            sugar: food.sugar,
+            sodium: food.sodium,
+            servingSize: food.servingSize,
+            servingUnit: food.servingUnit,
+            servingSizeGrams: food.servingSizeGrams,
+            source: 'usda',
+            sourceId: String(food.usdaFdcId),
+            isVerified: true,
+            isUserCreated: false,
+            usdaFdcId: food.usdaFdcId,
+            usdaNutrientCount: food.usdaNutrientCount,
+          });
+          foodId = saved.id;
+
+          // Fetch and store micronutrient data in background
+          USDAFoodService.getFoodDetails(food.usdaFdcId).then((details) => {
+            if (details) {
+              const nutrients = USDAFoodService.mapNutrients(details.foodNutrients);
+              micronutrientRepository.storeFoodNutrients(saved.id, nutrients);
+            }
+          }).catch(() => {
+            // Non-critical: micronutrients can be fetched later
+          });
+        }
+      } catch (error) {
+        console.error('Failed to save USDA food:', error);
+        return; // Don't navigate if save failed
+      }
+    }
+
     router.push({
       pathname: '/add-food/log',
       params: {
-        foodId: food.id,
+        foodId,
         mealType,
         date,
       },

@@ -23,11 +23,14 @@ import {
   getUnitLabel,
 } from '@/constants/servingUnits';
 import { useFoodLogStore, useFavoritesStore } from '@/stores';
-import { foodRepository } from '@/repositories';
+import { foodRepository, micronutrientRepository } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
+import { USDAFoodService } from '@/services/usda/USDAFoodService';
+import { NUTRIENT_BY_ID } from '@/data/nutrients';
+import { MicronutrientData } from '@/services/usda/types';
 
 export default function LogFoodScreen() {
   const { colors } = useTheme();
@@ -52,6 +55,10 @@ export default function LogFoodScreen() {
   );
   const date = params.date || new Date().toISOString().split('T')[0];
 
+  // Micronutrient state
+  const [micronutrients, setMicronutrients] = useState<MicronutrientData | null>(null);
+  const [isLoadingNutrients, setIsLoadingNutrients] = useState(false);
+
   // Load food item and ensure favorites are loaded
   useEffect(() => {
     const loadFood = async () => {
@@ -60,6 +67,34 @@ export default function LogFoodScreen() {
       const item = await foodRepository.findById(params.foodId);
       setFood(item);
       setIsLoading(false);
+
+      // Load micronutrient data if available
+      if (item && item.usdaFdcId) {
+        setIsLoadingNutrients(true);
+        try {
+          // Check local cache first
+          const cached = await micronutrientRepository.getFoodNutrients(item.id);
+          if (Object.keys(cached).length > 0) {
+            setMicronutrients(cached);
+          } else if (item.usdaFdcId) {
+            // Fetch from USDA API
+            const details = await USDAFoodService.getFoodDetails(item.usdaFdcId);
+            if (details) {
+              const mapped = USDAFoodService.mapNutrients(details.foodNutrients);
+              setMicronutrients(mapped);
+              // Store for offline access
+              await micronutrientRepository.storeFoodNutrients(item.id, mapped);
+              // Update nutrient count
+              const count = Object.keys(mapped).length;
+              await foodRepository.updateUsdaFields(item.id, item.usdaFdcId, count);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load micronutrients:', error);
+        } finally {
+          setIsLoadingNutrients(false);
+        }
+      }
     };
     loadFood();
     loadFavorites();
@@ -348,6 +383,67 @@ export default function LogFoodScreen() {
           </View>
         </View>
 
+        {/* Micronutrient Preview (USDA foods only) */}
+        {food.usdaFdcId && micronutrients && Object.keys(micronutrients).length > 0 && (
+          <View style={[styles.micronutrientCard, { backgroundColor: colors.bgSecondary }]}>
+            <View style={styles.micronutrientHeader}>
+              <Text style={[styles.micronutrientTitle, { color: colors.textPrimary }]}>
+                Micronutrients
+              </Text>
+              <View style={[styles.nutrientCountBadge, { backgroundColor: colors.accent + '20' }]}>
+                <Text style={[styles.nutrientCountText, { color: colors.accent }]}>
+                  {Object.keys(micronutrients).length}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.micronutrientSource, { color: colors.textTertiary }]}>
+              Data from USDA FoodData Central
+            </Text>
+            {/* Show top 3 nutrients by amount relative to serving */}
+            {Object.entries(micronutrients)
+              .filter(([, amount]) => amount > 0)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 3)
+              .map(([nutrientId, amount]) => {
+                const nutrientDef = NUTRIENT_BY_ID[nutrientId];
+                if (!nutrientDef) return null;
+                const servingFactor = food.servingSizeGrams
+                  ? (parseFloat(amount as unknown as string) || 0) * ((food.servingSizeGrams || 100) / 100)
+                  : amount;
+                return (
+                  <View key={nutrientId} style={styles.micronutrientRow}>
+                    <Text style={[styles.micronutrientName, { color: colors.textSecondary }]}>
+                      {nutrientDef.name}
+                    </Text>
+                    <Text style={[styles.micronutrientValue, { color: colors.textPrimary }]}>
+                      {typeof servingFactor === 'number' && servingFactor < 1
+                        ? servingFactor.toFixed(2)
+                        : Math.round(servingFactor as number)}{nutrientDef.unit}
+                    </Text>
+                  </View>
+                );
+              })}
+          </View>
+        )}
+
+        {/* Loading micronutrients indicator */}
+        {food.usdaFdcId && isLoadingNutrients && (
+          <View style={[styles.micronutrientCard, { backgroundColor: colors.bgSecondary }]}>
+            <Text style={[styles.micronutrientLoadingText, { color: colors.textTertiary }]}>
+              Loading nutrient details...
+            </Text>
+          </View>
+        )}
+
+        {/* No micronutrient data message */}
+        {!food.usdaFdcId && food.source !== 'usda' && (
+          <View style={[styles.noMicronutrientCard, { backgroundColor: colors.bgSecondary }]}>
+            <Text style={[styles.noMicronutrientText, { color: colors.textTertiary }]}>
+              Micronutrient data not available
+            </Text>
+          </View>
+        )}
+
         {/* Large portion warning */}
         {amountNum > 5 && selectedUnit === 'serving' && (
           <View style={[styles.warningBanner, { backgroundColor: colors.warningBg }]}>
@@ -522,5 +618,60 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[4],
+  },
+  // Micronutrient styles
+  micronutrientCard: {
+    padding: spacing[4],
+    borderRadius: borderRadius.lg,
+    gap: spacing[2],
+  },
+  micronutrientHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  micronutrientTitle: {
+    ...typography.body.medium,
+    fontWeight: '600',
+  },
+  nutrientCountBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  nutrientCountText: {
+    ...typography.caption,
+    fontWeight: '700',
+  },
+  micronutrientSource: {
+    ...typography.caption,
+    fontSize: 11,
+    marginBottom: spacing[1],
+  },
+  micronutrientRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[1],
+  },
+  micronutrientName: {
+    ...typography.body.small,
+  },
+  micronutrientValue: {
+    ...typography.body.small,
+    fontWeight: '600',
+  },
+  micronutrientLoadingText: {
+    ...typography.body.small,
+    textAlign: 'center',
+    paddingVertical: spacing[2],
+  },
+  noMicronutrientCard: {
+    padding: spacing[3],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+  },
+  noMicronutrientText: {
+    ...typography.caption,
   },
 });

@@ -45,3 +45,5 @@ export { macroCycleRepository } from './macroCycleRepository';
 
 export { mealPlanRepository } from './mealPlanRepository';
 export type { CreatePlannedMealInput } from './mealPlanRepository';
+
+export { micronutrientRepository } from './micronutrientRepository';

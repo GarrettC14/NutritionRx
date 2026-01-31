@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { foodRepository, CreateFoodInput } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
+import { USDAFoodService } from '@/services/usda/USDAFoodService';
 
 interface FoodSearchState {
   // State
@@ -55,8 +56,64 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
 
     set({ isSearching: true, error: null });
     try {
-      const results = await foodRepository.search(query);
-      set({ results, isSearching: false });
+      // Search local DB first for immediate results
+      const localResults = await foodRepository.search(query);
+      set({ results: localResults, isSearching: false });
+
+      // Then search USDA in background and merge results
+      try {
+        const usdaResults = await USDAFoodService.searchFoods(query, {
+          dataTypes: ['Foundation', 'SR Legacy'],
+          pageSize: 10,
+        });
+
+        if (usdaResults.length > 0) {
+          // Convert USDA results to FoodItem format (unsaved, prefixed IDs)
+          const usdaFoods: FoodItem[] = usdaResults
+            .filter((r) => r.description)
+            .map((r) => ({
+              id: `usda-${r.fdcId}`,
+              name: r.description,
+              brand: r.brandOwner || undefined,
+              calories: Math.round(
+                r.foodNutrients?.find((n) => n.nutrientId === 1008)?.value || 0
+              ),
+              protein: Math.round(
+                r.foodNutrients?.find((n) => n.nutrientId === 1003)?.value || 0
+              ),
+              carbs: Math.round(
+                r.foodNutrients?.find((n) => n.nutrientId === 1005)?.value || 0
+              ),
+              fat: Math.round(
+                r.foodNutrients?.find((n) => n.nutrientId === 1004)?.value || 0
+              ),
+              servingSize: r.servingSize || 100,
+              servingUnit: r.servingSizeUnit || 'g',
+              servingSizeGrams: r.servingSize || 100,
+              source: 'usda' as const,
+              sourceId: String(r.fdcId),
+              isVerified: true,
+              isUserCreated: false,
+              usageCount: 0,
+              usdaFdcId: r.fdcId,
+              usdaNutrientCount: USDAFoodService.countAvailableNutrients(r),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }));
+
+          // Merge: local results first, then USDA results (deduped by name)
+          const localNames = new Set(
+            localResults.map((f) => f.name.toLowerCase())
+          );
+          const uniqueUsda = usdaFoods.filter(
+            (f) => !localNames.has(f.name.toLowerCase())
+          );
+
+          set({ results: [...localResults, ...uniqueUsda] });
+        }
+      } catch {
+        // USDA search failure is non-critical - local results already set
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Search failed',

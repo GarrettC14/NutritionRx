@@ -45,6 +45,8 @@ export interface FoodItem {
   isUserCreated: boolean;
   lastUsedAt?: Date;
   usageCount: number;
+  usdaFdcId?: number;
+  usdaNutrientCount: number;
   createdAt: Date;
   updatedAt: Date;
 }

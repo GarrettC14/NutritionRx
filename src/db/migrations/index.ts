@@ -12,8 +12,9 @@ import { migration010WaterTracking } from './010_water_tracking';
 import { migration011Restaurants } from './011_restaurants';
 import { migration012PlanningFeatures } from './012_planning_features';
 import { migration013MicronutrientsAndPhotos } from './013_micronutrients_and_photos';
+import { migration014UsdaFdcId } from './014_usda_fdc_id';
 
-export const CURRENT_SCHEMA_VERSION = 13;
+export const CURRENT_SCHEMA_VERSION = 14;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -29,6 +30,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration011Restaurants,
   migration012PlanningFeatures,
   migration013MicronutrientsAndPhotos,
+  migration014UsdaFdcId,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {
