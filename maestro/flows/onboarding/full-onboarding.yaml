@@ -1,0 +1,109 @@
+appId: com.yourcompany.nutritionrx
+name: Full Onboarding Flow
+tags:
+  - onboarding
+  - complete
+---
+- launchApp:
+    clearState: true
+
+# === Legal ===
+- assertVisible:
+    id: "legal-screen"
+
+- scrollUntilVisible:
+    element:
+      id: "legal-checkbox"
+    direction: DOWN
+
+- tapOn:
+    id: "legal-checkbox"
+
+- tapOn:
+    id: "legal-proceed-button"
+
+# === Welcome ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-welcome-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "onboarding-begin-button"
+
+# === Goal Selection ===
+- assertVisible:
+    id: "onboarding-goal-screen"
+- assertVisible:
+    id: "onboarding-goal-back-button"
+
+# Verify all goal options
+- assertVisible:
+    id: "onboarding-goal-option-lose"
+- assertVisible:
+    id: "onboarding-goal-option-maintain"
+- assertVisible:
+    id: "onboarding-goal-option-build"
+- assertVisible:
+    id: "onboarding-goal-option-track"
+
+# Select "Lose weight"
+- tapOn:
+    id: "onboarding-goal-option-lose"
+
+- tapOn:
+    id: "onboarding-goal-continue-button"
+
+# === Preferences ===
+- assertVisible:
+    id: "onboarding-preferences-screen"
+- assertVisible:
+    id: "onboarding-preferences-back-button"
+
+# Verify unit options
+- assertVisible:
+    id: "onboarding-energy-calories"
+- assertVisible:
+    id: "onboarding-energy-kilojoules"
+- assertVisible:
+    id: "onboarding-weight-lbs"
+- assertVisible:
+    id: "onboarding-weight-kg"
+
+# Select preferences
+- tapOn:
+    id: "onboarding-energy-calories"
+- tapOn:
+    id: "onboarding-weight-lbs"
+
+- tapOn:
+    id: "onboarding-preferences-continue-button"
+
+# === Ready Screen ===
+- assertVisible:
+    id: "onboarding-ready-screen"
+- assertVisible:
+    id: "onboarding-ready-back-button"
+
+# Verify CTA options
+- assertVisible:
+    id: "onboarding-ready-scan-barcode"
+- assertVisible:
+    id: "onboarding-ready-search-food"
+- assertVisible:
+    id: "onboarding-ready-explore-app"
+
+# Choose to explore app
+- tapOn:
+    id: "onboarding-ready-explore-app"
+
+# === Home Screen ===
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "home-date-label"
+- assertVisible:
+    id: "widget-calorie-ring"

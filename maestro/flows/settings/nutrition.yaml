@@ -1,0 +1,49 @@
+appId: com.yourcompany.nutritionrx
+name: Nutrition Settings
+tags:
+  - settings
+  - nutrition
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-nutrition-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-nutrition-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-nutrition-back-button"
+- assertVisible:
+    id: "settings-nutrition-edit-button"
+
+# Enable editing
+- tapOn:
+    id: "settings-nutrition-edit-button"
+
+- wait: 500
+
+# Cancel without saving
+- tapOn:
+    id: "settings-nutrition-cancel-button"
+
+- wait: 500
+
+# Navigate back
+- tapOn:
+    id: "settings-nutrition-back-button"
+
+- assertVisible:
+    id: "settings-screen"

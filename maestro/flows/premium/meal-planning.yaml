@@ -1,0 +1,66 @@
+appId: com.yourcompany.nutritionrx
+name: Meal Planning Settings
+tags:
+  - premium
+  - meal-planning
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+# Enable premium
+- runFlow: ../../utils/enable-premium.yaml
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-meal-planning-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-meal-planning-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-meal-planning-enable-toggle"
+
+# Enable meal planning
+- tapOn:
+    id: "settings-meal-planning-enable-toggle"
+
+- wait: 500
+
+# Verify week navigation
+- assertVisible:
+    id: "settings-meal-planning-week-prev-button"
+    optional: true
+- assertVisible:
+    id: "settings-meal-planning-week-next-button"
+    optional: true
+
+# Navigate weeks
+- tapOn:
+    id: "settings-meal-planning-week-next-button"
+    optional: true
+
+- wait: 500
+
+- tapOn:
+    id: "settings-meal-planning-week-prev-button"
+    optional: true
+
+- wait: 500
+
+# Go back to settings
+- back
+- wait: 500
+
+- assertVisible:
+    id: "settings-screen"
+    optional: true

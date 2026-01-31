@@ -1,0 +1,61 @@
+appId: com.yourcompany.nutritionrx
+name: Meal Sections Visibility
+tags:
+  - home
+  - meals
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- assertVisible:
+    id: "home-screen"
+
+# Verify all meal sections are visible
+- scrollUntilVisible:
+    element:
+      id: "meal-breakfast-section"
+    direction: DOWN
+
+- assertVisible:
+    id: "meal-breakfast-section"
+
+- assertVisible:
+    id: "meal-add-food-button-breakfast"
+
+- scrollUntilVisible:
+    element:
+      id: "meal-lunch-section"
+    direction: DOWN
+
+- assertVisible:
+    id: "meal-lunch-section"
+
+- assertVisible:
+    id: "meal-add-food-button-lunch"
+
+- scrollUntilVisible:
+    element:
+      id: "meal-dinner-section"
+    direction: DOWN
+
+- assertVisible:
+    id: "meal-dinner-section"
+
+- assertVisible:
+    id: "meal-add-food-button-dinner"
+
+- scrollUntilVisible:
+    element:
+      id: "meal-snack-section"
+    direction: DOWN
+
+- assertVisible:
+    id: "meal-snack-section"
+
+- assertVisible:
+    id: "meal-add-food-button-snack"

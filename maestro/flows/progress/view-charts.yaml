@@ -1,0 +1,41 @@
+appId: com.yourcompany.nutritionrx
+name: View Progress Charts
+tags:
+  - progress
+  - charts
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- runFlow: ../../utils/seed-data.yaml
+
+- tapOn:
+    id: "tab-bar-progress"
+
+- assertVisible:
+    id: "progress-screen"
+
+# Verify all charts
+- assertVisible:
+    id: "progress-weight-chart"
+
+- scrollUntilVisible:
+    element:
+      id: "progress-calorie-chart"
+    direction: DOWN
+
+- assertVisible:
+    id: "progress-calorie-chart"
+
+- scrollUntilVisible:
+    element:
+      id: "progress-macro-chart"
+    direction: DOWN
+
+- assertVisible:
+    id: "progress-macro-chart"

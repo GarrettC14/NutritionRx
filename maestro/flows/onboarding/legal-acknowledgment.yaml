@@ -1,0 +1,45 @@
+appId: com.yourcompany.nutritionrx
+name: Legal Acknowledgment Flow
+tags:
+  - onboarding
+  - legal
+---
+- launchApp:
+    clearState: true
+
+- assertVisible:
+    id: "legal-screen"
+
+# Verify all elements present
+- assertVisible:
+    id: "legal-scroll-view"
+- assertVisible:
+    id: "legal-terms-link"
+
+# Try to proceed without checking - should be disabled or show error
+- tapOn:
+    id: "legal-proceed-button"
+
+# Should still be on legal screen (button disabled without checkbox)
+- assertVisible:
+    id: "legal-screen"
+
+# Now properly acknowledge
+- scrollUntilVisible:
+    element:
+      id: "legal-checkbox"
+    direction: DOWN
+    scrollBounds:
+      id: "legal-scroll-view"
+
+- tapOn:
+    id: "legal-checkbox"
+
+- tapOn:
+    id: "legal-proceed-button"
+
+# Should move to onboarding
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-welcome-screen"
+    timeout: 3000

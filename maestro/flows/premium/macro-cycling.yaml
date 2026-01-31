@@ -1,0 +1,57 @@
+appId: com.yourcompany.nutritionrx
+name: Macro Cycling Setup
+tags:
+  - premium
+  - macro-cycling
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+# Enable premium
+- runFlow: ../../utils/enable-premium.yaml
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-macro-cycling-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "macro-cycling-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "macro-cycling-close-button"
+
+# Select a pattern
+- tapOn:
+    id: "macro-cycling-pattern-option-high-low"
+    optional: true
+
+- wait: 500
+
+# Select days
+- tapOn:
+    id: "macro-cycling-day-pill-0"
+    optional: true
+
+- wait: 500
+
+# Continue through setup
+- tapOn:
+    id: "macro-cycling-continue-button"
+    optional: true
+
+# Close
+- tapOn:
+    id: "macro-cycling-close-button"
+
+- assertVisible:
+    id: "settings-screen"

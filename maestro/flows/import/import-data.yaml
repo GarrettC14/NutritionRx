@@ -1,0 +1,65 @@
+appId: com.yourcompany.nutritionrx
+name: Import Data Flow
+tags:
+  - import
+  - data
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- scrollUntilVisible:
+    element:
+      id: "settings-import-row"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-import-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "import-index-screen"
+    timeout: 3000
+
+# Verify welcome screen
+- assertVisible:
+    id: "import-index-back-button"
+- assertVisible:
+    id: "import-index-get-started-button"
+
+# Can also seed sample data from here
+- assertVisible:
+    id: "import-seed-data-button"
+    optional: true
+
+# Start import flow
+- tapOn:
+    id: "import-index-get-started-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "import-source-screen"
+    timeout: 3000
+
+# Go back to index
+- tapOn:
+    id: "import-source-back-button"
+
+- assertVisible:
+    id: "import-index-screen"
+
+# Go back to settings
+- tapOn:
+    id: "import-index-back-button"
+
+- assertVisible:
+    id: "settings-screen"

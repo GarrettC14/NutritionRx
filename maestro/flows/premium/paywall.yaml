@@ -1,0 +1,44 @@
+appId: com.yourcompany.nutritionrx
+name: Paywall Flow
+tags:
+  - premium
+  - paywall
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+# Try to access premium feature
+- tapOn:
+    id: "settings-premium-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "paywall-screen"
+    timeout: 3000
+
+# Verify paywall elements
+- assertVisible:
+    id: "paywall-close-button"
+- assertVisible:
+    id: "paywall-subscribe-button"
+- assertVisible:
+    id: "paywall-restore-button"
+- assertVisible:
+    id: "paywall-terms-link"
+- assertVisible:
+    id: "paywall-privacy-link"
+
+# Close paywall
+- tapOn:
+    id: "paywall-close-button"
+
+- assertVisible:
+    id: "settings-screen"

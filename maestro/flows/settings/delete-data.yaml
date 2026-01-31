@@ -1,0 +1,40 @@
+appId: com.yourcompany.nutritionrx
+name: Delete All Data
+tags:
+  - settings
+  - delete
+  - destructive
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- scrollUntilVisible:
+    element:
+      id: "settings-delete-all-data-row"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-delete-all-data-row"
+
+# Confirmation dialog should appear
+- extendedWaitUntil:
+    visible:
+      id: "ui-confirm-dialog"
+    timeout: 2000
+
+# Cancel to not actually delete
+- tapOn:
+    id: "ui-confirm-dialog-cancel"
+
+- assertVisible:
+    id: "settings-screen"

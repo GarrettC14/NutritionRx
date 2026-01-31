@@ -1,0 +1,66 @@
+appId: com.yourcompany.nutritionrx
+name: Complete Onboarding Utility
+---
+# Starts from fresh install, ends on Home screen
+
+# Legal Acknowledgment
+- assertVisible:
+    id: "legal-screen"
+
+- scrollUntilVisible:
+    element:
+      id: "legal-checkbox"
+    direction: DOWN
+    scrollBounds:
+      id: "legal-scroll-view"
+
+- tapOn:
+    id: "legal-checkbox"
+
+- tapOn:
+    id: "legal-proceed-button"
+
+# Onboarding Welcome
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-welcome-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "onboarding-begin-button"
+
+# Goal Selection
+- assertVisible:
+    id: "onboarding-goal-screen"
+
+- tapOn:
+    id: "onboarding-goal-option-lose"
+
+- tapOn:
+    id: "onboarding-goal-continue-button"
+
+# Preferences
+- assertVisible:
+    id: "onboarding-preferences-screen"
+
+- tapOn:
+    id: "onboarding-energy-calories"
+
+- tapOn:
+    id: "onboarding-weight-lbs"
+
+- tapOn:
+    id: "onboarding-preferences-continue-button"
+
+# Ready Screen
+- assertVisible:
+    id: "onboarding-ready-screen"
+
+- tapOn:
+    id: "onboarding-ready-explore-app"
+
+# Verify Home
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

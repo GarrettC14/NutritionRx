@@ -1,0 +1,74 @@
+appId: com.yourcompany.nutritionrx
+name: Seed Database Utility
+---
+# Navigate to Developer Settings and seed data
+# Precondition: User is on Home screen (onboarding complete)
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- assertVisible:
+    id: "settings-screen"
+
+# Navigate to About (need to tap version 7 times to unlock dev settings)
+- scrollUntilVisible:
+    element:
+      id: "settings-about-row"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-about-row"
+
+- assertVisible:
+    id: "settings-about-screen"
+
+# Tap version number 7 times to unlock developer settings
+- repeat:
+    times: 7
+    commands:
+      - tapOn:
+          text: "Version"
+          optional: true
+      - wait: 100
+
+# Go back and find developer settings
+- tapOn:
+    id: "settings-about-back-button"
+
+# Developer settings should now be visible
+- scrollUntilVisible:
+    element:
+      id: "settings-dev-seed-database"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-dev-seed-database"
+
+# Navigate to developer screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-developer-screen"
+    timeout: 3000
+
+# Configure and seed
+- tapOn:
+    id: "settings-developer-seed-button"
+
+# Wait for seeding to complete
+- wait: 5000
+
+# Dismiss result if shown
+- tapOn:
+    id: "settings-developer-dismiss-result-button"
+    optional: true
+
+# Return to home
+- tapOn:
+    id: "settings-developer-back-button"
+
+- tapOn:
+    id: "tab-bar-home"

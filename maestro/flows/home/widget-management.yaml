@@ -1,0 +1,53 @@
+appId: com.yourcompany.nutritionrx
+name: Widget Management
+tags:
+  - home
+  - widgets
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- assertVisible:
+    id: "home-screen"
+
+# Enter edit mode
+- tapOn:
+    id: "home-edit-button"
+
+- wait: 500
+
+# Verify edit mode elements
+- assertVisible:
+    id: "home-restore-button"
+- assertVisible:
+    id: "home-add-widget-button"
+
+# Open widget picker
+- tapOn:
+    id: "home-add-widget-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-widget-picker-modal"
+    timeout: 2000
+
+# Close picker
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Restore default layout
+- tapOn:
+    id: "home-restore-button"
+
+- wait: 500
+
+# Exit edit mode (tap edit button again or tap outside)
+- tapOn:
+    id: "home-edit-button"
+    optional: true

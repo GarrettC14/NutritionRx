@@ -1,0 +1,47 @@
+appId: com.yourcompany.nutritionrx
+name: Water Tracking
+tags:
+  - home
+  - water
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- assertVisible:
+    id: "home-screen"
+
+# Find water widget
+- scrollUntilVisible:
+    element:
+      id: "widget-water-tracker"
+    direction: DOWN
+
+- assertVisible:
+    id: "widget-water-tracker"
+
+# Add water
+- tapOn:
+    id: "water-add-button"
+
+- wait: 300
+
+# Add another glass
+- tapOn:
+    id: "water-add-button"
+
+- wait: 300
+
+# Remove one
+- tapOn:
+    id: "water-remove-button"
+
+- wait: 300
+
+# Verify glass indicators
+- assertVisible:
+    id: "water-glass-indicator-0"

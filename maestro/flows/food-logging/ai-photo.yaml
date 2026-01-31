@@ -1,0 +1,64 @@
+appId: com.yourcompany.nutritionrx
+name: AI Photo Analysis Flow
+tags:
+  - food-logging
+  - ai
+  - premium
+  - camera
+---
+# Note: Requires premium and camera access
+
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+# Enable premium for this test
+- runFlow: ../../utils/enable-premium.yaml
+
+- tapOn:
+    id: "meal-add-food-button-lunch"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "add-food-ai-photo-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "ai-photo-screen"
+    timeout: 3000
+
+# Verify AI photo elements
+- assertVisible:
+    id: "ai-photo-close-button"
+- assertVisible:
+    id: "ai-photo-flash-toggle"
+    optional: true
+- assertVisible:
+    id: "ai-photo-gallery-button"
+- assertVisible:
+    id: "ai-photo-capture-button"
+    optional: true
+
+# For simulator testing, use gallery
+- tapOn:
+    id: "ai-photo-gallery-button"
+
+# Wait for image picker (this may vary by platform)
+- wait: 2000
+
+# Close if no image selected
+- tapOn:
+    id: "ai-photo-close-button"
+    optional: true
+
+- assertVisible:
+    id: "add-food-screen"
+    optional: true

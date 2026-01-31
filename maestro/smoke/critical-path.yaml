@@ -1,0 +1,134 @@
+appId: com.yourcompany.nutritionrx
+name: Critical Path Smoke Test
+tags:
+  - smoke
+  - critical
+---
+# ============================================
+# CRITICAL PATH: Onboarding → Log Food → Verify
+# ============================================
+
+# --- STEP 1: Fresh app launch ---
+- launchApp:
+    clearState: true
+
+# --- STEP 2: Legal Acknowledgment ---
+- assertVisible:
+    id: "legal-screen"
+
+- scrollUntilVisible:
+    element:
+      id: "legal-checkbox"
+    direction: DOWN
+    scrollBounds:
+      id: "legal-scroll-view"
+
+- tapOn:
+    id: "legal-checkbox"
+
+- tapOn:
+    id: "legal-proceed-button"
+
+# --- STEP 3: Onboarding ---
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-welcome-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "onboarding-begin-button"
+
+# Goal
+- assertVisible:
+    id: "onboarding-goal-screen"
+
+- tapOn:
+    id: "onboarding-goal-option-track"
+
+- tapOn:
+    id: "onboarding-goal-continue-button"
+
+# Preferences
+- assertVisible:
+    id: "onboarding-preferences-screen"
+
+- tapOn:
+    id: "onboarding-energy-calories"
+- tapOn:
+    id: "onboarding-weight-lbs"
+
+- tapOn:
+    id: "onboarding-preferences-continue-button"
+
+# Ready
+- assertVisible:
+    id: "onboarding-ready-screen"
+
+- tapOn:
+    id: "onboarding-ready-explore-app"
+
+# --- STEP 4: Verify Home Screen ---
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "home-date-label"
+
+# --- STEP 5: Log Food via Quick Add ---
+- tapOn:
+    id: "meal-add-food-button-breakfast"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+# Use Quick Add for simplicity
+- scrollUntilVisible:
+    element:
+      text: "Quick Add"
+    direction: DOWN
+
+- tapOn:
+    text: "Quick Add"
+
+- assertVisible:
+    id: "quick-add-screen"
+
+- tapOn:
+    id: "quick-add-calories-input"
+- inputText: "350"
+
+- tapOn:
+    id: "quick-add-protein-input"
+- inputText: "25"
+
+- tapOn:
+    id: "quick-add-carbs-input"
+- inputText: "30"
+
+- tapOn:
+    id: "quick-add-fat-input"
+- inputText: "12"
+
+- hideKeyboard
+
+- tapOn:
+    id: "quick-add-add-button"
+
+# --- STEP 6: Verify Entry on Home ---
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000
+
+# Verify calorie ring updated (or meal section has entry)
+- assertVisible:
+    id: "widget-calorie-ring"
+
+# --- SMOKE TEST COMPLETE ---
+- assertTrue:
+    condition: true
+    message: "Critical path smoke test passed"

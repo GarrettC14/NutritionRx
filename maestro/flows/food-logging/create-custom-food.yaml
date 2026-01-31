@@ -1,0 +1,97 @@
+appId: com.yourcompany.nutritionrx
+name: Create Custom Food
+tags:
+  - food-logging
+  - custom-food
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "meal-add-food-button-dinner"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "add-food-create-food-button"
+
+- assertVisible:
+    id: "create-food-screen"
+
+# Verify elements
+- assertVisible:
+    id: "create-food-back-button"
+- assertVisible:
+    id: "create-food-name-input"
+- assertVisible:
+    id: "create-food-brand-input"
+- assertVisible:
+    id: "create-food-serving-amount-input"
+- assertVisible:
+    id: "create-food-serving-unit-input"
+- assertVisible:
+    id: "create-food-calories-input"
+- assertVisible:
+    id: "create-food-protein-input"
+- assertVisible:
+    id: "create-food-carbs-input"
+- assertVisible:
+    id: "create-food-fat-input"
+- assertVisible:
+    id: "create-food-create-button"
+
+# Fill in custom food details
+- tapOn:
+    id: "create-food-name-input"
+- inputText: "Grandma's Meatloaf"
+
+- tapOn:
+    id: "create-food-brand-input"
+- inputText: "Homemade"
+
+- tapOn:
+    id: "create-food-serving-amount-input"
+- inputText: "1"
+
+- tapOn:
+    id: "create-food-serving-unit-input"
+- inputText: "slice"
+
+- tapOn:
+    id: "create-food-calories-input"
+- inputText: "280"
+
+- tapOn:
+    id: "create-food-protein-input"
+- inputText: "22"
+
+- tapOn:
+    id: "create-food-carbs-input"
+- inputText: "12"
+
+- tapOn:
+    id: "create-food-fat-input"
+- inputText: "16"
+
+- hideKeyboard
+
+- tapOn:
+    id: "create-food-create-button"
+
+# Should navigate to Log Food screen with the new food
+- extendedWaitUntil:
+    visible:
+      id: "log-food-screen"
+    timeout: 3000
+
+# Verify our food name appears
+- assertVisible:
+    text: "Grandma's Meatloaf"

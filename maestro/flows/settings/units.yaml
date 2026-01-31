@@ -1,0 +1,49 @@
+appId: com.yourcompany.nutritionrx
+name: Units Settings
+tags:
+  - settings
+  - units
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-units-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-units-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-units-back-button"
+- assertVisible:
+    id: "settings-units-scroll-view"
+
+# Switch to kg
+- tapOn:
+    id: "settings-units-weight-unit-option-kg"
+
+- wait: 500
+
+# Switch back to lbs
+- tapOn:
+    id: "settings-units-weight-unit-option-lbs"
+
+- wait: 500
+
+# Navigate back
+- tapOn:
+    id: "settings-units-back-button"
+
+- assertVisible:
+    id: "settings-screen"

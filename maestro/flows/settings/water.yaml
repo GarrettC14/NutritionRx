@@ -1,0 +1,41 @@
+appId: com.yourcompany.nutritionrx
+name: Water Settings
+tags:
+  - settings
+  - water
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-water-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-water-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-water-back-button"
+
+# Change glass goal
+- tapOn:
+    id: "settings-water-glass-goal-option-8"
+
+- wait: 500
+
+# Navigate back
+- tapOn:
+    id: "settings-water-back-button"
+
+- assertVisible:
+    id: "settings-screen"

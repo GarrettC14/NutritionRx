@@ -1,0 +1,10 @@
+appId: com.yourcompany.nutritionrx
+name: Navigate to Tab Utility
+---
+# Generic tab navigation helper
+# Usage: runFlow with env TAB_ID set to one of: tab-bar-home, tab-bar-progress, tab-bar-settings
+
+- tapOn:
+    id: "${TAB_ID}"
+
+- wait: 500

@@ -1,0 +1,10 @@
+# Maestro Configuration for NutritionRx
+appId: com.yourcompany.nutritionrx  # UPDATE with actual bundle ID
+name: NutritionRx E2E Tests
+
+# No auth credentials needed - local-first app
+env:
+  # Default preferences for tests
+  DEFAULT_GOAL: "lose"
+  DEFAULT_ENERGY_UNIT: "calories"
+  DEFAULT_WEIGHT_UNIT: "lbs"

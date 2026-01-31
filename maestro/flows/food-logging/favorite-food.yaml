@@ -1,0 +1,66 @@
+appId: com.yourcompany.nutritionrx
+name: Favorite Food Flow
+tags:
+  - food-logging
+  - favorites
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- runFlow: ../../utils/seed-data.yaml
+
+- tapOn:
+    id: "meal-add-food-button-breakfast"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+# Search for a food
+- tapOn:
+    id: "add-food-search-input"
+- inputText: "apple"
+
+- wait: 500
+
+# Select a result
+- tapOn:
+    id: "add-food-search-result-item-.*"
+    index: 0
+
+- assertVisible:
+    id: "log-food-screen"
+
+# Favorite the food
+- tapOn:
+    id: "log-food-favorite-button"
+
+- wait: 500
+
+# Add to log
+- tapOn:
+    id: "log-food-add-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000
+
+# Go back to add food and check favorites
+- tapOn:
+    id: "meal-add-food-button-lunch"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+# Verify favorites section exists
+- assertVisible:
+    id: "add-food-favorites-section"

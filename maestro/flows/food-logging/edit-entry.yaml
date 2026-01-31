@@ -1,0 +1,96 @@
+appId: com.yourcompany.nutritionrx
+name: Edit Food Log Entry
+tags:
+  - food-logging
+  - edit
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+# First, add a food entry
+- tapOn:
+    id: "meal-add-food-button-breakfast"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+# Quick add for simplicity
+- scrollUntilVisible:
+    element:
+      text: "Quick Add"
+    direction: DOWN
+
+- tapOn:
+    text: "Quick Add"
+
+- tapOn:
+    id: "quick-add-calories-input"
+- inputText: "200"
+
+- hideKeyboard
+
+- tapOn:
+    id: "quick-add-add-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000
+
+# Now tap on the entry to edit it
+- tapOn:
+    id: "meal-entry-item-.*"
+    index: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "log-entry-screen"
+    timeout: 3000
+
+# Verify edit elements
+- assertVisible:
+    id: "log-entry-close-button"
+- assertVisible:
+    id: "log-entry-amount-input"
+- assertVisible:
+    id: "log-entry-save-button"
+- assertVisible:
+    id: "log-entry-delete-button"
+
+# Verify meal change options
+- assertVisible:
+    id: "log-entry-meal-breakfast"
+- assertVisible:
+    id: "log-entry-meal-lunch"
+- assertVisible:
+    id: "log-entry-meal-dinner"
+- assertVisible:
+    id: "log-entry-meal-snack"
+
+# Change amount
+- tapOn:
+    id: "log-entry-amount-input"
+- clearText
+- inputText: "1.5"
+
+- hideKeyboard
+
+# Change meal to lunch
+- tapOn:
+    id: "log-entry-meal-lunch"
+
+# Save changes
+- tapOn:
+    id: "log-entry-save-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000

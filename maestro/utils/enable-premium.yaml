@@ -1,0 +1,22 @@
+appId: com.yourcompany.nutritionrx
+name: Enable Premium (Dev Toggle)
+---
+# Enable premium features for testing
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- scrollUntilVisible:
+    element:
+      id: "settings-dev-premium-toggle"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-dev-premium-toggle"
+
+- wait: 500
+
+- tapOn:
+    id: "tab-bar-home"

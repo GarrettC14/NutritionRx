@@ -1,0 +1,40 @@
+appId: com.yourcompany.nutritionrx
+name: Theme Settings
+tags:
+  - settings
+  - theme
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- assertVisible:
+    id: "settings-screen"
+
+# Verify theme options
+- assertVisible:
+    id: "settings-theme-system"
+- assertVisible:
+    id: "settings-theme-light"
+- assertVisible:
+    id: "settings-theme-dark"
+
+# Test each theme
+- tapOn:
+    id: "settings-theme-dark"
+- wait: 500
+
+- tapOn:
+    id: "settings-theme-light"
+- wait: 500
+
+- tapOn:
+    id: "settings-theme-system"
+- wait: 500

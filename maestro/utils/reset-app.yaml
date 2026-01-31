@@ -1,0 +1,28 @@
+appId: com.yourcompany.nutritionrx
+name: Reset App to Fresh State
+---
+# Triggers fresh session via developer settings
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- scrollUntilVisible:
+    element:
+      id: "settings-dev-fresh-session"
+    direction: DOWN
+    scrollBounds:
+      id: "settings-scroll-view"
+
+- tapOn:
+    id: "settings-dev-fresh-session"
+
+# Confirm if dialog appears
+- tapOn:
+    id: "ui-confirm-dialog-confirm"
+    optional: true
+
+# Should return to legal screen
+- extendedWaitUntil:
+    visible:
+      id: "legal-screen"
+    timeout: 5000

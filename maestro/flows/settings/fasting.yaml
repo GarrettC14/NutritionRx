@@ -1,0 +1,50 @@
+appId: com.yourcompany.nutritionrx
+name: Fasting Settings
+tags:
+  - settings
+  - fasting
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-fasting-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-fasting-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-fasting-back-button"
+- assertVisible:
+    id: "settings-fasting-enable-toggle"
+
+# Enable fasting
+- tapOn:
+    id: "settings-fasting-enable-toggle"
+
+- wait: 500
+
+# Select a protocol
+- tapOn:
+    id: "settings-fasting-protocol-option-16:8"
+    optional: true
+
+- wait: 500
+
+# Navigate back
+- tapOn:
+    id: "settings-fasting-back-button"
+
+- assertVisible:
+    id: "settings-screen"

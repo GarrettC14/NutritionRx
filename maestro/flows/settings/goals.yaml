@@ -1,0 +1,56 @@
+appId: com.yourcompany.nutritionrx
+name: Goals Settings
+tags:
+  - settings
+  - goals
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- tapOn:
+    id: "settings-goals-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-goals-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-goals-back-button"
+- assertVisible:
+    id: "settings-goals-edit-button"
+- assertVisible:
+    id: "settings-goals-goal-lose"
+- assertVisible:
+    id: "settings-goals-goal-maintain"
+- assertVisible:
+    id: "settings-goals-goal-gain"
+
+# Enable editing
+- tapOn:
+    id: "settings-goals-edit-button"
+
+# Change goal
+- tapOn:
+    id: "settings-goals-goal-maintain"
+
+# Save
+- tapOn:
+    id: "settings-goals-save-button"
+
+- wait: 1000
+
+- tapOn:
+    id: "settings-goals-back-button"
+
+- assertVisible:
+    id: "settings-screen"

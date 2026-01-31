@@ -1,0 +1,18 @@
+appId: com.yourcompany.nutritionrx
+name: Skip to Home (Returning User)
+---
+# For tests that assume onboarding is already complete
+# Just verifies we're on home or navigates there
+
+- assertVisible:
+    id: "home-screen"
+    optional: true
+
+- tapOn:
+    id: "tab-bar-home"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000

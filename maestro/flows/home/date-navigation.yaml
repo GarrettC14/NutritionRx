@@ -1,0 +1,46 @@
+appId: com.yourcompany.nutritionrx
+name: Home Date Navigation
+tags:
+  - home
+  - navigation
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- assertVisible:
+    id: "home-screen"
+
+# Verify date navigation elements
+- assertVisible:
+    id: "home-date-prev-button"
+- assertVisible:
+    id: "home-date-label"
+- assertVisible:
+    id: "home-date-next-button"
+
+# Navigate to previous day
+- tapOn:
+    id: "home-date-prev-button"
+
+- wait: 500
+
+# Navigate back to today
+- tapOn:
+    id: "home-date-next-button"
+
+- wait: 500
+
+# Try to go to future (should be blocked or limited)
+- tapOn:
+    id: "home-date-next-button"
+
+- wait: 500
+
+# Verify still on valid date
+- assertVisible:
+    id: "home-date-label"

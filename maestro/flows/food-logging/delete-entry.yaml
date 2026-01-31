@@ -1,0 +1,65 @@
+appId: com.yourcompany.nutritionrx
+name: Delete Food Log Entry
+tags:
+  - food-logging
+  - delete
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+# Add a food entry to delete
+- tapOn:
+    id: "meal-add-food-button-snack"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+- scrollUntilVisible:
+    element:
+      text: "Quick Add"
+    direction: DOWN
+
+- tapOn:
+    text: "Quick Add"
+
+- tapOn:
+    id: "quick-add-calories-input"
+- inputText: "100"
+
+- hideKeyboard
+
+- tapOn:
+    id: "quick-add-add-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000
+
+# Open the entry
+- tapOn:
+    id: "meal-entry-item-.*"
+    index: 0
+
+- assertVisible:
+    id: "log-entry-screen"
+
+# Delete it
+- tapOn:
+    id: "log-entry-delete-button"
+
+# Confirm deletion
+- tapOn:
+    id: "ui-confirm-dialog-confirm"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000

@@ -1,0 +1,88 @@
+appId: com.yourcompany.nutritionrx
+name: Search and Log Food
+tags:
+  - food-logging
+  - search
+---
+- launchApp
+
+# Ensure onboarding is complete
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- assertVisible:
+    id: "home-screen"
+
+# Add food to breakfast
+- tapOn:
+    id: "meal-add-food-button-breakfast"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+# Verify search elements
+- assertVisible:
+    id: "add-food-search-input"
+- assertVisible:
+    id: "add-food-scan-fab"
+- assertVisible:
+    id: "add-food-tab-all"
+
+# Search for food
+- tapOn:
+    id: "add-food-search-input"
+- inputText: "chicken breast"
+
+# Wait for search debounce (300ms)
+- wait: 500
+
+# Tap a search result
+- tapOn:
+    id: "add-food-search-result-item-.*"
+    index: 0
+
+# Log Food screen
+- extendedWaitUntil:
+    visible:
+      id: "log-food-screen"
+    timeout: 3000
+
+- assertVisible:
+    id: "log-food-back-button"
+- assertVisible:
+    id: "log-food-favorite-button"
+- assertVisible:
+    id: "log-food-amount-input"
+- assertVisible:
+    id: "log-food-add-button"
+
+# Verify meal is pre-selected
+- assertVisible:
+    id: "log-food-meal-breakfast"
+
+# Adjust amount
+- tapOn:
+    id: "log-food-amount-input"
+- clearText
+- inputText: "150"
+
+- hideKeyboard
+
+# Add to log
+- tapOn:
+    id: "log-food-add-button"
+
+# Should return to home
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 3000
+
+# Verify entry appears in breakfast section
+- assertVisible:
+    id: "meal-breakfast-section"

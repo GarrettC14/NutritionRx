@@ -1,0 +1,75 @@
+appId: com.yourcompany.nutritionrx
+name: Onboarding Back Navigation
+tags:
+  - onboarding
+  - navigation
+---
+- launchApp:
+    clearState: true
+
+# Complete legal
+- scrollUntilVisible:
+    element:
+      id: "legal-checkbox"
+    direction: DOWN
+
+- tapOn:
+    id: "legal-checkbox"
+
+- tapOn:
+    id: "legal-proceed-button"
+
+# Welcome → Goal
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-welcome-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "onboarding-begin-button"
+
+- assertVisible:
+    id: "onboarding-goal-screen"
+
+# Goal → Preferences
+- tapOn:
+    id: "onboarding-goal-option-maintain"
+
+- tapOn:
+    id: "onboarding-goal-continue-button"
+
+- assertVisible:
+    id: "onboarding-preferences-screen"
+
+# Go back to Goal
+- tapOn:
+    id: "onboarding-preferences-back-button"
+
+- assertVisible:
+    id: "onboarding-goal-screen"
+
+# Previous selection should be preserved
+- tapOn:
+    id: "onboarding-goal-continue-button"
+
+- assertVisible:
+    id: "onboarding-preferences-screen"
+
+# Continue to Ready
+- tapOn:
+    id: "onboarding-energy-calories"
+- tapOn:
+    id: "onboarding-weight-kg"
+
+- tapOn:
+    id: "onboarding-preferences-continue-button"
+
+- assertVisible:
+    id: "onboarding-ready-screen"
+
+# Go back to Preferences
+- tapOn:
+    id: "onboarding-ready-back-button"
+
+- assertVisible:
+    id: "onboarding-preferences-screen"

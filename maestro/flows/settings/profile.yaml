@@ -1,0 +1,64 @@
+appId: com.yourcompany.nutritionrx
+name: Profile Settings
+tags:
+  - settings
+  - profile
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-settings"
+
+- assertVisible:
+    id: "settings-screen"
+
+- tapOn:
+    id: "settings-profile-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-profile-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "settings-profile-back-button"
+- assertVisible:
+    id: "settings-profile-edit-button"
+- assertVisible:
+    id: "settings-profile-sex-male"
+- assertVisible:
+    id: "settings-profile-sex-female"
+
+# Enable editing
+- tapOn:
+    id: "settings-profile-edit-button"
+
+# Change sex
+- tapOn:
+    id: "settings-profile-sex-female"
+
+# Adjust height
+- tapOn:
+    id: "settings-profile-height-plus"
+- tapOn:
+    id: "settings-profile-height-plus"
+
+# Save
+- tapOn:
+    id: "settings-profile-save-button"
+
+- wait: 1000
+
+# Navigate back
+- tapOn:
+    id: "settings-profile-back-button"
+
+- assertVisible:
+    id: "settings-screen"

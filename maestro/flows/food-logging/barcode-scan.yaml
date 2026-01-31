@@ -1,0 +1,62 @@
+appId: com.yourcompany.nutritionrx
+name: Barcode Scanner Flow
+tags:
+  - food-logging
+  - barcode
+  - camera
+---
+# Note: This test requires camera access
+# On simulator/emulator, test the permission and manual entry paths
+
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "meal-add-food-button-breakfast"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "add-food-scan-fab"
+
+- extendedWaitUntil:
+    visible:
+      id: "scanner-screen"
+    timeout: 3000
+
+# Verify scanner elements
+- assertVisible:
+    id: "scanner-close-button"
+
+# Camera permission handling
+- assertVisible:
+    id: "scanner-allow-camera-button"
+    optional: true
+
+- assertVisible:
+    id: "scanner-go-back-button"
+    optional: true
+
+# If we have camera access, verify scanner controls
+- assertVisible:
+    id: "scanner-flash-toggle"
+    optional: true
+
+- assertVisible:
+    id: "scanner-enter-manually-button"
+    optional: true
+
+# Close scanner
+- tapOn:
+    id: "scanner-close-button"
+
+- assertVisible:
+    id: "add-food-screen"

@@ -1,0 +1,83 @@
+appId: com.yourcompany.nutritionrx
+name: Log Weight
+tags:
+  - progress
+  - weight
+---
+- launchApp
+
+- runFlow:
+    file: ../../utils/complete-onboarding.yaml
+    when:
+      visible:
+        id: "legal-screen"
+
+- tapOn:
+    id: "tab-bar-progress"
+
+- extendedWaitUntil:
+    visible:
+      id: "progress-screen"
+    timeout: 3000
+
+- tapOn:
+    id: "progress-log-weight-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "log-weight-screen"
+    timeout: 3000
+
+# Verify elements
+- assertVisible:
+    id: "log-weight-close-button"
+- assertVisible:
+    id: "log-weight-minus-button"
+- assertVisible:
+    id: "log-weight-input"
+- assertVisible:
+    id: "log-weight-plus-button"
+- assertVisible:
+    id: "log-weight-notes-input"
+- assertVisible:
+    id: "log-weight-save-button"
+
+# Quick adjust buttons
+- assertVisible:
+    id: "log-weight-quick-minus-1"
+- assertVisible:
+    id: "log-weight-quick-minus-05"
+- assertVisible:
+    id: "log-weight-quick-plus-05"
+- assertVisible:
+    id: "log-weight-quick-plus-1"
+
+# Enter weight
+- tapOn:
+    id: "log-weight-input"
+- clearText
+- inputText: "175.5"
+
+# Use quick adjust
+- tapOn:
+    id: "log-weight-quick-minus-05"
+
+# Add notes
+- tapOn:
+    id: "log-weight-notes-input"
+- inputText: "Morning weigh-in"
+
+- hideKeyboard
+
+# Save
+- tapOn:
+    id: "log-weight-save-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "progress-screen"
+    timeout: 3000
+
+# Verify chart updated
+- assertVisible:
+    id: "progress-weight-chart"
