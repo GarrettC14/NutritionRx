@@ -15,9 +15,11 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 import { useRestaurantStore } from '@/stores';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { restaurantRepository } from '@/repositories';
 import { RestaurantFood } from '@/types/restaurant';
 import { Button } from '@/components/ui/Button';
+import { PremiumBadge } from '@/components/premium/PremiumBadge';
 import { FoodDetailSkeleton } from '@/components/ui/Skeleton';
 
 export default function RestaurantFoodDetailScreen() {
@@ -30,6 +32,7 @@ export default function RestaurantFoodDetailScreen() {
   }>();
 
   const { logFood } = useRestaurantStore();
+  const { isPremium } = useSubscriptionStore();
 
   // State
   const [food, setFood] = useState<RestaurantFood | null>(null);
@@ -79,6 +82,11 @@ export default function RestaurantFoodDetailScreen() {
 
   // Handle save
   const handleSave = async () => {
+    if (!isPremium) {
+      router.push('/paywall?context=nutrition');
+      return;
+    }
+
     if (!food) return;
     const qty = parseFloat(quantity) || 0;
     if (qty <= 0) return;
@@ -290,14 +298,21 @@ export default function RestaurantFoodDetailScreen() {
 
       {/* Save Button */}
       <View style={styles.footer}>
-        <Button
-          onPress={handleSave}
-          loading={isSaving}
-          disabled={!isValid}
-          fullWidth
-        >
-          Add Food
-        </Button>
+        <View style={styles.buttonRow}>
+          <Button
+            onPress={handleSave}
+            loading={isSaving}
+            disabled={!isValid}
+            fullWidth
+          >
+            {isPremium ? 'Add Food' : 'Add Food'}
+          </Button>
+          {!isPremium && (
+            <View style={styles.premiumBadgeOverlay}>
+              <PremiumBadge size="small" />
+            </View>
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -457,5 +472,13 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingVertical: spacing[4],
+  },
+  buttonRow: {
+    position: 'relative',
+  },
+  premiumBadgeOverlay: {
+    position: 'absolute',
+    top: -6,
+    right: -4,
   },
 });

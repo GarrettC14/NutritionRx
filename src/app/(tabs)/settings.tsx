@@ -12,6 +12,7 @@ import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { PremiumSettingsRow } from '@/components/premium/PremiumSettingsRow';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -297,6 +298,13 @@ export default function SettingsScreen() {
               title="Meal Planning"
               subtitle="Plan meals in advance"
               onPress={() => router.push('/settings/meal-planning')}
+            />
+            <PremiumSettingsRow
+              icon="repeat-outline"
+              label="Macro Cycling"
+              subtitle="Different targets for training vs rest days"
+              href="/macro-cycling-setup"
+              context="planning"
             />
           </View>
         </View>

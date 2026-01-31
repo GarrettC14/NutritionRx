@@ -279,8 +279,7 @@ export default function RestaurantListScreen() {
                       variant="compact"
                       onDismiss={() => setShowPremiumBanner(false)}
                       onUpgradePress={() => {
-                        // Navigate to premium screen (to be implemented)
-                        console.log('Navigate to premium');
+                        router.push('/paywall?context=nutrition');
                       }}
                     />
                   </View>
