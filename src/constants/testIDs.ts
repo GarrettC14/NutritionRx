@@ -124,6 +124,7 @@ export const TestIDs = {
     Screen: 'progress-screen',
     LogWeightButton: 'progress-log-weight-button',
     TimeRange7d: 'progress-time-range-7d',
+    TimeRange14d: 'progress-time-range-14d',
     TimeRange30d: 'progress-time-range-30d',
     TimeRange90d: 'progress-time-range-90d',
     TimeRangeAll: 'progress-time-range-all',

@@ -17,10 +17,11 @@ import { usePremium } from '@/hooks/usePremium';
 import { DailyInsightsSection } from '@/features/insights';
 import { TestIDs } from '@/constants/testIDs';
 
-type TimeRange = '7d' | '30d' | '90d' | 'all';
+type TimeRange = '7d' | '14d' | '30d' | '90d' | 'all';
 
 const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
   '7d': TestIDs.Progress.TimeRange7d,
+  '14d': TestIDs.Progress.TimeRange14d,
   '30d': TestIDs.Progress.TimeRange30d,
   '90d': TestIDs.Progress.TimeRange90d,
   all: TestIDs.Progress.TimeRangeAll,
@@ -34,6 +35,9 @@ const getDateRange = (range: TimeRange): { start: string; end: string } => {
   switch (range) {
     case '7d':
       start.setDate(start.getDate() - 7);
+      break;
+    case '14d':
+      start.setDate(start.getDate() - 14);
       break;
     case '30d':
       start.setDate(start.getDate() - 30);
@@ -220,6 +224,7 @@ export default function ProgressScreen() {
   const hasWeightData = weightEntries.length > 0;
 
   const timeRanges: TimeRange[] = ['7d', '30d', '90d', 'all'];
+  const calorieMacroTimeRanges: TimeRange[] = ['7d', '14d', '30d'];
 
   // Show skeleton on initial load to prevent flash
   const isReady = dataLoaded && settingsLoaded && nutrientsLoaded && photosLoaded;
@@ -361,7 +366,7 @@ export default function ProgressScreen() {
               Calories
             </Text>
             <View style={styles.timeRangeButtons}>
-              {timeRanges.map((range) => (
+              {calorieMacroTimeRanges.map((range) => (
                 <Pressable
                   key={range}
                   testID={TIME_RANGE_TEST_IDS[range]}
@@ -382,7 +387,7 @@ export default function ProgressScreen() {
                       },
                     ]}
                   >
-                    {range === 'all' ? 'All' : range}
+                    {range}
                   </Text>
                 </Pressable>
               ))}
@@ -417,7 +422,7 @@ export default function ProgressScreen() {
                 Average Macros
               </Text>
               <View style={styles.timeRangeButtons}>
-                {timeRanges.map((range) => (
+                {calorieMacroTimeRanges.map((range) => (
                   <Pressable
                     key={range}
                     testID={TIME_RANGE_TEST_IDS[range]}
@@ -438,7 +443,7 @@ export default function ProgressScreen() {
                         },
                       ]}
                     >
-                      {range === 'all' ? 'All' : range}
+                      {range}
                     </Text>
                   </Pressable>
                 ))}
