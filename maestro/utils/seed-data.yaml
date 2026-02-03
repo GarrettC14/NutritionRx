@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Seed Database Utility
 ---
 # Navigate to Developer Settings and seed data
@@ -15,8 +15,6 @@ name: Seed Database Utility
     element:
       id: "settings-about-row"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-about-row"
@@ -42,8 +40,6 @@ name: Seed Database Utility
     element:
       id: "settings-dev-seed-database"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-dev-seed-database"

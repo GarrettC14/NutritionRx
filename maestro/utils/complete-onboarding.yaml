@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Complete Onboarding Utility
 ---
 # Starts from fresh install, ends on Home screen
@@ -11,8 +11,6 @@ name: Complete Onboarding Utility
     element:
       id: "legal-checkbox"
     direction: DOWN
-    scrollBounds:
-      id: "legal-scroll-view"
 
 - tapOn:
     id: "legal-checkbox"

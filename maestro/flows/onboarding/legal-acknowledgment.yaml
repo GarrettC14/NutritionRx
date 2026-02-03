@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Legal Acknowledgment Flow
 tags:
   - onboarding
@@ -29,8 +29,6 @@ tags:
     element:
       id: "legal-checkbox"
     direction: DOWN
-    scrollBounds:
-      id: "legal-scroll-view"
 
 - tapOn:
     id: "legal-checkbox"

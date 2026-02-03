@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Skip to Home (Returning User)
 ---
 # For tests that assume onboarding is already complete

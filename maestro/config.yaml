@@ -1,5 +1,5 @@
 # Maestro Configuration for NutritionRx
-appId: com.yourcompany.nutritionrx  # UPDATE with actual bundle ID
+appId: com.nutritionrx.app  # UPDATE with actual bundle ID
 name: NutritionRx E2E Tests
 
 # No auth credentials needed - local-first app

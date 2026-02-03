@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Import Data Flow
 tags:
   - import
@@ -19,8 +19,6 @@ tags:
     element:
       id: "settings-import-row"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-import-row"

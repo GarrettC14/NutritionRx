@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Delete All Data
 tags:
   - settings
@@ -20,8 +20,6 @@ tags:
     element:
       id: "settings-delete-all-data-row"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-delete-all-data-row"

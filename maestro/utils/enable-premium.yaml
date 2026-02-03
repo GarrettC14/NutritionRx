@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Enable Premium (Dev Toggle)
 ---
 # Enable premium features for testing
@@ -10,8 +10,6 @@ name: Enable Premium (Dev Toggle)
     element:
       id: "settings-dev-premium-toggle"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-dev-premium-toggle"

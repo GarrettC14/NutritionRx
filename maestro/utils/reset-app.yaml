@@ -1,4 +1,4 @@
-appId: com.yourcompany.nutritionrx
+appId: com.nutritionrx.app
 name: Reset App to Fresh State
 ---
 # Triggers fresh session via developer settings
@@ -10,8 +10,6 @@ name: Reset App to Fresh State
     element:
       id: "settings-dev-fresh-session"
     direction: DOWN
-    scrollBounds:
-      id: "settings-scroll-view"
 
 - tapOn:
     id: "settings-dev-fresh-session"

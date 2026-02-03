@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.nutritionrx.wear"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.nutritionrx.wear"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
     }
