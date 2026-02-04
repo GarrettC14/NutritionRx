@@ -4,7 +4,7 @@ tags:
   - food-logging
   - restaurant
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -15,6 +15,9 @@ tags:
 # Seed data to ensure restaurants are loaded
 - runFlow: ../../utils/seed-data.yaml
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-home"
 
@@ -45,7 +48,7 @@ tags:
     id: "restaurant-search-input"
 - inputText: "McDonald"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Tap on a restaurant result
 - tapOn:

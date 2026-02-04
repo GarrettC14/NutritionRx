@@ -27,19 +27,19 @@ tags:
 - tapOn:
     id: "home-date-prev-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Navigate back to today
 - tapOn:
     id: "home-date-next-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Try to go to future (should be blocked or limited)
 - tapOn:
     id: "home-date-next-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Verify still on valid date
 - assertVisible:

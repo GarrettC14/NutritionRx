@@ -4,7 +4,7 @@ tags:
   - settings
   - fasting
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -12,6 +12,9 @@ tags:
       visible:
         id: "legal-screen"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 
@@ -33,14 +36,14 @@ tags:
 - tapOn:
     id: "settings-fasting-enable-toggle"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Select a protocol
 - tapOn:
     id: "settings-fasting-protocol-option-16:8"
     optional: true
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Navigate back
 - tapOn:

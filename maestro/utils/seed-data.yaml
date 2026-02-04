@@ -5,6 +5,9 @@ name: Seed Database Utility
 # Precondition: User is on Home screen (onboarding complete)
 
 - tapOn:
+    point: "93%, 93%"
+    optional: true
+- tapOn:
     id: "tab-bar-settings"
 
 - assertVisible:
@@ -29,7 +32,7 @@ name: Seed Database Utility
       - tapOn:
           text: "Version"
           optional: true
-      - wait: 100
+      - waitForAnimationToEnd
 
 # Go back and find developer settings
 - tapOn:
@@ -55,7 +58,7 @@ name: Seed Database Utility
     id: "settings-developer-seed-button"
 
 # Wait for seeding to complete
-- wait: 5000
+- waitForAnimationToEnd
 
 # Dismiss result if shown
 - tapOn:
@@ -66,5 +69,8 @@ name: Seed Database Utility
 - tapOn:
     id: "settings-developer-back-button"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-home"

@@ -4,7 +4,7 @@ tags:
   - food-logging
   - search
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 # Ensure onboarding is complete
 - runFlow:
@@ -39,7 +39,7 @@ tags:
 - inputText: "chicken breast"
 
 # Wait for search debounce (300ms)
-- wait: 500
+- waitForAnimationToEnd
 
 # Tap a search result
 - tapOn:
@@ -68,7 +68,7 @@ tags:
 # Adjust amount
 - tapOn:
     id: "log-food-amount-input"
-- clearText
+- eraseText
 - inputText: "150"
 
 - hideKeyboard

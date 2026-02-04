@@ -7,4 +7,4 @@ name: Navigate to Tab Utility
 - tapOn:
     id: "${TAB_ID}"
 
-- wait: 500
+- waitForAnimationToEnd

@@ -8,7 +8,7 @@ tags:
 ---
 # Note: Requires premium and camera access
 
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -52,7 +52,7 @@ tags:
     id: "ai-photo-gallery-button"
 
 # Wait for image picker (this may vary by platform)
-- wait: 2000
+- waitForAnimationToEnd
 
 # Close if no image selected
 - tapOn:

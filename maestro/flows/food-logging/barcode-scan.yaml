@@ -8,7 +8,7 @@ tags:
 # Note: This test requires camera access
 # On simulator/emulator, test the permission and manual entry paths
 
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml

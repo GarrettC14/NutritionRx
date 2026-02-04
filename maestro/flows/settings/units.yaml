@@ -4,7 +4,7 @@ tags:
   - settings
   - units
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -12,6 +12,9 @@ tags:
       visible:
         id: "legal-screen"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 
@@ -33,13 +36,13 @@ tags:
 - tapOn:
     id: "settings-units-weight-unit-option-kg"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Switch back to lbs
 - tapOn:
     id: "settings-units-weight-unit-option-lbs"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Navigate back
 - tapOn:

@@ -23,6 +23,7 @@ import {
 } from '@/constants/widgetDefinitions';
 import { useDashboardStore } from '@/stores/dashboardStore';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { TestIDs } from '@/constants/testIDs';
 
 interface WidgetPickerModalProps {
   visible: boolean;
@@ -126,7 +127,7 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <View style={styles.container} testID={TestIDs.Home.WidgetPickerModal}>
         <View style={styles.header}>
           <Text style={styles.title}>Add Widget</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>

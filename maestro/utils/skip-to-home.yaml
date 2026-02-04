@@ -4,12 +4,20 @@ name: Skip to Home (Returning User)
 # For tests that assume onboarding is already complete
 # Just verifies we're on home or navigates there
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
+
 - assertVisible:
     id: "home-screen"
     optional: true
 
 - tapOn:
     id: "tab-bar-home"
+    optional: true
+
+- tapOn:
+    point: "10%, 97%"
     optional: true
 
 - extendedWaitUntil:

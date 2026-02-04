@@ -4,7 +4,7 @@ tags:
   - food-logging
   - custom-food
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml

@@ -3,6 +3,11 @@ name: Reset App to Fresh State
 ---
 # Triggers fresh session via developer settings
 
+- runFlow: ensure-home.yaml
+
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 

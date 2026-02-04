@@ -16,6 +16,9 @@ name: Complete Onboarding Utility
     id: "legal-checkbox"
 
 - tapOn:
+    point: "93%, 93%"
+    optional: true
+- tapOn:
     id: "legal-proceed-button"
 
 # Onboarding Welcome
@@ -24,6 +27,9 @@ name: Complete Onboarding Utility
       id: "onboarding-welcome-screen"
     timeout: 3000
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "onboarding-begin-button"
 
@@ -34,6 +40,9 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "onboarding-goal-option-lose"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "onboarding-goal-continue-button"
 
@@ -48,12 +57,18 @@ name: Complete Onboarding Utility
     id: "onboarding-weight-lbs"
 
 - tapOn:
+    point: "93%, 93%"
+    optional: true
+- tapOn:
     id: "onboarding-preferences-continue-button"
 
 # Ready Screen
 - assertVisible:
     id: "onboarding-ready-screen"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "onboarding-ready-explore-app"
 

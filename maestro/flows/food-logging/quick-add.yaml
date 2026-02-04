@@ -4,7 +4,7 @@ tags:
   - food-logging
   - quick-add
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml

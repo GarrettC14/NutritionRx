@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { useWaterStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
+import { TestIDs } from '@/constants/testIDs';
 
 export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
@@ -36,7 +37,7 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
   const styles = createStyles(colors, waterColor);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={TestIDs.Widget.WaterTracker}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <Ionicons name="water" size={22} color={waterColor} />
@@ -59,6 +60,7 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
 
       {/* Add button */}
       <TouchableOpacity
+        testID={TestIDs.Water.AddButton}
         style={[styles.addButton, isEditMode && styles.addButtonDisabled]}
         onPress={handleAddWater}
         disabled={isEditMode}

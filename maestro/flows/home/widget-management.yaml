@@ -4,7 +4,7 @@ tags:
   - home
   - widgets
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -19,7 +19,7 @@ tags:
 - tapOn:
     id: "home-edit-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Verify edit mode elements
 - assertVisible:
@@ -45,7 +45,7 @@ tags:
 - tapOn:
     id: "home-restore-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Exit edit mode (tap edit button again or tap outside)
 - tapOn:

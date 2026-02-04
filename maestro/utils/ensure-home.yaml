@@ -1,0 +1,12 @@
+appId: com.nutritionrx.app
+name: Ensure Home Screen
+---
+- tapOn:
+    point: "93%, 93%"
+    optional: true
+- tapOn:
+    point: "10%, 97%"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

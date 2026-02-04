@@ -4,7 +4,7 @@ tags:
   - food-logging
   - favorites
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -27,7 +27,7 @@ tags:
     id: "add-food-search-input"
 - inputText: "apple"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Select a result
 - tapOn:
@@ -41,7 +41,7 @@ tags:
 - tapOn:
     id: "log-food-favorite-button"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Add to log
 - tapOn:

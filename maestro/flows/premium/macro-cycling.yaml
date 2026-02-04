@@ -4,7 +4,7 @@ tags:
   - premium
   - macro-cycling
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -15,6 +15,9 @@ tags:
 # Enable premium
 - runFlow: ../../utils/enable-premium.yaml
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 
@@ -35,14 +38,14 @@ tags:
     id: "macro-cycling-pattern-option-high-low"
     optional: true
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Select days
 - tapOn:
     id: "macro-cycling-day-pill-0"
     optional: true
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Continue through setup
 - tapOn:

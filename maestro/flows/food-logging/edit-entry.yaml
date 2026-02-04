@@ -4,7 +4,7 @@ tags:
   - food-logging
   - edit
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -77,7 +77,7 @@ tags:
 # Change amount
 - tapOn:
     id: "log-entry-amount-input"
-- clearText
+- eraseText
 - inputText: "1.5"
 
 - hideKeyboard

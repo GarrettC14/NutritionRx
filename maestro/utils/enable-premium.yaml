@@ -4,6 +4,9 @@ name: Enable Premium (Dev Toggle)
 # Enable premium features for testing
 
 - tapOn:
+    point: "93%, 93%"
+    optional: true
+- tapOn:
     id: "tab-bar-settings"
 
 - scrollUntilVisible:
@@ -14,7 +17,10 @@ name: Enable Premium (Dev Toggle)
 - tapOn:
     id: "settings-dev-premium-toggle"
 
-- wait: 500
+- waitForAnimationToEnd
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-home"

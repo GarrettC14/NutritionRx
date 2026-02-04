@@ -4,7 +4,7 @@ tags:
   - progress
   - weight
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -12,6 +12,9 @@ tags:
       visible:
         id: "legal-screen"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-progress"
 
@@ -55,7 +58,7 @@ tags:
 # Enter weight
 - tapOn:
     id: "log-weight-input"
-- clearText
+- eraseText
 - inputText: "175.5"
 
 # Use quick adjust

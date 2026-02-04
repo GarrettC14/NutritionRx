@@ -5,7 +5,7 @@ tags:
   - delete
   - destructive
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -13,6 +13,9 @@ tags:
       visible:
         id: "legal-screen"
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 

@@ -4,7 +4,7 @@ tags:
   - premium
   - meal-planning
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -15,6 +15,9 @@ tags:
 # Enable premium
 - runFlow: ../../utils/enable-premium.yaml
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-settings"
 
@@ -34,7 +37,7 @@ tags:
 - tapOn:
     id: "settings-meal-planning-enable-toggle"
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Verify week navigation
 - assertVisible:
@@ -49,17 +52,17 @@ tags:
     id: "settings-meal-planning-week-next-button"
     optional: true
 
-- wait: 500
+- waitForAnimationToEnd
 
 - tapOn:
     id: "settings-meal-planning-week-prev-button"
     optional: true
 
-- wait: 500
+- waitForAnimationToEnd
 
 # Go back to settings
 - back
-- wait: 500
+- waitForAnimationToEnd
 
 - assertVisible:
     id: "settings-screen"

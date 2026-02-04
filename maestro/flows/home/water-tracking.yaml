@@ -4,7 +4,7 @@ tags:
   - home
   - water
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -28,19 +28,19 @@ tags:
 - tapOn:
     id: "water-add-button"
 
-- wait: 300
+- waitForAnimationToEnd
 
 # Add another glass
 - tapOn:
     id: "water-add-button"
 
-- wait: 300
+- waitForAnimationToEnd
 
 # Remove one
 - tapOn:
     id: "water-remove-button"
 
-- wait: 300
+- waitForAnimationToEnd
 
 # Verify glass indicators
 - assertVisible:

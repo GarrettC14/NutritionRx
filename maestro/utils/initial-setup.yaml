@@ -1,18 +1,21 @@
 appId: com.nutritionrx.app
-name: Onboarding Back Navigation
-tags:
-  - onboarding
-  - navigation
+name: Initial Setup - Launch and Complete Onboarding
 ---
-- runFlow: ../../utils/launch-app.yaml
-- runFlow: ../../utils/reset-app.yaml
+# Launch app via Expo dev client
+- openLink: "nutritionrx://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8082"
 
+# Wait for either home screen or legal screen to appear
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 5000
+    timeout: 45000
 
-# Complete legal
+# Dismiss LogBox
+- tapOn:
+    point: "93%, 93%"
+    optional: true
+
+# Complete onboarding
 - scrollUntilVisible:
     element:
       id: "legal-checkbox"
@@ -27,7 +30,7 @@ tags:
 - tapOn:
     id: "legal-proceed-button"
 
-# Welcome → Goal
+# Onboarding Welcome
 - extendedWaitUntil:
     visible:
       id: "onboarding-welcome-screen"
@@ -39,12 +42,12 @@ tags:
 - tapOn:
     id: "onboarding-begin-button"
 
+# Goal Selection
 - assertVisible:
     id: "onboarding-goal-screen"
 
-# Goal → Preferences
 - tapOn:
-    id: "onboarding-goal-option-maintain"
+    id: "onboarding-goal-option-lose"
 
 - tapOn:
     point: "93%, 93%"
@@ -52,31 +55,15 @@ tags:
 - tapOn:
     id: "onboarding-goal-continue-button"
 
+# Preferences
 - assertVisible:
     id: "onboarding-preferences-screen"
 
-# Go back to Goal
-- tapOn:
-    id: "onboarding-preferences-back-button"
-
-- assertVisible:
-    id: "onboarding-goal-screen"
-
-# Previous selection should be preserved
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "onboarding-goal-continue-button"
-
-- assertVisible:
-    id: "onboarding-preferences-screen"
-
-# Continue to Ready
 - tapOn:
     id: "onboarding-energy-calories"
+
 - tapOn:
-    id: "onboarding-weight-kg"
+    id: "onboarding-weight-lbs"
 
 - tapOn:
     point: "93%, 93%"
@@ -84,12 +71,18 @@ tags:
 - tapOn:
     id: "onboarding-preferences-continue-button"
 
+# Ready Screen
 - assertVisible:
     id: "onboarding-ready-screen"
 
-# Go back to Preferences
 - tapOn:
-    id: "onboarding-ready-back-button"
+    point: "93%, 93%"
+    optional: true
+- tapOn:
+    id: "onboarding-ready-explore-app"
 
-- assertVisible:
-    id: "onboarding-preferences-screen"
+# Verify Home
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

@@ -4,7 +4,7 @@ tags:
   - progress
   - charts
 ---
-- launchApp
+- runFlow: ../../utils/launch-app.yaml
 
 - runFlow:
     file: ../../utils/complete-onboarding.yaml
@@ -14,6 +14,9 @@ tags:
 
 - runFlow: ../../utils/seed-data.yaml
 
+- tapOn:
+    point: "93%, 93%"
+    optional: true
 - tapOn:
     id: "tab-bar-progress"
 
