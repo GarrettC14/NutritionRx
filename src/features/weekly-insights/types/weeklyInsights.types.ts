@@ -26,10 +26,13 @@ export type WeeklyQuestionCategory =
 export interface WeeklyQuestionDefinition {
   id: string;
   displayText: string;
+  shortDescription: string;
   category: WeeklyQuestionCategory;
   icon: string;
   isPinned: boolean;
   minimumLoggedDays: number;
+  minimumWeeksNeeded: number;
+  followUpIds: string[];
   requiresPriorWeek: boolean;
   requiresWaterData: boolean;
   requiresDeficiencyData: boolean;
@@ -342,6 +345,13 @@ export interface ScoredQuestion {
 // RESPONSE TYPES
 // ============================================
 
+export type InsightSentiment = 'positive' | 'neutral' | 'negative';
+
+export interface KeyMetric {
+  label: string;
+  value: string;
+}
+
 export interface WeeklyInsightResponse {
   questionId: string;
   text: string;
@@ -349,6 +359,18 @@ export interface WeeklyInsightResponse {
   generatedAt: number;
   source: 'llm' | 'template';
   weekStartDate: string;
+  sentiment: InsightSentiment;
+  keyMetrics: KeyMetric[];
+  followUpIds: string[];
+}
+
+// ============================================
+// TOAST
+// ============================================
+
+export interface InsightToastData {
+  message: string;
+  visible: boolean;
 }
 
 // ============================================

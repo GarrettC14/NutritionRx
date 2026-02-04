@@ -1,9 +1,9 @@
 /**
  * Weekly Insights Screen
- * Full-screen composition: WeekNavigation + MiniCalendar + StatsGrid + QuestionCards
+ * Full-screen composition: Header + WeekNav + Calendar + Stats + Headline + CategoryChips + Questions + NeedsMoreData
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,7 +25,11 @@ import { MiniCalendar } from './MiniCalendar';
 import { WeeklyStatsGrid } from './WeeklyStatsGrid';
 import { WeekNavigation } from './WeekNavigation';
 import { QuestionCard } from './QuestionCard';
-import type { ScoredQuestion, WeeklyInsightResponse } from '../types/weeklyInsights.types';
+import { HeadlineInsightCard } from './HeadlineInsightCard';
+import { CategoryChips } from './CategoryChips';
+import { NeedsMoreDataSection } from './NeedsMoreDataSection';
+import { InsightToast } from './InsightToast';
+import type { ScoredQuestion, WeeklyInsightResponse, WeeklyQuestionCategory } from '../types/weeklyInsights.types';
 
 export function WeeklyInsightsScreen() {
   const router = useRouter();
@@ -40,11 +44,14 @@ export function WeeklyInsightsScreen() {
   const getCachedResponse = useWeeklyInsightsStore((s) => s.getCachedResponse);
   const llmStatus = useWeeklyInsightsStore((s) => s.llmStatus);
   const setLLMStatus = useWeeklyInsightsStore((s) => s.setLLMStatus);
+  const selectedCategory = useWeeklyInsightsStore((s) => s.selectedCategory);
+  const setSelectedCategory = useWeeklyInsightsStore((s) => s.setSelectedCategory);
+  const perQuestionErrors = useWeeklyInsightsStore((s) => s.perQuestionErrors);
 
   // Data hooks
   const { data, isLoading: isDataLoading } = useWeeklyData();
-  const { questions, headline } = useWeeklyQuestions(data);
-  const { generateForQuestion, isGenerating } = useWeeklyInsightGeneration();
+  const { questions, unavailableQuestions, headline } = useWeeklyQuestions(data);
+  const { generateForQuestion, retryForQuestion, isGenerating } = useWeeklyInsightGeneration();
 
   // Local state for per-question responses
   const [responses, setResponses] = useState<Record<string, WeeklyInsightResponse>>({});
@@ -53,48 +60,110 @@ export function WeeklyInsightsScreen() {
   // Check LLM status on mount
   useEffect(() => {
     const checkLLM = async () => {
+      console.log('[LLM:WeeklyScreen] Mount — checking LLM status');
       const status = await LLMService.getStatus();
+      console.log(`[LLM:WeeklyScreen] LLM status on mount: ${status}`);
       setLLMStatus(status);
     };
     checkLLM();
   }, [setLLMStatus]);
 
+  // Derive active categories from available questions
+  const activeCategories = useMemo(() => {
+    const cats = new Set<WeeklyQuestionCategory>();
+    questions.forEach((q) => cats.add(q.definition.category));
+    return Array.from(cats);
+  }, [questions]);
+
+  // Filter questions by selected category
+  const filteredQuestions = useMemo(() => {
+    if (!selectedCategory) return questions;
+    return questions.filter((q) => q.definition.category === selectedCategory);
+  }, [questions, selectedCategory]);
+
+  // Find the headline question (first non-highlights or first question)
+  const headlineQuestion = useMemo(
+    () => questions.find((q) => q.definition.category !== 'highlights') ?? questions[0],
+    [questions]
+  );
+
   const handleNavigate = useCallback(
     (newWeekStart: string) => {
+      console.log(`[LLM:WeeklyScreen] handleNavigate(${newWeekStart})`);
       setSelectedWeek(newWeekStart);
       selectQuestion(null);
       setResponses({});
+      setSelectedCategory(null);
     },
-    [setSelectedWeek, selectQuestion]
+    [setSelectedWeek, selectQuestion, setSelectedCategory]
   );
 
   const handleQuestionPress = useCallback(
     async (question: ScoredQuestion) => {
       const qId = question.questionId;
+      console.log(`[LLM:WeeklyScreen] handleQuestionPress(${qId}) — currentSelected=${selectedQuestionId}`);
 
       // Toggle if already selected
       if (selectedQuestionId === qId) {
+        console.log(`[LLM:WeeklyScreen] Toggling off ${qId}`);
         selectQuestion(null);
         return;
       }
 
       selectQuestion(qId);
 
+      // Don't generate if question doesn't have enough data
+      if (!question.isAvailable) return;
+
       // Check for cached response
       const cached = getCachedResponse(qId);
       if (cached) {
+        console.log(`[LLM:WeeklyScreen] Cache hit for ${qId}, source=${cached.source}`);
         setResponses((prev) => ({ ...prev, [qId]: cached }));
         return;
       }
 
       // Generate new response
+      console.log(`[LLM:WeeklyScreen] Generating response for ${qId}...`);
       setGeneratingId(qId);
       const response = await generateForQuestion(question);
+      console.log(`[LLM:WeeklyScreen] Response for ${qId} — source=${response.source}, length=${response.text?.length || 0}`);
       setResponses((prev) => ({ ...prev, [qId]: response }));
       setGeneratingId(null);
     },
     [selectedQuestionId, selectQuestion, getCachedResponse, generateForQuestion]
   );
+
+  const handleRetry = useCallback(
+    async (question: ScoredQuestion) => {
+      console.log(`[LLM:WeeklyScreen] handleRetry(${question.questionId})`);
+      setGeneratingId(question.questionId);
+      const response = await retryForQuestion(question);
+      setResponses((prev) => ({ ...prev, [question.questionId]: response }));
+      setGeneratingId(null);
+    },
+    [retryForQuestion]
+  );
+
+  const handleFollowUp = useCallback(
+    (questionId: string) => {
+      console.log(`[LLM:WeeklyScreen] handleFollowUp(${questionId})`);
+      // Collapse current, expand target
+      const targetQuestion = questions.find((q) => q.questionId === questionId);
+      if (targetQuestion) {
+        selectQuestion(null);
+        // Small delay to allow collapse animation
+        setTimeout(() => handleQuestionPress(targetQuestion), 100);
+      }
+    },
+    [questions, selectQuestion, handleQuestionPress]
+  );
+
+  const handleHeadlinePress = useCallback(() => {
+    if (headlineQuestion) {
+      handleQuestionPress(headlineQuestion);
+    }
+  }, [headlineQuestion, handleQuestionPress]);
 
   const styles = createStyles(colors);
 
@@ -184,24 +253,61 @@ export function WeeklyInsightsScreen() {
           <WeeklyStatsGrid data={data} />
         </View>
 
+        {/* Headline Insight Card */}
+        {headline && headlineQuestion && (
+          <HeadlineInsightCard headline={headline} onPress={handleHeadlinePress} />
+        )}
+
+        {/* Category Chips */}
+        {activeCategories.length > 1 && (
+          <CategoryChips
+            categories={activeCategories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+        )}
+
         {/* Questions Section */}
         <View style={styles.questionsSection}>
           <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>
             Questions for your week
           </Text>
 
-          {questions.map((question) => (
-            <QuestionCard
-              key={question.questionId}
-              question={question}
-              onPress={() => handleQuestionPress(question)}
-              isExpanded={selectedQuestionId === question.questionId}
-              response={responses[question.questionId] ?? null}
-              isGenerating={generatingId === question.questionId}
-            />
-          ))}
+          {filteredQuestions.map((question) => {
+            const qId = question.questionId;
+            const insufficientData = !question.isAvailable;
+            const daysNeeded = Math.max(
+              0,
+              question.definition.minimumLoggedDays - (data?.loggedDayCount ?? 0)
+            );
+
+            return (
+              <QuestionCard
+                key={qId}
+                question={question}
+                onPress={() => handleQuestionPress(question)}
+                isExpanded={selectedQuestionId === qId}
+                response={responses[qId] ?? null}
+                isGenerating={generatingId === qId}
+                questionError={perQuestionErrors[qId] ?? null}
+                insufficientData={insufficientData}
+                daysNeeded={daysNeeded}
+                onRetry={() => handleRetry(question)}
+                onFollowUp={handleFollowUp}
+              />
+            );
+          })}
         </View>
+
+        {/* Needs More Data Section */}
+        <NeedsMoreDataSection
+          questions={unavailableQuestions}
+          currentLoggedDays={data?.loggedDayCount ?? 0}
+        />
       </ScrollView>
+
+      {/* Toast Overlay */}
+      <InsightToast />
     </View>
   );
 }

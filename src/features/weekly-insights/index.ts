@@ -14,6 +14,9 @@ export type {
   WeeklyInsightResponse,
   WeeklyInsightsCache,
   DayStatus,
+  InsightSentiment,
+  KeyMetric,
+  InsightToastData,
   ConsistencyAnalysis,
   OutlierAnalysis,
   TargetHitAnalysis,
@@ -71,6 +74,8 @@ export { WeeklyDataCollector } from './services/WeeklyDataCollector';
 export { QuestionScorer } from './services/QuestionScorer';
 export { WeeklyPromptBuilder } from './services/WeeklyPromptBuilder';
 export { WeeklyInsightGenerator } from './services/WeeklyInsightGenerator';
+export { KeyMetricsExtractor } from './services/KeyMetricsExtractor';
+export { SentimentDeriver } from './services/SentimentDeriver';
 export {
   ConsistencyAnalyzer,
   MacroBalanceAnalyzer,
@@ -95,4 +100,9 @@ export { MiniCalendar } from './components/MiniCalendar';
 export { WeeklyStatsGrid } from './components/WeeklyStatsGrid';
 export { WeekNavigation } from './components/WeekNavigation';
 export { QuestionCard } from './components/QuestionCard';
-export { QuestionResponseCard } from './components/QuestionResponseCard';
+export { HeadlineInsightCard } from './components/HeadlineInsightCard';
+export { CategoryChips } from './components/CategoryChips';
+export { InsightShimmer } from './components/InsightShimmer';
+export { InsightToast } from './components/InsightToast';
+export { FollowUpChips } from './components/FollowUpChips';
+export { NeedsMoreDataSection } from './components/NeedsMoreDataSection';
