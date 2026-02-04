@@ -64,6 +64,9 @@ function RootLayoutContent() {
         {/* Add food - treated as pseudo-tab, no animation from tabs */}
         <Stack.Screen name="add-food" options={{ animation: 'none' }} />
 
+        {/* Daily insights - default push animation */}
+        <Stack.Screen name="daily-insights" />
+
         {/* Detail screens - default platform push animation */}
         <Stack.Screen name="food/[id]" />
 

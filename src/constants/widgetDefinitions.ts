@@ -202,8 +202,8 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
   },
   weekly_recap: {
     type: 'weekly_recap',
-    name: 'Weekly Recap',
-    description: 'Weekly summary with stats and AI insights',
+    name: 'Weekly Insights',
+    description: 'Weekly summary with question-driven AI insights',
     icon: 'calendar-outline',
     defaultSize: 'large',
     minSize: 'large',
