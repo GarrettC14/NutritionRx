@@ -55,7 +55,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
     if (!data || data.todayMealCount === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>🌿</Text>
+          <Ionicons name="leaf-outline" size={22} color={colors.textSecondary} />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             Log your first meal to unlock today's insights.
           </Text>
@@ -67,7 +67,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
     return (
       <View style={styles.headlineContainer}>
         <View style={styles.headlineRow}>
-          <Text style={styles.headlineEmoji}>{headline.emoji}</Text>
+          <Ionicons name={headline.icon as any} size={22} color={colors.accent} />
           <Text style={[styles.headlineText, { color: colors.textPrimary }]}>
             {headline.text}
           </Text>
@@ -192,8 +192,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
       gap: 10,
     },
-    emptyEmoji: {
-      fontSize: 22,
+    emptyIcon: {
+      width: 22,
     },
     emptyText: {
       flex: 1,
@@ -209,9 +209,8 @@ const createStyles = (colors: any) =>
       alignItems: 'flex-start',
       gap: 10,
     },
-    headlineEmoji: {
-      fontSize: 22,
-      marginTop: 1,
+    headlineIcon: {
+      marginTop: 2,
     },
     headlineText: {
       flex: 1,

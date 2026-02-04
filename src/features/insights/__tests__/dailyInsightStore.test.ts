@@ -27,7 +27,7 @@ jest.mock('../constants/dailyQuestionRegistry', () => ({
       id: 'macro_overview',
       category: 'macro_balance',
       text: 'How are my macros today?',
-      emoji: '🎯',
+      icon: 'flag-outline',
       isAvailable: jest.fn(() => true),
       computeRelevance: jest.fn(() => 80),
       fetcherKey: 'macro_overview',
@@ -36,7 +36,7 @@ jest.mock('../constants/dailyQuestionRegistry', () => ({
       id: 'calorie_pacing',
       category: 'macro_balance',
       text: 'Am I on pace?',
-      emoji: '⏱',
+      icon: 'speedometer-outline',
       isAvailable: jest.fn(() => true),
       computeRelevance: jest.fn(() => 60),
       fetcherKey: 'calorie_pacing',
@@ -52,7 +52,7 @@ jest.mock('../services/daily/DailyInsightPromptBuilder', () => ({
 
 jest.mock('../services/daily/DailyInsightResponseParser', () => ({
   parseInsightResponse: jest.fn((text: string) => ({
-    emoji: '🎯',
+    icon: 'leaf-outline',
     narrative: text,
     isValid: true,
     validationIssues: [],
@@ -124,7 +124,7 @@ const mockData = {
 
 const mockHeadline = {
   text: 'You are 75% to your calorie target.',
-  emoji: '🎯',
+  icon: 'flag-outline',
   priority: 5,
   computedAt: Date.now(),
 };
@@ -216,7 +216,7 @@ describe('useDailyInsightStore', () => {
       const existingResponse = {
         questionId: 'macro_overview' as const,
         narrative: 'Cached response',
-        emoji: '🎯',
+        icon: 'leaf-outline',
         generatedAt: Date.now(),
         source: 'llm' as const,
         date: today,
@@ -250,7 +250,7 @@ describe('useDailyInsightStore', () => {
             macro_overview: {
               questionId: 'macro_overview',
               narrative: 'Old response',
-              emoji: '🎯',
+              icon: 'leaf-outline',
               generatedAt: Date.now(),
               source: 'llm',
               date: '2024-01-01',
@@ -288,7 +288,7 @@ describe('useDailyInsightStore', () => {
 
       expect(response.source).toBe('fallback');
       expect(response.narrative).toBe('Your macros are at 75%.');
-      expect(response.emoji).toBe('🌿');
+      expect(response.icon).toBe('leaf-outline');
     });
 
     it('caches fallback response in store', async () => {
@@ -372,7 +372,7 @@ describe('useDailyInsightStore', () => {
       const cachedResponse = {
         questionId: 'macro_overview' as const,
         narrative: 'Cached insight.',
-        emoji: '🎯',
+        icon: 'leaf-outline',
         generatedAt: Date.now(),
         source: 'llm' as const,
         date: today,
@@ -425,7 +425,7 @@ describe('useDailyInsightStore', () => {
   describe('getHeadline', () => {
     it('returns default when no cache', () => {
       const headline = useDailyInsightStore.getState().getHeadline();
-      expect(headline.emoji).toBe('🌿');
+      expect(headline.icon).toBe('leaf-outline');
       expect(headline.text).toContain('Log your first meal');
     });
 

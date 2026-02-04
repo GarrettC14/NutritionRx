@@ -29,6 +29,11 @@ jest.mock('react-native', () => {
   };
 });
 
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: ({ name, ...props }: any) =>
+    React.createElement('Ionicons', { name, ...props }),
+}));
+
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { ConfirmDialog, ConfirmDialogConfig } from '@/components/ui/ConfirmDialog';
 
@@ -199,12 +204,17 @@ describe('ConfirmDialog', () => {
   it('displays icon when provided', () => {
     const config: ConfirmDialogConfig = {
       ...defaultConfig,
-      icon: '\u{1F5D1}',
+      icon: 'trash-outline',
     };
 
-    render(<ConfirmDialog visible={true} config={config} onDismiss={jest.fn()} />);
+    const { UNSAFE_getByType } = render(
+      <ConfirmDialog visible={true} config={config} onDismiss={jest.fn()} />,
+    );
 
-    expect(screen.getByText('\u{1F5D1}')).toBeTruthy();
+    // Icon is now rendered as an Ionicons component
+    const { Ionicons } = require('@expo/vector-icons');
+    const icon = UNSAFE_getByType(Ionicons);
+    expect(icon.props.name).toBe('trash-outline');
   });
 
   it('uses default confirmLabel when not specified', () => {

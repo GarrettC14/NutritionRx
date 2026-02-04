@@ -5,26 +5,25 @@
 import { parseInsightResponse } from '../services/daily/DailyInsightResponseParser';
 
 describe('parseInsightResponse', () => {
-  describe('emoji extraction', () => {
-    it('extracts standard emoji prefix', () => {
+  describe('emoji stripping and icon assignment', () => {
+    it('strips emoji prefix and assigns default Ionicons name', () => {
       const result = parseInsightResponse('🎯 Your macros are tracking well today.');
-      expect(result.emoji).toBe('🎯');
+      expect(result.icon).toBe('leaf-outline');
       expect(result.narrative).toBe('Your macros are tracking well today.');
       expect(result.isValid).toBe(true);
     });
 
-    it('extracts emoji with variation selector', () => {
+    it('strips emoji with variation selector', () => {
       const result = parseInsightResponse('💧 Water intake is at 60%.');
-      expect(result.emoji).toBe('💧');
+      expect(result.icon).toBe('leaf-outline');
       expect(result.narrative).toBe('Water intake is at 60%.');
     });
 
-    it('uses default emoji when none present', () => {
+    it('uses default icon when no emoji present', () => {
       const result = parseInsightResponse('Your macros are tracking well.');
-      expect(result.emoji).toBe('🌿');
+      expect(result.icon).toBe('leaf-outline');
       expect(result.narrative).toBe('Your macros are tracking well.');
-      expect(result.isValid).toBe(false);
-      expect(result.validationIssues).toContain('No emoji prefix found, using default');
+      expect(result.isValid).toBe(true);
     });
   });
 
@@ -100,20 +99,20 @@ describe('parseInsightResponse', () => {
   describe('edge cases', () => {
     it('handles empty response', () => {
       const result = parseInsightResponse('');
-      expect(result.emoji).toBe('🌿');
+      expect(result.icon).toBe('leaf-outline');
       expect(result.narrative).toBe('');
-      expect(result.isValid).toBe(false);
+      expect(result.isValid).toBe(true);
     });
 
     it('handles emoji-only response', () => {
       const result = parseInsightResponse('🎯');
-      expect(result.emoji).toBe('🎯');
+      expect(result.icon).toBe('leaf-outline');
       expect(result.narrative).toBe('');
     });
 
     it('handles response with only whitespace', () => {
       const result = parseInsightResponse('   ');
-      expect(result.emoji).toBe('🌿');
+      expect(result.icon).toBe('leaf-outline');
     });
 
     it('handles multiple validation issues', () => {

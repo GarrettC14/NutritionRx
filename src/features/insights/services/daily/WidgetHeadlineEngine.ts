@@ -15,7 +15,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.todayMealCount === 0) {
     return {
       text: 'Ready to start tracking today? Log your first meal to unlock insights.',
-      emoji: '🌿',
+      icon: 'leaf-outline',
       priority: 1,
       computedAt: now,
     };
@@ -25,7 +25,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.todayMealCount === 1 && data.todayCalories < 500) {
     return {
       text: "You've logged 1 meal so far — keep going to see how your day shapes up.",
-      emoji: '🌱',
+      icon: 'leaf-outline',
       priority: 2,
       computedAt: now,
     };
@@ -38,7 +38,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.caloriePercent >= 90 && data.caloriePercent <= 110) {
     return {
       text: `You've reached ${data.caloriePercent}% of your calorie target today — nicely paced.`,
-      emoji: '✨',
+      icon: 'checkmark-circle-outline',
       priority: 3,
       computedAt: now,
     };
@@ -48,7 +48,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.caloriePercent > 110) {
     return {
       text: `${formatNumber(data.todayCalories)} calories logged today — ${data.caloriePercent}% of your ${formatNumber(data.calorieTarget)} target.`,
-      emoji: '📊',
+      icon: 'bar-chart-outline',
       priority: 4,
       computedAt: now,
     };
@@ -58,7 +58,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.proteinPercent < 60 && data.caloriePercent >= 70) {
     return {
       text: `Protein is at ${data.proteinPercent}% while calories are at ${data.caloriePercent}% — room to boost protein in your next meal.`,
-      emoji: '💪',
+      icon: 'barbell-outline',
       priority: 5,
       computedAt: now,
     };
@@ -68,7 +68,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.waterTarget > 0 && data.waterPercent < 50 && data.currentHour >= 13) {
     return {
       text: `Water intake is at ${data.waterPercent}% — a good time to hydrate.`,
-      emoji: '💧',
+      icon: 'water-outline',
       priority: 6,
       computedAt: now,
     };
@@ -78,7 +78,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   if (data.loggingStreak >= 7) {
     return {
       text: `Day ${data.loggingStreak} of consistent logging — your data is getting richer every day.`,
-      emoji: '🔗',
+      icon: 'link-outline',
       priority: 7,
       computedAt: now,
     };
@@ -87,7 +87,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   // Rule 8: Standard progress (default)
   return {
     text: `${formatNumber(data.todayCalories)} of ${formatNumber(data.calorieTarget)} cal today — ${formatNumber(remaining)} remaining${estimatedMealsLeft > 0 ? ` with ~${estimatedMealsLeft} meal${estimatedMealsLeft === 1 ? '' : 's'} to go` : ''}.`,
-    emoji: '🌿',
+    icon: 'leaf-outline',
     priority: 8,
     computedAt: now,
   };

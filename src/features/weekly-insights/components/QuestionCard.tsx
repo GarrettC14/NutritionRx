@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import type { ScoredQuestion, WeeklyInsightResponse } from '../types/weeklyInsights.types';
 import { generatePreview } from '../constants/headlineTemplates';
@@ -42,7 +43,7 @@ export function QuestionCard({
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.icon}>{question.definition.icon}</Text>
+        <Ionicons name={question.definition.icon as any} size={18} color={colors.textSecondary} />
         <Text style={[styles.questionText, { color: colors.textPrimary }]} numberOfLines={2}>
           {question.definition.displayText}
         </Text>
@@ -91,8 +92,9 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 6,
   },
-  icon: {
-    fontSize: 18,
+  iconWrapper: {
+    width: 18,
+    alignItems: 'center',
   },
   questionText: {
     fontSize: 15,

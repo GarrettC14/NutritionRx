@@ -119,7 +119,7 @@ export function DailyInsightsScreen() {
           </View>
         ) : !data || data.todayMealCount === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>🌿</Text>
+            <Ionicons name="leaf-outline" size={48} color={colors.textSecondary} />
             <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
               No meals logged yet
             </Text>
@@ -136,7 +136,7 @@ export function DailyInsightsScreen() {
                 { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault },
               ]}
             >
-              <Text style={styles.headlineEmoji}>{headline.emoji}</Text>
+              <Ionicons name={headline.icon as any} size={28} color={colors.accent} />
               <Text style={[styles.headlineText, { color: colors.textPrimary }]}>
                 {headline.text}
               </Text>
@@ -252,8 +252,8 @@ const createStyles = (colors: any) =>
       paddingTop: 80,
       gap: spacing[3],
     },
-    emptyEmoji: {
-      fontSize: 48,
+    emptyIcon: {
+      marginBottom: spacing[1],
     },
     emptyTitle: {
       ...typography.title.medium,
@@ -272,8 +272,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
       gap: spacing[3],
     },
-    headlineEmoji: {
-      fontSize: 28,
+    headlineIcon: {
+      marginTop: 2,
     },
     headlineText: {
       flex: 1,

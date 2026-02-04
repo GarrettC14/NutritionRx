@@ -44,7 +44,7 @@ export type DailyQuestionId =
 export interface DailyQuestionCategoryMeta {
   id: DailyQuestionCategory;
   label: string;
-  emoji: string;
+  icon: string;
   description: string;
 }
 
@@ -56,7 +56,7 @@ export interface DailyQuestionDefinition {
   id: DailyQuestionId;
   category: DailyQuestionCategory;
   text: string;
-  emoji: string;
+  icon: string;
   isAvailable: (data: DailyInsightData) => boolean;
   computeRelevance: (data: DailyInsightData) => number;
   fetcherKey: string;
@@ -173,7 +173,7 @@ export interface QuestionAnalysis {
 export interface DailyInsightResponse {
   questionId: DailyQuestionId;
   narrative: string;
-  emoji: string;
+  icon: string;
   generatedAt: number;
   source: 'llm' | 'fallback';
   date: string; // YYYY-MM-DD
@@ -185,7 +185,7 @@ export interface DailyInsightResponse {
 
 export interface WidgetHeadlineData {
   text: string;
-  emoji: string;
+  icon: string;
   priority: number;
   computedAt: number;
 }

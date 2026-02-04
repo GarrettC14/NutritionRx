@@ -129,7 +129,7 @@ describe('questionCategories', () => {
     for (const cat of questionCategories) {
       expect(cat.id).toBeDefined();
       expect(cat.label).toBeDefined();
-      expect(cat.emoji).toBeDefined();
+      expect(cat.icon).toBeDefined();
       expect(cat.description).toBeDefined();
     }
   });
@@ -137,7 +137,7 @@ describe('questionCategories', () => {
   it('getCategoryMeta returns correct category', () => {
     const macro = getCategoryMeta('macro_balance');
     expect(macro?.label).toBe('Macros & Calories');
-    expect(macro?.emoji).toBe('🎯');
+    expect(macro?.icon).toBe('pie-chart-outline');
   });
 
   it('getCategoryMeta returns undefined for unknown category', () => {

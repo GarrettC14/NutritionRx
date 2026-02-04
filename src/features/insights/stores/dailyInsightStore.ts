@@ -121,7 +121,7 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
           const fallbackResponse: DailyInsightResponse = {
             questionId,
             narrative: analysis.fallbackText,
-            emoji: '🌿',
+            icon: 'leaf-outline',
             generatedAt: Date.now(),
             source: 'fallback',
             date: getTodayString(),
@@ -170,7 +170,7 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
           const response: DailyInsightResponse = {
             questionId,
             narrative: parsed.narrative,
-            emoji: parsed.emoji,
+            icon: parsed.icon,
             generatedAt: Date.now(),
             source: 'llm',
             date: getTodayString(),
@@ -203,7 +203,7 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
           return {
             questionId,
             narrative: analysis.fallbackText,
-            emoji: '🌿',
+            icon: 'leaf-outline',
             generatedAt: Date.now(),
             source: 'fallback',
             date: getTodayString(),
@@ -218,7 +218,7 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
         }
         return {
           text: "Log your first meal to unlock today's insights.",
-          emoji: '🌿',
+          icon: 'leaf-outline',
           priority: 1,
           computedAt: Date.now(),
         };

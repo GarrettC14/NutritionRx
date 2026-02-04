@@ -50,7 +50,7 @@ describe('computeWidgetHeadline', () => {
       const headline = computeWidgetHeadline(data);
       expect(headline.priority).toBe(1);
       expect(headline.text).toContain('Log your first meal');
-      expect(headline.emoji).toBe('🌿');
+      expect(headline.icon).toBe('leaf-outline');
     });
 
     it('Rule 2: returns minimal data message with 1 meal under 500cal', () => {
@@ -58,7 +58,7 @@ describe('computeWidgetHeadline', () => {
       const headline = computeWidgetHeadline(data);
       expect(headline.priority).toBe(2);
       expect(headline.text).toContain('1 meal');
-      expect(headline.emoji).toBe('🌱');
+      expect(headline.icon).toBe('leaf-outline');
     });
 
     it('Rule 3: returns on-target message when calories 90-110%', () => {
@@ -67,7 +67,7 @@ describe('computeWidgetHeadline', () => {
       expect(headline.priority).toBe(3);
       expect(headline.text).toContain('95%');
       expect(headline.text).toContain('nicely paced');
-      expect(headline.emoji).toBe('✨');
+      expect(headline.icon).toBe('checkmark-circle-outline');
     });
 
     it('Rule 4: returns over-target message when calories > 110%', () => {
@@ -80,7 +80,7 @@ describe('computeWidgetHeadline', () => {
       const headline = computeWidgetHeadline(data);
       expect(headline.priority).toBe(4);
       expect(headline.text).toContain('120%');
-      expect(headline.emoji).toBe('📊');
+      expect(headline.icon).toBe('bar-chart-outline');
     });
 
     it('Rule 5: returns protein gap when protein low but calories decent', () => {
@@ -94,7 +94,7 @@ describe('computeWidgetHeadline', () => {
       expect(headline.priority).toBe(5);
       expect(headline.text).toContain('Protein');
       expect(headline.text).toContain('50%');
-      expect(headline.emoji).toBe('💪');
+      expect(headline.icon).toBe('barbell-outline');
     });
 
     it('Rule 6: returns hydration reminder in afternoon with low water', () => {
@@ -112,7 +112,7 @@ describe('computeWidgetHeadline', () => {
       expect(headline.priority).toBe(6);
       expect(headline.text).toContain('Water');
       expect(headline.text).toContain('30%');
-      expect(headline.emoji).toBe('💧');
+      expect(headline.icon).toBe('water-outline');
     });
 
     it('Rule 7: returns streak callout for 7+ day streak', () => {
@@ -128,7 +128,7 @@ describe('computeWidgetHeadline', () => {
       const headline = computeWidgetHeadline(data);
       expect(headline.priority).toBe(7);
       expect(headline.text).toContain('Day 10');
-      expect(headline.emoji).toBe('🔗');
+      expect(headline.icon).toBe('link-outline');
     });
 
     it('Rule 8: returns standard progress as default', () => {
@@ -145,7 +145,7 @@ describe('computeWidgetHeadline', () => {
       const headline = computeWidgetHeadline(data);
       expect(headline.priority).toBe(8);
       expect(headline.text).toContain('remaining');
-      expect(headline.emoji).toBe('🌿');
+      expect(headline.icon).toBe('leaf-outline');
     });
   });
 

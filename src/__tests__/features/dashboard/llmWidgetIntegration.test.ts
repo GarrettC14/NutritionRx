@@ -59,8 +59,8 @@ describe('LLM Widget Integration (Feature 3)', () => {
   });
 
   describe('AIDailyInsightWidget - Template Headlines', () => {
-    it('should display headline emoji', () => {
-      expect(dailyWidgetSource).toContain('headline.emoji');
+    it('should display headline icon', () => {
+      expect(dailyWidgetSource).toContain('headline.icon');
     });
 
     it('should display headline text', () => {

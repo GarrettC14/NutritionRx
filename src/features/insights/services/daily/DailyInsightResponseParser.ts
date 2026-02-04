@@ -15,7 +15,7 @@ const BANNED_WORDS = [
 ];
 
 export interface ParsedInsightResponse {
-  emoji: string;
+  icon: string;
   narrative: string;
   isValid: boolean;
   validationIssues: string[];
@@ -25,16 +25,14 @@ export function parseInsightResponse(rawResponse: string): ParsedInsightResponse
   const trimmed = rawResponse.trim();
   const issues: string[] = [];
 
-  // 1. Extract emoji
-  let emoji = '🌿'; // default
+  // 1. Strip leading emoji (LLM may produce one); always use Ionicons name
+  let icon = 'leaf-outline'; // default Ionicons name
   let narrative = trimmed;
 
   const emojiMatch = trimmed.match(EMOJI_REGEX);
   if (emojiMatch) {
-    emoji = emojiMatch[0];
+    // Strip the emoji from the narrative text; icon stays as Ionicons name
     narrative = trimmed.slice(emojiMatch[0].length).trim();
-  } else {
-    issues.push('No emoji prefix found, using default');
   }
 
   // 2. Validate length (should be 2-3 sentences, not a wall of text)
@@ -61,7 +59,7 @@ export function parseInsightResponse(rawResponse: string): ParsedInsightResponse
   }
 
   return {
-    emoji,
+    icon,
     narrative,
     isValid: issues.length === 0,
     validationIssues: issues,

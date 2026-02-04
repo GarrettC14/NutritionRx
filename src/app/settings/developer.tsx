@@ -129,7 +129,7 @@ export default function DeveloperScreen() {
       message: seedOptions.clearExisting
         ? `This will clear existing data and seed ${seedOptions.monthsOfHistory} months of mock data.`
         : `This will add ${seedOptions.monthsOfHistory} months of mock data to existing data.`,
-      icon: '\u{1F331}',
+      icon: 'leaf-outline',
       confirmLabel: 'Seed Data',
       cancelLabel: 'Cancel',
       onConfirm: async () => {
@@ -166,7 +166,7 @@ export default function DeveloperScreen() {
       title: 'Clear All User Data',
       message:
         'This will delete all user data from all tables. Seed foods and restaurant data will be preserved. This cannot be undone.',
-      icon: '\u{1F5D1}\u{FE0F}',
+      icon: 'trash-outline',
       confirmLabel: 'Clear Data',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',
@@ -191,7 +191,7 @@ export default function DeveloperScreen() {
       title: 'Reset to Fresh Install',
       message:
         'This will delete the ENTIRE database and recreate it from scratch. The app will return to the onboarding screen. This cannot be undone.',
-      icon: '\u{26A0}\u{FE0F}',
+      icon: 'warning-outline',
       confirmLabel: 'Reset Everything',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

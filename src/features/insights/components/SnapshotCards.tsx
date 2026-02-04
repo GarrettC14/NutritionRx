@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
@@ -17,11 +18,11 @@ interface SnapshotCardsProps {
 interface MiniCardProps {
   label: string;
   value: string;
-  emoji: string;
+  icon: string;
   colors: any;
 }
 
-function MiniCard({ label, value, emoji, colors }: MiniCardProps) {
+function MiniCard({ label, value, icon, colors }: MiniCardProps) {
   return (
     <View
       style={[
@@ -29,7 +30,7 @@ function MiniCard({ label, value, emoji, colors }: MiniCardProps) {
         { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault },
       ]}
     >
-      <Text style={styles.cardEmoji}>{emoji}</Text>
+      <Ionicons name={icon as any} size={18} color={colors.textSecondary} style={styles.cardIcon} />
       <Text style={[styles.cardValue, { color: colors.textPrimary }]}>{value}</Text>
       <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>
@@ -40,11 +41,11 @@ export function SnapshotCards({ data }: SnapshotCardsProps) {
   const { colors } = useTheme();
 
   const cards = [
-    { label: 'Calories', value: `${data.caloriePercent}%`, emoji: '🔥' },
-    { label: 'Protein', value: `${data.proteinPercent}%`, emoji: '💪' },
-    { label: 'Water', value: `${data.waterPercent}%`, emoji: '💧' },
-    { label: 'Meals', value: `${data.todayMealCount}`, emoji: '🍽️' },
-    { label: 'Streak', value: `${data.loggingStreak}d`, emoji: '🔥' },
+    { label: 'Calories', value: `${data.caloriePercent}%`, icon: 'flame-outline' },
+    { label: 'Protein', value: `${data.proteinPercent}%`, icon: 'barbell-outline' },
+    { label: 'Water', value: `${data.waterPercent}%`, icon: 'water-outline' },
+    { label: 'Meals', value: `${data.todayMealCount}`, icon: 'restaurant-outline' },
+    { label: 'Streak', value: `${data.loggingStreak}d`, icon: 'flame-outline' },
   ];
 
   return (
@@ -79,8 +80,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1,
   },
-  cardEmoji: {
-    fontSize: 18,
+  cardIcon: {
     marginBottom: spacing[1],
   },
   cardValue: {

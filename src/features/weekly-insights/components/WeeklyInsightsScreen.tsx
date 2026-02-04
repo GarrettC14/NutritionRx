@@ -127,9 +127,7 @@ export function WeeklyInsightsScreen() {
           <WeekNavigation weekStart={weekStart} onNavigate={handleNavigate} />
         </View>
         <View style={styles.centered}>
-          <Text style={[styles.emptyIcon]}>
-            {'\u{1F4CA}'}
-          </Text>
+          <Ionicons name="bar-chart-outline" size={48} color={colors.textSecondary} style={styles.emptyIcon} />
           <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
             Almost there!
           </Text>

@@ -24,7 +24,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'macro_overview',
     category: 'macro_balance',
     text: 'Am I on track with my macros today?',
-    emoji: '🎯',
+    icon: 'flag-outline',
     isAvailable: (d) => d.todayMealCount >= 1,
     computeRelevance: (d) => {
       let score = 30;
@@ -39,7 +39,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'calorie_pacing',
     category: 'macro_balance',
     text: 'How am I pacing toward my calorie target?',
-    emoji: '⏱️',
+    icon: 'speedometer-outline',
     isAvailable: (d) => d.todayMealCount >= 1,
     computeRelevance: (d) => {
       let score = 20;
@@ -55,7 +55,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'macro_ratio',
     category: 'macro_balance',
     text: 'What does my macro split look like today?',
-    emoji: '📊',
+    icon: 'pie-chart-outline',
     isAvailable: (d) => d.todayCalories >= 500,
     computeRelevance: (d) => {
       let score = 20;
@@ -72,7 +72,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'remaining_budget',
     category: 'macro_balance',
     text: 'What can I fit in my remaining calories?',
-    emoji: '🧮',
+    icon: 'calculator-outline',
     isAvailable: (d) => d.calorieTarget - d.todayCalories > 200,
     computeRelevance: (d) => {
       let score = 25;
@@ -90,7 +90,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'protein_status',
     category: 'protein_focus',
     text: 'Am I getting enough protein today?',
-    emoji: '💪',
+    icon: 'barbell-outline',
     isAvailable: (d) => d.todayMealCount >= 1,
     computeRelevance: (d) => {
       let score = 25;
@@ -104,7 +104,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'protein_per_meal',
     category: 'protein_focus',
     text: 'How is my protein distributed across meals?',
-    emoji: '🍽️',
+    icon: 'restaurant-outline',
     isAvailable: (d) => d.todayMealCount >= 2,
     computeRelevance: (d) => {
       let score = 20;
@@ -123,7 +123,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'protein_remaining',
     category: 'protein_focus',
     text: 'How much protein do I still need today?',
-    emoji: '🥩',
+    icon: 'fitness-outline',
     isAvailable: (d) => d.todayProtein < d.proteinTarget,
     computeRelevance: (d) => {
       let score = 20;
@@ -140,7 +140,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'meal_distribution',
     category: 'meal_balance',
     text: 'How balanced are my meals today?',
-    emoji: '⚖️',
+    icon: 'scale-outline',
     isAvailable: (d) => d.todayMealCount >= 2,
     computeRelevance: (d) => {
       let score = 20;
@@ -157,7 +157,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'meal_timing',
     category: 'meal_balance',
     text: 'Am I spacing my meals well?',
-    emoji: '🕐',
+    icon: 'time-outline',
     isAvailable: (d) =>
       d.mealsWithTimestamps.length >= 2 &&
       d.mealsWithTimestamps.every((m) => !!m.firstLogTime),
@@ -177,7 +177,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'meal_variety',
     category: 'meal_balance',
     text: 'How varied are my food choices today?',
-    emoji: '🌈',
+    icon: 'color-palette-outline',
     isAvailable: (d) => d.todayFoods.length >= 3,
     computeRelevance: (d) => {
       let score = 15;
@@ -193,7 +193,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'hydration_status',
     category: 'hydration',
     text: "How's my hydration today?",
-    emoji: '💧',
+    icon: 'water-outline',
     isAvailable: (d) => d.waterTarget > 0,
     computeRelevance: (d) => {
       let score = 20;
@@ -207,7 +207,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'hydration_pacing',
     category: 'hydration',
     text: 'Am I drinking enough water for this time of day?',
-    emoji: '🚰',
+    icon: 'water',
     isAvailable: (d) => d.waterTarget > 0 && d.currentHour >= 10,
     computeRelevance: (d) => {
       let score = 15;
@@ -223,7 +223,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'vs_weekly_avg',
     category: 'trends',
     text: 'How does today compare to my weekly average?',
-    emoji: '📈',
+    icon: 'trending-up-outline',
     isAvailable: (d) => d.avgCalories7d > 0 && d.todayMealCount >= 2,
     computeRelevance: (d) => {
       let score = 20;
@@ -239,7 +239,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'consistency_check',
     category: 'trends',
     text: 'How consistent has my tracking been this week?',
-    emoji: '🔗',
+    icon: 'checkmark-circle-outline',
     isAvailable: (d) => d.daysUsingApp >= 3,
     computeRelevance: (d) => {
       let score = 15;
@@ -254,7 +254,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'trend_direction',
     category: 'trends',
     text: 'Am I trending in the right direction this week?',
-    emoji: '🧭',
+    icon: 'compass-outline',
     isAvailable: (d) => d.weeklyDailyTotals.filter((t) => t.logged).length >= 5,
     computeRelevance: (d) => {
       let score = 20;
@@ -277,7 +277,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'nutrient_overview',
     category: 'nutrient_gaps',
     text: 'Are there any nutrients I should pay attention to?',
-    emoji: '🧬',
+    icon: 'nutrition-outline',
     isAvailable: (d) => d.activeAlerts.length > 0,
     computeRelevance: (d) => {
       let score = 25;
@@ -293,7 +293,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'fiber_check',
     category: 'nutrient_gaps',
     text: 'Am I getting enough fiber today?',
-    emoji: '🥦',
+    icon: 'leaf-outline',
     isAvailable: (d) => d.todayFiber > 0 || d.todayMealCount >= 2,
     computeRelevance: (d) => {
       let score = 15;
@@ -308,7 +308,7 @@ export const questionRegistry: DailyQuestionDefinition[] = [
     id: 'micronutrient_status',
     category: 'nutrient_gaps',
     text: 'What does my micronutrient picture look like?',
-    emoji: '🔬',
+    icon: 'flask-outline',
     isAvailable: (d) => d.activeAlerts.length > 0 && d.daysUsingApp >= 7,
     computeRelevance: (d) => {
       let score = 15;

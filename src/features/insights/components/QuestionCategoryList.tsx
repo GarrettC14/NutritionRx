@@ -82,7 +82,7 @@ function CategoryRow({
           { borderColor: colors.borderDefault },
         ]}
       >
-        <Text style={styles.categoryEmoji}>{meta.emoji}</Text>
+        <Ionicons name={meta.icon as any} size={20} color={colors.textSecondary} />
         <View style={styles.categoryTextContainer}>
           <Text style={[styles.categoryLabel, { color: colors.textPrimary }]}>
             {meta.label}
@@ -173,8 +173,9 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  categoryEmoji: {
-    fontSize: 20,
+  categoryIcon: {
+    width: 20,
+    alignItems: 'center',
   },
   categoryTextContainer: {
     flex: 1,

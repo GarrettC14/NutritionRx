@@ -23,7 +23,7 @@ export class WeeklyInsightGenerator {
     weekStartDate: string
   ): Promise<WeeklyInsightResponse> {
     const definition = getQuestionById(questionId);
-    const icon = definition?.icon ?? '\u{1F4A1}';
+    const icon = definition?.icon ?? 'bulb-outline';
 
     // Try LLM generation
     try {
@@ -71,7 +71,7 @@ export class WeeklyInsightGenerator {
     icon?: string
   ): WeeklyInsightResponse {
     const definition = getQuestionById(questionId);
-    const responseIcon = icon ?? definition?.icon ?? '\u{1F4A1}';
+    const responseIcon = icon ?? definition?.icon ?? 'bulb-outline';
     const text = generateHeadline(questionId, analysisResult);
 
     return {

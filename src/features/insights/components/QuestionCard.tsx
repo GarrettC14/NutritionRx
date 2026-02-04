@@ -29,7 +29,7 @@ export function QuestionCard({ question, onPress, hasResponse = false }: Questio
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.emoji}>{question.emoji}</Text>
+      <Ionicons name={question.icon as any} size={22} color={colors.textSecondary} />
       <View style={styles.textContainer}>
         <Text style={[styles.text, { color: colors.textPrimary }]} numberOfLines={2}>
           {question.text}
@@ -54,8 +54,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: spacing[3],
   },
-  emoji: {
-    fontSize: 22,
+  iconWrapper: {
+    width: 22,
+    alignItems: 'center',
   },
   textContainer: {
     flex: 1,

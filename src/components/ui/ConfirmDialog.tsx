@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -71,7 +72,11 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
           >
             <Pressable onPress={(e) => e.stopPropagation()}>
               {/* Icon */}
-              {icon && <Text style={styles.icon}>{icon}</Text>}
+              {icon && (
+                <View style={styles.iconContainer}>
+                  <Ionicons name={icon as any} size={40} color={colors.textSecondary} />
+                </View>
+              )}
 
               {/* Title */}
               <Text style={[styles.title, { color: colors.textPrimary }]}>
@@ -147,9 +152,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  icon: {
-    fontSize: 40,
-    textAlign: 'center',
+  iconContainer: {
+    alignItems: 'center',
     marginBottom: spacing[4],
   },
   title: {

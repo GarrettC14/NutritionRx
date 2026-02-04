@@ -9,37 +9,37 @@ export const questionCategories: DailyQuestionCategoryMeta[] = [
   {
     id: 'macro_balance',
     label: 'Macros & Calories',
-    emoji: '🎯',
+    icon: 'pie-chart-outline',
     description: 'Overall calorie and macronutrient progress',
   },
   {
     id: 'protein_focus',
     label: 'Protein Focus',
-    emoji: '💪',
+    icon: 'barbell-outline',
     description: 'Protein intake and distribution',
   },
   {
     id: 'meal_balance',
     label: 'Meal Balance',
-    emoji: '⚖️',
+    icon: 'restaurant-outline',
     description: 'Meal distribution, timing, and variety',
   },
   {
     id: 'hydration',
     label: 'Hydration',
-    emoji: '💧',
+    icon: 'water-outline',
     description: 'Water intake tracking',
   },
   {
     id: 'trends',
     label: 'Trends & Patterns',
-    emoji: '📊',
+    icon: 'trending-up-outline',
     description: 'Today in context of your recent history',
   },
   {
     id: 'nutrient_gaps',
     label: 'Nutrient Gaps',
-    emoji: '🧬',
+    icon: 'nutrition-outline',
     description: 'Micronutrient and fiber awareness',
   },
 ];

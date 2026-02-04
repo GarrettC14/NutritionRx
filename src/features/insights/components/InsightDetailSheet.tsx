@@ -208,7 +208,7 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
           >
             {/* Question title */}
             <View style={styles.questionHeader}>
-              <Text style={styles.questionEmoji}>{questionDef.emoji}</Text>
+              <Ionicons name={questionDef.icon as any} size={32} color={colors.accent} />
               <Text style={[styles.questionText, { color: colors.textPrimary }]}>
                 {questionDef.text}
               </Text>
@@ -239,9 +239,12 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
                 </View>
               ) : response ? (
                 <>
-                  <Text style={[styles.narrative, { color: colors.textPrimary }]}>
-                    {response.emoji} {response.narrative}
-                  </Text>
+                  <View style={styles.narrativeRow}>
+                    <Ionicons name={response.icon as any} size={18} color={colors.accent} />
+                    <Text style={[styles.narrative, { color: colors.textPrimary }]}>
+                      {response.narrative}
+                    </Text>
+                  </View>
                   {response.source === 'fallback' && llmStatus !== 'ready' && (
                     <Text style={[styles.fallbackLabel, { color: colors.textTertiary }]}>
                       Template insight — download AI model for personalized narration
@@ -276,7 +279,7 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
               <Text style={[styles.actionText, { color: colors.textSecondary }]}>Close</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -321,8 +324,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[2],
   },
-  questionEmoji: {
-    fontSize: 32,
+  questionIcon: {
+    marginBottom: spacing[1],
   },
   questionText: {
     ...typography.title.medium,
@@ -369,9 +372,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1,
   },
+  narrativeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+  },
   narrative: {
     ...typography.body.medium,
     lineHeight: 22,
+    flex: 1,
   },
   fallbackLabel: {
     ...typography.caption,
