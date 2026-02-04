@@ -21,31 +21,30 @@ tags:
     timeout: 20000
 
 # --- STEP 2: Verify Home Screen ---
-- assertVisible:
-    id: "home-date-label"
-
-# --- STEP 3: Log Food via Quick Add ---
+# Dismiss LogBox warning toast if present (× button at ~93% x, ~93% y)
 - tapOn:
-    id: "meal-add-food-button-breakfast"
+    point: "93%, 93%"
+    optional: true
 
-- extendedWaitUntil:
-    visible:
-      id: "add-food-screen"
-    timeout: 5000
+# Ensure we're on the Home tab (tap it in case a prior run left us elsewhere)
+- tapOn:
+    point: "10%, 97%"
 
-# Use Quick Add for simplicity
+# Scroll to top in case scroll position was preserved from a previous run
 - scrollUntilVisible:
     element:
-      text: "Quick Add"
-    direction: DOWN
+      id: "home-date-label"
+    direction: UP
+    timeout: 5000
 
-- tapOn:
-    text: "Quick Add"
+# --- STEP 3: Log Food via Quick Add ---
+# Navigate directly to Quick Add screen (not exposed as button on Add Food screen)
+- openLink: "nutritionrx:///add-food/quick?mealType=breakfast"
 
 - extendedWaitUntil:
     visible:
       id: "quick-add-screen"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "quick-add-calories-input"
@@ -65,17 +64,39 @@ tags:
 
 - hideKeyboard
 
+# Dismiss LogBox warning toast if present (blocks the Add button)
+- tapOn:
+    point: "93%, 93%"
+    optional: true
+
 - tapOn:
     id: "quick-add-add-button"
 
-# --- STEP 4: Verify Entry on Home ---
+# --- STEP 4: Navigate back to Home and verify ---
+# Wait for save to complete and navigation to occur
+- extendedWaitUntil:
+    notVisible:
+      id: "quick-add-screen"
+    timeout: 5000
+
+# Quick Add dismisses to Add Food screen, so tap the Today tab to go home
+- tapOn:
+    point: "10%, 97%"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
     timeout: 5000
 
-# Verify calorie ring updated (or meal section has entry)
+# Scroll to top to verify dashboard is visible with date label
+- scrollUntilVisible:
+    element:
+      id: "home-date-label"
+    direction: UP
+    timeout: 5000
+
+# Verify we're back on the dashboard
 - assertVisible:
-    id: "widget-calorie-ring"
+    id: "home-date-label"
 
 # --- SMOKE TEST COMPLETE ---

@@ -7,6 +7,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { TestIDs, mealAddFoodButton, mealCopyButton } from '@/constants/testIDs';
 import { FoodEntryCard } from './FoodEntryCard';
 
 // Enable LayoutAnimation on Android
@@ -28,6 +29,13 @@ interface MealSectionProps {
 }
 
 const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
+
+const MEAL_SECTION_TEST_IDS: Record<MealType, string> = {
+  [MealType.Breakfast]: TestIDs.Meal.BreakfastSection,
+  [MealType.Lunch]: TestIDs.Meal.LunchSection,
+  [MealType.Dinner]: TestIDs.Meal.DinnerSection,
+  [MealType.Snack]: TestIDs.Meal.SnackSection,
+};
 
 export function MealSection({
   mealType,
@@ -82,7 +90,7 @@ export function MealSection({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}>
+    <View testID={MEAL_SECTION_TEST_IDS[mealType]} style={[styles.container, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}>
       {/* Collapsible Header */}
       <Pressable
         style={styles.header}
@@ -108,6 +116,7 @@ export function MealSection({
             {totalCalories} cal
           </Text>
           <Pressable
+            testID={mealAddFoodButton(mealType)}
             style={[styles.addButton, { backgroundColor: colors.bgInteractive }]}
             onPress={handleAddPress}
             hitSlop={8}
@@ -150,6 +159,7 @@ export function MealSection({
           {/* Menu button when expanded and has entries */}
           {hasEntries && onCopyMeal && (
             <Pressable
+              testID={mealCopyButton(mealType)}
               style={styles.copyButton}
               onPress={handleCopyMeal}
             >
