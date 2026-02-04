@@ -19,10 +19,13 @@ interface MiniCardProps {
   label: string;
   value: string;
   icon: string;
+  iconColor?: string;
   colors: any;
 }
 
-function MiniCard({ label, value, icon, colors }: MiniCardProps) {
+function MiniCard({ label, value, icon, iconColor, colors }: MiniCardProps) {
+  const tint = iconColor ?? colors.textSecondary;
+
   return (
     <View
       style={[
@@ -30,7 +33,13 @@ function MiniCard({ label, value, icon, colors }: MiniCardProps) {
         { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault },
       ]}
     >
-      <Ionicons name={icon as any} size={18} color={colors.textSecondary} style={styles.cardIcon} />
+      {iconColor ? (
+        <View style={[styles.iconBadge, { backgroundColor: `${iconColor}18` }]}>
+          <Ionicons name={icon as any} size={16} color={tint} />
+        </View>
+      ) : (
+        <Ionicons name={icon as any} size={18} color={tint} style={styles.cardIcon} />
+      )}
       <Text style={[styles.cardValue, { color: colors.textPrimary }]}>{value}</Text>
       <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>
@@ -41,11 +50,11 @@ export function SnapshotCards({ data }: SnapshotCardsProps) {
   const { colors } = useTheme();
 
   const cards = [
-    { label: 'Calories', value: `${data.caloriePercent}%`, icon: 'flame-outline' },
-    { label: 'Protein', value: `${data.proteinPercent}%`, icon: 'barbell-outline' },
-    { label: 'Water', value: `${data.waterPercent}%`, icon: 'water-outline' },
+    { label: 'Calories', value: `${data.caloriePercent}%`, icon: 'flame-outline', iconColor: '#EF5350' },
+    { label: 'Protein', value: `${data.proteinPercent}%`, icon: 'barbell-outline', iconColor: '#42A5F5' },
+    { label: 'Water', value: `${data.waterPercent}%`, icon: 'water-outline', iconColor: '#81D4FA' },
     { label: 'Meals', value: `${data.todayMealCount}`, icon: 'restaurant-outline' },
-    { label: 'Streak', value: `${data.loggingStreak}d`, icon: 'flame-outline' },
+    { label: 'Streak', value: `${data.loggingStreak}d`, icon: 'flame-outline', iconColor: '#FFA726' },
   ];
 
   return (
@@ -81,6 +90,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cardIcon: {
+    marginBottom: spacing[1],
+  },
+  iconBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing[1],
   },
   cardValue: {
