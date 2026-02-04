@@ -4,20 +4,13 @@ tags:
   - premium
   - macro-cycling
 ---
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 # Enable premium
 - runFlow: ../../utils/enable-premium.yaml
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "tab-bar-settings"
 

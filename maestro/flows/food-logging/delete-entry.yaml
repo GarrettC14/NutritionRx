@@ -4,13 +4,9 @@ tags:
   - food-logging
   - delete
 ---
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 # Add a food entry to delete
 - tapOn:

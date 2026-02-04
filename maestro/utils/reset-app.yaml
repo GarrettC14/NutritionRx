@@ -1,31 +1,11 @@
 appId: com.nutritionrx.app
 name: Reset App to Fresh State
 ---
-# Triggers fresh session via developer settings
+# Relaunch app with cleared state for a clean slate
+- launchApp:
+    clearState: true
 
-- runFlow: ensure-home.yaml
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "tab-bar-settings"
-
-- scrollUntilVisible:
-    element:
-      id: "settings-dev-fresh-session"
-    direction: DOWN
-
-- tapOn:
-    id: "settings-dev-fresh-session"
-
-# Confirm if dialog appears
-- tapOn:
-    id: "ui-confirm-dialog-confirm"
-    optional: true
-
-# Should return to legal screen
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 5000
+    timeout: 10000

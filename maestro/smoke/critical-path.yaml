@@ -5,40 +5,27 @@ tags:
   - critical
 ---
 # ============================================
-# CRITICAL PATH: Home Screen → Log Food → Verify
+# CRITICAL PATH: Launch → Onboard → Log Food → Verify
 # ============================================
-# Note: For Expo dev builds, use openLink to launch
-# the app through the dev client. Do NOT use clearState
-# as it breaks the native module registry.
 
-# --- STEP 1: Launch app via Expo dev client ---
-- openLink: "nutritionrx://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8082"
+# --- STEP 1: Launch fresh ---
+- launchApp:
+    clearState: true
 
-# Wait for the app to fully load
-- extendedWaitUntil:
-    visible:
-      id: "home-screen"
-    timeout: 20000
+# --- STEP 2: Complete onboarding ---
+- runFlow: ../utils/complete-onboarding.yaml
 
-# --- STEP 2: Verify Home Screen ---
-# Dismiss LogBox warning toast if present (× button at ~93% x, ~93% y)
-- tapOn:
-    point: "93%, 93%"
-    optional: true
+# --- STEP 3: Verify Home Screen ---
+- assertVisible:
+    id: "home-screen"
 
-# Ensure we're on the Home tab (tap it in case a prior run left us elsewhere)
-- tapOn:
-    point: "10%, 97%"
-
-# Scroll to top in case scroll position was preserved from a previous run
 - scrollUntilVisible:
     element:
       id: "home-date-label"
     direction: UP
     timeout: 5000
 
-# --- STEP 3: Log Food via Quick Add ---
-# Navigate directly to Quick Add screen (not exposed as button on Add Food screen)
+# --- STEP 4: Log Food via Quick Add ---
 - openLink: "nutritionrx:///add-food/quick?mealType=breakfast"
 
 - extendedWaitUntil:
@@ -64,38 +51,29 @@ tags:
 
 - hideKeyboard
 
-# Dismiss LogBox warning toast if present (blocks the Add button)
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-
 - tapOn:
     id: "quick-add-add-button"
 
-# --- STEP 4: Navigate back to Home and verify ---
-# Wait for save to complete and navigation to occur
+# --- STEP 5: Navigate back to Home and verify ---
 - extendedWaitUntil:
     notVisible:
       id: "quick-add-screen"
     timeout: 5000
 
-# Quick Add dismisses to Add Food screen, so tap the Today tab to go home
 - tapOn:
-    point: "10%, 97%"
+    id: "tab-bar-home"
 
 - extendedWaitUntil:
     visible:
       id: "home-screen"
     timeout: 5000
 
-# Scroll to top to verify dashboard is visible with date label
 - scrollUntilVisible:
     element:
       id: "home-date-label"
     direction: UP
     timeout: 5000
 
-# Verify we're back on the dashboard
 - assertVisible:
     id: "home-date-label"
 

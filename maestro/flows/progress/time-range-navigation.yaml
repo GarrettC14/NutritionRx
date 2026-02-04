@@ -4,19 +4,12 @@ tags:
   - progress
   - navigation
 ---
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 - runFlow: ../../utils/seed-data.yaml
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "tab-bar-progress"
 

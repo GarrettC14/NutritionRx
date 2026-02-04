@@ -1,11 +1,7 @@
 appId: com.nutritionrx.app
-name: Launch App via Expo Dev Client
+name: Launch App (Fresh State)
 ---
-- openLink: "nutritionrx://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8082"
-- extendedWaitUntil:
-    visible:
-      id: "home-screen"
-    timeout: 20000
-- tapOn:
-    point: "93%, 93%"
-    optional: true
+# Launch app with cleared state for test isolation
+# After this, the app will be on the legal/onboarding screen
+- launchApp:
+    clearState: true

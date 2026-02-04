@@ -1,88 +1,11 @@
 appId: com.nutritionrx.app
 name: Initial Setup - Launch and Complete Onboarding
 ---
-# Launch app via Expo dev client
-- openLink: "nutritionrx://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8082"
+# Launch fresh and complete onboarding to land on home screen
+- launchApp:
+    clearState: true
 
-# Wait for either home screen or legal screen to appear
-- extendedWaitUntil:
-    visible:
-      id: "legal-screen"
-    timeout: 45000
+- runFlow: complete-onboarding.yaml
 
-# Dismiss LogBox
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-
-# Complete onboarding
-- scrollUntilVisible:
-    element:
-      id: "legal-checkbox"
-    direction: DOWN
-
-- tapOn:
-    id: "legal-checkbox"
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "legal-proceed-button"
-
-# Onboarding Welcome
-- extendedWaitUntil:
-    visible:
-      id: "onboarding-welcome-screen"
-    timeout: 3000
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "onboarding-begin-button"
-
-# Goal Selection
 - assertVisible:
-    id: "onboarding-goal-screen"
-
-- tapOn:
-    id: "onboarding-goal-option-lose"
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "onboarding-goal-continue-button"
-
-# Preferences
-- assertVisible:
-    id: "onboarding-preferences-screen"
-
-- tapOn:
-    id: "onboarding-energy-calories"
-
-- tapOn:
-    id: "onboarding-weight-lbs"
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "onboarding-preferences-continue-button"
-
-# Ready Screen
-- assertVisible:
-    id: "onboarding-ready-screen"
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    id: "onboarding-ready-explore-app"
-
-# Verify Home
-- extendedWaitUntil:
-    visible:
-      id: "home-screen"
-    timeout: 5000
+    id: "home-screen"

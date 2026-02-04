@@ -4,13 +4,13 @@ tags:
   - onboarding
   - navigation
 ---
-- runFlow: ../../utils/launch-app.yaml
-- runFlow: ../../utils/reset-app.yaml
+- launchApp:
+    clearState: true
 
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 5000
+    timeout: 10000
 
 # Complete legal
 - scrollUntilVisible:
@@ -22,9 +22,6 @@ tags:
     id: "legal-checkbox"
 
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
     id: "legal-proceed-button"
 
 # Welcome → Goal
@@ -33,9 +30,6 @@ tags:
       id: "onboarding-welcome-screen"
     timeout: 3000
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-begin-button"
 
@@ -46,9 +40,6 @@ tags:
 - tapOn:
     id: "onboarding-goal-option-maintain"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-goal-continue-button"
 
@@ -64,9 +55,6 @@ tags:
 
 # Previous selection should be preserved
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
     id: "onboarding-goal-continue-button"
 
 - assertVisible:
@@ -78,9 +66,6 @@ tags:
 - tapOn:
     id: "onboarding-weight-kg"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-preferences-continue-button"
 

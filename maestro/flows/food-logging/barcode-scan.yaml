@@ -7,14 +7,9 @@ tags:
 ---
 # Note: This test requires camera access
 # On simulator/emulator, test the permission and manual entry paths
-
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 - tapOn:
     id: "meal-add-food-button-breakfast"

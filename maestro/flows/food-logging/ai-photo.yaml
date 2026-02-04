@@ -7,14 +7,9 @@ tags:
   - camera
 ---
 # Note: Requires premium and camera access
-
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 # Enable premium for this test
 - runFlow: ../../utils/enable-premium.yaml

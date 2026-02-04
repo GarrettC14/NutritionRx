@@ -4,13 +4,13 @@ tags:
   - onboarding
   - legal
 ---
-- runFlow: ../../utils/launch-app.yaml
-- runFlow: ../../utils/reset-app.yaml
+- launchApp:
+    clearState: true
 
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 5000
+    timeout: 10000
 
 - assertVisible:
     id: "legal-screen"
@@ -22,9 +22,6 @@ tags:
     id: "legal-terms-link"
 
 # Try to proceed without checking - should be disabled or show error
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "legal-proceed-button"
 
@@ -41,9 +38,6 @@ tags:
 - tapOn:
     id: "legal-checkbox"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "legal-proceed-button"
 

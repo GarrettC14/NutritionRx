@@ -4,17 +4,10 @@ tags:
   - import
   - data
 ---
-- runFlow: ../../utils/launch-app.yaml
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
-
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "tab-bar-settings"
 

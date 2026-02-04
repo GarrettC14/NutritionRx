@@ -4,13 +4,9 @@ tags:
   - food-logging
   - edit
 ---
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 # First, add a food entry
 - tapOn:

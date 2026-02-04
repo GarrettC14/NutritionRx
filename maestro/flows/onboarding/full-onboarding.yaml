@@ -4,13 +4,13 @@ tags:
   - onboarding
   - complete
 ---
-- runFlow: ../../utils/launch-app.yaml
-- runFlow: ../../utils/reset-app.yaml
+- launchApp:
+    clearState: true
 
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 5000
+    timeout: 10000
 
 # === Legal ===
 - assertVisible:
@@ -25,9 +25,6 @@ tags:
     id: "legal-checkbox"
 
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
     id: "legal-proceed-button"
 
 # === Welcome ===
@@ -36,9 +33,6 @@ tags:
       id: "onboarding-welcome-screen"
     timeout: 3000
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-begin-button"
 
@@ -62,9 +56,6 @@ tags:
 - tapOn:
     id: "onboarding-goal-option-lose"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-goal-continue-button"
 
@@ -91,9 +82,6 @@ tags:
     id: "onboarding-weight-lbs"
 
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
     id: "onboarding-preferences-continue-button"
 
 # === Ready Screen ===
@@ -111,9 +99,6 @@ tags:
     id: "onboarding-ready-explore-app"
 
 # Choose to explore app
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-ready-explore-app"
 

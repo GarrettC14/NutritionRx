@@ -4,13 +4,9 @@ tags:
   - food-logging
   - custom-food
 ---
-- runFlow: ../../utils/launch-app.yaml
-
-- runFlow:
-    file: ../../utils/complete-onboarding.yaml
-    when:
-      visible:
-        id: "legal-screen"
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
 
 - tapOn:
     id: "meal-add-food-button-dinner"

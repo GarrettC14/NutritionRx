@@ -1,11 +1,10 @@
 appId: com.nutritionrx.app
 name: Ensure Home Screen
 ---
+# Navigate to home screen via tab bar
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
-    point: "10%, 97%"
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
