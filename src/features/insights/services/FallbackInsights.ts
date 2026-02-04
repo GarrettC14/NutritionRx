@@ -7,13 +7,16 @@ import type { InsightInputData, Insight } from '../types/insights.types';
 import { getCategoryIcon } from './InsightPromptBuilder';
 
 export function generateFallbackInsights(data: InsightInputData): Insight[] {
+  console.log(`[LLM:Fallback] generateFallbackInsights() — cal=${data.todayCalories}, meals=${data.todayMealCount}, daysUsing=${data.daysUsingApp}`);
   const insights: Insight[] = [];
 
   if (data.todayCalories < 100 && data.todayMealCount === 0) {
+    console.log('[LLM:Fallback] → early return: no meals logged today');
     return [{ category: 'pattern', text: "Just getting started today? Log your first meal and you'll see insights as your day takes shape.", icon: getCategoryIcon('pattern') }];
   }
 
   if (data.daysUsingApp < 3) {
+    console.log('[LLM:Fallback] → early return: new user (<3 days)');
     return [{ category: 'pattern', text: "As you log meals over the next few days, you'll start seeing patterns and personalized insights here. Keep logging!", icon: getCategoryIcon('pattern') }];
   }
 
@@ -88,6 +91,7 @@ export function generateFallbackInsights(data: InsightInputData): Insight[] {
     }
   }
 
+  console.log(`[LLM:Fallback] Generated ${insights.length} fallback insights: [${insights.map(i => i.category).join(', ')}]`);
   return insights.slice(0, 3);
 }
 

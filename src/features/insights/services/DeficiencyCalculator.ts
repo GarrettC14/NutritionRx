@@ -49,18 +49,22 @@ function formatDeficiencyMessage(
 
 export function calculateDeficiencies(input: DeficiencyCalculatorInput): DeficiencyResult {
   const { dailyNutrientData, daysUsingApp, daysSinceLastLog, dismissedAlerts } = input;
+  console.log(`[LLM:Deficiency] calculateDeficiencies() — daysUsingApp=${daysUsingApp}, daysSinceLastLog=${daysSinceLastLog}, nutrientDays=${dailyNutrientData.length}, dismissed=${dismissedAlerts.size}`);
 
   // Check minimum requirements
   if (daysUsingApp < ALERT_REQUIREMENTS.minDaysUsingApp) {
+    console.log(`[LLM:Deficiency] → skipped: daysUsingApp ${daysUsingApp} < ${ALERT_REQUIREMENTS.minDaysUsingApp}`);
     return { checks: [], hasAlerts: false, alertCount: 0 };
   }
 
   if (daysSinceLastLog > ALERT_REQUIREMENTS.maxDaysSinceLastLog) {
+    console.log(`[LLM:Deficiency] → skipped: daysSinceLastLog ${daysSinceLastLog} > ${ALERT_REQUIREMENTS.maxDaysSinceLastLog}`);
     return { checks: [], hasAlerts: false, alertCount: 0 };
   }
 
   const daysWithData = dailyNutrientData.filter((d) => d.hasData).length;
   if (daysWithData < ALERT_REQUIREMENTS.minDaysWithData) {
+    console.log(`[LLM:Deficiency] → skipped: daysWithData ${daysWithData} < ${ALERT_REQUIREMENTS.minDaysWithData}`);
     return { checks: [], hasAlerts: false, alertCount: 0 };
   }
 
@@ -85,9 +89,14 @@ export function calculateDeficiencies(input: DeficiencyCalculatorInput): Deficie
 
     if (!severity) continue; // No deficiency
 
+    console.log(`[LLM:Deficiency] ${name} (${id}): avg=${avgAmount.toFixed(1)}, rda=${rdaDefault}, %=${percentOfRDA.toFixed(1)}%, severity=${severity}`);
+
     // Check if alert is dismissed
     const alertId = `${id}_${severity}`;
-    if (dismissedAlerts.has(alertId)) continue;
+    if (dismissedAlerts.has(alertId)) {
+      console.log(`[LLM:Deficiency] ${id}_${severity} dismissed, skipping`);
+      continue;
+    }
 
     // Tier 2 nutrients only alert at warning or concern level
     if (tier === 2 && severity === 'notice') continue;
@@ -119,6 +128,7 @@ export function calculateDeficiencies(input: DeficiencyCalculatorInput): Deficie
   // Limit to top 3 most important alerts
   const topChecks = checks.slice(0, 3);
 
+  console.log(`[LLM:Deficiency] Result — ${checks.length} total deficiencies found, returning top ${topChecks.length}: [${topChecks.map((c) => `${c.nutrientId}(${c.severity})`).join(', ')}]`);
   return {
     checks: topChecks,
     hasAlerts: topChecks.length > 0,

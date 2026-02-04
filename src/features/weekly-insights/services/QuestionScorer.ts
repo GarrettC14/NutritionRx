@@ -46,6 +46,7 @@ export class QuestionScorer {
    * Runs all applicable analyzers and returns scored results.
    */
   static scoreAllQuestions(data: WeeklyCollectedData): ScoredQuestion[] {
+    console.log(`[LLM:Scorer] scoreAllQuestions() called — loggedDays=${data.loggedDayCount}, questions=${QUESTION_LIBRARY.length}`);
     const scored: ScoredQuestion[] = [];
 
     for (const definition of QUESTION_LIBRARY) {
@@ -54,10 +55,14 @@ export class QuestionScorer {
 
       // Run analyzer if available
       const analyzer = analyzerMap[definition.id];
-      if (!analyzer) continue;
+      if (!analyzer) {
+        console.log(`[LLM:Scorer] ${definition.id} — no analyzer, skipping`);
+        continue;
+      }
 
       const analysisResult = analyzer(data);
 
+      console.log(`[LLM:Scorer] ${definition.id} — available=${isAvailable}, score=${analysisResult.interestingnessScore.toFixed(2)}, pinned=${definition.isPinned}`);
       scored.push({
         questionId: definition.id,
         definition,
@@ -68,6 +73,7 @@ export class QuestionScorer {
       });
     }
 
+    console.log(`[LLM:Scorer] scoreAllQuestions complete — ${scored.length} scored, ${scored.filter((q) => q.isAvailable).length} available`);
     return scored;
   }
 
@@ -79,11 +85,13 @@ export class QuestionScorer {
     scored: ScoredQuestion[],
     maxQuestions: number = 6
   ): ScoredQuestion[] {
+    console.log(`[LLM:Scorer] selectTopQuestions() — ${scored.length} candidates, max=${maxQuestions}`);
     const pinned = scored.filter((q) => q.isPinned && q.isAvailable);
     const available = scored
       .filter((q) => !q.isPinned && q.isAvailable && q.score >= 0.3)
       .sort((a, b) => b.score - a.score);
 
+    console.log(`[LLM:Scorer] Pinned: ${pinned.length}, available (score>=0.3): ${available.length}`);
     const selected: ScoredQuestion[] = [...pinned];
     const categoryCounts: Record<string, number> = {};
 
@@ -102,6 +110,7 @@ export class QuestionScorer {
       categoryCounts[q.definition.category] = catCount + 1;
     }
 
+    console.log(`[LLM:Scorer] Selected ${selected.length} questions: [${selected.map((q) => q.questionId).join(', ')}]`);
     // Sort: Q-HI-01 first, Q-HI-02 last, rest by score
     return selected.sort((a, b) => {
       if (a.questionId === 'Q-HI-01') return -1;
@@ -117,7 +126,10 @@ export class QuestionScorer {
    */
   private static checkGates(questionId: string, data: WeeklyCollectedData): boolean {
     const def = QUESTION_LIBRARY.find((q) => q.id === questionId);
-    if (!def) return false;
+    if (!def) {
+      console.log(`[LLM:Scorer] checkGates(${questionId}) → false (no definition)`);
+      return false;
+    }
 
     // Permanently gated questions
     if (def.requiresFiberData) return false;

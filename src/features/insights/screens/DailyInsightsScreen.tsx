@@ -28,6 +28,7 @@ import { InsightDetailSheet } from '../components/InsightDetailSheet';
 import type { DailyQuestionId } from '../types/dailyInsights.types';
 
 export function DailyInsightsScreen() {
+  console.log('[LLM:DailyScreen] Render');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -56,12 +57,14 @@ export function DailyInsightsScreen() {
   }, []);
 
   const handleRefresh = useCallback(async () => {
+    console.log('[LLM:DailyScreen] handleRefresh()');
     setIsRefreshing(true);
     await refreshData();
     setIsRefreshing(false);
   }, [refreshData]);
 
   const handleDownloadModel = useCallback(async () => {
+    console.log('[LLM:DailyScreen] handleDownloadModel() started');
     setIsDownloading(true);
     setDownloadPercent(0);
 
@@ -71,10 +74,13 @@ export function DailyInsightsScreen() {
       });
 
       if (result.success) {
+        console.log('[LLM:DailyScreen] Model download succeeded, setting status to ready');
         useDailyInsightStore.setState({ llmStatus: 'ready' });
+      } else {
+        console.log(`[LLM:DailyScreen] Model download failed: ${result.error}`);
       }
     } catch (error) {
-      console.error('[DailyInsightsScreen] Download failed:', error);
+      console.error('[LLM:DailyScreen] Download failed:', error);
     } finally {
       setIsDownloading(false);
     }
@@ -82,7 +88,9 @@ export function DailyInsightsScreen() {
 
   // Check LLM status on mount
   useEffect(() => {
+    console.log('[LLM:DailyScreen] Mount — checking LLM status');
     LLMService.getStatus().then((status) => {
+      console.log(`[LLM:DailyScreen] LLM status on mount: ${status}`);
       useDailyInsightStore.setState({ llmStatus: status });
     });
   }, []);

@@ -16,6 +16,7 @@ export class TimingAnalyzer {
    * Q-TIM-01: How many meals am I eating per day?
    */
   static analyzeMealCount(data: WeeklyCollectedData): MealCountAnalysis {
+    console.log(`[LLM:Analyzer:TIM-01] analyzeMealCount() — loggedDays=${data.loggedDayCount}, totalMeals=${data.totalMeals}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 3) {
@@ -62,6 +63,7 @@ export class TimingAnalyzer {
     if (mealCalCorrelation) score += 0.2;
     score = clamp(score, 0.2, 0.7);
 
+    console.log(`[LLM:Analyzer:TIM-01] Result — avg=${(Math.round(avgMeals * 10) / 10)}, range=${minMeals}-${maxMeals}, correlation=${mealCalCorrelation}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-TIM-01',
       avgMeals: Math.round(avgMeals * 10) / 10,
@@ -77,6 +79,7 @@ export class TimingAnalyzer {
    * Q-TIM-02: Are weekdays and weekends different for me?
    */
   static analyzeWeekdayWeekend(data: WeeklyCollectedData): WeekdayWeekendAnalysis {
+    console.log(`[LLM:Analyzer:TIM-02] analyzeWeekdayWeekend() — loggedDays=${data.loggedDayCount}`);
     // Weekdays = Mon-Fri (1-5), Weekends = Sat-Sun (0, 6)
     const weekdays = data.days.filter(
       (d) => d.isLogged && d.dayOfWeek >= 1 && d.dayOfWeek <= 5
@@ -117,6 +120,7 @@ export class TimingAnalyzer {
     if (Math.abs(weekendEffect) > 25) score = 0.9;
     score = clamp(score, 0.2, 0.9);
 
+    console.log(`[LLM:Analyzer:TIM-02] Result — weekdayCal=${weekdayAvgCal}, weekendCal=${weekendAvgCal}, effect=${weekendEffect}%, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-TIM-02',
       weekdayAvgCal,

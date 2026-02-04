@@ -18,6 +18,7 @@ export class WeeklyDataCollector {
    * meal counts, food names, water, and prior week data.
    */
   static async collect(weekStartDate: string): Promise<WeeklyCollectedData> {
+    console.log(`[LLM:WeeklyData] collect() called — weekStart=${weekStartDate}`);
     const weekEndDate = getWeekEnd(weekStartDate);
 
     // Gather targets from stores
@@ -29,6 +30,7 @@ export class WeeklyDataCollector {
     const calorieTarget = calorieGoal ?? settings.dailyCalorieGoal ?? 2000;
     const proteinTarget = proteinGoal ?? settings.dailyProteinGoal ?? 150;
     const waterTargetMl = goalGlasses * glassSizeMl;
+    console.log(`[LLM:WeeklyData] Targets — cal=${calorieTarget}, protein=${proteinTarget}, waterMl=${waterTargetMl}`);
 
     // Fetch data from repositories
     const [dailyTotalsRange, logEntries, waterLogs] = await Promise.all([
@@ -88,6 +90,7 @@ export class WeeklyDataCollector {
 
     const loggedDays = days.filter((d) => d.isLogged);
     const loggedDayCount = loggedDays.length;
+    console.log(`[LLM:WeeklyData] Built ${days.length} days, ${loggedDayCount} logged, ${days.filter((d) => d.isComplete).length} complete`);
 
     // Compute averages from logged days only
     const avgCalories = mean(loggedDays.map((d) => d.calories));
@@ -106,6 +109,8 @@ export class WeeklyDataCollector {
       WeeklyDataCollector.collectBasic(priorWeekStart),
       WeeklyDataCollector.collectBasic(twoWeeksAgoStart),
     ]);
+    console.log(`[LLM:WeeklyData] Prior weeks — priorWeek=${priorWeek ? `${priorWeek.loggedDayCount} days` : 'null'}, twoWeeksAgo=${twoWeeksAgo ? `${twoWeeksAgo.loggedDayCount} days` : 'null'}`);
+    console.log(`[LLM:WeeklyData] Averages — cal=${Math.round(avgCalories)}, protein=${Math.round(avgProtein)}, carbs=${Math.round(avgCarbs)}, fat=${Math.round(avgFat)}, water=${Math.round(avgWater)}, meals=${avgMealCount.toFixed(1)}, totalMeals=${totalMeals}`);
 
     return {
       weekStartDate,
@@ -137,6 +142,7 @@ export class WeeklyDataCollector {
    * Returns null if no data found.
    */
   static async collectBasic(weekStartDate: string): Promise<WeeklyCollectedData | null> {
+    console.log(`[LLM:WeeklyData] collectBasic() called — weekStart=${weekStartDate}`);
     const weekEndDate = getWeekEnd(weekStartDate);
 
     const { calorieGoal, proteinGoal } = useGoalStore.getState();
@@ -181,7 +187,10 @@ export class WeeklyDataCollector {
     const loggedDays = days.filter((d) => d.isLogged);
     const loggedDayCount = loggedDays.length;
 
-    if (loggedDayCount === 0) return null;
+    if (loggedDayCount === 0) {
+      console.log(`[LLM:WeeklyData] collectBasic → null (no logged days for ${weekStartDate})`);
+      return null;
+    }
 
     return {
       weekStartDate,

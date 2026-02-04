@@ -38,6 +38,7 @@ export function useDeficiencyAlerts({
   const { getDismissedAlertIds, dismissAlert: storeDismissAlert, clearExpiredDismissals } = useAlertDismissalStore();
 
   const calculateAlerts = useCallback(() => {
+    console.log(`[LLM:DefAlerts] calculateAlerts() — nutrientDays=${nutrientData.length}, daysUsing=${daysUsingApp}, daysSinceLog=${daysSinceLastLog}`);
     setIsLoading(true);
 
     // Clear expired dismissals first
@@ -52,6 +53,7 @@ export function useDeficiencyAlerts({
       dismissedAlerts,
     });
 
+    console.log(`[LLM:DefAlerts] Result — hasAlerts=${deficiencyResult.hasAlerts}, count=${deficiencyResult.alertCount}`);
     setResult(deficiencyResult);
     setIsLoading(false);
   }, [nutrientData, daysUsingApp, daysSinceLastLog, getDismissedAlertIds, clearExpiredDismissals]);
@@ -64,6 +66,7 @@ export function useDeficiencyAlerts({
 
   const dismissAlert = useCallback(
     (nutrientId: string, severity: string) => {
+      console.log(`[LLM:DefAlerts] dismissAlert(${nutrientId}, ${severity})`);
       storeDismissAlert(nutrientId, severity);
       // Recalculate to remove the dismissed alert
       calculateAlerts();

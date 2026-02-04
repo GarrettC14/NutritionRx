@@ -59,7 +59,7 @@ export function WidgetRenderer({
           hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
         >
           <View style={styles.deleteButtonInner}>
-            <Ionicons name="close" size={14} color="#fff" />
+            <Ionicons name="remove" size={14} color="#fff" />
           </View>
         </TouchableOpacity>
       )}
@@ -117,7 +117,7 @@ const createStyles = (colors: any, isEditMode: boolean, isActive?: boolean) =>
     deleteButton: {
       position: 'absolute',
       top: -8,
-      right: -8,
+      left: -8,
       zIndex: 10,
     },
     deleteButtonInner: {

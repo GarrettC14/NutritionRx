@@ -20,7 +20,10 @@ export function useDailyInsightData() {
 
   // Refresh on mount if stale
   useEffect(() => {
-    if (shouldRefreshData()) {
+    const needsRefresh = shouldRefreshData();
+    console.log(`[LLM:useDailyInsightData] Mount — shouldRefresh=${needsRefresh}`);
+    if (needsRefresh) {
+      console.log('[LLM:useDailyInsightData] Triggering refreshData on mount');
       refreshData();
     }
   }, []);
@@ -33,7 +36,10 @@ export function useDailyInsightData() {
         state.dailyTotals !== prevState.dailyTotals
       ) {
         const { cache } = useDailyInsightStore.getState();
-        if (!cache || Date.now() - cache.lastDataUpdate > 30000) {
+        const stale = !cache || Date.now() - cache.lastDataUpdate > 30000;
+        console.log(`[LLM:useDailyInsightData] Food log changed — stale=${stale}, lastUpdate=${cache ? ((Date.now() - cache.lastDataUpdate) / 1000).toFixed(0) + 's ago' : 'none'}`);
+        if (stale) {
+          console.log('[LLM:useDailyInsightData] Triggering refreshData due to food log change');
           refreshData();
         }
       }
@@ -46,7 +52,10 @@ export function useDailyInsightData() {
     const unsub = useWaterStore.subscribe((state, prevState) => {
       if (state.todayLog !== prevState.todayLog) {
         const { cache } = useDailyInsightStore.getState();
-        if (!cache || Date.now() - cache.lastDataUpdate > 30000) {
+        const stale = !cache || Date.now() - cache.lastDataUpdate > 30000;
+        console.log(`[LLM:useDailyInsightData] Water log changed — stale=${stale}`);
+        if (stale) {
+          console.log('[LLM:useDailyInsightData] Triggering refreshData due to water change');
           refreshData();
         }
       }
@@ -54,10 +63,13 @@ export function useDailyInsightData() {
     return unsub;
   }, [refreshData]);
 
+  const isLoaded = cache?.date === new Date().toISOString().split('T')[0];
+  console.log(`[LLM:useDailyInsightData] Render — isLoaded=${isLoaded}, hasData=${!!cache?.data}, cacheDate=${cache?.date}`);
+
   return {
     data: cache?.data ?? null,
     headline: getHeadline(),
     suggestedQuestions: getSuggestedQuestions(),
-    isLoaded: cache?.date === new Date().toISOString().split('T')[0],
+    isLoaded,
   };
 }

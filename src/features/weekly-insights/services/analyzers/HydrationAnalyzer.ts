@@ -14,6 +14,7 @@ export class HydrationAnalyzer {
    * Q-HYD-01: How was my water intake this week?
    */
   static analyzeHydration(data: WeeklyCollectedData): HydrationAnalysis {
+    console.log(`[LLM:Analyzer:HYD-01] analyzeHydration() — waterTarget=${data.waterTarget}, daysWithWater=${data.days.filter((d) => d.water > 0).length}`);
     const daysWithWater = data.days.filter((d) => d.water > 0);
 
     if (daysWithWater.length < 3) {
@@ -69,6 +70,7 @@ export class HydrationAnalyzer {
 
     score = clamp(score, 0.2, 0.7);
 
+    console.log(`[LLM:Analyzer:HYD-01] Result — avg=${avgWater}ml (${avgWaterPct}%), metTarget=${daysMetTarget}/${daysWithWater.length} days, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-HYD-01',
       avgWater,

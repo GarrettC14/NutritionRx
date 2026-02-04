@@ -12,6 +12,7 @@ export function buildSystemPrompt(context: ChatContext): string {
   const caloriePercent = context.todayLog.calorieTarget > 0
     ? Math.round((context.todayLog.calories / context.todayLog.calorieTarget) * 100)
     : 0;
+  console.log(`[LLM:Context] buildSystemPrompt() — cal=${context.todayLog.calories}/${context.todayLog.calorieTarget} (${caloriePercent}%), protein=${context.todayLog.protein}g/${context.todayLog.proteinTarget}g, weeklyAvgCal=${context.weeklyAverage.calories}, goal=${context.goals.primaryGoal}, recentFoods=${context.recentFoods.length}`);
 
   return `You are a supportive nutrition assistant in the NutritionRx app. Your personality is "Nourished Calm" — warm, encouraging, never judgmental.
 
@@ -65,6 +66,7 @@ Answer the user's question directly. If you suggest foods or meals, make them sp
  * Detect safety triggers in user messages
  */
 export function detectSafetyTriggers(message: string): SafetyTrigger | null {
+  console.log(`[LLM:Context] detectSafetyTriggers() — messageLength=${message.length}`);
   const lowerMessage = message.toLowerCase();
 
   // Eating disorder indicators

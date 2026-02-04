@@ -24,6 +24,7 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
 import { QuestionCard } from './QuestionCard';
 import { questionCategories } from '../constants/dailyQuestionCategories';
+import { getDailyCategoryColor } from '../services/InsightPromptBuilder';
 import type {
   DailyQuestionCategory,
   DailyQuestionId,
@@ -72,6 +73,7 @@ function CategoryRow({
 
   const meta = questionCategories.find((m) => m.id === category);
   if (!meta) return null;
+  const catColor = getDailyCategoryColor(category);
 
   return (
     <View style={styles.categoryContainer}>
@@ -82,7 +84,9 @@ function CategoryRow({
           { borderColor: colors.borderDefault },
         ]}
       >
-        <Ionicons name={meta.icon as any} size={20} color={colors.textSecondary} />
+        <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
+          <Ionicons name={meta.icon as any} size={18} color={catColor} />
+        </View>
         <View style={styles.categoryTextContainer}>
           <Text style={[styles.categoryLabel, { color: colors.textPrimary }]}>
             {meta.label}
@@ -173,8 +177,11 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  categoryIcon: {
-    width: 20,
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   categoryTextContainer: {

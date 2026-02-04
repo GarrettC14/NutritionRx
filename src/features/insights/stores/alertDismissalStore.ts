@@ -29,6 +29,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
       dismissAlert: (nutrientId, severity) => {
         const now = Date.now();
         const alertId = `${nutrientId}_${severity}`;
+        console.log(`[LLM:AlertStore] dismissAlert(${alertId}) — expires ${new Date(now + DISMISSAL_DURATION_MS).toISOString()}`);
 
         set((state) => {
           // Remove any existing dismissal for this alert
@@ -56,7 +57,9 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
         const dismissal = dismissals.find((d) => d.alertId === alertId);
         if (!dismissal) return false;
 
-        return dismissal.expiresAt > now;
+        const dismissed = dismissal.expiresAt > now;
+        console.log(`[LLM:AlertStore] isAlertDismissed(${alertId}) → ${dismissed}`);
+        return dismissed;
       },
 
       getDismissedAlertIds: () => {
@@ -64,17 +67,27 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
         const now = Date.now();
 
         const validDismissals = dismissals.filter((d) => d.expiresAt > now);
-        return new Set(validDismissals.map((d) => d.alertId));
+        const ids = new Set(validDismissals.map((d) => d.alertId));
+        console.log(`[LLM:AlertStore] getDismissedAlertIds() → ${ids.size} active dismissals: [${[...ids].join(', ')}]`);
+        return ids;
       },
 
       clearExpiredDismissals: () => {
         const now = Date.now();
+        const { dismissals } = get();
+        const expiredCount = dismissals.filter((d) => d.expiresAt <= now).length;
+        if (expiredCount > 0) {
+          console.log(`[LLM:AlertStore] clearExpiredDismissals() — removing ${expiredCount} expired`);
+        }
         set((state) => ({
           dismissals: state.dismissals.filter((d) => d.expiresAt > now),
         }));
       },
 
-      clearAllDismissals: () => set({ dismissals: [] }),
+      clearAllDismissals: () => {
+        console.log('[LLM:AlertStore] clearAllDismissals()');
+        set({ dismissals: [] });
+      },
     }),
     {
       name: 'alert-dismissals-storage',

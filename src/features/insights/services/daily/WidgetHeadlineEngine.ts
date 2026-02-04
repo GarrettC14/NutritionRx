@@ -9,6 +9,7 @@
 import type { DailyInsightData, WidgetHeadlineData } from '../../types/dailyInsights.types';
 
 export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineData {
+  console.log(`[LLM:Headline] computeWidgetHeadline() — meals=${data.todayMealCount}, cal=${data.todayCalories}/${data.calorieTarget} (${data.caloriePercent}%), protein=${data.proteinPercent}%, water=${data.waterPercent}%, streak=${data.loggingStreak}`);
   const now = Date.now();
 
   // Rule 1: No data
@@ -85,6 +86,7 @@ export function computeWidgetHeadline(data: DailyInsightData): WidgetHeadlineDat
   }
 
   // Rule 8: Standard progress (default)
+  console.log('[LLM:Headline] → Rule 8 (standard progress)');
   return {
     text: `${formatNumber(data.todayCalories)} of ${formatNumber(data.calorieTarget)} cal today — ${formatNumber(remaining)} remaining${estimatedMealsLeft > 0 ? ` with ~${estimatedMealsLeft} meal${estimatedMealsLeft === 1 ? '' : 's'} to go` : ''}.`,
     icon: 'leaf-outline',

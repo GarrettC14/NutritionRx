@@ -5,8 +5,9 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { getCategoryTitle } from '../services/InsightPromptBuilder';
+import { getCategoryTitle, getCategoryColor } from '../services/InsightPromptBuilder';
 import type { Insight } from '../types/insights.types';
 
 interface InsightCardProps {
@@ -15,11 +16,14 @@ interface InsightCardProps {
 
 export function InsightCard({ insight }: InsightCardProps) {
   const { colors } = useTheme();
+  const catColor = getCategoryColor(insight.category);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
       <View style={styles.header}>
-        <Text style={styles.icon}>{insight.icon}</Text>
+        <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
+          <Ionicons name={insight.icon as any} size={16} color={catColor} />
+        </View>
         <Text style={[styles.category, { color: colors.textSecondary }]}>
           {getCategoryTitle(insight.category)}
         </Text>
@@ -42,8 +46,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 6,
   },
-  icon: {
-    fontSize: 16,
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   category: {
     fontSize: 12,

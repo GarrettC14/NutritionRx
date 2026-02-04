@@ -23,6 +23,8 @@ import {
 } from '@/utils/devTools';
 import type { SeedOptions, SeedProgress, SeedResult } from '@/utils/devTools';
 import { TestIDs } from '@/constants/testIDs';
+import { LLMService, MODEL_CONFIG } from '@/features/insights/services/LLMService';
+import type { LLMStatus } from '@/features/insights/types/insights.types';
 
 // ============================================================
 // Types
@@ -82,6 +84,14 @@ export default function DeveloperScreen() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
+  // LLM info
+  const [llmInfo, setLlmInfo] = useState<{
+    status: LLMStatus;
+    isDownloaded: boolean;
+    modelSize: number;
+    isAvailable: boolean;
+  } | null>(null);
+
   // Seed options
   const [seedOptions, setSeedOptions] = useState<SeedOptions>({ ...DEFAULT_SEED_OPTIONS });
 
@@ -118,6 +128,23 @@ export default function DeveloperScreen() {
   useEffect(() => {
     loadStats();
   }, [loadStats]);
+
+  useEffect(() => {
+    async function loadLLMInfo() {
+      const [status, isDownloaded, modelSize] = await Promise.all([
+        LLMService.getStatus(),
+        LLMService.isModelDownloaded(),
+        LLMService.getModelSize(),
+      ]);
+      setLlmInfo({
+        status,
+        isDownloaded,
+        modelSize,
+        isAvailable: LLMService.isAvailable(),
+      });
+    }
+    loadLLMInfo();
+  }, []);
 
   // ============================================================
   // Actions
@@ -303,6 +330,26 @@ export default function DeveloperScreen() {
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   Failed to load stats
                 </Text>
+              )}
+            </View>
+          </View>
+
+          {/* LLM Status */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              LLM STATUS
+            </Text>
+            <View style={[styles.statsCard, { backgroundColor: colors.bgSecondary }]}>
+              {llmInfo ? (
+                <>
+                  <StatRow label="Status" value={llmInfo.status} colors={colors} />
+                  <StatRow label="Downloaded" value={llmInfo.isDownloaded ? 'Yes' : 'No'} colors={colors} />
+                  <StatRow label="File size" value={formatBytes(llmInfo.modelSize)} colors={colors} />
+                  <StatRow label="Model" value={MODEL_CONFIG.fileName} colors={colors} />
+                  <StatRow label="llama.rn available" value={llmInfo.isAvailable ? 'Yes' : 'No'} colors={colors} isLast />
+                </>
+              ) : (
+                <ActivityIndicator size="small" color={colors.accent} style={styles.statsLoader} />
               )}
             </View>
           </View>
@@ -551,7 +598,7 @@ function StatRow({
   isLast = false,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   colors: any;
   isLast?: boolean;
 }) {
@@ -564,10 +611,17 @@ function StatRow({
     >
       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
       <Text style={[styles.statValue, { color: colors.textPrimary }]}>
-        {value.toLocaleString()}
+        {typeof value === 'number' ? value.toLocaleString() : value}
       </Text>
     </View>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return 'Not downloaded';
+  if (bytes < 1_000_000) return `${(bytes / 1_000).toFixed(1)} KB`;
+  if (bytes < 1_000_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
+  return `${(bytes / 1_000_000_000).toFixed(2)} GB`;
 }
 
 function OptionToggle({

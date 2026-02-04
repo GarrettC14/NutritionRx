@@ -18,6 +18,7 @@ export class CalorieTrendAnalyzer {
    * Q-CAL-01: Am I in a caloric surplus or deficit this week?
    */
   static analyzeSurplusDeficit(data: WeeklyCollectedData): SurplusDeficitAnalysis {
+    console.log(`[LLM:Analyzer:CAL-01] analyzeSurplusDeficit() — loggedDays=${data.loggedDayCount}, target=${data.calorieTarget}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 3) {
@@ -61,6 +62,7 @@ export class CalorieTrendAnalyzer {
     if (Math.abs(deltaPct) > 20) score = 1.0;
     score = clamp(score, 0.4, 1.0);
 
+    console.log(`[LLM:Analyzer:CAL-01] Result — avgIntake=${Math.round(dailyAvgIntake)}, delta=${Math.round(dailyDelta)} (${deltaPct}%), surplus=${isSurplus}, deficit=${isDeficit}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-CAL-01',
       totalIntake: Math.round(totalIntake),
@@ -83,6 +85,7 @@ export class CalorieTrendAnalyzer {
    * Q-CAL-02: Is my calorie intake trending up or down?
    */
   static analyzeCalorieTrend(data: WeeklyCollectedData): CalorieTrendAnalysis {
+    console.log(`[LLM:Analyzer:CAL-02] analyzeCalorieTrend() — avgCal=${Math.round(data.avgCalories)}, hasPrior=${!!data.priorWeek}`);
     const currentWeekAvg = Math.round(data.avgCalories);
     const priorWeekAvg = data.priorWeek ? Math.round(data.priorWeek.avgCalories) : 0;
     const twoWeeksAgoAvg = data.twoWeeksAgo ? Math.round(data.twoWeeksAgo.avgCalories) : null;
@@ -133,6 +136,7 @@ export class CalorieTrendAnalyzer {
     if (regression.rSquared > 0.5 && Math.abs(trendMagnitude) > 100) score = 0.9;
     score = clamp(score, 0.2, 0.9);
 
+    console.log(`[LLM:Analyzer:CAL-02] Result — trend=${trendDirection}, magnitude=${trendMagnitude}, strength=${trendStrength}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-CAL-02',
       currentWeekAvg,
@@ -149,6 +153,7 @@ export class CalorieTrendAnalyzer {
    * Q-CAL-03: What does my calorie pattern look like day by day?
    */
   static analyzeDayByDay(data: WeeklyCollectedData): DayByDayAnalysis {
+    console.log(`[LLM:Analyzer:CAL-03] analyzeDayByDay() — target=${data.calorieTarget}`);
     const target = data.calorieTarget;
 
     const days = data.days.map((d) => {

@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="LMG900VMc3361f09" tests="32" failures="30" time="712.0">
+    <testcase id="Critical Path Smoke Test" name="Critical Path Smoke Test" classname="Critical Path Smoke Test" time="17.0" status="ERROR">
+      <properties/>
+      <failure>Unknown error</failure>
+    </testcase>
+    <testcase id="Edit Food Log Entry" name="Edit Food Log Entry" classname="Edit Food Log Entry" time="24.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Create Custom Food" name="Create Custom Food" classname="Create Custom Food" time="3.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Quick Add Flow" name="Quick Add Flow" classname="Quick Add Flow" time="4.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Delete Food Log Entry" name="Delete Food Log Entry" classname="Delete Food Log Entry" time="3.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Favorite Food Flow" name="Favorite Food Flow" classname="Favorite Food Flow" time="4.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Restaurant Food Logging" name="Restaurant Food Logging" classname="Restaurant Food Logging" time="5.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Search and Log Food" name="Search and Log Food" classname="Search and Log Food" time="5.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="AI Photo Analysis Flow" name="AI Photo Analysis Flow" classname="AI Photo Analysis Flow" time="5.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Barcode Scanner Flow" name="Barcode Scanner Flow" classname="Barcode Scanner Flow" time="5.0" status="ERROR">
+      <properties/>
+      <failure>Unable to launch app com.nutritionrx.app</failure>
+    </testcase>
+    <testcase id="Widget Management" name="Widget Management" classname="Widget Management" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: home-widget-picker-modal is visible</failure>
+    </testcase>
+    <testcase id="Meal Sections Visibility" name="Meal Sections Visibility" classname="Meal Sections Visibility" time="29.0" status="SUCCESS">
+      <properties/>
+    </testcase>
+    <testcase id="Home Date Navigation" name="Home Date Navigation" classname="Home Date Navigation" time="33.0" status="SUCCESS">
+      <properties/>
+    </testcase>
+    <testcase id="Water Tracking" name="Water Tracking" classname="Water Tracking" time="37.0" status="ERROR">
+      <properties/>
+      <failure>No visible element found: id: widget-water-tracker</failure>
+    </testcase>
+    <testcase id="Full Onboarding Flow" name="Full Onboarding Flow" classname="Full Onboarding Flow" time="34.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Onboarding Back Navigation" name="Onboarding Back Navigation" classname="Onboarding Back Navigation" time="33.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Legal Acknowledgment Flow" name="Legal Acknowledgment Flow" classname="Legal Acknowledgment Flow" time="22.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: legal-terms-link is visible</failure>
+    </testcase>
+    <testcase id="Macro Cycling Setup" name="Macro Cycling Setup" classname="Macro Cycling Setup" time="27.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Meal Planning Settings" name="Meal Planning Settings" classname="Meal Planning Settings" time="28.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Paywall Flow" name="Paywall Flow" classname="Paywall Flow" time="27.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="View Progress Charts" name="View Progress Charts" classname="View Progress Charts" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Progress Time Range Navigation" name="Progress Time Range Navigation" classname="Progress Time Range Navigation" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Log Weight" name="Log Weight" classname="Log Weight" time="28.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Theme Settings" name="Theme Settings" classname="Theme Settings" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Fasting Settings" name="Fasting Settings" classname="Fasting Settings" time="27.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Goals Settings" name="Goals Settings" classname="Goals Settings" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Units Settings" name="Units Settings" classname="Units Settings" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Water Settings" name="Water Settings" classname="Water Settings" time="29.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Nutrition Settings" name="Nutrition Settings" classname="Nutrition Settings" time="27.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Delete All Data" name="Delete All Data" classname="Delete All Data" time="28.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Profile Settings" name="Profile Settings" classname="Profile Settings" time="28.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+    <testcase id="Import Data Flow" name="Import Data Flow" classname="Import Data Flow" time="26.0" status="ERROR">
+      <properties/>
+      <failure>Assertion is false: id: onboarding-welcome-screen is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

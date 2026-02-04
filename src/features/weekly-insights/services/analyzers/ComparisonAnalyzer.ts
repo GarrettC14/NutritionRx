@@ -17,6 +17,7 @@ export class ComparisonAnalyzer {
    * Q-CMP-01: How does this week compare to last week?
    */
   static analyzeWeekComparison(data: WeeklyCollectedData): WeekComparisonAnalysis {
+    console.log(`[LLM:Analyzer:CMP-01] analyzeWeekComparison() — loggedDays=${data.loggedDayCount}, priorLogged=${data.priorWeek?.loggedDayCount ?? 0}`);
     if (!data.priorWeek || data.priorWeek.loggedDayCount < 4 || data.loggedDayCount < 4) {
       return {
         questionId: 'Q-CMP-01',
@@ -67,6 +68,7 @@ export class ComparisonAnalyzer {
     if (data.loggedDayCount > prior.loggedDayCount) score += 0.1;
     score = clamp(score, 0.5, 1.0);
 
+    console.log(`[LLM:Analyzer:CMP-01] Result — comparisons=${comparisons.length}, biggestChange=${biggestChange}, biggestImprovement=${biggestImprovement}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-CMP-01',
       comparisons,
@@ -80,6 +82,7 @@ export class ComparisonAnalyzer {
    * Q-CMP-02: Is my protein intake trending up or down over recent weeks?
    */
   static analyzeProteinTrend(data: WeeklyCollectedData): ProteinTrendAnalysis {
+    console.log(`[LLM:Analyzer:CMP-02] analyzeProteinTrend() — avgProtein=${Math.round(data.avgProtein)}, target=${data.proteinTarget}`);
     const weeklyAverages: ProteinTrendAnalysis['weeklyAverages'] = [];
 
     if (data.twoWeeksAgo && data.twoWeeksAgo.loggedDayCount >= 4) {

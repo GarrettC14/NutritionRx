@@ -18,6 +18,7 @@ export class MacroBalanceAnalyzer {
    * Q-MAC-01: Is my protein intake where it needs to be?
    */
   static analyzeProtein(data: WeeklyCollectedData): ProteinAnalysis {
+    console.log(`[LLM:Analyzer:MAC-01] analyzeProtein() — loggedDays=${data.loggedDayCount}, target=${data.proteinTarget}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 3) {
@@ -65,6 +66,7 @@ export class MacroBalanceAnalyzer {
     if (trend) score += 0.1;
     score = clamp(score, 0.4, 1.0);
 
+    console.log(`[LLM:Analyzer:MAC-01] Result — avg=${avgProtein}g (${avgProteinPct}%), metTarget=${daysMetTarget}/${logged.length}, calPct=${proteinCalPct}%, trend=${trend}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-MAC-01',
       avgProtein,
@@ -82,6 +84,7 @@ export class MacroBalanceAnalyzer {
    * Q-MAC-02: How balanced are my macros across the week?
    */
   static analyzeMacroBalance(data: WeeklyCollectedData): MacroBalanceAnalysis {
+    console.log(`[LLM:Analyzer:MAC-02] analyzeMacroBalance() — loggedDays=${data.loggedDayCount}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 3) {
@@ -135,6 +138,7 @@ export class MacroBalanceAnalyzer {
     if (maxCV > 30) score = Math.max(score, 0.6);
     score = clamp(score, 0.3, 0.9);
 
+    console.log(`[LLM:Analyzer:MAC-02] Result — P/C/F=${proteinPct}/${carbsPct}/${fatPct}%, mostVariable=${mostVariableMacro}, skew=${skewedMacro ?? 'none'}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-MAC-02',
       avgProtein: Math.round(avgProtein),

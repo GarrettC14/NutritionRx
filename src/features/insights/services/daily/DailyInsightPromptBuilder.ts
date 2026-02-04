@@ -6,6 +6,7 @@
 import type { DailyQuestionId, QuestionAnalysis } from '../../types/dailyInsights.types';
 
 export function buildSystemPrompt(): string {
+  console.log('[LLM:PromptBuilder] buildSystemPrompt() called');
   return `You are the nutrition insight narrator for NutritionRx, a nutrition tracking app.
 
 VOICE: "Nourished Calm" — warm, knowledgeable, never judgmental.
@@ -31,6 +32,9 @@ export function buildQuestionPrompt(
   questionText: string,
   analysis: QuestionAnalysis,
 ): string {
+  console.log(`[LLM:PromptBuilder] buildQuestionPrompt() — questionId=${questionId}, questionText="${questionText}"`);
+  console.log(`[LLM:PromptBuilder] Analysis dataBlock preview: "${analysis.dataBlock.substring(0, 200)}..."`);
+  console.log(`[LLM:PromptBuilder] Analysis fallbackText: "${analysis.fallbackText}"`);
   return `QUESTION: "${questionText}"
 
 DATA:

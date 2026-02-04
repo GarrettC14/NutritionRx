@@ -47,31 +47,41 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
 
       shouldRefreshData: () => {
         const { cache } = get();
-        if (!cache) return true;
-        if (cache.date !== getTodayString()) return true;
-        if (Date.now() - cache.lastDataUpdate > CACHE_DATA_TTL) return true;
-        return false;
+        const noCache = !cache;
+        const dateStale = cache ? cache.date !== getTodayString() : false;
+        const ttlExpired = cache ? Date.now() - cache.lastDataUpdate > CACHE_DATA_TTL : false;
+        const shouldRefresh = noCache || dateStale || ttlExpired;
+        console.log(`[LLM:DailyStore] shouldRefreshData() → ${shouldRefresh} (noCache=${noCache}, dateStale=${dateStale}, ttlExpired=${ttlExpired})`);
+        return shouldRefresh;
       },
 
       refreshData: async () => {
+        console.log('[LLM:DailyStore] refreshData() — START');
+        const refreshStart = Date.now();
         try {
           const data = await collectDailyInsightData();
           const today = getTodayString();
 
           // Score all questions
+          console.log(`[LLM:DailyStore] Scoring ${questionRegistry.length} questions...`);
           const scores: ScoredQuestion[] = questionRegistry.map((def) => ({
             definition: def,
             available: def.isAvailable(data),
             relevanceScore: def.isAvailable(data) ? def.computeRelevance(data) : 0,
           }));
+          const availableCount = scores.filter(s => s.available).length;
+          const topScores = scores.filter(s => s.available).sort((a, b) => b.relevanceScore - a.relevanceScore).slice(0, 5);
+          console.log(`[LLM:DailyStore] Scored — ${availableCount}/${scores.length} available, top5: ${topScores.map(s => `${s.definition.id}(${s.relevanceScore.toFixed(2)})`).join(', ')}`);
 
           // Compute headline
           const headline = computeWidgetHeadline(data);
+          console.log(`[LLM:DailyStore] Headline: "${headline.text}" (icon=${headline.icon}, priority=${headline.priority})`);
 
           // Preserve existing LLM responses if still valid for today
           const existingCache = get().cache;
           const existingResponses =
             existingCache?.date === today ? existingCache.responses : {};
+          console.log(`[LLM:DailyStore] Preserving ${Object.keys(existingResponses).length} existing responses from today's cache`);
 
           set({
             cache: {
@@ -83,41 +93,56 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
               lastDataUpdate: Date.now(),
             },
           });
+          console.log(`[LLM:DailyStore] refreshData() — DONE in ${Date.now() - refreshStart}ms`);
         } catch (error) {
-          console.error('[DailyInsight] Data refresh failed:', error);
+          console.error('[LLM:DailyStore] refreshData() — ERROR:', error);
         }
       },
 
       generateInsight: async (questionId: DailyQuestionId) => {
+        console.log(`[LLM:DailyStore] generateInsight() — questionId=${questionId}`);
+        const genStart = Date.now();
         const { cache, llmStatus } = get();
+        console.log(`[LLM:DailyStore] Current state — llmStatus=${llmStatus}, hasCacheData=${!!cache?.data}, cacheDate=${cache?.date}, cachedResponses=${cache ? Object.keys(cache.responses).length : 0}`);
 
         // Check for cached response
         if (cache?.responses[questionId]) {
           const cached = cache.responses[questionId];
-          if (
-            Date.now() - cached.generatedAt < CACHE_RESPONSE_TTL &&
-            cached.date === getTodayString()
-          ) {
+          const age = Date.now() - cached.generatedAt;
+          const isFresh = age < CACHE_RESPONSE_TTL && cached.date === getTodayString();
+          console.log(`[LLM:DailyStore] Found cached response for ${questionId} — source=${cached.source}, age=${(age / 1000).toFixed(0)}s, fresh=${isFresh}`);
+          if (isFresh) {
+            console.log(`[LLM:DailyStore] generateInsight → CACHE HIT for ${questionId}`);
             return cached;
           }
         }
 
         // Ensure we have data
         if (!cache?.data || cache.date !== getTodayString()) {
+          console.log('[LLM:DailyStore] Data stale or missing, refreshing...');
           await get().refreshData();
         }
 
         const data = get().cache?.data;
-        if (!data) throw new Error('No data available');
+        if (!data) {
+          console.error('[LLM:DailyStore] generateInsight → ERROR: no data after refresh');
+          throw new Error('No data available');
+        }
 
         // Run the analyzer for this question
         const analyzer = questionAnalyzers[questionId];
-        if (!analyzer) throw new Error(`No analyzer for question: ${questionId}`);
+        if (!analyzer) {
+          console.error(`[LLM:DailyStore] generateInsight → ERROR: no analyzer for ${questionId}`);
+          throw new Error(`No analyzer for question: ${questionId}`);
+        }
 
+        console.log(`[LLM:DailyStore] Running analyzer for ${questionId}...`);
         const analysis = analyzer(data);
+        console.log(`[LLM:DailyStore] Analyzer result — fallbackText="${analysis.fallbackText.substring(0, 100)}...", dataBlock length=${analysis.dataBlock.length}`);
 
         // If LLM not available, use fallback
         if (llmStatus !== 'ready') {
+          console.log(`[LLM:DailyStore] LLM not ready (status=${llmStatus}), using fallback for ${questionId}`);
           const fallbackResponse: DailyInsightResponse = {
             questionId,
             narrative: analysis.fallbackText,
@@ -139,10 +164,25 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
               : state.cache,
           }));
 
+          console.log(`[LLM:DailyStore] generateInsight → FALLBACK for ${questionId} in ${Date.now() - genStart}ms`);
           return fallbackResponse;
         }
 
+        // Guard against concurrent generation — only one LLM call at a time
+        if (get().isGenerating) {
+          console.log(`[LLM:DailyStore] Already generating, returning fallback for ${questionId}`);
+          return {
+            questionId,
+            narrative: analysis.fallbackText,
+            icon: 'leaf-outline',
+            generatedAt: Date.now(),
+            source: 'fallback' as const,
+            date: getTodayString(),
+          };
+        }
+
         // Generate with LLM
+        console.log(`[LLM:DailyStore] Generating with LLM for ${questionId}...`);
         set({
           isGenerating: true,
           activeQuestionId: questionId,
@@ -155,17 +195,22 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
 
           const systemPrompt = buildSystemPrompt();
           const userPrompt = buildQuestionPrompt(questionId, questionDef.text, analysis);
+          const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+          console.log(`[LLM:DailyStore] Full prompt length: ${fullPrompt.length} chars, maxTokens=${DAILY_INSIGHT_LLM_CONFIG.maxTokens}`);
 
           const result = await LLMService.generate(
-            `${systemPrompt}\n\n${userPrompt}`,
+            fullPrompt,
             DAILY_INSIGHT_LLM_CONFIG.maxTokens,
           );
+
+          console.log(`[LLM:DailyStore] LLM result — success=${result.success}, textLength=${result.text?.length || 0}, error=${result.error || 'none'}`);
 
           if (!result.success || !result.text) {
             throw new Error(result.error || 'LLM returned no text');
           }
 
           const parsed = parseInsightResponse(result.text);
+          console.log(`[LLM:DailyStore] Parsed response — isValid=${parsed.isValid}, narrativeLength=${parsed.narrative.length}, issues=[${parsed.validationIssues.join('; ')}]`);
 
           const response: DailyInsightResponse = {
             questionId,
@@ -190,16 +235,19 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
               : state.cache,
           }));
 
+          console.log(`[LLM:DailyStore] generateInsight → LLM SUCCESS for ${questionId} in ${Date.now() - genStart}ms`);
           return response;
         } catch (error) {
+          const errMsg = error instanceof Error ? error.message : 'Generation failed';
+          console.error(`[LLM:DailyStore] generateInsight → LLM ERROR for ${questionId}: ${errMsg}`, error);
           set({
             isGenerating: false,
             activeQuestionId: null,
-            generationError:
-              error instanceof Error ? error.message : 'Generation failed',
+            generationError: errMsg,
           });
 
           // Return fallback on error
+          console.log(`[LLM:DailyStore] Falling back to template for ${questionId}`);
           return {
             questionId,
             narrative: analysis.fallbackText,
@@ -213,9 +261,13 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
 
       getHeadline: () => {
         const { cache } = get();
-        if (cache?.date === getTodayString() && cache.headline) {
-          return cache.headline;
+        const hasHeadline = cache?.date === getTodayString() && cache.headline;
+        console.log(`[LLM:DailyStore] getHeadline() — hasCachedHeadline=${!!hasHeadline}`);
+        if (hasHeadline) {
+          console.log(`[LLM:DailyStore] Headline: "${cache!.headline.text}"`);
+          return cache!.headline;
         }
+        console.log('[LLM:DailyStore] Returning default headline (no data)');
         return {
           text: "Log your first meal to unlock today's insights.",
           icon: 'leaf-outline',
@@ -226,12 +278,17 @@ export const useDailyInsightStore = create<DailyInsightStoreState>()(
 
       getSuggestedQuestions: () => {
         const { cache } = get();
-        if (!cache || cache.date !== getTodayString()) return [];
+        if (!cache || cache.date !== getTodayString()) {
+          console.log('[LLM:DailyStore] getSuggestedQuestions() → [] (no cache or wrong date)');
+          return [];
+        }
 
-        return cache.scores
+        const suggested = cache.scores
           .filter((q) => q.available)
           .sort((a, b) => b.relevanceScore - a.relevanceScore)
           .slice(0, 3);
+        console.log(`[LLM:DailyStore] getSuggestedQuestions() → [${suggested.map(s => `${s.definition.id}(${s.relevanceScore.toFixed(2)})`).join(', ')}]`);
+        return suggested;
       },
 
       getAvailableQuestions: () => {

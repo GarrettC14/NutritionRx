@@ -18,6 +18,7 @@ export function ModelDownloadProgress({ progress, isDownloading, onCancel }: Mod
   const { colors } = useTheme();
 
   if (!isDownloading) return null;
+  console.log(`[LLM:DownloadProgress] Render — progress=${progress}%`);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>

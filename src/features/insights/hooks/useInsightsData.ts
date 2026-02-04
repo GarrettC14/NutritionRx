@@ -53,7 +53,9 @@ export function useInsightsData(): UseInsightsDataResult {
   const { goalGlasses, glassSizeMl, todayLog } = useWaterStore();
 
   const refresh = useCallback(async () => {
+    console.log(`[LLM:InsightsData] refresh() called — hasActiveGoal=${!!activeGoal}`);
     if (!activeGoal) {
+      console.log('[LLM:InsightsData] refresh → skipped (no active goal)');
       setData(null);
       setIsLoading(false);
       return;
@@ -65,6 +67,7 @@ export function useInsightsData(): UseInsightsDataResult {
     try {
       const today = getDateString(0);
       const sevenDaysAgo = getDateString(6);
+      console.log(`[LLM:InsightsData] Fetching data — today=${today}, sevenDaysAgo=${sevenDaysAgo}`);
 
       // Fetch data in parallel
       const [todayTotals, weeklyTotals, todayEntries, datesWithLogs] = await Promise.all([
@@ -169,11 +172,12 @@ export function useInsightsData(): UseInsightsDataResult {
         userGoal,
       };
 
+      console.log(`[LLM:InsightsData] Built insight data — cal=${insightData.todayCalories}/${insightData.calorieTarget}, protein=${insightData.todayProtein}/${insightData.proteinTarget}, meals=${insightData.todayMealCount}, streak=${insightData.loggingStreak}, avg7dCal=${insightData.avgCalories7d}, daysUsing=${insightData.daysUsingApp}`);
       setData(insightData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load insights data';
       setError(errorMessage);
-      console.error('[useInsightsData] Error:', errorMessage);
+      console.error('[LLM:InsightsData] Error:', errorMessage);
     } finally {
       setIsLoading(false);
     }

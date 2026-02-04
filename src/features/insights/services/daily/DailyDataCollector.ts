@@ -47,18 +47,24 @@ function computeCalorieStreak(weeklyTotals: WeeklyDailyTotal[], calorieTarget: n
 }
 
 export async function collectDailyInsightData(): Promise<DailyInsightData> {
+  console.log('[LLM:DataCollector] collectDailyInsightData() — START');
+  const collectStart = Date.now();
   const today = getTodayDateString();
   const now = new Date();
   const currentHour = now.getHours();
+  console.log(`[LLM:DataCollector] today=${today}, currentHour=${currentHour}`);
 
   // 1. Fetch data in parallel
   const sevenDaysAgo = getDateString(6);
+  console.log(`[LLM:DataCollector] Fetching data for range ${sevenDaysAgo} → ${today}...`);
+  const fetchStart = Date.now();
   const [todayTotals, weeklyRawTotals, todayEntries, datesWithLogs] = await Promise.all([
     logEntryRepository.getDailyTotals(today),
     logEntryRepository.getDailyTotalsForRange(sevenDaysAgo, today),
     logEntryRepository.findByDate(today),
     logEntryRepository.getDatesWithLogs(),
   ]);
+  console.log(`[LLM:DataCollector] Data fetched in ${Date.now() - fetchStart}ms — todayEntries=${todayEntries.length}, weeklyDays=${weeklyRawTotals.length}, datesWithLogs=${datesWithLogs.length}`);
 
   // 2. Build food entries
   const todayFoods: FoodEntry[] = todayEntries.map((entry) => ({
@@ -107,6 +113,7 @@ export async function collectDailyInsightData(): Promise<DailyInsightData> {
   const todayCarbs = todayTotals.carbs || 0;
   const todayFat = todayTotals.fat || 0;
   const todayFiber = 0; // Placeholder — fiber tracking not yet available
+  console.log(`[LLM:DataCollector] Today's macros — cal=${todayCalories}, prot=${todayProtein}g, carbs=${todayCarbs}g, fat=${todayFat}g, meals=${mealsWithTimestamps.length}`);
 
   // 5. Targets from goal store
   const goalState = useGoalStore.getState();
@@ -116,11 +123,13 @@ export async function collectDailyInsightData(): Promise<DailyInsightData> {
   const carbTarget = goalState.carbGoal || computeCarbTarget(calorieTarget, proteinTarget, goalState.fatGoal);
   const fatTarget = goalState.fatGoal || computeFatTarget(calorieTarget, proteinTarget);
   const userGoal = activeGoal?.type || 'maintain';
+  console.log(`[LLM:DataCollector] Targets — cal=${calorieTarget}, prot=${proteinTarget}g, carbs=${carbTarget}g, fat=${fatTarget}g, goal=${userGoal}, hasActiveGoal=${!!activeGoal}`);
 
   // 6. Water
   const waterState = useWaterStore.getState();
   const waterTarget = waterState.goalGlasses * waterState.glassSizeMl;
   const todayWater = (waterState.todayLog?.glasses ?? 0) * waterState.glassSizeMl;
+  console.log(`[LLM:DataCollector] Water — today=${todayWater}ml, target=${waterTarget}ml, glasses=${waterState.todayLog?.glasses ?? 0}/${waterState.goalGlasses}`);
 
   // 7. Weekly totals
   const weeklyDailyTotals: WeeklyDailyTotal[] = [];
@@ -173,6 +182,12 @@ export async function collectDailyInsightData(): Promise<DailyInsightData> {
 
   // 13. Deficiency alerts — empty for now, will be populated when micronutrient tracking matures
   const activeAlerts: DeficiencyCheck[] = [];
+
+  console.log(`[LLM:DataCollector] Streaks — logging=${loggingStreak}, calorie=${calorieStreak}, daysUsingApp=${daysUsingApp}`);
+  console.log(`[LLM:DataCollector] 7d averages — cal=${avgCalories7d}, prot=${avgProtein7d}g (from ${daysWithData.length} days with data)`);
+  console.log(`[LLM:DataCollector] Percentages — cal=${caloriePercent}%, prot=${proteinPercent}%, carbs=${carbPercent}%, fat=${fatPercent}%, water=${waterPercent}%`);
+  console.log(`[LLM:DataCollector] Day progress — ${(dayProgress * 100).toFixed(0)}% of waking hours, dayProgress=${dayProgress.toFixed(2)}`);
+  console.log(`[LLM:DataCollector] collectDailyInsightData() — DONE in ${Date.now() - collectStart}ms`);
 
   return {
     todayCalories,

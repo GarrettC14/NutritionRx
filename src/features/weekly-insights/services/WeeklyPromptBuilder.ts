@@ -217,11 +217,16 @@ export class WeeklyPromptBuilder {
    * Build an LLM prompt for a specific question using its analysis result.
    */
   static build(questionId: string, analysisResult: QuestionAnalysisResult): string {
+    console.log(`[LLM:WeeklyPromptBuilder] build() — questionId=${questionId}, hasBuilder=${questionId in promptBuilders}`);
     const builder = promptBuilders[questionId];
     if (!builder) {
+      console.error(`[LLM:WeeklyPromptBuilder] No prompt builder for question: ${questionId}`);
       throw new Error(`No prompt builder for question: ${questionId}`);
     }
-    return builder(analysisResult);
+    const prompt = builder(analysisResult);
+    console.log(`[LLM:WeeklyPromptBuilder] Built prompt for ${questionId} (${prompt.length} chars)`);
+    console.log(`[LLM:WeeklyPromptBuilder] Prompt preview: "${prompt.substring(0, 200)}..."`);
+    return prompt;
   }
 
   /**
