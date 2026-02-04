@@ -4,7 +4,7 @@
  * Uses Modal since @gorhom/bottom-sheet is not installed.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Dimensions,
+  PanResponder,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -84,6 +86,53 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
     ? questionRegistry.find((q) => q.id === questionId)
     : null;
 
+  // Swipe-to-dismiss
+  const translateY = useRef(new Animated.Value(0)).current;
+  const scrollOffset = useRef(0);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only capture downward drags when scroll is at top
+        return gestureState.dy > 10 && scrollOffset.current <= 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          // Dismiss
+          Animated.timing(translateY, {
+            toValue: SHEET_HEIGHT,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+            translateY.setValue(0);
+          });
+        } else {
+          // Snap back
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Reset position when sheet opens
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+      scrollOffset.current = 0;
+    }
+  }, [visible]);
+
   // Compute analysis and fetch/generate insight when sheet opens
   useEffect(() => {
     if (!visible || !questionId || !cache?.data) {
@@ -135,10 +184,12 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
     >
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.overlayTouchable} onPress={onClose} />
-        <View
+        <Animated.View
+          {...panResponder.panHandlers}
           style={[
             styles.sheet,
             { backgroundColor: colors.bgPrimary, borderColor: colors.borderDefault },
+            { transform: [{ translateY }] },
           ]}
         >
           {/* Handle bar */}
@@ -150,6 +201,10 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
             style={styles.scrollContent}
             contentContainerStyle={styles.scrollContentContainer}
             showsVerticalScrollIndicator={false}
+            onScroll={(e) => {
+              scrollOffset.current = e.nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
           >
             {/* Question title */}
             <View style={styles.questionHeader}>

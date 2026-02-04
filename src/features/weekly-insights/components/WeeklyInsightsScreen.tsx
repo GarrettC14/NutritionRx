@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { LLMService } from '@/features/insights/services/LLMService';
 import { useWeeklyInsightsStore } from '../stores/weeklyInsightsStore';
@@ -28,6 +29,7 @@ import type { ScoredQuestion, WeeklyInsightResponse } from '../types/weeklyInsig
 
 export function WeeklyInsightsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
   // Store state
@@ -112,7 +114,7 @@ export function WeeklyInsightsScreen() {
   if (!data || data.loggedDayCount < 2) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
-        <View style={styles.headerBar}>
+        <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
@@ -120,6 +122,9 @@ export function WeeklyInsightsScreen() {
             Weekly Insights
           </Text>
           <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.emptyNavWrapper}>
+          <WeekNavigation weekStart={weekStart} onNavigate={handleNavigate} />
         </View>
         <View style={styles.centered}>
           <Text style={[styles.emptyIcon]}>
@@ -139,7 +144,7 @@ export function WeeklyInsightsScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
       {/* Header */}
-      <View style={styles.headerBar}>
+      <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -269,6 +274,9 @@ const createStyles = (colors: any) =>
     loadingText: {
       fontSize: 15,
       marginTop: 12,
+    },
+    emptyNavWrapper: {
+      paddingHorizontal: 16,
     },
     emptyIcon: {
       fontSize: 48,
