@@ -36,5 +36,5 @@ rootProject.name = 'NutritionRx'
 expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
-include ':wear'
+// include ':wear'  // Wearable support disabled for launch — re-enable when ready
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
