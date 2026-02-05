@@ -8,14 +8,16 @@ import { FoodItem } from '@/types/domain';
 
 interface FoodSearchResultProps {
   food: FoodItem;
+  testID?: string;
   onPress: () => void;
 }
 
-export function FoodSearchResult({ food, onPress }: FoodSearchResultProps) {
+export function FoodSearchResult({ food, testID, onPress }: FoodSearchResultProps) {
   const { colors } = useTheme();
 
   return (
     <Pressable
+      testID={testID}
       style={({ pressed }) => [
         styles.container,
         { backgroundColor: colors.bgSecondary },

@@ -11,8 +11,27 @@ tags:
 # Seed data to ensure restaurants are loaded
 - runFlow: ../../utils/seed-data.yaml
 
-- tapOn:
-    id: "tab-bar-home"
+# Already on home screen after seed-data
+
+# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Swipe down to meal sections (DraggableFlatList doesn't support scrollUntilVisible)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
 
 - tapOn:
     id: "meal-add-food-button-lunch"
@@ -20,19 +39,28 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
+
+# Switch to Restaurants tab to access Browse button
+- tapOn:
+    id: "add-food-tab-restaurants"
+
+- waitForAnimationToEnd
 
 - tapOn:
     id: "add-food-browse-restaurants-button"
 
+# Restaurant screen has its own loading skeleton - screen testID appears immediately
 - extendedWaitUntil:
     visible:
       id: "restaurant-list-screen"
-    timeout: 5000
+    timeout: 15000
 
-# Verify elements
-- assertVisible:
-    id: "restaurant-search-input"
+# Wait for content to load (search input only appears after skeleton dismisses)
+- extendedWaitUntil:
+    visible:
+      id: "restaurant-search-input"
+    timeout: 15000
 - assertVisible:
     id: "restaurant-back-button"
 
@@ -52,7 +80,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "restaurant-menu-screen"
-    timeout: 3000
+    timeout: 5000
 
 - assertVisible:
     id: "restaurant-menu-back-button"
@@ -70,7 +98,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "restaurant-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 - assertVisible:
     id: "restaurant-food-back-button"
@@ -87,7 +115,13 @@ tags:
 - tapOn:
     id: "restaurant-food-add-button"
 
-# Should return to home
+# Wait for navigation (may return to add-food, not home)
+- waitForAnimationToEnd
+
+# Navigate home via tab bar
+- tapOn:
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"

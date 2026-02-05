@@ -11,17 +11,37 @@ tags:
 - assertVisible:
     id: "home-screen"
 
-# Enter edit mode
+# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Verify edit button is visible before tapping
+- extendedWaitUntil:
+    visible:
+      id: "home-edit-button"
+    timeout: 5000
+
+# Wait for all animations to settle before tapping
+- waitForAnimationToEnd
+
+# Enter edit mode via testID (TouchableOpacity, not gesture handler)
 - tapOn:
     id: "home-edit-button"
 
 - waitForAnimationToEnd
 
-# Verify edit mode elements
-- assertVisible:
-    id: "home-restore-button"
-- assertVisible:
-    id: "home-add-widget-button"
+# Verify edit mode elements (wait longer for state change to re-render)
+- extendedWaitUntil:
+    visible:
+      id: "home-restore-button"
+    timeout: 10000
+
+- extendedWaitUntil:
+    visible:
+      id: "home-add-widget-button"
+    timeout: 3000
 
 # Open widget picker
 - tapOn:
@@ -30,20 +50,29 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "home-widget-picker-modal"
-    timeout: 2000
+    timeout: 3000
 
-# Close picker
-- swipe:
-    direction: DOWN
-    duration: 500
-
-# Restore default layout
-- tapOn:
-    id: "home-restore-button"
+# Close picker (pageSheet modal doesn't dismiss with swipe on Android — use back button)
+- back
 
 - waitForAnimationToEnd
 
-# Exit edit mode (tap edit button again or tap outside)
+# Restore default layout (shows confirm dialog)
+- tapOn:
+    id: "home-restore-button"
+
+# Confirm restore
+- extendedWaitUntil:
+    visible:
+      id: "ui-confirm-dialog"
+    timeout: 3000
+
+- tapOn:
+    id: "ui-confirm-dialog-confirm"
+
+- waitForAnimationToEnd
+
+# Exit edit mode
 - tapOn:
     id: "home-edit-button"
     optional: true

@@ -16,6 +16,7 @@ export function RestaurantFoodCard({ food, onPress }: RestaurantFoodCardProps) {
 
   return (
     <Pressable
+      testID={`restaurant-menu-item-${food.id}`}
       style={({ pressed }) => [
         styles.container,
         { backgroundColor: colors.bgSecondary },

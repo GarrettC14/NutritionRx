@@ -18,6 +18,7 @@ interface TabItem {
 
 const TAB_TEST_IDS: Record<string, string> = {
   index: TestIDs.TabBar.HomeTab,
+  food: TestIDs.TabBar.FoodTab,
   progress: TestIDs.TabBar.ProgressTab,
   settings: TestIDs.TabBar.SettingsTab,
 };

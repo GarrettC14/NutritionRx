@@ -14,13 +14,44 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+- waitForAnimationToEnd
+
+# Scroll to top first (enable-premium may have left scroll partway)
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Use scrollUntilVisible to find meal planning row (settings is a ScrollView)
+- scrollUntilVisible:
+    element:
+      id: "settings-meal-planning-row"
+    direction: DOWN
+    timeout: 10000
+
 - tapOn:
     id: "settings-meal-planning-row"
 
 - extendedWaitUntil:
     visible:
       id: "settings-meal-planning-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify elements
 - assertVisible:

@@ -8,6 +8,7 @@ import { spacing, borderRadius } from '@/constants/spacing';
 interface SegmentedControlOption<T> {
   value: T;
   label: string;
+  testID?: string;
 }
 
 interface SegmentedControlProps<T> {
@@ -71,6 +72,7 @@ export function SegmentedControl<T extends string | number>({
       {options.map((option) => (
         <Pressable
           key={String(option.value)}
+          testID={option.testID}
           style={styles.segment}
           onPress={() => handlePress(option.value)}
         >

@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Platform } from 'react-native';
+import { View, ActivityIndicator, Platform, LogBox } from 'react-native';
+
+// Suppress on-screen LogBox bars so they don't intercept Maestro E2E taps.
+// Warnings still appear in Metro console / logcat.
+if (__DEV__) {
+  LogBox.ignoreAllLogs(true);
+}
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

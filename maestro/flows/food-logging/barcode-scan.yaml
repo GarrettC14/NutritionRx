@@ -11,8 +11,9 @@ tags:
     clearState: true
 - runFlow: ../../utils/complete-onboarding.yaml
 
+# Navigate to add-food via Food tab
 - tapOn:
-    id: "meal-add-food-button-breakfast"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:

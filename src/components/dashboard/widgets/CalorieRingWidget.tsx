@@ -11,6 +11,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { useGoalStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
+import { TestIDs } from '@/constants/testIDs';
 
 export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
@@ -41,6 +42,7 @@ export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
 
   return (
     <TouchableOpacity
+      testID={TestIDs.Widget.CalorieRing}
       style={styles.container}
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}

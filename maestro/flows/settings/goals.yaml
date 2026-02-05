@@ -11,6 +11,17 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 3000
+
+- scrollUntilVisible:
+    element:
+      id: "settings-goals-row"
+    direction: DOWN
+    timeout: 5000
+
 - tapOn:
     id: "settings-goals-row"
 
@@ -19,21 +30,25 @@ tags:
       id: "settings-goals-screen"
     timeout: 3000
 
-# Verify elements
+# Verify read-only view elements (goal already set during onboarding)
 - assertVisible:
     id: "settings-goals-back-button"
 - assertVisible:
     id: "settings-goals-edit-button"
+
+# Enable editing to see goal type options
+- tapOn:
+    id: "settings-goals-edit-button"
+
+- waitForAnimationToEnd
+
+# Now verify goal type options
 - assertVisible:
     id: "settings-goals-goal-lose"
 - assertVisible:
     id: "settings-goals-goal-maintain"
 - assertVisible:
     id: "settings-goals-goal-gain"
-
-# Enable editing
-- tapOn:
-    id: "settings-goals-edit-button"
 
 # Change goal
 - tapOn:

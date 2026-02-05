@@ -13,12 +13,16 @@ tags:
 - tapOn:
     id: "tab-bar-progress"
 
-- assertVisible:
-    id: "progress-screen"
+- extendedWaitUntil:
+    visible:
+      id: "progress-screen"
+    timeout: 15000
 
-# Verify all charts
-- assertVisible:
-    id: "progress-weight-chart"
+# Wait for content to load (chart only appears after skeleton dismisses)
+- extendedWaitUntil:
+    visible:
+      id: "progress-weight-chart"
+    timeout: 15000
 
 - scrollUntilVisible:
     element:

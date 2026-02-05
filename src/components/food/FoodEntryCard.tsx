@@ -8,6 +8,7 @@ import { LogEntry, QuickAddEntry } from '@/types/domain';
 
 interface FoodEntryCardProps {
   entry: LogEntry | QuickAddEntry;
+  testID?: string;
   onPress?: () => void;
   onDelete?: () => void;
 }
@@ -16,7 +17,7 @@ function isLogEntry(entry: LogEntry | QuickAddEntry): entry is LogEntry {
   return 'foodName' in entry;
 }
 
-export function FoodEntryCard({ entry, onPress, onDelete }: FoodEntryCardProps) {
+export function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCardProps) {
   const { colors } = useTheme();
 
   const isQuickAdd = !isLogEntry(entry);
@@ -29,6 +30,7 @@ export function FoodEntryCard({ entry, onPress, onDelete }: FoodEntryCardProps) 
 
   return (
     <Pressable
+      testID={testID}
       style={({ pressed }) => [
         styles.container,
         { backgroundColor: colors.bgSecondary },

@@ -291,7 +291,7 @@ export default function TodayScreen() {
   // Show skeleton while loading
   if (!isReady) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+      <SafeAreaView testID={TestIDs.Home.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <TodayScreenSkeleton />
       </SafeAreaView>
     );

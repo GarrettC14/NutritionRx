@@ -11,12 +11,17 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
-- assertVisible:
-    id: "settings-screen"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 3000
 
-# Verify theme options
-- assertVisible:
-    id: "settings-theme-system"
+# Scroll to theme options
+- scrollUntilVisible:
+    element:
+      id: "settings-theme-system"
+    direction: DOWN
+    timeout: 5000
 - assertVisible:
     id: "settings-theme-light"
 - assertVisible:

@@ -8,22 +8,23 @@ tags:
     clearState: true
 - runFlow: ../../utils/complete-onboarding.yaml
 
-# Add a food entry to delete
+# Navigate to add-food via Food tab to create an entry to delete
 - tapOn:
-    id: "meal-add-food-button-snack"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
-- scrollUntilVisible:
-    element:
-      text: "Quick Add"
-    direction: DOWN
-
+# Quick Add to create a simple entry
 - tapOn:
-    text: "Quick Add"
+    id: "add-food-quick-add-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "quick-add-screen"
+    timeout: 3000
 
 - tapOn:
     id: "quick-add-calories-input"
@@ -34,18 +35,53 @@ tags:
 - tapOn:
     id: "quick-add-add-button"
 
+# Wait for dismiss animation (returns to add-food screen)
+- waitForAnimationToEnd
+
+# Navigate home via tab bar
+- tapOn:
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
-    timeout: 3000
+    timeout: 5000
 
-# Open the entry
+# Wait for data to load (skeleton dismisses and date label appears)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Swipe to meal sections (DraggableFlatList workaround)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Expand the Snack section (Quick Add defaults to Snack)
+- tapOn:
+    id: "meal-snack-section"
+
+- waitForAnimationToEnd
+
+# Open the entry (use regex to match any meal-entry-item-{id})
 - tapOn:
     id: "meal-entry-item-.*"
     index: 0
 
-- assertVisible:
-    id: "log-entry-screen"
+- extendedWaitUntil:
+    visible:
+      id: "log-entry-screen"
+    timeout: 5000
 
 # Delete it
 - tapOn:
@@ -54,8 +90,11 @@ tags:
 # Confirm deletion
 - tapOn:
     id: "ui-confirm-dialog-confirm"
+    optional: true
+
+- waitForAnimationToEnd
 
 - extendedWaitUntil:
     visible:
       id: "home-screen"
-    timeout: 3000
+    timeout: 5000

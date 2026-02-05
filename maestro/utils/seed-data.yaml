@@ -1,41 +1,19 @@
 appId: com.nutritionrx.app
 name: Seed Database Utility
 ---
-# Navigate to Developer Settings and seed data
+# Seed the database with realistic test data
 # Precondition: User is on Home screen (onboarding complete)
+# In __DEV__ mode, the Developer section is visible directly in Settings
 
 - tapOn:
     id: "tab-bar-settings"
 
-- assertVisible:
-    id: "settings-screen"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
 
-# Navigate to About (need to tap version 7 times to unlock dev settings)
-- scrollUntilVisible:
-    element:
-      id: "settings-about-row"
-    direction: DOWN
-
-- tapOn:
-    id: "settings-about-row"
-
-- assertVisible:
-    id: "settings-about-screen"
-
-# Tap version number 7 times to unlock developer settings
-- repeat:
-    times: 7
-    commands:
-      - tapOn:
-          text: "Version"
-          optional: true
-      - waitForAnimationToEnd
-
-# Go back and find developer settings
-- tapOn:
-    id: "settings-about-back-button"
-
-# Developer settings should now be visible
+# Scroll to Developer section (visible in __DEV__ builds)
 - scrollUntilVisible:
     element:
       id: "settings-dev-seed-database"
@@ -44,27 +22,23 @@ name: Seed Database Utility
 - tapOn:
     id: "settings-dev-seed-database"
 
-# Navigate to developer screen
+# Wait for seeding to complete (async, shows Alert on finish)
 - extendedWaitUntil:
     visible:
-      id: "settings-developer-screen"
-    timeout: 3000
+      text: "Seed Complete"
+    timeout: 30000
 
-# Configure and seed
+# Dismiss the Alert
 - tapOn:
-    id: "settings-developer-seed-button"
+    text: "OK"
 
-# Wait for seeding to complete
 - waitForAnimationToEnd
-
-# Dismiss result if shown
-- tapOn:
-    id: "settings-developer-dismiss-result-button"
-    optional: true
 
 # Return to home
 - tapOn:
-    id: "settings-developer-back-button"
-
-- tapOn:
     id: "tab-bar-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

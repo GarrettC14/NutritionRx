@@ -10,28 +10,35 @@ tags:
 
 - runFlow: ../../utils/seed-data.yaml
 
+# Navigate to add-food via Food tab
 - tapOn:
-    id: "meal-add-food-button-breakfast"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Search for a food
 - tapOn:
     id: "add-food-search-input"
 - inputText: "apple"
 
-- waitForAnimationToEnd
+# Wait for search debounce + API response + render
+- extendedWaitUntil:
+    visible:
+      id: "add-food-search-result-item-.*"
+    timeout: 10000
 
 # Select a result
 - tapOn:
     id: "add-food-search-result-item-.*"
     index: 0
 
-- assertVisible:
-    id: "log-food-screen"
+- extendedWaitUntil:
+    visible:
+      id: "log-food-screen"
+    timeout: 5000
 
 # Favorite the food
 - tapOn:
@@ -43,19 +50,26 @@ tags:
 - tapOn:
     id: "log-food-add-button"
 
+# Wait for navigation (dismiss returns to add-food)
+- waitForAnimationToEnd
+
+# Navigate home then back to add food to check favorites
+- tapOn:
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
-    timeout: 3000
+    timeout: 5000
 
-# Go back to add food and check favorites
+# Go back to add food via Food tab and check favorites
 - tapOn:
-    id: "meal-add-food-button-lunch"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify favorites section exists
 - assertVisible:

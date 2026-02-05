@@ -166,7 +166,7 @@ export default function RestaurantListScreen() {
   // Show error state
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+      <SafeAreaView testID={TestIDs.Restaurant.ListScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <View style={styles.header}>
           <Pressable onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -196,7 +196,7 @@ export default function RestaurantListScreen() {
   // Show loading skeleton while initializing or until first load completes
   if (!isDataInitialized || !hasLoadedRestaurants || (isLoading && restaurants.length === 0)) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+      <SafeAreaView testID={TestIDs.Restaurant.ListScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <RestaurantListSkeleton />
       </SafeAreaView>
     );

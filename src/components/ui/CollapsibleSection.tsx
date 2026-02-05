@@ -21,6 +21,7 @@ interface CollapsibleSectionProps {
   defaultExpanded?: boolean;
   children: React.ReactNode;
   emptyMessage?: string;
+  testID?: string;
 }
 
 export function CollapsibleSection({
@@ -29,6 +30,7 @@ export function CollapsibleSection({
   defaultExpanded = true,
   children,
   emptyMessage = 'No items',
+  testID,
 }: CollapsibleSectionProps) {
   const { colors } = useTheme();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -45,7 +47,7 @@ export function CollapsibleSection({
   };
 
   return (
-    <View style={styles.container}>
+    <View testID={testID} style={styles.container}>
       <Pressable onPress={handleToggle} style={styles.header}>
         <Animated.View style={chevronStyle}>
           <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />

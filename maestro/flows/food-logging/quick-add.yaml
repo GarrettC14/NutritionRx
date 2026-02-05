@@ -11,7 +11,21 @@ tags:
 - assertVisible:
     id: "home-screen"
 
-# Add to lunch via meal section
+# Swipe down to meal sections (DraggableFlatList doesn't support scrollUntilVisible)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Add food to lunch via meal section button
 - tapOn:
     id: "meal-add-food-button-lunch"
 
@@ -20,17 +34,14 @@ tags:
       id: "add-food-screen"
     timeout: 3000
 
-# Navigate to Quick Add (may need scroll or tab)
-- scrollUntilVisible:
-    element:
-      text: "Quick Add"
-    direction: DOWN
-
+# Navigate to Quick Add via bottom button
 - tapOn:
     text: "Quick Add"
 
-- assertVisible:
-    id: "quick-add-screen"
+- extendedWaitUntil:
+    visible:
+      id: "quick-add-screen"
+    timeout: 3000
 
 # Verify elements
 - assertVisible:
@@ -88,7 +99,13 @@ tags:
 - tapOn:
     id: "quick-add-add-button"
 
-# Should return to home
+# Wait for dismiss animation (returns to add-food screen)
+- waitForAnimationToEnd
+
+# Navigate home via tab bar
+- tapOn:
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"

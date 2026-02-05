@@ -2,22 +2,37 @@ appId: com.nutritionrx.app
 name: Complete Onboarding Utility
 ---
 # Starts from fresh install, ends on Home screen
+# Note: LogBox warnings are suppressed via LogBox.ignoreAllLogs() in _layout.tsx
 
-# Legal Acknowledgment
-- assertVisible:
-    id: "legal-screen"
+# Wait for JS bundle to load from Metro (can take 20-30s after clearState)
+- extendedWaitUntil:
+    visible:
+      id: "legal-screen"
+    timeout: 30000
 
-- scrollUntilVisible:
-    element:
-      id: "legal-checkbox"
-    direction: DOWN
+# Legal Acknowledgment — swipe to scroll to bottom (triggers onScroll events)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Wait for scroll-to-bottom detection to enable the checkbox
+- extendedWaitUntil:
+    visible:
+      id: "legal-scroll-complete"
+    timeout: 3000
 
 - tapOn:
     id: "legal-checkbox"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "legal-proceed-button"
 
@@ -25,11 +40,8 @@ name: Complete Onboarding Utility
 - extendedWaitUntil:
     visible:
       id: "onboarding-welcome-screen"
-    timeout: 3000
+    timeout: 5000
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-begin-button"
 
@@ -40,9 +52,6 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "onboarding-goal-option-lose"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-goal-continue-button"
 
@@ -57,18 +66,12 @@ name: Complete Onboarding Utility
     id: "onboarding-weight-lbs"
 
 - tapOn:
-    point: "93%, 93%"
-    optional: true
-- tapOn:
     id: "onboarding-preferences-continue-button"
 
 # Ready Screen
 - assertVisible:
     id: "onboarding-ready-screen"
 
-- tapOn:
-    point: "93%, 93%"
-    optional: true
 - tapOn:
     id: "onboarding-ready-explore-app"
 

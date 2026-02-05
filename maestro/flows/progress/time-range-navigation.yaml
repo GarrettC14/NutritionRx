@@ -13,12 +13,16 @@ tags:
 - tapOn:
     id: "tab-bar-progress"
 
-- assertVisible:
-    id: "progress-screen"
+- extendedWaitUntil:
+    visible:
+      id: "progress-screen"
+    timeout: 15000
 
-# Verify time range buttons
-- assertVisible:
-    id: "progress-time-range-7d"
+# Wait for content to load (time range buttons only appear after skeleton dismisses)
+- extendedWaitUntil:
+    visible:
+      id: "progress-time-range-7d"
+    timeout: 15000
 - assertVisible:
     id: "progress-time-range-30d"
 - assertVisible:

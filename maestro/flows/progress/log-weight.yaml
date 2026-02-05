@@ -14,7 +14,13 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "progress-screen"
-    timeout: 3000
+    timeout: 20000
+
+# Wait for content to load (button only appears after skeleton dismisses)
+- extendedWaitUntil:
+    visible:
+      id: "progress-log-weight-button"
+    timeout: 15000
 
 - tapOn:
     id: "progress-log-weight-button"
@@ -22,7 +28,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "log-weight-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify elements
 - assertVisible:
@@ -48,13 +54,13 @@ tags:
 - assertVisible:
     id: "log-weight-quick-plus-1"
 
-# Enter weight
-- tapOn:
-    id: "log-weight-input"
-- eraseText
-- inputText: "175.5"
+# Dismiss keyboard from autoFocus before tapping quick adjust buttons
+- hideKeyboard
 
-# Use quick adjust
+# Use quick adjust buttons instead of manual text entry (avoids Android autoFocus + decimal-pad issues)
+- tapOn:
+    id: "log-weight-quick-plus-1"
+
 - tapOn:
     id: "log-weight-quick-minus-05"
 
@@ -69,11 +75,15 @@ tags:
 - tapOn:
     id: "log-weight-save-button"
 
+- waitForAnimationToEnd
+
 - extendedWaitUntil:
     visible:
       id: "progress-screen"
-    timeout: 3000
+    timeout: 15000
 
-# Verify chart updated
-- assertVisible:
-    id: "progress-weight-chart"
+# Verify chart updated (may need a moment to re-render with new data)
+- extendedWaitUntil:
+    visible:
+      id: "progress-weight-chart"
+    timeout: 5000

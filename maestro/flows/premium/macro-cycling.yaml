@@ -14,13 +14,44 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+- waitForAnimationToEnd
+
+# Scroll to top first (enable-premium may have left scroll partway)
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Use scrollUntilVisible to find macro cycling row (settings is a ScrollView)
+- scrollUntilVisible:
+    element:
+      id: "settings-macro-cycling-row"
+    direction: DOWN
+    timeout: 10000
+
 - tapOn:
     id: "settings-macro-cycling-row"
 
 - extendedWaitUntil:
     visible:
       id: "macro-cycling-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify elements
 - assertVisible:
@@ -49,5 +80,7 @@ tags:
 - tapOn:
     id: "macro-cycling-close-button"
 
-- assertVisible:
-    id: "settings-screen"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000

@@ -11,6 +11,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { useGoalStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
+import { TestIDs } from '@/constants/testIDs';
 
 interface MacroData {
   name: string;
@@ -85,7 +86,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.container}>
+    <View testID={TestIDs.Widget.NutritionOverview} style={styles.container}>
       {/* Calorie Ring Section */}
       <Pressable
         onPress={handleRingPress}

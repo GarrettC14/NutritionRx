@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,7 @@ export default function LegalAcknowledgmentScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const checkScale = useSharedValue(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const animatedCheckStyle = useAnimatedStyle(() => ({
     transform: [{ scale: interpolate(checkScale.value, [0, 1], [0, 1]) }],
@@ -49,19 +50,37 @@ export default function LegalAcknowledgmentScreen() {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
       const paddingToBottom = 40;
-
-      if (
+      const isAtBottom =
         layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom
-      ) {
+        contentSize.height - paddingToBottom;
+
+      if (__DEV__) {
+        console.log(
+          `[Legal] onScroll: offset=${contentOffset.y.toFixed(0)} ` +
+          `layout=${layoutMeasurement.height.toFixed(0)} ` +
+          `content=${contentSize.height.toFixed(0)} ` +
+          `atBottom=${isAtBottom}`
+        );
+      }
+
+      if (isAtBottom) {
         setHasScrolledToBottom(true);
       }
     },
     []
   );
 
+  const handleScrollToBottom = useCallback(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, []);
+
   const handleCheckboxPress = () => {
-    if (!hasScrolledToBottom) return;
+    if (!hasScrolledToBottom) {
+      // Scroll to bottom first — programmatic scrollToEnd fires onScroll
+      console.log('[Legal] Checkbox pressed before scroll — calling scrollToEnd');
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+      return;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const newChecked = !isChecked;
@@ -73,6 +92,7 @@ export default function LegalAcknowledgmentScreen() {
   };
 
   const handleProceed = async () => {
+    console.log(`[Legal] Proceed pressed: canProceed=${canProceed} isSubmitting=${isSubmitting}`);
     if (!canProceed || isSubmitting) return;
 
     setIsSubmitting(true);
@@ -100,6 +120,7 @@ export default function LegalAcknowledgmentScreen() {
       edges={['top', 'bottom']}
     >
       <ScrollView
+        ref={scrollViewRef}
         testID={TestIDs.Legal.ScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -145,7 +166,6 @@ export default function LegalAcknowledgmentScreen() {
               },
             ]}
             onPress={handleCheckboxPress}
-            disabled={!hasScrolledToBottom}
           >
             <View
               style={[
@@ -170,14 +190,27 @@ export default function LegalAcknowledgmentScreen() {
             </Text>
           </Pressable>
 
-          {/* Scroll hint */}
+          {/* Sentinel for Maestro: visible only after scroll-to-bottom detected */}
+          {hasScrolledToBottom && (
+            <View
+              testID={TestIDs.Legal.ScrollComplete}
+              collapsable={false}
+              style={{ height: 1, width: 1 }}
+            />
+          )}
+
+          {/* Scroll hint — tappable to auto-scroll to bottom */}
           {!hasScrolledToBottom && (
-            <View style={styles.scrollHint}>
+            <Pressable
+              testID={TestIDs.Legal.ScrollToBottom}
+              style={styles.scrollHint}
+              onPress={handleScrollToBottom}
+            >
               <Ionicons name="chevron-down" size={16} color={colors.textTertiary} />
               <Text style={[styles.scrollHintText, { color: colors.textTertiary }]}>
                 Scroll to continue
               </Text>
-            </View>
+            </Pressable>
           )}
 
           {/* Proceed Button */}

@@ -8,41 +8,28 @@ tags:
     clearState: true
 - runFlow: ../../utils/complete-onboarding.yaml
 
+# Navigate to add-food via Food tab
 - tapOn:
-    id: "meal-add-food-button-dinner"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "add-food-create-food-button"
 
-- assertVisible:
-    id: "create-food-screen"
+- extendedWaitUntil:
+    visible:
+      id: "create-food-screen"
+    timeout: 5000
 
-# Verify elements
+# Verify top elements (above the fold)
 - assertVisible:
     id: "create-food-back-button"
 - assertVisible:
     id: "create-food-name-input"
-- assertVisible:
-    id: "create-food-brand-input"
-- assertVisible:
-    id: "create-food-serving-amount-input"
-- assertVisible:
-    id: "create-food-serving-unit-input"
-- assertVisible:
-    id: "create-food-calories-input"
-- assertVisible:
-    id: "create-food-protein-input"
-- assertVisible:
-    id: "create-food-carbs-input"
-- assertVisible:
-    id: "create-food-fat-input"
-- assertVisible:
-    id: "create-food-create-button"
 
 # Fill in custom food details
 - tapOn:
@@ -53,6 +40,14 @@ tags:
     id: "create-food-brand-input"
 - inputText: "Homemade"
 
+- hideKeyboard
+
+# Scroll to serving inputs which may be below keyboard/fold
+- scrollUntilVisible:
+    element:
+      id: "create-food-serving-amount-input"
+    direction: DOWN
+
 - tapOn:
     id: "create-food-serving-amount-input"
 - inputText: "1"
@@ -61,17 +56,47 @@ tags:
     id: "create-food-serving-unit-input"
 - inputText: "slice"
 
+- hideKeyboard
+
+# Scroll to reveal calorie/macro inputs (may be below fold)
+- scrollUntilVisible:
+    element:
+      id: "create-food-calories-input"
+    direction: DOWN
+
 - tapOn:
     id: "create-food-calories-input"
 - inputText: "280"
+
+- hideKeyboard
+
+# Scroll to macro inputs (below fold when keyboard was up)
+- scrollUntilVisible:
+    element:
+      id: "create-food-protein-input"
+    direction: DOWN
 
 - tapOn:
     id: "create-food-protein-input"
 - inputText: "22"
 
+- hideKeyboard
+
+- scrollUntilVisible:
+    element:
+      id: "create-food-carbs-input"
+    direction: DOWN
+
 - tapOn:
     id: "create-food-carbs-input"
 - inputText: "12"
+
+- hideKeyboard
+
+- scrollUntilVisible:
+    element:
+      id: "create-food-fat-input"
+    direction: DOWN
 
 - tapOn:
     id: "create-food-fat-input"
@@ -79,15 +104,17 @@ tags:
 
 - hideKeyboard
 
+# Scroll to create button
+- scrollUntilVisible:
+    element:
+      id: "create-food-create-button"
+    direction: DOWN
+
 - tapOn:
     id: "create-food-create-button"
 
-# Should navigate to Log Food screen with the new food
+# After creation, router.dismiss() returns to add-food screen
 - extendedWaitUntil:
     visible:
-      id: "log-food-screen"
-    timeout: 3000
-
-# Verify our food name appears
-- assertVisible:
-    text: "Grandma's Meatloaf"
+      id: "add-food-screen"
+    timeout: 8000

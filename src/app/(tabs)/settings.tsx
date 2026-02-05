@@ -205,6 +205,31 @@ export default function SettingsScreen() {
     });
   };
 
+  const handleDeleteAllData = () => {
+    showConfirm({
+      title: 'Delete All Data',
+      message: 'This will permanently delete all your food logs, weight entries, water tracking, and profile data. This action cannot be undone.',
+      icon: '🗑️',
+      confirmLabel: 'Delete Everything',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        try {
+          await Promise.all([
+            resetOnboarding(),
+            resetProfile(),
+            resetSettings(),
+            resetTooltips(),
+          ]);
+          resetDashboard();
+          router.replace('/onboarding');
+        } catch (error) {
+          Alert.alert('Error', 'Failed to delete data. Please try again.');
+        }
+      },
+    });
+  };
+
   const handleFreshSession = () => {
     showConfirm({
       title: 'Start Fresh Session',
@@ -519,7 +544,7 @@ export default function SettingsScreen() {
               testID={TestIDs.Settings.DeleteAllDataRow}
               icon="trash-outline"
               title="Delete All Data"
-              onPress={() => {}}
+              onPress={handleDeleteAllData}
               danger
             />
           </View>

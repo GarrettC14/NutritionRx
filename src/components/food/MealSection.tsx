@@ -7,7 +7,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
-import { TestIDs, mealAddFoodButton, mealCopyButton } from '@/constants/testIDs';
+import { TestIDs, mealAddFoodButton, mealCopyButton, mealEntryItem } from '@/constants/testIDs';
 import { FoodEntryCard } from './FoodEntryCard';
 
 // Enable LayoutAnimation on Android
@@ -135,6 +135,7 @@ export function MealSection({
                 <FoodEntryCard
                   key={entry.id}
                   entry={entry}
+                  testID={mealEntryItem(entry.id)}
                   onPress={() => onEntryPress?.(entry)}
                   onDelete={onDeleteEntry ? () => onDeleteEntry(entry) : undefined}
                 />
@@ -143,6 +144,7 @@ export function MealSection({
                 <FoodEntryCard
                   key={entry.id}
                   entry={entry}
+                  testID={mealEntryItem(entry.id)}
                   onPress={() => onQuickAddPress?.(entry)}
                   onDelete={onDeleteQuickAdd ? () => onDeleteQuickAdd(entry) : undefined}
                 />

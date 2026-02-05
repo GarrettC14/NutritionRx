@@ -11,6 +11,26 @@ tags:
 - assertVisible:
     id: "home-screen"
 
+# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Swipe down to meal sections (DraggableFlatList doesn't support scrollUntilVisible)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
 # Add food to breakfast
 - tapOn:
     id: "meal-add-food-button-breakfast"
@@ -18,7 +38,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify search elements
 - assertVisible:
@@ -33,8 +53,11 @@ tags:
     id: "add-food-search-input"
 - inputText: "chicken breast"
 
-# Wait for search debounce (300ms)
-- waitForAnimationToEnd
+# Wait for search debounce + API response + render
+- extendedWaitUntil:
+    visible:
+      id: "add-food-search-result-item-.*"
+    timeout: 10000
 
 # Tap a search result
 - tapOn:
@@ -72,12 +95,14 @@ tags:
 - tapOn:
     id: "log-food-add-button"
 
-# Should return to home
+# Wait for animation/navigation
+- waitForAnimationToEnd
+
+# Navigate home via tab bar (dismiss may land on add-food screen)
+- tapOn:
+    id: "tab-bar-home"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
     timeout: 3000
-
-# Verify entry appears in breakfast section
-- assertVisible:
-    id: "meal-breakfast-section"

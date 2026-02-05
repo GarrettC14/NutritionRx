@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
@@ -248,10 +249,10 @@ export default function LogEntryScreen() {
   };
 
   const mealOptions = [
-    { label: 'Breakfast', value: MealType.Breakfast },
-    { label: 'Lunch', value: MealType.Lunch },
-    { label: 'Dinner', value: MealType.Dinner },
-    { label: 'Snack', value: MealType.Snack },
+    { label: 'Breakfast', value: MealType.Breakfast, testID: TestIDs.LogEntry.MealBreakfast },
+    { label: 'Lunch', value: MealType.Lunch, testID: TestIDs.LogEntry.MealLunch },
+    { label: 'Dinner', value: MealType.Dinner, testID: TestIDs.LogEntry.MealDinner },
+    { label: 'Snack', value: MealType.Snack, testID: TestIDs.LogEntry.MealSnack },
   ];
 
   // Loading state
@@ -299,14 +300,14 @@ export default function LogEntryScreen() {
   const foodIsFavorite = loadedEntry.food ? isFavorite(loadedEntry.food.id) : false;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
+    <SafeAreaView testID={TestIDs.LogEntry.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable testID={TestIDs.LogEntry.CloseButton} onPress={() => router.back()}>
           <Ionicons name="close" size={28} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Edit Entry</Text>
-        <Pressable onPress={handleSave} disabled={!isValid || isSaving}>
+        <Pressable testID={TestIDs.LogEntry.SaveButton} onPress={handleSave} disabled={!isValid || isSaving}>
           <Text
             style={[
               styles.saveText,
@@ -380,6 +381,7 @@ export default function LogEntryScreen() {
 
               <View style={[styles.amountCard, { backgroundColor: colors.bgSecondary }]}>
                 <TextInput
+                  testID={TestIDs.LogEntry.AmountInput}
                   style={[styles.amountInput, { color: colors.textPrimary }]}
                   value={amount}
                   onChangeText={handleAmountChange}
@@ -457,6 +459,7 @@ export default function LogEntryScreen() {
               <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>CALORIES</Text>
               <View style={[styles.inputRow, { backgroundColor: colors.bgSecondary }]}>
                 <TextInput
+                  testID={TestIDs.LogEntry.AmountInput}
                   style={[styles.quickInput, { color: colors.textPrimary }]}
                   value={quickCalories}
                   onChangeText={(v) => {
@@ -558,6 +561,7 @@ export default function LogEntryScreen() {
             {mealOptions.map((option) => (
               <Pressable
                 key={option.value}
+                testID={option.testID}
                 style={[
                   styles.mealOption,
                   {
@@ -582,6 +586,7 @@ export default function LogEntryScreen() {
 
         {/* Delete Button */}
         <Pressable
+          testID={TestIDs.LogEntry.DeleteButton}
           style={[styles.deleteButton, { borderColor: colors.error }]}
           onPress={handleDelete}
           disabled={isDeleting}

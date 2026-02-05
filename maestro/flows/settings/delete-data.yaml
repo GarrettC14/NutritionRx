@@ -12,6 +12,11 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
 - scrollUntilVisible:
     element:
       id: "settings-delete-all-data-row"
@@ -24,11 +29,13 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "ui-confirm-dialog"
-    timeout: 2000
+    timeout: 3000
 
 # Cancel to not actually delete
 - tapOn:
     id: "ui-confirm-dialog-cancel"
+
+- waitForAnimationToEnd
 
 - assertVisible:
     id: "settings-screen"

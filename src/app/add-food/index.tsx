@@ -28,15 +28,15 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { foodRepository } from '@/repositories/foodRepository';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { micronutrientRepository } from '@/repositories/micronutrientRepository';
-import { TestIDs } from '@/constants/testIDs';
+import { TestIDs, foodSearchResult } from '@/constants/testIDs';
 
 // Tab types
 type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
 
 const TAB_OPTIONS = [
-  { value: 'all' as AddFoodTab, label: 'All' },
-  { value: 'restaurants' as AddFoodTab, label: '🍽️ Restaurants' },
-  { value: 'my_foods' as AddFoodTab, label: 'My Foods' },
+  { value: 'all' as AddFoodTab, label: 'All', testID: TestIDs.AddFood.TabAll },
+  { value: 'restaurants' as AddFoodTab, label: '🍽️ Restaurants', testID: TestIDs.AddFood.TabRestaurants },
+  { value: 'my_foods' as AddFoodTab, label: 'My Foods', testID: TestIDs.AddFood.TabMyFoods },
 ];
 
 // Debounce hook
@@ -297,6 +297,7 @@ export default function AddFoodScreen() {
   const renderFoodItem = ({ item }: { item: FoodItem }) => (
     <FoodSearchResult
       food={item}
+      testID={foodSearchResult(item.id)}
       onPress={() => handleFoodSelect(item)}
     />
   );
@@ -305,6 +306,7 @@ export default function AddFoodScreen() {
     <View key={food.id} style={styles.foodItemWrapper}>
       <FoodSearchResult
         food={food}
+        testID={foodSearchResult(food.id)}
         onPress={() => handleFoodSelect(food)}
       />
     </View>
@@ -387,6 +389,7 @@ export default function AddFoodScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <CollapsibleSection
+          testID={TestIDs.AddFood.FavoritesSection}
           title="Favorites"
           itemCount={favorites.length}
           defaultExpanded={true}
@@ -649,12 +652,20 @@ export default function AddFoodScreen() {
       {/* Bottom Action Buttons */}
       <View style={[styles.bottomButtonsContainer, { backgroundColor: colors.bgPrimary }]}>
         <Pressable
-          testID={TestIDs.AddFood.AIPhotoButton}
+          testID={TestIDs.AddFood.QuickAddButton}
           style={[styles.bottomButton, { backgroundColor: colors.accent }]}
+          onPress={handleQuickAdd}
+        >
+          <Ionicons name="flash-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.bottomButtonText}>Quick Add</Text>
+        </Pressable>
+        <Pressable
+          testID={TestIDs.AddFood.AIPhotoButton}
+          style={[styles.bottomButton, { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.borderDefault }]}
           onPress={handleAIPhoto}
         >
-          <Ionicons name="camera-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.bottomButtonText}>AI Photo</Text>
+          <Ionicons name="camera-outline" size={22} color={colors.accent} />
+          <Text style={[styles.bottomButtonTextSecondary, { color: colors.textPrimary }]}>AI Photo</Text>
         </Pressable>
         <Pressable
           testID={TestIDs.AddFood.CreateFoodButton}

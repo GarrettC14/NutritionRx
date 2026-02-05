@@ -11,16 +11,28 @@ tags:
 - assertVisible:
     id: "home-screen"
 
-# Find water widget
-- scrollUntilVisible:
-    element:
+# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Water tracker is at position 2 in the DraggableFlatList (after nutrition_overview and quick_add)
+# It's just barely below the initial viewport edge. Standard swipes scroll too far.
+# Use a small partial swipe (10% of screen height) to nudge it into view.
+- swipe:
+    start: "50%, 60%"
+    end: "50%, 45%"
+    duration: 500
+
+- waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible:
       id: "widget-water-tracker"
-    direction: DOWN
+    timeout: 10000
 
-- assertVisible:
-    id: "widget-water-tracker"
-
-# Add water
+# Add water (the widget only has an add button — no remove or glass indicators)
 - tapOn:
     id: "water-add-button"
 
@@ -32,12 +44,6 @@ tags:
 
 - waitForAnimationToEnd
 
-# Remove one
-- tapOn:
-    id: "water-remove-button"
-
-- waitForAnimationToEnd
-
-# Verify glass indicators
+# Verify widget is still visible after interactions
 - assertVisible:
-    id: "water-glass-indicator-0"
+    id: "widget-water-tracker"

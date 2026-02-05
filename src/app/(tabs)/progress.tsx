@@ -230,7 +230,7 @@ export default function ProgressScreen() {
   const isReady = dataLoaded && settingsLoaded && nutrientsLoaded && photosLoaded;
   if (!isReady) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
+      <SafeAreaView testID={TestIDs.Progress.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <ProgressScreenSkeleton />
       </SafeAreaView>
     );
@@ -340,7 +340,9 @@ export default function ProgressScreen() {
           </View>
 
           {hasWeightData ? (
-            <WeightChart entries={weightEntries} showTrend />
+            <View testID={TestIDs.Progress.WeightChart}>
+              <WeightChart entries={weightEntries} showTrend />
+            </View>
           ) : (
             <View style={styles.chartPlaceholder}>
               <Ionicons name="trending-up" size={48} color={colors.textTertiary} />
@@ -395,7 +397,9 @@ export default function ProgressScreen() {
           </View>
 
           {hasCalorieData ? (
-            <CalorieChart data={calorieData} showGoalLine />
+            <View testID={TestIDs.Progress.CalorieChart}>
+              <CalorieChart data={calorieData} showGoalLine />
+            </View>
           ) : (
             <View style={styles.chartPlaceholder}>
               <Ionicons name="bar-chart-outline" size={48} color={colors.textTertiary} />
@@ -450,7 +454,9 @@ export default function ProgressScreen() {
               </View>
             </View>
 
-            <MacroChart totals={avgMacros} showGoalComparison />
+            <View testID={TestIDs.Progress.MacroChart}>
+              <MacroChart totals={avgMacros} showGoalComparison />
+            </View>
           </View>
         )}
 

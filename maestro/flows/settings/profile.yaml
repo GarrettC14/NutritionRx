@@ -11,8 +11,16 @@ tags:
 - tapOn:
     id: "tab-bar-settings"
 
-- assertVisible:
-    id: "settings-screen"
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+- scrollUntilVisible:
+    element:
+      id: "settings-profile-row"
+    direction: DOWN
+    timeout: 5000
 
 - tapOn:
     id: "settings-profile-row"
@@ -20,21 +28,27 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "settings-profile-screen"
-    timeout: 3000
+    timeout: 8000
 
-# Verify elements
-- assertVisible:
-    id: "settings-profile-back-button"
-- assertVisible:
+- waitForAnimationToEnd
+
+# Verify view mode elements (header renders separately from content)
+- extendedWaitUntil:
+    visible:
+      id: "settings-profile-edit-button"
+    timeout: 5000
+
+# Enable editing (sex options only visible in edit mode)
+- tapOn:
     id: "settings-profile-edit-button"
+
+- waitForAnimationToEnd
+
+# Now verify edit mode elements
 - assertVisible:
     id: "settings-profile-sex-male"
 - assertVisible:
     id: "settings-profile-sex-female"
-
-# Enable editing
-- tapOn:
-    id: "settings-profile-edit-button"
 
 # Change sex
 - tapOn:
@@ -52,9 +66,17 @@ tags:
 
 - waitForAnimationToEnd
 
-# Navigate back
+# Dismiss the success alert dialog
 - tapOn:
-    id: "settings-profile-back-button"
+    text: "OK"
+    optional: true
 
-- assertVisible:
-    id: "settings-screen"
+- waitForAnimationToEnd
+
+# Navigate back (use system back on Android as header testIDs may not be accessible)
+- back
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000

@@ -10,16 +10,31 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 10000
+    timeout: 30000
 
 # === Legal ===
 - assertVisible:
     id: "legal-screen"
 
-- scrollUntilVisible:
-    element:
-      id: "legal-checkbox"
-    direction: DOWN
+# Swipe to scroll to bottom (triggers onScroll events for hasScrolledToBottom)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Wait for scroll-to-bottom detection
+- extendedWaitUntil:
+    visible:
+      id: "legal-scroll-complete"
+    timeout: 3000
 
 - tapOn:
     id: "legal-checkbox"
@@ -31,7 +46,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "onboarding-welcome-screen"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "onboarding-begin-button"
@@ -108,7 +123,14 @@ tags:
       id: "home-screen"
     timeout: 5000
 
-- assertVisible:
-    id: "home-date-label"
-- assertVisible:
-    id: "widget-calorie-ring"
+# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+# Verify a default widget is visible (nutrition_overview is position 0)
+- extendedWaitUntil:
+    visible:
+      id: "widget-nutrition-overview"
+    timeout: 5000

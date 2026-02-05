@@ -14,13 +14,14 @@ tags:
 # Enable premium for this test
 - runFlow: ../../utils/enable-premium.yaml
 
+# Navigate to add-food via Food tab
 - tapOn:
-    id: "meal-add-food-button-lunch"
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
       id: "add-food-screen"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "add-food-ai-photo-button"
@@ -28,7 +29,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "ai-photo-screen"
-    timeout: 3000
+    timeout: 5000
 
 # Verify AI photo elements
 - assertVisible:

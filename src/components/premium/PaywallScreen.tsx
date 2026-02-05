@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { TestIDs } from '@/constants/testIDs';
 
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useTheme } from '@/hooks/useTheme';
@@ -358,14 +359,17 @@ export function PaywallScreen() {
 
   if (!currentOffering) {
     return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+      <View testID={TestIDs.Paywall.Screen} style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <TouchableOpacity testID={TestIDs.Paywall.CloseButton} style={styles.closeButton} onPress={handleDismiss}>
+          <Ionicons name="close" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View testID={TestIDs.Paywall.Screen} style={styles.container}>
       {/* Close Button */}
       <TouchableOpacity style={styles.closeButton} onPress={handleDismiss}>
         <Ionicons name="close" size={20} color={colors.textPrimary} />

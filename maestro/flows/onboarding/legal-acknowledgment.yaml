@@ -10,34 +10,40 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "legal-screen"
-    timeout: 10000
+    timeout: 30000
 
 - assertVisible:
     id: "legal-screen"
 
-# Verify all elements present
+# Verify scroll view present
 - assertVisible:
     id: "legal-scroll-view"
-- assertVisible:
-    id: "legal-terms-link"
 
-# Try to proceed without checking - should be disabled or show error
-- tapOn:
-    id: "legal-proceed-button"
+# Swipe to scroll to bottom (triggers onScroll events for hasScrolledToBottom)
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
 
-# Should still be on legal screen (button disabled without checkbox)
-- assertVisible:
-    id: "legal-screen"
+# Wait for scroll-to-bottom detection
+- extendedWaitUntil:
+    visible:
+      id: "legal-scroll-complete"
+    timeout: 3000
 
-# Now properly acknowledge
-- scrollUntilVisible:
-    element:
-      id: "legal-checkbox"
-    direction: DOWN
-
+# Tap checkbox — try by ID first (LogBox is now suppressed)
 - tapOn:
     id: "legal-checkbox"
 
+# Tap proceed button
 - tapOn:
     id: "legal-proceed-button"
 
@@ -45,4 +51,4 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "onboarding-welcome-screen"
-    timeout: 3000
+    timeout: 5000

@@ -2,10 +2,18 @@ appId: com.nutritionrx.app
 name: Enable Premium (Dev Toggle)
 ---
 # Enable premium features for testing
+# Precondition: User is on Home screen (onboarding complete)
+# In __DEV__ mode, the Developer section is visible directly in Settings
 
 - tapOn:
     id: "tab-bar-settings"
 
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+# Scroll to Developer section (visible in __DEV__ builds)
 - scrollUntilVisible:
     element:
       id: "settings-dev-premium-toggle"
@@ -15,6 +23,20 @@ name: Enable Premium (Dev Toggle)
     id: "settings-dev-premium-toggle"
 
 - waitForAnimationToEnd
+
+# Scroll settings back to top so dependent flows can scrollUntilVisible downward
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: DOWN
+    duration: 500
 
 - tapOn:
     id: "tab-bar-home"

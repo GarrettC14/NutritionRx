@@ -77,7 +77,7 @@ export async function migration011Restaurants(db: SQLiteDatabase): Promise<void>
     CREATE VIRTUAL TABLE IF NOT EXISTS restaurant_foods_fts USING fts5(
       name,
       restaurant_name,
-      content='restaurant_foods',
+      content='',
       content_rowid='rowid'
     );
 
