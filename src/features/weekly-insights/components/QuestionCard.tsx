@@ -19,7 +19,7 @@ import type {
   InsightSentiment,
 } from '../types/weeklyInsights.types';
 import { InsightShimmer } from './InsightShimmer';
-import { FollowUpChips } from './FollowUpChips';
+
 
 const WEEKLY_CATEGORY_COLORS: Record<WeeklyQuestionCategory, string> = {
   consistency: '#FFA726',
@@ -98,7 +98,7 @@ export function QuestionCard({
   };
 
   return (
-    <Animated.View layout={Layout.duration(200)}>
+    <Animated.View layout={Layout.duration(200)} style={{ marginBottom: isExpanded ? 14 : 10 }}>
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.7}
@@ -149,7 +149,7 @@ export function QuestionCard({
               <ErrorState error={questionError!} onRetry={onRetry} colors={colors} />
             )}
             {expandedState === 'success' && response && (
-              <SuccessState response={response} onFollowUp={onFollowUp} colors={colors} />
+              <SuccessState response={response} colors={colors} />
             )}
           </Animated.View>
         )}
@@ -211,11 +211,9 @@ function ErrorState({
 
 function SuccessState({
   response,
-  onFollowUp,
   colors,
 }: {
   response: WeeklyInsightResponse;
-  onFollowUp: (questionId: string) => void;
   colors: any;
 }) {
   return (
@@ -248,9 +246,6 @@ function SuccessState({
       <Text style={[styles.sourceBadge, { color: colors.textTertiary }]}>
         {response.source === 'llm' ? 'AI' : 'Template'}
       </Text>
-
-      {/* Follow-up chips */}
-      <FollowUpChips followUpIds={response.followUpIds} onFollowUp={onFollowUp} />
     </View>
   );
 }
@@ -259,7 +254,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
     padding: 14,
-    marginBottom: 10,
     overflow: 'hidden',
   },
   header: {
@@ -290,6 +284,7 @@ const styles = StyleSheet.create({
   expandedContent: {
     marginTop: 12,
     marginLeft: 38,
+    paddingBottom: 4,
   },
   accentLine: {
     height: 2,

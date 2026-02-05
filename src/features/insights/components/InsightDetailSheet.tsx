@@ -1,21 +1,17 @@
 /**
- * InsightDetailSheet - Bottom sheet for insight details
- * Shows data cards, AI narrative, and regenerate action.
- * Uses Modal since @gorhom/bottom-sheet is not installed.
+ * InsightDetailDialog - Centered dialog for insight details
+ * Shows data cards and AI narrative. Matches ConfirmDialog styling.
  */
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
-  PanResponder,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -31,9 +27,6 @@ import type {
   DataCardItem,
 } from '../types/dailyInsights.types';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.7;
-
 interface InsightDetailSheetProps {
   questionId: DailyQuestionId | null;
   visible: boolean;
@@ -46,30 +39,49 @@ interface DataCardProps {
 }
 
 function DataCard({ card, colors }: DataCardProps) {
-  const percentage = card.target > 0 ? Math.min(100, (card.current / card.target) * 100) : 0;
+  const hasBar = card.percent != null && card.percent > 0;
+  const percentage = card.percent ?? 0;
+
+  const statusColor =
+    card.status === 'on_track' || card.status === 'ahead'
+      ? colors.success
+      : card.status === 'behind'
+        ? colors.warning
+        : colors.accent;
+
+  const valueColor =
+    card.status === 'on_track' || card.status === 'ahead'
+      ? colors.success
+      : card.status === 'behind'
+        ? colors.warning
+        : colors.textPrimary;
 
   return (
     <View style={[styles.dataCard, { borderColor: colors.borderDefault }]}>
       <View style={styles.dataCardHeader}>
         <Text style={[styles.dataCardLabel, { color: colors.textSecondary }]}>{card.label}</Text>
-        <Text style={[styles.dataCardPercent, { color: colors.textPrimary }]}>
-          {Math.round(percentage)}%
+        <Text style={[styles.dataCardPercent, { color: valueColor }]}>
+          {card.value}
         </Text>
       </View>
-      <View style={[styles.progressBar, { backgroundColor: colors.bgInteractive }]}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${Math.min(100, percentage)}%`,
-              backgroundColor: percentage >= 100 ? colors.success : colors.accent,
-            },
-          ]}
-        />
-      </View>
-      <Text style={[styles.dataCardDetail, { color: colors.textTertiary }]}>
-        {card.currentFormatted} / {card.targetFormatted}
-      </Text>
+      {hasBar && (
+        <View style={[styles.progressBar, { backgroundColor: colors.bgInteractive }]}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${Math.min(100, percentage)}%`,
+                backgroundColor: percentage >= 100 ? colors.success : statusColor,
+              },
+            ]}
+          />
+        </View>
+      )}
+      {card.subValue && (
+        <Text style={[styles.dataCardDetail, { color: colors.textTertiary }]}>
+          {card.subValue}
+        </Text>
+      )}
     </View>
   );
 }
@@ -86,54 +98,7 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
     ? questionRegistry.find((q) => q.id === questionId)
     : null;
 
-  // Swipe-to-dismiss
-  const translateY = useRef(new Animated.Value(0)).current;
-  const scrollOffset = useRef(0);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only capture downward drags when scroll is at top
-        return gestureState.dy > 10 && scrollOffset.current <= 0;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy > 0) {
-          translateY.setValue(gestureState.dy);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
-          // Dismiss
-          Animated.timing(translateY, {
-            toValue: SHEET_HEIGHT,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            onClose();
-            translateY.setValue(0);
-          });
-        } else {
-          // Snap back
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            bounciness: 8,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
-  // Reset position when sheet opens
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(0);
-      scrollOffset.current = 0;
-    }
-  }, [visible]);
-
-  // Compute analysis and fetch/generate insight when sheet opens
+  // Compute analysis and fetch/generate insight when dialog opens
   useEffect(() => {
     if (!visible || !questionId || !cache?.data) {
       setAnalysis(null);
@@ -141,18 +106,15 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
       return;
     }
 
-    // Run analyzer for data cards
     const analyzer = questionAnalyzers[questionId];
     if (analyzer) {
       setAnalysis(analyzer(cache.data));
     }
 
-    // Check for cached response
     const cached = cache.responses[questionId];
     if (cached) {
       setResponse(cached);
     } else {
-      // Auto-generate
       generateInsight(questionId).then(setResponse);
     }
   }, [visible, questionId, cache?.data]);
@@ -160,7 +122,6 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
   const handleRegenerate = useCallback(async () => {
     if (!questionId) return;
 
-    // Clear cached response
     const state = useDailyInsightStore.getState();
     if (state.cache?.responses[questionId]) {
       const { [questionId]: _, ...rest } = state.cache.responses;
@@ -178,108 +139,95 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
   return (
     <Modal
       visible={visible}
-      animationType="slide"
       transparent
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.overlayTouchable} onPress={onClose} />
-        <Animated.View
-          {...panResponder.panHandlers}
-          style={[
-            styles.sheet,
-            { backgroundColor: colors.bgPrimary, borderColor: colors.borderDefault },
-            { transform: [{ translateY }] },
-          ]}
-        >
-          {/* Handle bar */}
-          <View style={styles.handleContainer}>
-            <View style={[styles.handle, { backgroundColor: colors.textTertiary }]} />
-          </View>
-
-          <ScrollView
-            style={styles.scrollContent}
-            contentContainerStyle={styles.scrollContentContainer}
-            showsVerticalScrollIndicator={false}
-            onScroll={(e) => {
-              scrollOffset.current = e.nativeEvent.contentOffset.y;
-            }}
-            scrollEventThrottle={16}
+        <Pressable style={styles.overlayPress} onPress={onClose}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.bgElevated,
+                shadowColor: colors.textPrimary,
+              },
+            ]}
           >
-            {/* Question title */}
-            <View style={styles.questionHeader}>
-              <Ionicons name={questionDef.icon as any} size={32} color={colors.accent} />
-              <Text style={[styles.questionText, { color: colors.textPrimary }]}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              {/* Icon */}
+              <View style={styles.iconContainer}>
+                <Ionicons name={questionDef.icon as any} size={40} color={colors.accent} />
+              </View>
+
+              {/* Title */}
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
                 {questionDef.text}
               </Text>
-            </View>
 
-            {/* Data cards */}
-            {analysis && analysis.dataCards.length > 0 && (
-              <View style={styles.dataCardsContainer}>
-                {analysis.dataCards.map((card, index) => (
-                  <DataCard key={index} card={card} colors={colors} />
-                ))}
-              </View>
-            )}
-
-            {/* AI Narrative */}
-            <View
-              style={[
-                styles.narrativeContainer,
-                { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault },
-              ]}
-            >
-              {isGenerating ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color={colors.accent} />
-                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                    Generating insight...
-                  </Text>
-                </View>
-              ) : response ? (
-                <>
-                  <View style={styles.narrativeRow}>
-                    <Ionicons name={response.icon as any} size={18} color={colors.accent} />
-                    <Text style={[styles.narrative, { color: colors.textPrimary }]}>
-                      {response.narrative}
-                    </Text>
-                  </View>
-                  {response.source === 'fallback' && llmStatus !== 'ready' && (
-                    <Text style={[styles.fallbackLabel, { color: colors.textTertiary }]}>
-                      Template insight — download AI model for personalized narration
-                    </Text>
-                  )}
-                </>
-              ) : analysis ? (
-                <Text style={[styles.narrative, { color: colors.textPrimary }]}>
-                  {analysis.fallbackText}
-                </Text>
-              ) : null}
-            </View>
-          </ScrollView>
-
-          {/* Action buttons */}
-          <View style={[styles.actions, { borderColor: colors.borderDefault }]}>
-            {llmStatus === 'ready' && (
-              <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: colors.bgInteractive }]}
-                onPress={handleRegenerate}
-                disabled={isGenerating}
+              {/* Scrollable content */}
+              <ScrollView
+                style={styles.scrollContent}
+                contentContainerStyle={styles.scrollContentContainer}
+                showsVerticalScrollIndicator={false}
               >
-                <Ionicons name="refresh" size={16} color={colors.accent} />
-                <Text style={[styles.actionText, { color: colors.accent }]}>Regenerate</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.bgInteractive }]}
-              onPress={onClose}
-            >
-              <Ionicons name="close" size={16} color={colors.textSecondary} />
-              <Text style={[styles.actionText, { color: colors.textSecondary }]}>Close</Text>
-            </TouchableOpacity>
+                {/* Data cards */}
+                {analysis && analysis.dataCards.length > 0 && (
+                  <View style={styles.dataCardsContainer}>
+                    {analysis.dataCards.map((card, index) => (
+                      <DataCard key={index} card={card} colors={colors} />
+                    ))}
+                  </View>
+                )}
+
+                {/* AI Narrative */}
+                <View
+                  style={[
+                    styles.narrativeContainer,
+                    { backgroundColor: colors.bgInteractive, borderColor: colors.borderDefault },
+                  ]}
+                >
+                  {isGenerating ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color={colors.accent} />
+                      <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                        Generating insight...
+                      </Text>
+                    </View>
+                  ) : response ? (
+                    <>
+                      <View style={styles.narrativeRow}>
+                        <Ionicons name={response.icon as any} size={18} color={colors.accent} />
+                        <Text style={[styles.narrative, { color: colors.textPrimary }]}>
+                          {response.narrative}
+                        </Text>
+                      </View>
+                      {response.source === 'fallback' && llmStatus !== 'ready' && (
+                        <Text style={[styles.fallbackLabel, { color: colors.textTertiary }]}>
+                          Template insight — download AI model for personalized narration
+                        </Text>
+                      )}
+                    </>
+                  ) : analysis ? (
+                    <Text style={[styles.narrative, { color: colors.textPrimary }]}>
+                      {analysis.fallbackText}
+                    </Text>
+                  ) : null}
+                </View>
+              </ScrollView>
+
+              {/* Okay button */}
+              <View style={styles.actions}>
+                <Pressable
+                  style={[styles.actionButton, { backgroundColor: colors.accent }]}
+                  onPress={onClose}
+                >
+                  <Text style={styles.actionText}>Okay</Text>
+                </Pressable>
+              </View>
+            </Pressable>
           </View>
-        </Animated.View>
+        </Pressable>
       </View>
     </Modal>
   );
@@ -288,56 +236,41 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  overlayTouchable: {
+  overlayPress: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    height: SHEET_HEIGHT,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-  },
-  handleContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: spacing[2],
-    paddingBottom: spacing[1],
   },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    opacity: 0.4,
+  card: {
+    width: '90%',
+    maxWidth: 380,
+    maxHeight: '80%',
+    borderRadius: borderRadius.xl,
+    padding: spacing[6],
   },
-  scrollContent: {
-    flex: 1,
-  },
-  scrollContentContainer: {
-    padding: spacing[4],
-    gap: spacing[4],
-  },
-  questionHeader: {
+  iconContainer: {
     alignItems: 'center',
-    gap: spacing[2],
+    marginBottom: spacing[3],
   },
-  questionIcon: {
-    marginBottom: spacing[1],
-  },
-  questionText: {
+  title: {
     ...typography.title.medium,
     textAlign: 'center',
-    fontWeight: '600',
+    marginBottom: spacing[4],
+  },
+  scrollContent: {
+    flexGrow: 0,
+  },
+  scrollContentContainer: {
+    gap: spacing[3],
   },
   dataCardsContainer: {
-    gap: spacing[2],
+    gap: spacing[1],
   },
   dataCard: {
     paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
+    paddingHorizontal: spacing[2],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   dataCardHeader: {
@@ -351,7 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dataCardPercent: {
-    ...typography.metric.small,
+    ...typography.body.small,
     fontWeight: '700',
   },
   progressBar: {
@@ -368,7 +301,7 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
   },
   narrativeContainer: {
-    padding: spacing[4],
+    padding: spacing[3],
     borderRadius: borderRadius.lg,
     borderWidth: 1,
   },
@@ -392,29 +325,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[2],
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[3],
   },
   loadingText: {
     ...typography.body.small,
   },
   actions: {
-    flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing[3],
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    marginTop: spacing[5],
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[2],
+    minWidth: 140,
+    paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
     borderRadius: borderRadius.lg,
   },
   actionText: {
-    ...typography.body.small,
+    ...typography.body.medium,
     fontWeight: '600',
+    textAlign: 'center',
+    color: '#FFFFFF',
   },
 });

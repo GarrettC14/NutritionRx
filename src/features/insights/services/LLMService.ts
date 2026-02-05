@@ -7,7 +7,7 @@
  */
 
 import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import Constants from 'expo-constants';
 import type { LLMCapabilities, LLMDownloadProgress, LLMStatus } from '../types/insights.types';
 
@@ -46,10 +46,10 @@ class LLMServiceClass {
   private context: any = null;
   private isInitializing: boolean = false;
   private modelPath: string;
-  private downloadResumable: FileSystem.DownloadResumable | null = null;
+  private downloadCancelled: boolean = false;
 
   constructor() {
-    this.modelPath = `${FileSystem.documentDirectory}${MODEL_CONFIG.fileName}`;
+    this.modelPath = new File(Paths.document, MODEL_CONFIG.fileName).uri;
   }
 
   async checkCapabilities(): Promise<LLMCapabilities> {
@@ -102,7 +102,7 @@ class LLMServiceClass {
         }
       }
 
-      const freeSpace = await this.getFreeDiskSpace();
+      const freeSpace = this.getFreeDiskSpace();
       console.log(`[LLM:Service] Free disk space: ${(freeSpace / 1_000_000_000).toFixed(2)}GB (need ${(MODEL_CONFIG.minFreeSpaceBytes / 1_000_000_000).toFixed(2)}GB)`);
       if (freeSpace < MODEL_CONFIG.minFreeSpaceBytes) {
         console.log('[LLM:Service] checkCapabilities → BLOCKED: insufficient storage');
@@ -125,10 +125,9 @@ class LLMServiceClass {
     }
   }
 
-  private async getFreeDiskSpace(): Promise<number> {
+  private getFreeDiskSpace(): number {
     try {
-      const freeSpace = await FileSystem.getFreeDiskStorageAsync();
-      return freeSpace;
+      return Paths.availableDiskSpace;
     } catch {
       // Return a large value to not block on disk space check errors
       return MODEL_CONFIG.minFreeSpaceBytes * 2;
@@ -142,11 +141,13 @@ class LLMServiceClass {
     }
 
     try {
-      const fileInfo = await FileSystem.getInfoAsync(this.modelPath);
-      console.log(`[LLM:Service] isModelDownloaded check — path=${this.modelPath}, exists=${fileInfo.exists}, size=${fileInfo.exists ? fileInfo.size : 'N/A'}`);
-      if (!fileInfo.exists) return false;
-      const downloaded = (fileInfo.size ?? 0) >= MODEL_CONFIG.expectedSizeBytes * 0.8;
-      console.log(`[LLM:Service] isModelDownloaded → ${downloaded} (size=${fileInfo.size}, threshold=${MODEL_CONFIG.expectedSizeBytes * 0.8})`);
+      const file = new File(Paths.document, MODEL_CONFIG.fileName);
+      const exists = file.exists;
+      const size = exists ? file.size : 0;
+      console.log(`[LLM:Service] isModelDownloaded check — path=${this.modelPath}, exists=${exists}, size=${size}`);
+      if (!exists) return false;
+      const downloaded = size >= MODEL_CONFIG.expectedSizeBytes * 0.8;
+      console.log(`[LLM:Service] isModelDownloaded → ${downloaded} (size=${size}, threshold=${MODEL_CONFIG.expectedSizeBytes * 0.8})`);
       return downloaded;
     } catch (err) {
       console.log('[LLM:Service] isModelDownloaded → false (error)', err);
@@ -195,35 +196,48 @@ class LLMServiceClass {
         return { success: true };
       }
 
+      this.downloadCancelled = false;
       const startTime = Date.now();
+      const destFile = new File(Paths.document, MODEL_CONFIG.fileName);
 
-      const callback: FileSystem.DownloadProgressCallback = (downloadProgress) => {
-        const bytesDownloaded = downloadProgress.totalBytesWritten;
-        const totalBytes = downloadProgress.totalBytesExpectedToWrite || MODEL_CONFIG.expectedSizeBytes;
-        const percentage = Math.round((bytesDownloaded / totalBytes) * 100);
-        const elapsedSeconds = (Date.now() - startTime) / 1000;
-        const bytesPerSecond = bytesDownloaded / elapsedSeconds;
-        const remainingBytes = totalBytes - bytesDownloaded;
-        const estimatedSecondsRemaining = Math.round(remainingBytes / bytesPerSecond);
+      // Poll file size for progress while download runs
+      const progressInterval = setInterval(() => {
+        if (this.downloadCancelled) return;
+        try {
+          const file = new File(Paths.document, MODEL_CONFIG.fileName);
+          if (file.exists) {
+            const bytesDownloaded = file.size;
+            const totalBytes = MODEL_CONFIG.expectedSizeBytes;
+            const percentage = Math.min(99, Math.round((bytesDownloaded / totalBytes) * 100));
+            const elapsedSeconds = (Date.now() - startTime) / 1000;
+            const bytesPerSecond = elapsedSeconds > 0 ? bytesDownloaded / elapsedSeconds : 0;
+            const remainingBytes = totalBytes - bytesDownloaded;
+            const estimatedSecondsRemaining = bytesPerSecond > 0 ? Math.round(remainingBytes / bytesPerSecond) : undefined;
+            onProgress?.({ bytesDownloaded, totalBytes, percentage, estimatedSecondsRemaining });
+          }
+        } catch {}
+      }, 1000);
 
-        onProgress?.({ bytesDownloaded, totalBytes, percentage, estimatedSecondsRemaining });
-      };
+      try {
+        console.log('[LLMService] Download started');
+        await File.downloadFileAsync(MODEL_CONFIG.downloadUrl, destFile, { idempotent: true });
 
-      this.downloadResumable = FileSystem.createDownloadResumable(
-        MODEL_CONFIG.downloadUrl,
-        this.modelPath,
-        {},
-        callback
-      );
+        if (this.downloadCancelled) {
+          console.log('[LLMService] Download cancelled — cleaning up');
+          try { new File(Paths.document, MODEL_CONFIG.fileName).delete(); } catch {}
+          return { success: false, error: 'Download cancelled' };
+        }
 
-      console.log('[LLMService] Download started');
-      const result = await this.downloadResumable.downloadAsync();
+        onProgress?.({
+          bytesDownloaded: MODEL_CONFIG.expectedSizeBytes,
+          totalBytes: MODEL_CONFIG.expectedSizeBytes,
+          percentage: 100,
+        });
 
-      if (result?.uri) {
         console.log('[LLMService] Download completed successfully');
         return { success: true };
-      } else {
-        throw new Error('Download failed - no URI returned');
+      } finally {
+        clearInterval(progressInterval);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown download error';
@@ -231,31 +245,24 @@ class LLMServiceClass {
 
       // Clean up partial download
       try {
-        const fileInfo = await FileSystem.getInfoAsync(this.modelPath);
-        if (fileInfo.exists) {
-          await FileSystem.deleteAsync(this.modelPath, { idempotent: true });
-        }
+        const file = new File(Paths.document, MODEL_CONFIG.fileName);
+        if (file.exists) file.delete();
       } catch {}
 
       return { success: false, error: errorMessage };
-    } finally {
-      this.downloadResumable = null;
     }
   }
 
   cancelDownload(): void {
-    if (this.downloadResumable) {
-      this.downloadResumable.pauseAsync().catch(() => {});
-      this.downloadResumable = null;
-    }
+    this.downloadCancelled = true;
   }
 
   async deleteModel(): Promise<void> {
     try {
       await this.unload();
-      const fileInfo = await FileSystem.getInfoAsync(this.modelPath);
-      if (fileInfo.exists) {
-        await FileSystem.deleteAsync(this.modelPath, { idempotent: true });
+      const file = new File(Paths.document, MODEL_CONFIG.fileName);
+      if (file.exists) {
+        file.delete();
         console.log('[LLMService] Model deleted');
       }
     } catch (error) {
@@ -440,10 +447,8 @@ class LLMServiceClass {
 
   async getModelSize(): Promise<number> {
     try {
-      if (await this.isModelDownloaded()) {
-        const fileInfo = await FileSystem.getInfoAsync(this.modelPath);
-        return fileInfo.size ?? 0;
-      }
+      const file = new File(Paths.document, MODEL_CONFIG.fileName);
+      if (file.exists) return file.size;
       return 0;
     } catch {
       return 0;

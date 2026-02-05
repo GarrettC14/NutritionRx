@@ -7,8 +7,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { getCategoryTitle, getCategoryColor } from '../services/InsightPromptBuilder';
+import { getCategoryTitle, getCategoryColor, getCategoryIcon } from '../services/InsightPromptBuilder';
 import type { Insight } from '../types/insights.types';
+
+// Cached insights may still have old emoji icons — fall back to category-based Ionicon
+function resolveIcon(insight: Insight): string {
+  return insight.icon?.includes('-') ? insight.icon : getCategoryIcon(insight.category);
+}
 
 interface InsightCardProps {
   insight: Insight;
@@ -17,12 +22,13 @@ interface InsightCardProps {
 export function InsightCard({ insight }: InsightCardProps) {
   const { colors } = useTheme();
   const catColor = getCategoryColor(insight.category);
+  const iconName = resolveIcon(insight);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
       <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
-          <Ionicons name={insight.icon as any} size={16} color={catColor} />
+          <Ionicons name={iconName as any} size={16} color={catColor} />
         </View>
         <Text style={[styles.category, { color: colors.textSecondary }]}>
           {getCategoryTitle(insight.category)}

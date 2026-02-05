@@ -201,13 +201,14 @@ export async function seedMicronutrientData(): Promise<{ success: boolean; error
     console.log('[SeedData] Starting micronutrient data seeding...');
 
     // 1. Insert micronutrient data for seed foods
+    const now = new Date().toISOString();
     for (const [foodId, nutrients] of Object.entries(FOOD_MICRONUTRIENTS)) {
       for (const [nutrientId, amount] of Object.entries(nutrients)) {
         await db.runAsync(
           `INSERT OR REPLACE INTO food_item_nutrients
-           (food_item_id, nutrient_id, amount, source, updated_at)
-           VALUES (?, ?, ?, 'seed', datetime('now'))`,
-          [foodId, nutrientId, amount]
+           (id, food_item_id, nutrient_id, amount, created_at)
+           VALUES (?, ?, ?, ?, ?)`,
+          [generateId(), foodId, nutrientId, amount, now]
         );
       }
     }
@@ -277,11 +278,15 @@ export async function clearSeedData(): Promise<{ success: boolean; error?: strin
   try {
     const db = getDatabase();
 
-    // Delete seeded micronutrient data
-    await db.runAsync("DELETE FROM food_item_nutrients WHERE source = 'seed'");
+    // Delete seeded micronutrient data (identified by seed food IDs)
+    const seedFoodIds = Object.keys(FOOD_MICRONUTRIENTS);
+    const fnPlaceholders = seedFoodIds.map(() => '?').join(',');
+    await db.runAsync(
+      `DELETE FROM food_item_nutrients WHERE food_item_id IN (${fnPlaceholders})`,
+      seedFoodIds
+    );
 
     // Delete log entries from the past 7 days that reference seed foods
-    const seedFoodIds = Object.keys(FOOD_MICRONUTRIENTS);
     const placeholders = seedFoodIds.map(() => '?').join(',');
     await db.runAsync(
       `DELETE FROM log_entries WHERE food_item_id IN (${placeholders})`,

@@ -33,8 +33,8 @@ const FREE_TIER_LIMITS: Partial<Record<PremiumFeature, number>> = {
 
 export function usePremium() {
   const [state, setState] = useState<PremiumState>({
-    isPremium: false,
-    isLoading: true,
+    isPremium: __DEV__,
+    isLoading: !__DEV__,
     expirationDate: null,
   });
 
@@ -48,16 +48,16 @@ export function usePremium() {
       if (stored) {
         const parsed = JSON.parse(stored);
         setState({
-          isPremium: parsed.isPremium || false,
+          isPremium: __DEV__ || parsed.isPremium || false,
           isLoading: false,
           expirationDate: parsed.expirationDate ? new Date(parsed.expirationDate) : null,
         });
       } else {
-        setState({ isPremium: false, isLoading: false, expirationDate: null });
+        setState({ isPremium: __DEV__, isLoading: false, expirationDate: null });
       }
     } catch (error) {
       console.error('Failed to load premium status:', error);
-      setState({ isPremium: false, isLoading: false, expirationDate: null });
+      setState({ isPremium: __DEV__, isLoading: false, expirationDate: null });
     }
   };
 

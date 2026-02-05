@@ -38,8 +38,8 @@ interface SubscriptionState {
 export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
     (set, get) => ({
-      // Initial state
-      isPremium: false,
+      // Initial state — in dev builds, default to premium for testing
+      isPremium: __DEV__,
       isLoading: true,
       customerInfo: null,
       currentOffering: null,
@@ -69,7 +69,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const activeEntitlement = bundleEntitlement || appEntitlement;
 
           set({
-            isPremium,
+            isPremium: __DEV__ || isPremium,
             customerInfo,
             currentOffering,
             expirationDate: activeEntitlement?.expirationDate || null,
@@ -97,8 +97,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         } catch (error) {
           console.error('Failed to initialize purchases:', error);
           set({
+            isPremium: __DEV__,
             isLoading: false,
-            error: 'Failed to load subscription status',
+            error: __DEV__ ? null : 'Failed to load subscription status',
           });
         }
       },
