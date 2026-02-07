@@ -41,7 +41,7 @@ export function DeficiencyAlertCard({ alert, onDismiss }: DeficiencyAlertCardPro
     <View style={[styles.container, { backgroundColor: bgColor, borderColor }]}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={styles.icon}>{icon}</Text>
+          <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={16} color={colors.textPrimary} />
           <Text style={[styles.nutrientName, { color: colors.textPrimary }]}>{alert.nutrientName}</Text>
           <View style={[styles.badge, { backgroundColor: isDark ? colors.bgInteractive : severityColors.border }]}>
             <Text style={[styles.badgeText, { color: isDark ? colors.textSecondary : severityColors.text }]}>
@@ -87,9 +87,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     flex: 1,
     gap: 6,
-  },
-  icon: {
-    fontSize: 16,
   },
   nutrientName: {
     fontSize: 15,

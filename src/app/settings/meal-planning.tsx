@@ -144,7 +144,7 @@ export default function MealPlanningScreen() {
     showTooltipIfNotSeen({
       id: TOOLTIP_IDS.MEAL_PLAN_COPY_DAY,
       content: 'Tap another day to paste these meals, or tap the same day again to cancel.',
-      icon: '📋',
+      icon: 'clipboard-outline',
       position: 'center',
       actions: [{ label: 'Got it', onPress: () => {}, primary: true }],
     });
@@ -172,7 +172,7 @@ export default function MealPlanningScreen() {
     showConfirm({
       title: 'Clear Day',
       message: 'Are you sure you want to remove all planned meals for this day?',
-      icon: '🗓️',
+      icon: 'calendar-outline',
       confirmLabel: 'Clear',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',
@@ -190,7 +190,7 @@ export default function MealPlanningScreen() {
     showConfirm({
       title: 'Delete Meal',
       message: `Remove ${meal.foodName} from your meal plan?`,
-      icon: '🗑️',
+      icon: 'trash-outline',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

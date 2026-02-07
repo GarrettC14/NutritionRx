@@ -169,7 +169,7 @@ export default function CreateFoodScreen() {
         showConfirm({
           title: 'Food Already Exists',
           message: `A food named "${trimmedName}"${trimmedBrand ? ` by ${trimmedBrand}` : ''} already exists. Would you like to overwrite it with the new values?`,
-          icon: '⚠️',
+          icon: 'alert-circle-outline',
           confirmLabel: 'Overwrite',
           cancelLabel: 'Cancel',
           confirmStyle: 'destructive',

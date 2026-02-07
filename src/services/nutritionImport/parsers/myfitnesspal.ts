@@ -1,6 +1,6 @@
 import { MealType } from '@/constants/mealTypes';
 import { ParsedNutritionDay, ParsedMeal, NutritionTotals } from '@/types/nutritionImport';
-import { NutritionCSVParser, parserUtils } from './types';
+import { NutritionCSVParser, parserUtils, localDateFromKey, ParseResult, ParseWarning } from './types';
 
 /**
  * Parser for MyFitnessPal CSV exports
@@ -24,18 +24,23 @@ export class MyFitnessPalParser implements NutritionCSVParser {
     return hasDate && hasMeal && hasCalories;
   }
 
-  parse(data: Record<string, string>[]): ParsedNutritionDay[] {
-    if (data.length === 0) return [];
+  parse(data: Record<string, string>[]): ParseResult {
+    if (data.length === 0) return { days: [], warnings: [] };
 
+    const warnings: ParseWarning[] = [];
     // Group by date
     const dayMap = new Map<string, ParsedMeal[]>();
 
-    for (const row of data) {
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
       const dateStr = parserUtils.getValue(row, 'Date', 'date');
       const date = parserUtils.parseDate(dateStr);
-      if (!date) continue;
+      if (!date) {
+        warnings.push({ line: i + 2, message: `Could not parse date: "${dateStr}"` });
+        continue;
+      }
 
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = parserUtils.formatDateKey(date);
 
       const mealName = this.normalizeMealName(parserUtils.getValue(row, 'Meal', 'meal'));
       const calories = parserUtils.parseNumber(parserUtils.getValue(row, 'Calories', 'calories'));
@@ -69,7 +74,7 @@ export class MyFitnessPalParser implements NutritionCSVParser {
     for (const [dateKey, meals] of dayMap) {
       const totals = this.calculateTotals(meals);
       days.push({
-        date: new Date(dateKey + 'T12:00:00'),
+        date: localDateFromKey(dateKey),
         meals,
         totals,
       });
@@ -78,7 +83,7 @@ export class MyFitnessPalParser implements NutritionCSVParser {
     // Sort by date ascending
     days.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    return days;
+    return { days, warnings };
   }
 
   private normalizeMealName(name: string): MealType {

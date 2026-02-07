@@ -35,7 +35,7 @@ type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
 
 const TAB_OPTIONS = [
   { value: 'all' as AddFoodTab, label: 'All', testID: TestIDs.AddFood.TabAll },
-  { value: 'restaurants' as AddFoodTab, label: '🍽️ Restaurants', testID: TestIDs.AddFood.TabRestaurants },
+  { value: 'restaurants' as AddFoodTab, label: 'Restaurants', testID: TestIDs.AddFood.TabRestaurants },
   { value: 'my_foods' as AddFoodTab, label: 'My Foods', testID: TestIDs.AddFood.TabMyFoods },
 ];
 
@@ -652,20 +652,12 @@ export default function AddFoodScreen() {
       {/* Bottom Action Buttons */}
       <View style={[styles.bottomButtonsContainer, { backgroundColor: colors.bgPrimary }]}>
         <Pressable
-          testID={TestIDs.AddFood.QuickAddButton}
-          style={[styles.bottomButton, { backgroundColor: colors.accent }]}
-          onPress={handleQuickAdd}
-        >
-          <Ionicons name="flash-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.bottomButtonText}>Quick Add</Text>
-        </Pressable>
-        <Pressable
           testID={TestIDs.AddFood.AIPhotoButton}
-          style={[styles.bottomButton, { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.borderDefault }]}
+          style={[styles.bottomButton, { backgroundColor: colors.accent }]}
           onPress={handleAIPhoto}
         >
-          <Ionicons name="camera-outline" size={22} color={colors.accent} />
-          <Text style={[styles.bottomButtonTextSecondary, { color: colors.textPrimary }]}>AI Photo</Text>
+          <Ionicons name="camera-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.bottomButtonText}>AI Photo</Text>
         </Pressable>
         <Pressable
           testID={TestIDs.AddFood.CreateFoodButton}

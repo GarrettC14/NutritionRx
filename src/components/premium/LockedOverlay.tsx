@@ -52,8 +52,8 @@ export function LockedOverlay({
 
         {/* Lock Icon + Text */}
         <View style={styles.lockContainer}>
-          <View style={[styles.lockIcon, { backgroundColor: colors.bgElevated }]}>
-            <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
+          <View style={[styles.lockIcon, { backgroundColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="lock-closed" size={16} color={colors.premiumGold} />
           </View>
           <Text style={[styles.lockText, { color: colors.textSecondary }]}>{message}</Text>
         </View>

@@ -12,6 +12,7 @@ import { IMPORT_SOURCES, ImportSource } from '@/types/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { TestIDs } from '@/constants/testIDs';
+import { analyzeCSVContent } from '@/services/nutritionImport';
 
 export default function ImportSourceScreen() {
   const { colors } = useTheme();
@@ -22,6 +23,8 @@ export default function ImportSourceScreen() {
 
   const { pickAndAnalyzeFile, currentSession, isLoading, error, clearError } =
     useNutritionImportStore();
+  const [showTestFiles, setShowTestFiles] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
 
   const selectedConfig = IMPORT_SOURCES.find((s) => s.id === selectedSource);
 
@@ -45,7 +48,7 @@ export default function ImportSourceScreen() {
       return;
     }
 
-    const success = await pickAndAnalyzeFile();
+    const success = await pickAndAnalyzeFile(selectedSource);
     if (success) {
       const session = useNutritionImportStore.getState().currentSession;
       // If it's Cronometer and it supports individual foods, show type selection
@@ -54,6 +57,36 @@ export default function ImportSourceScreen() {
       } else {
         router.push('/import-data/preview');
       }
+    }
+  };
+
+  const handleLoadTestFile = async (testFile: { name: string; content: string; expectedSource?: string }) => {
+    setTestLoading(true);
+    try {
+      const source = (testFile.expectedSource as ImportSource) || undefined;
+      const result = analyzeCSVContent(testFile.content, testFile.name, source);
+      if (!result.success || !result.session) {
+        Alert.alert('Test Load Failed', result.error || 'Unknown error');
+        setTestLoading(false);
+        return;
+      }
+      // Put session into the store
+      useNutritionImportStore.setState({
+        currentSession: result.session,
+        currentFileUri: null,
+        isLoading: false,
+        error: null,
+      });
+      setTestLoading(false);
+      setShowTestFiles(false);
+      if (result.session.source === 'cronometer') {
+        router.push('/import-data/type');
+      } else {
+        router.push('/import-data/preview');
+      }
+    } catch (e) {
+      setTestLoading(false);
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to load test file');
     }
   };
 
@@ -155,6 +188,47 @@ export default function ImportSourceScreen() {
             <Pressable testID={TestIDs.Import.ClearErrorButton} onPress={clearError}>
               <Ionicons name="close" size={20} color={colors.error} />
             </Pressable>
+          </View>
+        )}
+
+        {__DEV__ && (
+          <View style={styles.devSection}>
+            <Pressable
+              style={[styles.devToggle, { backgroundColor: colors.bgSecondary }]}
+              onPress={() => setShowTestFiles(!showTestFiles)}
+            >
+              <Ionicons name="bug-outline" size={18} color={colors.textSecondary} />
+              <Text style={[styles.devToggleText, { color: colors.textSecondary }]}>
+                DEV: Load Test CSV
+              </Text>
+              <Ionicons
+                name={showTestFiles ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={colors.textSecondary}
+              />
+            </Pressable>
+
+            {showTestFiles && (
+              <View style={[styles.devFileList, { backgroundColor: colors.bgSecondary }]}>
+                {require('@/test-data/csv').TEST_CSV_FILES.map(
+                  (file: { name: string; label: string; content: string; expectedSource?: string }) => (
+                    <Pressable
+                      key={file.name}
+                      style={[styles.devFileRow, { borderBottomColor: colors.borderDefault }]}
+                      onPress={() => handleLoadTestFile(file)}
+                      disabled={testLoading}
+                    >
+                      <Text style={[styles.devFileName, { color: colors.textPrimary }]}>
+                        {file.label}
+                      </Text>
+                      <Text style={[styles.devFileSource, { color: colors.textTertiary }]}>
+                        {file.expectedSource || 'auto-detect'}
+                      </Text>
+                    </Pressable>
+                  )
+                )}
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -264,5 +338,40 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     flex: 1,
     paddingTop: spacing[1],
+  },
+  devSection: {
+    marginTop: spacing[6],
+  },
+  devToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+  },
+  devToggleText: {
+    ...typography.body.small,
+    fontWeight: '600',
+    flex: 1,
+  },
+  devFileList: {
+    marginTop: spacing[2],
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  devFileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  devFileName: {
+    ...typography.body.small,
+    fontWeight: '500',
+  },
+  devFileSource: {
+    ...typography.body.small,
   },
 });

@@ -165,6 +165,40 @@ export const quickAddRepository = {
     await db.runAsync('DELETE FROM quick_add_entries WHERE date = ?', [date]);
   },
 
+  async createBatch(inputs: CreateQuickAddInput[]): Promise<void> {
+    if (inputs.length === 0) return;
+
+    const db = getDatabase();
+    const now = new Date().toISOString();
+
+    // Insert in chunks of 50 to stay within SQLite variable limits (50 * 10 fields = 500 < 999)
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < inputs.length; i += CHUNK_SIZE) {
+      const chunk = inputs.slice(i, i + CHUNK_SIZE);
+      const placeholders = chunk.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(',');
+      const values = chunk.flatMap((input) => [
+        generateId(),
+        input.date,
+        input.mealType,
+        input.calories,
+        input.protein ?? null,
+        input.carbs ?? null,
+        input.fat ?? null,
+        input.description ?? null,
+        now,
+        now,
+      ]);
+
+      await db.runAsync(
+        `INSERT INTO quick_add_entries (
+          id, date, meal_type, calories, protein, carbs, fat,
+          description, created_at, updated_at
+        ) VALUES ${placeholders}`,
+        values
+      );
+    }
+  },
+
   async exists(id: string): Promise<boolean> {
     const db = getDatabase();
     const result = await db.getFirstAsync<{ count: number }>(

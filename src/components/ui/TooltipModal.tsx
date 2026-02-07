@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -88,7 +89,7 @@ export function TooltipModal() {
           >
             <Pressable onPress={(e) => e.stopPropagation()}>
               {/* Icon */}
-              {icon && <Text style={styles.icon}>{icon}</Text>}
+              {icon && <View style={styles.iconContainer}><Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={40} color={colors.textPrimary} /></View>}
 
               {/* Content */}
               <Text style={[styles.content, { color: colors.textPrimary }]}>
@@ -160,9 +161,8 @@ const styles = StyleSheet.create({
     bottom: spacing[8],
   },
   cardCenter: {},
-  icon: {
-    fontSize: 40,
-    textAlign: 'center',
+  iconContainer: {
+    alignItems: 'center',
     marginBottom: spacing[4],
   },
   content: {

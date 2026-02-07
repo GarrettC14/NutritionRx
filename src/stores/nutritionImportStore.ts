@@ -4,26 +4,31 @@ import {
   ImportSource,
   ImportType,
   ImportProgress,
+  ConflictResolution,
 } from '@/types/nutritionImport';
 import {
   pickCSVFile,
   analyzeNutritionCSV,
   reparseSession,
   executeNutritionImport,
+  findExistingImportDates,
+  cleanupCachedFile,
 } from '@/services/nutritionImport';
 
 interface NutritionImportState {
   // State
   currentSession: NutritionImportSession | null;
   currentFileUri: string | null;
+  selectedSource: ImportSource | null;
   progress: ImportProgress | null;
   isLoading: boolean;
   error: string | null;
 
   // Actions
   startSession: (source: ImportSource) => void;
-  pickAndAnalyzeFile: () => Promise<boolean>;
+  pickAndAnalyzeFile: (source?: ImportSource) => Promise<boolean>;
   setImportType: (importType: ImportType) => Promise<void>;
+  setConflictResolution: (resolution: ConflictResolution) => void;
   executeImport: () => Promise<boolean>;
   cancelSession: () => void;
   clearError: () => void;
@@ -32,6 +37,7 @@ interface NutritionImportState {
 export const useNutritionImportStore = create<NutritionImportState>((set, get) => ({
   currentSession: null,
   currentFileUri: null,
+  selectedSource: null,
   progress: null,
   isLoading: false,
   error: null,
@@ -40,13 +46,14 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
     set({
       currentSession: null,
       currentFileUri: null,
+      selectedSource: source,
       progress: null,
       isLoading: false,
       error: null,
     });
   },
 
-  pickAndAnalyzeFile: async () => {
+  pickAndAnalyzeFile: async (source) => {
     set({ isLoading: true, error: null });
 
     try {
@@ -56,7 +63,8 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
         return false;
       }
 
-      const result = await analyzeNutritionCSV(file.uri, file.name);
+      const selectedSource = source || get().selectedSource;
+      const result = await analyzeNutritionCSV(file.uri, file.name, selectedSource ?? undefined);
 
       if (!result.success || !result.session) {
         set({
@@ -66,8 +74,19 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
         return false;
       }
 
+      // Check for duplicate dates
+      const session = result.session;
+      const allDates = session.parsedDays.map((d) => {
+        const year = d.date.getFullYear();
+        const month = String(d.date.getMonth() + 1).padStart(2, '0');
+        const day = String(d.date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      });
+      const duplicateDates = await findExistingImportDates(allDates);
+      session.duplicateDates = duplicateDates;
+
       set({
-        currentSession: result.session,
+        currentSession: session,
         currentFileUri: file.uri,
         isLoading: false,
       });
@@ -102,8 +121,16 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
     }
   },
 
-  executeImport: async () => {
+  setConflictResolution: (resolution) => {
     const { currentSession } = get();
+    if (!currentSession) return;
+    set({
+      currentSession: { ...currentSession, conflictResolution: resolution },
+    });
+  },
+
+  executeImport: async () => {
+    const { currentSession, currentFileUri } = get();
     if (!currentSession) return false;
 
     set({
@@ -116,6 +143,9 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
       const result = await executeNutritionImport(currentSession, (progress) => {
         set({ progress });
       });
+
+      // Clean up cached file regardless of success/failure
+      await cleanupCachedFile(currentFileUri);
 
       if (!result.success) {
         set({
@@ -132,11 +162,13 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
           ...currentSession,
           status: 'completed',
           importedDays: result.importedDays,
+          skippedDays: result.skippedDays,
         },
       });
 
       return true;
     } catch (error) {
+      await cleanupCachedFile(currentFileUri);
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       set({
         isLoading: false,
@@ -151,6 +183,7 @@ export const useNutritionImportStore = create<NutritionImportState>((set, get) =
     set({
       currentSession: null,
       currentFileUri: null,
+      selectedSource: null,
       progress: null,
       isLoading: false,
       error: null,

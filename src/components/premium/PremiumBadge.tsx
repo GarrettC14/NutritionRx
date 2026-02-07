@@ -19,12 +19,12 @@ export function PremiumBadge({ size = 'small' }: PremiumBadgeProps) {
     <View
       style={[
         styles.badge,
-        { backgroundColor: colors.accent + '33' }, // 20% opacity
+        { backgroundColor: colors.premiumGoldMuted },
         isSmall && styles.badgeSmall,
       ]}
     >
       <Text
-        style={[styles.text, { color: colors.accent }, isSmall && styles.textSmall]}
+        style={[styles.text, { color: colors.premiumGold }, isSmall && styles.textSmall]}
       >
         PRO
       </Text>

@@ -128,8 +128,8 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
         pointerEvents={isPremium ? 'auto' : 'none'}
       >
         <View style={styles.headerLeft}>
-          <View style={[styles.iconContainer, { backgroundColor: `${colors.accent}20` }]}>
-            <Ionicons name="calendar-outline" size={20} color={colors.accent} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="calendar-outline" size={20} color={colors.premiumGold} />
           </View>
           <View>
             <Text style={styles.title}>Weekly Insights</Text>

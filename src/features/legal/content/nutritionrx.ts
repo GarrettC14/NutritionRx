@@ -16,17 +16,17 @@ export const NUTRITION_DISCLAIMER_CONTENT: DisclaimerContent = {
 
   sections: [
     {
-      icon: '🥗',
+      icon: 'nutrition-outline',
       title: 'FOOD IS FUEL, NOT MATH',
       body: "NutritionRx helps you understand what you eat and build awareness of your nutrition patterns.\n\nOur calorie and macro targets are estimates based on general formulas—they're a starting point, not a prescription.",
     },
     {
-      icon: '💚',
+      icon: 'heart-outline',
       title: 'YOUR WELLBEING MATTERS',
       body: "If you have diabetes, kidney disease, food allergies, or any health condition affected by diet, please work with a doctor or registered dietitian alongside this app.\n\nCalorie tracking isn't right for everyone. If you have a history of disordered eating, please consider whether this tool is helpful for you—and reach out to a professional if you need support.",
     },
     {
-      icon: '⚖️',
+      icon: 'scale-outline',
       title: 'THE FINE PRINT',
       body: [
         'This app provides educational information, not medical or dietary treatment',

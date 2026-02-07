@@ -26,7 +26,7 @@ export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
   const progress = Math.min(caloriesConsumed / calorieTarget, 1);
 
   // Ring calculations
-  const size = 100;
+  const size = 120;
   const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -114,16 +114,16 @@ const createStyles = (colors: any) =>
     },
     ringContainer: {
       position: 'relative',
-      width: 100,
-      height: 100,
+      width: 120,
+      height: 120,
       marginRight: 20,
     },
     ringContent: {
       position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      top: 15,
+      left: 15,
+      right: 15,
+      bottom: 15,
       alignItems: 'center',
       justifyContent: 'center',
     },

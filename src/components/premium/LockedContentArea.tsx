@@ -86,8 +86,8 @@ export function LockedContentArea({
 
         {/* Lock Icon + Text */}
         <View style={styles.lockContainer}>
-          <View style={[styles.lockIcon, { backgroundColor: `${colors.accent}20` }]}>
-            <Ionicons name="lock-closed" size={20} color={colors.accent} />
+          <View style={[styles.lockIcon, { backgroundColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="lock-closed" size={20} color={colors.premiumGold} />
           </View>
           <Text style={[styles.lockText, { color: colors.textSecondary }]}>
             {message}

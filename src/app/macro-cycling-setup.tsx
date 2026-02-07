@@ -187,7 +187,7 @@ export default function MacroCyclingSetupScreen() {
     showConfirm({
       title: 'Disable Macro Cycling?',
       message: 'Your daily targets will return to the base values.',
-      icon: '🔄',
+      icon: 'refresh-outline',
       confirmLabel: 'Disable',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

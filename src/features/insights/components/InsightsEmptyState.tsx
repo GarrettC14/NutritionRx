@@ -19,7 +19,7 @@ export function InsightsEmptyState({ title, message }: InsightsEmptyStateProps) 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault }]}>
       <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>
-        <Ionicons name="sparkles" size={24} color={colors.accent} />
+        <Ionicons name="sparkles" size={24} color={colors.premiumGold} />
       </View>
       <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>

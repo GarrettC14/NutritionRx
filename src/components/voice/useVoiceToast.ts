@@ -57,7 +57,7 @@ export function useVoiceToast() {
   const showWaterAddedToast = useCallback(
     (glassesAdded: number, totalGlasses: number, goal: number) => {
       showToast({
-        icon: '💧',
+        icon: 'water-outline',
         title: `+${glassesAdded} Water`,
         subtitle: `${totalGlasses} of ${goal}`,
       });
@@ -74,7 +74,7 @@ export function useVoiceToast() {
   const showQuickAddToast = useCallback(
     (calories: number, meal: string) => {
       showToast({
-        icon: '✓',
+        icon: 'checkmark-outline',
         title: `+${calories} cal`,
         subtitle: capitalizeFirst(meal),
       });
@@ -95,7 +95,7 @@ export function useVoiceToast() {
       const unitLabel = unit === 'pounds' ? 'lbs' : 'kg';
 
       showToast({
-        icon: '⚖️',
+        icon: 'scale-outline',
         title: `${formattedWeight} ${unitLabel}`,
         subtitle: 'Weight logged',
       });
@@ -112,7 +112,7 @@ export function useVoiceToast() {
   const showCalorieQueryToast = useCallback(
     (calories: number) => {
       showToast({
-        icon: '🔥',
+        icon: 'flame-outline',
         title: `${calories.toLocaleString()} cal`,
         subtitle: 'Today',
       });
@@ -129,7 +129,7 @@ export function useVoiceToast() {
   const showMacroQueryToast = useCallback(
     (macroType: string, amount: number) => {
       showToast({
-        icon: '📊',
+        icon: 'bar-chart-outline',
         title: `${Math.round(amount)}g ${macroType}`,
         subtitle: 'Today',
       });
@@ -146,7 +146,7 @@ export function useVoiceToast() {
   const showWaterQueryToast = useCallback(
     (glasses: number, goal: number) => {
       showToast({
-        icon: '💧',
+        icon: 'water-outline',
         title: `${glasses} glasses`,
         subtitle: `${glasses} of ${goal}`,
       });
@@ -162,7 +162,7 @@ export function useVoiceToast() {
   const showErrorToast = useCallback(
     (message: string) => {
       showToast({
-        icon: '⚠️',
+        icon: 'alert-circle-outline',
         title: 'Error',
         subtitle: message,
       });

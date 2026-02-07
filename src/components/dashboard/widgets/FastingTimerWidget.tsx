@@ -21,10 +21,10 @@ interface FastingPhase {
 }
 
 const FASTING_PHASES: Record<string, FastingPhase> = {
-  fed: { label: 'Fed state', icon: '🍽️' },
-  fat_burning: { label: 'Fat burning mode', icon: '🔥' },
-  ketosis: { label: 'Ketosis beginning', icon: '⚡' },
-  deep_ketosis: { label: 'Deep ketosis', icon: '✨' },
+  fed: { label: 'Fed state', icon: 'restaurant-outline' },
+  fat_burning: { label: 'Fat burning mode', icon: 'flame-outline' },
+  ketosis: { label: 'Ketosis beginning', icon: 'flash-outline' },
+  deep_ketosis: { label: 'Deep ketosis', icon: 'sparkles-outline' },
 };
 
 function getFastingPhase(hoursElapsed: number): FastingPhase {
@@ -182,7 +182,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
       case 'complete':
         return (
           <View style={styles.completeContent}>
-            <Text style={styles.completeEmoji}>🎉</Text>
+            <Ionicons name="trophy-outline" size={36} color={stateColor} />
             <Text style={styles.completeText}>Fast complete!</Text>
             {stats?.currentStreak && stats.currentStreak > 1 && (
               <Text style={styles.streakText}>
@@ -232,8 +232,9 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
 
             {/* Fasting phase */}
             <View style={styles.phaseContainer}>
+              <Ionicons name={phase.icon as keyof typeof Ionicons.glyphMap} size={12} color={colors.textSecondary} />
               <Text style={styles.phaseText}>
-                {phase.icon} {phase.label}
+                {phase.label}
               </Text>
             </View>
           </View>
@@ -413,6 +414,9 @@ const createStyles = (colors: any) =>
       marginTop: 10,
     },
     phaseContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       marginTop: 8,
     },
     phaseText: {
@@ -447,9 +451,6 @@ const createStyles = (colors: any) =>
     // Complete content
     completeContent: {
       alignItems: 'center',
-    },
-    completeEmoji: {
-      fontSize: 36,
     },
     completeText: {
       fontSize: 18,

@@ -239,7 +239,7 @@ export default function TodayScreen() {
     showConfirm({
       title: 'Restore Default Layout',
       message: 'This will reset your dashboard to the default widget layout. Your data will not be affected.',
-      icon: '🔄',
+      icon: 'refresh-outline',
       confirmLabel: 'Restore',
       cancelLabel: 'Cancel',
       onConfirm: () => {

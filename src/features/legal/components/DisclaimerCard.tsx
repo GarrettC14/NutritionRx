@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -15,7 +16,7 @@ export function DisclaimerCard({ icon, title, body }: DisclaimerCardProps) {
   return (
     <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
       <View style={styles.cardHeader}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={20} color={colors.textSecondary} />
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
           {title}
         </Text>
@@ -52,9 +53,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[2],
     marginBottom: spacing[3],
-  },
-  icon: {
-    fontSize: 20,
   },
   cardTitle: {
     ...typography.body.medium,

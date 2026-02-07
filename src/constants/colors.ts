@@ -41,6 +41,11 @@ export const colors = {
 
     // Favorites
     favorites: '#FFD54F',
+
+    // Premium
+    premiumGold: '#C9953C',
+    premiumGoldMuted: 'rgba(201, 149, 60, 0.15)',
+    premiumGoldSubtle: 'rgba(201, 149, 60, 0.08)',
   },
 
   // === LIGHT MODE ===
@@ -85,6 +90,11 @@ export const colors = {
 
     // Favorites
     favorites: '#F59E0B',
+
+    // Premium
+    premiumGold: '#A67C32',
+    premiumGoldMuted: 'rgba(166, 124, 50, 0.12)',
+    premiumGoldSubtle: 'rgba(166, 124, 50, 0.06)',
   },
 } as const;
 
@@ -165,6 +175,9 @@ export interface Colors {
   ringTrack: string;
   ringFill: string;
   favorites: string;
+  premiumGold: string;
+  premiumGoldMuted: string;
+  premiumGoldSubtle: string;
 }
 
 export interface ChartColors {

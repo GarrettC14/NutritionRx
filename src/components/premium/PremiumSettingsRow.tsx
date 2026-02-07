@@ -39,10 +39,10 @@ export function PremiumSettingsRow({
   };
 
   return (
-    <TouchableOpacity testID={testID} style={styles.row} onPress={handlePress}>
+    <TouchableOpacity testID={testID} style={[styles.row, { backgroundColor: colors.bgSecondary }]} onPress={handlePress}>
       {icon && (
-        <View style={[styles.iconContainer, { backgroundColor: colors.accent + '26' }]}>
-          <Ionicons name={icon} size={18} color={colors.accent} />
+        <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>
+          <Ionicons name={icon} size={20} color={colors.accent} />
         </View>
       )}
 
@@ -58,7 +58,7 @@ export function PremiumSettingsRow({
           <Ionicons
             name="lock-closed"
             size={14}
-            color={colors.textTertiary}
+            color={colors.premiumGold}
             style={styles.lockIcon}
           />
         )}
@@ -72,16 +72,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 16,
+    gap: 12,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
   content: {
     flex: 1,

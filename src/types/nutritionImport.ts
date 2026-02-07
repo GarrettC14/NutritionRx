@@ -39,6 +39,11 @@ export interface ParsedNutritionDay {
   totals: NutritionTotals;
 }
 
+export interface ParseWarning {
+  line: number;
+  message: string;
+}
+
 export interface NutritionImportSession {
   id: string;
   source: ImportSource;
@@ -46,8 +51,12 @@ export interface NutritionImportSession {
   status: ImportStatus;
   fileName?: string;
   parsedDays: ParsedNutritionDay[];
+  warnings: ParseWarning[];
   totalDays: number;
   importedDays: number;
+  skippedDays: number;
+  duplicateDates: string[];
+  conflictResolution: ConflictResolution;
   error?: string;
   createdAt: Date;
 }
@@ -157,25 +166,4 @@ export interface ImportProgress {
 
 export type ConflictResolution = 'skip' | 'overwrite' | 'merge';
 
-export interface ImportConflict {
-  date: string;
-  existingData: ParsedNutritionDay;
-  importedData: ParsedNutritionDay;
-  resolution?: ConflictResolution;
-}
-
-export interface ImportResult {
-  success: boolean;
-  importedDays: number;
-  skippedDays: number;
-  mergedDays: number;
-  errors: ImportError[];
-}
-
-export interface ImportError {
-  date?: string;
-  line?: number;
-  message: string;
-  field?: string;
-}
 

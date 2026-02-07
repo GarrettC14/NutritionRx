@@ -29,8 +29,8 @@ export function PremiumBanner({
 
   if (variant === 'compact') {
     return (
-      <View style={[styles.compactContainer, { backgroundColor: colors.accent + '15' }]}>
-        <Ionicons name="sparkles" size={18} color={colors.accent} />
+      <View style={[styles.compactContainer, { backgroundColor: colors.premiumGoldSubtle }]}>
+        <Ionicons name="sparkles" size={18} color={colors.premiumGold} />
         <Text style={[styles.compactText, { color: colors.textPrimary }]} numberOfLines={1}>
           {title}
         </Text>
@@ -50,10 +50,10 @@ export function PremiumBanner({
   }
 
   return (
-    <View style={[styles.expandedContainer, { backgroundColor: colors.accent + '10' }]}>
+    <View style={[styles.expandedContainer, { backgroundColor: colors.premiumGoldSubtle }]}>
       <View style={styles.expandedContent}>
-        <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
-          <Ionicons name="sparkles" size={24} color={colors.accent} />
+        <View style={[styles.iconContainer, { backgroundColor: colors.premiumGoldMuted }]}>
+          <Ionicons name="sparkles" size={24} color={colors.premiumGold} />
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.expandedTitle, { color: colors.textPrimary }]}>{title}</Text>

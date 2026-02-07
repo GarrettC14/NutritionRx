@@ -17,6 +17,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -108,7 +109,7 @@ export function VoiceToast({
           },
         ]}
       >
-        <Text style={styles.icon}>{icon}</Text>
+        <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={24} color={colors.textPrimary} style={{ marginRight: spacing[3] }} />
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {title}
@@ -146,10 +147,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
-  },
-  icon: {
-    fontSize: 24,
-    marginRight: spacing[3],
   },
   textContainer: {
     flex: 1,

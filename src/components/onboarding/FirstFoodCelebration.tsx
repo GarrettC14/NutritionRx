@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -46,13 +47,10 @@ export function FirstFoodCelebration({
             entering={ZoomIn.duration(300).springify().damping(15)}
             style={[styles.card, { backgroundColor: colors.bgElevated }]}
           >
-            {/* Emoji */}
-            <Animated.Text
-              entering={FadeIn.delay(200)}
-              style={styles.emoji}
-            >
-              🎉
-            </Animated.Text>
+            {/* Icon */}
+            <Animated.View entering={FadeIn.delay(200)} style={{ marginBottom: spacing[4] }}>
+              <Ionicons name="trophy-outline" size={56} color={colors.accent} />
+            </Animated.View>
 
             {/* Title */}
             <Text style={[styles.title, { color: colors.textPrimary }]}>
@@ -116,10 +114,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing[6],
     alignItems: 'center',
-  },
-  emoji: {
-    fontSize: 56,
-    marginBottom: spacing[4],
   },
   title: {
     ...typography.display.small,

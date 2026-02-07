@@ -90,7 +90,7 @@ export default function WaterSettingsScreen() {
         >
           {/* Summary Card */}
           <View style={[styles.summaryCard, { backgroundColor: colors.bgSecondary }]}>
-            <Text style={styles.waterEmoji}>💧</Text>
+            <Ionicons name="water-outline" size={40} color={colors.accent} />
             <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>
               Daily Goal: {dailyWaterL}L
             </Text>
@@ -259,10 +259,6 @@ const styles = StyleSheet.create({
     padding: spacing[5],
     borderRadius: borderRadius.lg,
     gap: spacing[2],
-  },
-  waterEmoji: {
-    fontSize: 40,
-    marginBottom: spacing[1],
   },
   summaryTitle: {
     ...typography.title.medium,

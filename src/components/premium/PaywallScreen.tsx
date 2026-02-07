@@ -218,7 +218,7 @@ export function PaywallScreen() {
       width: 64,
       height: 64,
       borderRadius: 14,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.premiumGoldMuted,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 16,
@@ -250,7 +250,7 @@ export function PaywallScreen() {
       width: 24,
       height: 24,
       borderRadius: 12,
-      backgroundColor: colors.accent + '26',
+      backgroundColor: colors.premiumGoldMuted,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 12,
@@ -382,7 +382,7 @@ export function PaywallScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.appIcon}>
-            <Ionicons name="nutrition" size={28} color="#FFFFFF" />
+            <Ionicons name="nutrition" size={28} color={colors.premiumGold} />
           </View>
           <Text style={styles.title}>{contextConfig.header}</Text>
           <Text style={styles.subtitle}>Upgrade to unlock this feature</Text>
@@ -393,7 +393,7 @@ export function PaywallScreen() {
           {contextConfig.benefits.map((benefit, index) => (
             <View key={index} style={styles.benefitRow}>
               <View style={styles.benefitIcon}>
-                <Ionicons name="checkmark" size={14} color={colors.accent} />
+                <Ionicons name="checkmark" size={14} color={colors.premiumGold} />
               </View>
               <Text style={styles.benefitText}>{benefit}</Text>
             </View>

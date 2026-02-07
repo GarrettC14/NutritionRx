@@ -1,5 +1,15 @@
 import { ParsedNutritionDay, ImportType } from '@/types/nutritionImport';
 
+export interface ParseWarning {
+  line: number;
+  message: string;
+}
+
+export interface ParseResult {
+  days: ParsedNutritionDay[];
+  warnings: ParseWarning[];
+}
+
 /**
  * Interface for CSV parsers that detect and parse nutrition data
  * from different app export formats.
@@ -13,7 +23,7 @@ export interface NutritionCSVParser {
   /**
    * Parse the CSV data into standardized nutrition days
    */
-  parse(data: Record<string, string>[], importType?: ImportType): ParsedNutritionDay[];
+  parse(data: Record<string, string>[], importType?: ImportType): ParseResult;
 }
 
 /**
@@ -71,6 +81,17 @@ export const parserUtils = {
   },
 
   /**
+   * Format a Date as a local YYYY-MM-DD string for use as a map key.
+   * Avoids toISOString() which converts to UTC and can shift dates.
+   */
+  formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+
+  /**
    * Get value from row by column name (case-insensitive)
    */
   getValue(row: Record<string, string>, ...possibleKeys: string[]): string {
@@ -89,3 +110,12 @@ export const parserUtils = {
     return '';
   },
 };
+
+/**
+ * Construct a local Date from a YYYY-MM-DD date key string.
+ * Avoids new Date('YYYY-MM-DD') which parses as UTC midnight.
+ */
+export function localDateFromKey(dateKey: string): Date {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}

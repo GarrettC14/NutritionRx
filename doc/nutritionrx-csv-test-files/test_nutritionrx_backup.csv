@@ -1,0 +1,10 @@
+Date,Meal,Type,Food Name,Brand,Servings,Calories,Protein (g),Carbs (g),Fat (g)
+2024-01-15,Breakfast,quick_add,Morning Shake,,1,350,30,35,10
+2024-01-15,Lunch,food_entry,Chicken Breast,Kirkland,2,280,52,0,6
+2024-01-15,Lunch,food_entry,Brown Rice,Uncle Ben's,1,215,5,45,1.8
+2024-01-15,Dinner,quick_add,Evening Meal,,1,600,40,50,22
+2024-01-15,Snack,food_entry,Protein Bar,Quest,1,200,21,22,8
+2024-01-16,Breakfast,food_entry,Greek Yogurt,Fage,1.5,225,30,13.5,6
+2024-01-16,Lunch,quick_add,Lunch Total,,1,550,38,48,18
+2024-01-16,Dinner,food_entry,Salmon,Wild Caught,1,290,40,0,13
+2024-01-16,Snack,quick_add,Snack,,1,180,10,20,6

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,8 +9,85 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { ImportPreviewCard, ImportSampleDay } from '@/components/nutritionImport';
 import { useNutritionImportStore } from '@/stores/nutritionImportStore';
+import { NutritionImportSession, ConflictResolution } from '@/types/nutritionImport';
 import { ImportPreviewSkeleton } from '@/components/ui/Skeleton';
 import { TestIDs } from '@/constants/testIDs';
+
+function DuplicateWarning({ session }: { session: NutritionImportSession }) {
+  const { colors } = useTheme();
+  const setConflictResolution = useNutritionImportStore((s) => s.setConflictResolution);
+  const count = session.duplicateDates.length;
+  const resolution = session.conflictResolution;
+
+  const options: { value: ConflictResolution; label: string }[] = [
+    { value: 'skip', label: 'Skip duplicates' },
+    { value: 'overwrite', label: 'Replace existing' },
+    { value: 'merge', label: 'Import alongside' },
+  ];
+
+  return (
+    <View style={[styles.warningsBox, { backgroundColor: colors.warningBg ?? colors.bgSecondary }]}>
+      <View style={styles.warningsHeader}>
+        <Ionicons name="copy-outline" size={20} color={colors.warning} />
+        <Text style={[styles.warningsTitle, { color: colors.warning }]}>
+          {count} {count === 1 ? 'day' : 'days'} already have imported data
+        </Text>
+      </View>
+      <View style={styles.conflictOptions}>
+        {options.map((opt) => (
+          <Pressable
+            key={opt.value}
+            style={[
+              styles.conflictOption,
+              { backgroundColor: resolution === opt.value ? colors.accent + '20' : colors.bgSecondary,
+                borderColor: resolution === opt.value ? colors.accent : colors.borderDefault },
+            ]}
+            onPress={() => setConflictResolution(opt.value)}
+          >
+            <Ionicons
+              name={resolution === opt.value ? 'radio-button-on' : 'radio-button-off'}
+              size={18}
+              color={resolution === opt.value ? colors.accent : colors.textTertiary}
+            />
+            <Text style={[styles.conflictLabel, { color: colors.textPrimary }]}>{opt.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function WarningsSection({ warnings }: { warnings: { line: number; message: string }[] }) {
+  const { colors } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const displayWarnings = expanded ? warnings.slice(0, 20) : [];
+
+  return (
+    <View style={[styles.warningsBox, { backgroundColor: colors.warningBg ?? colors.bgSecondary }]}>
+      <Pressable style={styles.warningsHeader} onPress={() => setExpanded(!expanded)}>
+        <Ionicons name="warning-outline" size={20} color={colors.warning} />
+        <Text style={[styles.warningsTitle, { color: colors.warning }]}>
+          {warnings.length} {warnings.length === 1 ? 'row' : 'rows'} skipped
+        </Text>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.warning} />
+      </Pressable>
+      {expanded && (
+        <View style={styles.warningsList}>
+          {displayWarnings.map((w, i) => (
+            <Text key={i} style={[styles.warningItem, { color: colors.textSecondary }]}>
+              Line {w.line}: {w.message}
+            </Text>
+          ))}
+          {warnings.length > 20 && (
+            <Text style={[styles.warningItem, { color: colors.textTertiary }]}>
+              + {warnings.length - 20} more...
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function ImportPreviewScreen() {
   const { colors } = useTheme();
@@ -70,6 +148,16 @@ export default function ImportPreviewScreen() {
             </Text>
           )}
         </View>
+
+        {/* Duplicate Warning */}
+        {currentSession.duplicateDates.length > 0 && (
+          <DuplicateWarning session={currentSession} />
+        )}
+
+        {/* Warnings Section */}
+        {currentSession.warnings.length > 0 && (
+          <WarningsSection warnings={currentSession.warnings} />
+        )}
 
         {/* Info Box */}
         <View style={[styles.infoBox, { backgroundColor: colors.bgSecondary }]}>
@@ -134,6 +222,43 @@ const styles = StyleSheet.create({
     ...typography.body.small,
     textAlign: 'center',
     marginTop: spacing[3],
+  },
+  conflictOptions: {
+    marginTop: spacing[3],
+    gap: spacing[2],
+  },
+  conflictOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+  },
+  conflictLabel: {
+    ...typography.body.small,
+  },
+  warningsBox: {
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    marginTop: spacing[6],
+  },
+  warningsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  warningsTitle: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    flex: 1,
+  },
+  warningsList: {
+    marginTop: spacing[3],
+    gap: spacing[1],
+  },
+  warningItem: {
+    ...typography.body.small,
   },
   infoBox: {
     flexDirection: 'row',

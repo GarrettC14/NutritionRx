@@ -50,7 +50,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.WATER_TRACKING,
         'Stay hydrated! Tap the water droplets to track your daily water intake. Your goal is 8 glasses per day.',
         {
-          icon: '💧',
+          icon: 'water-outline',
           position: 'center',
           actions: [{ label: 'Got it!', onPress: () => {}, primary: true }],
         }
@@ -70,7 +70,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.MEAL_COLLAPSE,
         'Pro tip: Tap on a meal header to collapse or expand it. This helps keep your diary organized!',
         {
-          icon: '📋',
+          icon: 'clipboard-outline',
           position: 'center',
           actions: [{ label: 'Nice!', onPress: () => {}, primary: true }],
         }
@@ -90,7 +90,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.QUICK_ADD,
         'Speed up your logging! Long-press the + button to quickly add calories without searching for a specific food.',
         {
-          icon: '⚡',
+          icon: 'flash-outline',
           position: 'center',
           actions: [{ label: 'Cool!', onPress: () => {}, primary: true }],
         }
@@ -110,7 +110,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.WEEKLY_SUMMARY,
         "You've been tracking for a week! Check out your weekly summary in the Progress tab to see your trends.",
         {
-          icon: '📊',
+          icon: 'bar-chart-outline',
           position: 'center',
           actions: [{ label: 'View Progress', onPress: () => {}, primary: true }],
         }
@@ -130,7 +130,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.BARCODE_SCANNER,
         'Did you know? You can scan barcodes to quickly add packaged foods. Just tap the camera icon when adding food!',
         {
-          icon: '📸',
+          icon: 'camera-outline',
           position: 'center',
           actions: [{ label: 'Got it!', onPress: () => {}, primary: true }],
         }
@@ -150,7 +150,7 @@ export function useProgressiveTooltips(
       createTooltip(TOOLTIP_IDS.SERVING_SIZE,
         'Tip: You can adjust serving sizes by tapping on a logged food. Accurate portions lead to better tracking!',
         {
-          icon: '🍽️',
+          icon: 'restaurant-outline',
           position: 'center',
           actions: [{ label: 'Thanks!', onPress: () => {}, primary: true }],
         }

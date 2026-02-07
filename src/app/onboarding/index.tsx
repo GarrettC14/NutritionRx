@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
@@ -24,7 +25,7 @@ export default function WelcomeScreen() {
           entering={FadeIn.duration(600).delay(200)}
           style={styles.emojiContainer}
         >
-          <Text style={styles.emoji}>🥗</Text>
+          <Ionicons name="nutrition" size={80} color={colors.accent} />
         </Animated.View>
 
         {/* Title */}
@@ -72,9 +73,6 @@ const styles = StyleSheet.create({
   },
   emojiContainer: {
     marginBottom: spacing[6],
-  },
-  emoji: {
-    fontSize: 80,
   },
   title: {
     ...typography.display.large,

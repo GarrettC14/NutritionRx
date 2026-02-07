@@ -11,7 +11,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore, useSettingsStore } from '@/stores';
 
 interface ActionOption {
-  emoji: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   route: string;
   testID: string;
@@ -19,19 +19,19 @@ interface ActionOption {
 
 const actionOptions: ActionOption[] = [
   {
-    emoji: '📷',
+    icon: 'camera-outline',
     label: 'Scan a barcode',
     route: '/add-food/scan',
     testID: TestIDs.Onboarding.ReadyScanBarcode,
   },
   {
-    emoji: '🔍',
+    icon: 'search-outline',
     label: 'Search for a food',
     route: '/add-food',
     testID: TestIDs.Onboarding.ReadySearchFood,
   },
   {
-    emoji: '👀',
+    icon: 'eye-outline',
     label: 'Explore the app first',
     route: '/(tabs)',
     testID: TestIDs.Onboarding.ReadyExploreApp,
@@ -110,7 +110,7 @@ export default function ReadyScreen() {
               ]}
               onPress={() => handleAction(option.route)}
             >
-              <Text style={styles.optionEmoji}>{option.emoji}</Text>
+              <Ionicons name={option.icon} size={24} color={colors.accent} style={{ marginRight: spacing[3] }} />
               <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
                 {option.label}
               </Text>
@@ -170,10 +170,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing[4],
     borderRadius: borderRadius.lg,
-  },
-  optionEmoji: {
-    fontSize: 24,
-    marginRight: spacing[3],
   },
   optionLabel: {
     ...typography.body.large,

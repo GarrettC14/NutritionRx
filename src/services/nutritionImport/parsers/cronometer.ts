@@ -6,7 +6,7 @@ import {
   NutritionTotals,
   ImportType,
 } from '@/types/nutritionImport';
-import { NutritionCSVParser, parserUtils } from './types';
+import { NutritionCSVParser, parserUtils, localDateFromKey, ParseResult, ParseWarning } from './types';
 
 /**
  * Parser for Cronometer CSV exports
@@ -28,18 +28,23 @@ export class CronometerParser implements NutritionCSVParser {
     return hasDay && hasFoodName && hasEnergy;
   }
 
-  parse(data: Record<string, string>[], importType: ImportType = 'daily_totals'): ParsedNutritionDay[] {
-    if (data.length === 0) return [];
+  parse(data: Record<string, string>[], importType: ImportType = 'daily_totals'): ParseResult {
+    if (data.length === 0) return { days: [], warnings: [] };
 
+    const warnings: ParseWarning[] = [];
     // Group by date and meal
     const dayMap = new Map<string, Map<MealType, ParsedFood[]>>();
 
-    for (const row of data) {
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
       const dateStr = parserUtils.getValue(row, 'Day', 'day');
       const date = parserUtils.parseDate(dateStr);
-      if (!date) continue;
+      if (!date) {
+        warnings.push({ line: i + 2, message: `Could not parse date: "${dateStr}"` });
+        continue;
+      }
 
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = parserUtils.formatDateKey(date);
 
       const mealGroup = parserUtils.getValue(row, 'Group', 'group');
       const mealType = this.normalizeMealName(mealGroup);
@@ -96,7 +101,7 @@ export class CronometerParser implements NutritionCSVParser {
 
       const totals = this.calculateMealTotals(meals);
       days.push({
-        date: new Date(dateKey + 'T12:00:00'),
+        date: localDateFromKey(dateKey),
         meals,
         totals,
       });
@@ -105,7 +110,7 @@ export class CronometerParser implements NutritionCSVParser {
     // Sort by date ascending
     days.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    return days;
+    return { days, warnings };
   }
 
   private normalizeMealName(name: string): MealType {

@@ -4,9 +4,8 @@ import {
   ParsedMeal,
   NutritionTotals,
   ParsedFood,
-  NutritionRxBackup,
 } from '@/types/nutritionImport';
-import { NutritionCSVParser, parserUtils } from './types';
+import { NutritionCSVParser, parserUtils, localDateFromKey, ParseResult, ParseWarning } from './types';
 
 /**
  * Parser for NutritionRx backup files (CSV format)
@@ -30,18 +29,23 @@ export class NutritionRxParser implements NutritionCSVParser {
     return hasDate && hasMeal && hasType && hasFoodName;
   }
 
-  parse(data: Record<string, string>[]): ParsedNutritionDay[] {
-    if (data.length === 0) return [];
+  parse(data: Record<string, string>[]): ParseResult {
+    if (data.length === 0) return { days: [], warnings: [] };
 
+    const warnings: ParseWarning[] = [];
     // Group by date
     const dayMap = new Map<string, Map<MealType, ParsedFood[]>>();
 
-    for (const row of data) {
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
       const dateStr = parserUtils.getValue(row, 'Date', 'date');
       const date = parserUtils.parseDate(dateStr);
-      if (!date) continue;
+      if (!date) {
+        warnings.push({ line: i + 2, message: `Could not parse date: "${dateStr}"` });
+        continue;
+      }
 
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = parserUtils.formatDateKey(date);
 
       const mealName = this.normalizeMealName(parserUtils.getValue(row, 'Meal', 'meal'));
       const foodName = parserUtils.getValue(row, 'Food Name', 'food name');
@@ -94,7 +98,7 @@ export class NutritionRxParser implements NutritionCSVParser {
 
       const totals = this.calculateTotals(meals);
       days.push({
-        date: new Date(dateKey + 'T12:00:00'),
+        date: localDateFromKey(dateKey),
         meals,
         totals,
       });
@@ -103,7 +107,7 @@ export class NutritionRxParser implements NutritionCSVParser {
     // Sort by date ascending
     days.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    return days;
+    return { days, warnings };
   }
 
   private normalizeMealName(name: string): MealType {
@@ -142,44 +146,3 @@ export class NutritionRxParser implements NutritionCSVParser {
   }
 }
 
-/**
- * Parse NutritionRx JSON backup format
- */
-export function parseNutritionRxJSON(jsonString: string): ParsedNutritionDay[] {
-  try {
-    const backup: NutritionRxBackup = JSON.parse(jsonString);
-
-    if (!backup.data?.foodLogs) {
-      return [];
-    }
-
-    // The foodLogs in the backup are already in a similar format
-    return backup.data.foodLogs.map((day) => ({
-      date: new Date(day.date),
-      meals: day.meals.map((meal) => ({
-        name: meal.name as MealType,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fat: meal.fat,
-        foods: meal.foods,
-      })),
-      totals: day.totals,
-    }));
-  } catch (error) {
-    console.error('Failed to parse NutritionRx JSON backup:', error);
-    return [];
-  }
-}
-
-/**
- * Check if a string is a valid NutritionRx JSON backup
- */
-export function isNutritionRxJSON(content: string): boolean {
-  try {
-    const data = JSON.parse(content);
-    return data.version && data.exportedAt && data.data;
-  } catch {
-    return false;
-  }
-}

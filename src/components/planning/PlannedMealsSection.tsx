@@ -97,7 +97,7 @@ export function PlannedMealsSection() {
     showConfirm({
       title: 'Skip This Meal',
       message: `Skip "${meal.foodName}" from today's plan?`,
-      icon: '⏭️',
+      icon: 'play-skip-forward-outline',
       confirmLabel: 'Skip',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

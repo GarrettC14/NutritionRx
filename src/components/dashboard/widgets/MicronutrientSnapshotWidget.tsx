@@ -207,7 +207,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
 
         {suggestion && (
           <View style={styles.suggestionContainer}>
-            <Text style={styles.suggestionIcon}>💡</Text>
+            <Ionicons name="bulb-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.suggestionText}>{suggestion}</Text>
           </View>
         )}
@@ -237,8 +237,8 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
         pointerEvents={isPremium ? 'auto' : 'none'}
       >
         <View style={styles.headerLeft}>
-          <View style={[styles.iconContainer, { backgroundColor: `${colors.accent}20` }]}>
-            <Ionicons name="nutrition-outline" size={20} color={colors.accent} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="nutrition-outline" size={20} color={colors.premiumGold} />
           </View>
           <Text style={styles.title}>{headerTitle}</Text>
         </View>
@@ -351,9 +351,6 @@ const createStyles = (colors: any) =>
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.borderDefault,
       marginTop: 6,
-    },
-    suggestionIcon: {
-      fontSize: 14,
     },
     suggestionText: {
       flex: 1,

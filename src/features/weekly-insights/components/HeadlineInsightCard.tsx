@@ -24,12 +24,12 @@ export function HeadlineInsightCard({ headline, onPress }: HeadlineInsightCardPr
         styles.container,
         {
           backgroundColor: colors.bgElevated,
-          borderLeftColor: colors.accent,
+          borderLeftColor: colors.premiumGold,
         },
       ]}
     >
       <View style={styles.content}>
-        <Ionicons name="sparkles" size={18} color={colors.accent} />
+        <Ionicons name="sparkles" size={18} color={colors.premiumGold} />
         <Text style={[styles.text, { color: colors.textPrimary }]} numberOfLines={2}>
           {headline}
         </Text>

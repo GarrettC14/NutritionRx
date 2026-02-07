@@ -120,7 +120,7 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
       showConfirm({
         title: 'End Fast Early?',
         message: `You've fasted for ${hoursCompleted} hours. Your goal was ${targetHours} hours.\n\nProgress still counts! Every hour of fasting has benefits.`,
-        icon: '⏱️',
+        icon: 'timer-outline',
         cancelLabel: 'Keep Going',
         confirmLabel: 'End Fast',
         onConfirm: async () => {

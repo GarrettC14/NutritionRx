@@ -192,7 +192,7 @@ export function DailyInsightsScreen() {
                   </>
                 ) : (
                   <>
-                    <Ionicons name="sparkles" size={18} color={colors.accent} />
+                    <Ionicons name="sparkles" size={18} color={colors.premiumGold} />
                     <View style={styles.llmBannerTextContainer}>
                       <Text style={[styles.llmBannerText, { color: colors.textPrimary }]}>
                         Download AI model for personalized narration

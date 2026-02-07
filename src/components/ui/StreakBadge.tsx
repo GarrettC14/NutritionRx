@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -20,7 +21,7 @@ export function StreakBadge({ streakDays }: StreakBadgeProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgInteractive }]}>
-      <Text style={styles.emoji}>🔥</Text>
+      <Ionicons name="flame" size={12} color={colors.warning} />
       <Text style={[styles.text, { color: colors.textSecondary }]}>
         {streakText}
       </Text>
@@ -36,9 +37,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],
     borderRadius: borderRadius.full,
-  },
-  emoji: {
-    fontSize: 12,
   },
   text: {
     ...typography.caption,

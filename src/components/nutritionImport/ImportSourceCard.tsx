@@ -43,9 +43,9 @@ export function ImportSourceCard({
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>{source.name}</Text>
           {showLock && (
-            <View style={[styles.premiumBadge, { backgroundColor: colors.accent + '20' }]}>
-              <Ionicons name="lock-closed" size={12} color={colors.accent} />
-              <Text style={[styles.premiumText, { color: colors.accent }]}>Premium</Text>
+            <View style={[styles.premiumBadge, { backgroundColor: colors.premiumGoldMuted }]}>
+              <Ionicons name="lock-closed" size={12} color={colors.premiumGold} />
+              <Text style={[styles.premiumText, { color: colors.premiumGold }]}>Premium</Text>
             </View>
           )}
         </View>

@@ -4,14 +4,14 @@ import { MyFitnessPalParser } from './myfitnesspal';
 import { CronometerParser } from './cronometer';
 import { LoseItParser } from './loseit';
 import { MacroFactorParser } from './macrofactor';
-import { NutritionRxParser, parseNutritionRxJSON, isNutritionRxJSON } from './nutritionrx';
+import { NutritionRxParser } from './nutritionrx';
 
-export { NutritionCSVParser, parserUtils } from './types';
+export { NutritionCSVParser, parserUtils, type ParseWarning, type ParseResult } from './types';
 export { MyFitnessPalParser } from './myfitnesspal';
 export { CronometerParser } from './cronometer';
 export { LoseItParser } from './loseit';
 export { MacroFactorParser } from './macrofactor';
-export { NutritionRxParser, parseNutritionRxJSON, isNutritionRxJSON } from './nutritionrx';
+export { NutritionRxParser } from './nutritionrx';
 
 /**
  * All available parsers

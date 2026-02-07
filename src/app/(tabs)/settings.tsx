@@ -74,7 +74,7 @@ function SettingsItem({
         )}
       </View>
       {showLock ? (
-        <Ionicons name="lock-closed" size={20} color={colors.textTertiary} />
+        <Ionicons name="lock-closed" size={20} color={colors.premiumGold} />
       ) : showChevron ? (
         <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
       ) : null}
@@ -192,24 +192,11 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleRestoreDefaultLayout = () => {
-    showConfirm({
-      title: 'Restore Default Layout',
-      message: 'This will reset your dashboard to the default widget layout. Your data will not be affected.',
-      icon: '🔄',
-      confirmLabel: 'Restore',
-      cancelLabel: 'Cancel',
-      onConfirm: () => {
-        resetDashboard();
-      },
-    });
-  };
-
   const handleDeleteAllData = () => {
     showConfirm({
       title: 'Delete All Data',
       message: 'This will permanently delete all your food logs, weight entries, water tracking, and profile data. This action cannot be undone.',
-      icon: '🗑️',
+      icon: 'trash-outline',
       confirmLabel: 'Delete Everything',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',
@@ -234,7 +221,7 @@ export default function SettingsScreen() {
     showConfirm({
       title: 'Start Fresh Session',
       message: 'This will reset all app state and take you through onboarding as a new user. Use this to test the first-time user experience.',
-      icon: '🧪',
+      icon: 'flask-outline',
       confirmLabel: 'Reset & Start',
       cancelLabel: 'Cancel',
       onConfirm: async () => {
@@ -450,14 +437,7 @@ export default function SettingsScreen() {
               subtitle="Home screen widgets setup"
               onPress={() => router.push('/settings/widgets')}
             />
-            <SettingsItem
-              testID={TestIDs.Settings.RestoreLayoutRow}
-              icon="refresh-outline"
-              title="Restore Default Layout"
-              subtitle="Reset dashboard to default widgets"
-              onPress={handleRestoreDefaultLayout}
-            />
-            <SettingsItem
+<SettingsItem
               testID={TestIDs.Settings.ImportRow}
               icon="cloud-download-outline"
               title="Import From Other Apps"

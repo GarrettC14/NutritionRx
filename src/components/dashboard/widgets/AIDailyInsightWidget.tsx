@@ -98,8 +98,8 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
         pointerEvents={isPremium ? 'auto' : 'none'}
       >
         <View style={styles.headerLeft}>
-          <View style={[styles.iconContainer, { backgroundColor: `${colors.accent}20` }]}>
-            <Ionicons name="sparkles" size={20} color={colors.accent} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="sparkles" size={20} color={colors.premiumGold} />
           </View>
           <Text style={styles.title}>Daily Insight</Text>
         </View>

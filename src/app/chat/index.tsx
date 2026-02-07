@@ -21,8 +21,8 @@ function ChatPreview() {
   return (
     <View style={[styles.previewContainer, { backgroundColor: colors.bgPrimary }]}>
       <View style={styles.previewContent}>
-        <View style={[styles.iconCircle, { backgroundColor: colors.accent + '20' }]}>
-          <Ionicons name="chatbubbles-outline" size={48} color={colors.accent} />
+        <View style={[styles.iconCircle, { backgroundColor: colors.premiumGoldMuted }]}>
+          <Ionicons name="chatbubbles-outline" size={48} color={colors.premiumGold} />
         </View>
         <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>
           Nutrition Assistant

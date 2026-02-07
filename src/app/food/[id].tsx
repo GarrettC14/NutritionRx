@@ -80,7 +80,7 @@ export default function FoodDetailScreen() {
     showConfirm({
       title: 'Delete Food',
       message: `Are you sure you want to delete "${food.name}"? This cannot be undone.`,
-      icon: '🗑️',
+      icon: 'trash-outline',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

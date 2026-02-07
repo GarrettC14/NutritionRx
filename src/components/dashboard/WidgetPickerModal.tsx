@@ -72,12 +72,13 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
           style={[
             styles.widgetIcon,
             isAdded && styles.widgetIconDisabled,
+            !isAdded && definition.isPremium && { backgroundColor: colors.premiumGoldMuted },
           ]}
         >
           <Ionicons
             name={definition.icon as any}
             size={24}
-            color={isAdded ? colors.textTertiary : colors.accent}
+            color={isAdded ? colors.textTertiary : definition.isPremium ? colors.premiumGold : colors.accent}
           />
         </View>
 
@@ -245,7 +246,7 @@ const createStyles = (colors: any) =>
       color: colors.textTertiary,
     },
     premiumBadge: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.premiumGoldMuted,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,
@@ -253,7 +254,7 @@ const createStyles = (colors: any) =>
     premiumBadgeText: {
       fontSize: 9,
       fontWeight: '700',
-      color: '#FFFFFF',
+      color: colors.premiumGold,
       letterSpacing: 0.5,
     },
     widgetDescription: {

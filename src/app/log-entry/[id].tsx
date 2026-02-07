@@ -222,7 +222,7 @@ export default function LogEntryScreen() {
     showConfirm({
       title: 'Delete Entry',
       message: 'Are you sure you want to delete this entry? This cannot be undone.',
-      icon: '🗑️',
+      icon: 'trash-outline',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       confirmStyle: 'destructive',

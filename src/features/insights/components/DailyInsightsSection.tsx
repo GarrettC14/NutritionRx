@@ -72,7 +72,7 @@ export function DailyInsightsSection() {
           onPress={downloadModel}
         >
           <View style={styles.downloadRow}>
-            <Ionicons name="sparkles" size={20} color={colors.accent} />
+            <Ionicons name="sparkles" size={20} color={colors.premiumGold} />
             <View style={styles.downloadText}>
               <Text style={[styles.downloadTitle, { color: colors.textPrimary }]}>Enable AI Insights</Text>
               <Text style={[styles.downloadSubtitle, { color: colors.textSecondary }]}>
@@ -129,7 +129,7 @@ export function DailyInsightsSection() {
         pointerEvents={isPremium ? 'auto' : 'none'}
       >
         <View style={styles.headerLeft}>
-          <Ionicons name="sparkles-outline" size={24} color={colors.accent} />
+          <Ionicons name="sparkles-outline" size={24} color={colors.premiumGold} />
           <View style={styles.headerText}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>AI Analysis</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>

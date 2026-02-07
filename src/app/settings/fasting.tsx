@@ -532,7 +532,7 @@ export default function FastingSettingsScreen() {
                         Track your intermittent fasting windows
                       </Text>
                     </View>
-                    <Ionicons name="lock-closed" size={20} color={colors.textTertiary} />
+                    <Ionicons name="lock-closed" size={20} color={colors.premiumGold} />
                   </View>
                 </View>
               </View>

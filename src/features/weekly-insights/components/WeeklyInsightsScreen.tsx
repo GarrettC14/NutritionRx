@@ -231,8 +231,8 @@ export function WeeklyInsightsScreen() {
 
         {/* LLM Status Banner */}
         {llmStatus === 'not_downloaded' && (
-          <View style={[styles.llmBanner, { backgroundColor: `${colors.accent}15`, borderColor: `${colors.accent}30` }]}>
-            <Ionicons name="sparkles" size={16} color={colors.accent} />
+          <View style={[styles.llmBanner, { backgroundColor: colors.premiumGoldSubtle, borderColor: colors.premiumGoldMuted }]}>
+            <Ionicons name="sparkles" size={16} color={colors.premiumGold} />
             <Text style={[styles.llmBannerText, { color: colors.textSecondary }]}>
               Download AI model for personalized narratives
             </Text>

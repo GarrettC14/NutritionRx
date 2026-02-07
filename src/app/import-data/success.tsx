@@ -25,6 +25,7 @@ export default function ImportSuccessScreen() {
   };
 
   const importedDays = currentSession?.importedDays ?? 0;
+  const skippedDays = currentSession?.skippedDays ?? 0;
 
   return (
     <SafeAreaView testID={TestIDs.Import.SuccessScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
@@ -38,7 +39,7 @@ export default function ImportSuccessScreen() {
         <Text style={[styles.title, { color: colors.textPrimary }]}>Import Complete!</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Successfully imported {importedDays} {importedDays === 1 ? 'day' : 'days'} of nutrition
-          history.
+          history.{skippedDays > 0 ? ` ${skippedDays} ${skippedDays === 1 ? 'day' : 'days'} skipped (already imported).` : ''}
         </Text>
 
         {/* Stats */}

@@ -131,7 +131,7 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
         pointerEvents={isPremium ? 'auto' : 'none'}
       >
         <View style={styles.iconContainer}>
-          <Ionicons name="bulb-outline" size={20} color={colors.accent} />
+          <Ionicons name="bulb-outline" size={20} color={colors.premiumGold} />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>Meal Ideas</Text>
@@ -183,7 +183,7 @@ const createStyles = (colors: any) =>
       width: 36,
       height: 36,
       borderRadius: 10,
-      backgroundColor: `${colors.accent}20`,
+      backgroundColor: colors.premiumGoldMuted,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 12,

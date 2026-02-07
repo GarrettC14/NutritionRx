@@ -1,0 +1,9 @@
+Date,Meal,Calories,Fat (g),Protein (g),Carbohydrates (g)
+2024-01-15,Breakfast,450,15,30,45
+not-a-date,Lunch,650,22,40,60
+2024-01-15,Dinner,,25,45,55
+2024-01-15,,200,8,10,22
+2024-01-16,Breakfast,abc,12,28,42
+2024-01-16,Lunch,600,20,38,58
+,,,,,,
+2024-01-16,Dinner,750,28,42,62

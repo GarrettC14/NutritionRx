@@ -150,10 +150,10 @@ export function getSeverityColor(severity: DeficiencySeverity): { bg: string; te
 export function getSeverityIcon(severity: DeficiencySeverity): string {
   switch (severity) {
     case 'concern':
-      return '⚠️';
+      return 'alert-circle-outline';
     case 'warning':
-      return '📉';
+      return 'trending-down-outline';
     case 'notice':
-      return '💡';
+      return 'bulb-outline';
   }
 }
