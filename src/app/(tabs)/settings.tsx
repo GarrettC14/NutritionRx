@@ -18,6 +18,7 @@ import { useLLMStatus } from '@/hooks/useLLMStatus';
 import { LLMService } from '@/features/insights/services/LLMService';
 import { seedDatabase } from '@/utils/devTools/seedDatabase';
 import { DEFAULT_SEED_OPTIONS } from '@/utils/devTools/types';
+import Constants from 'expo-constants';
 import { TestIDs } from '@/constants/testIDs';
 
 interface SettingsItemProps {
@@ -542,6 +543,7 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/settings/apple-health')}
               />
             )}
+            {/* TODO: Re-enable Health Connect when ready to ship
             {Platform.OS === 'android' && (
               <SettingsItem
                 testID={TestIDs.Settings.HealthConnectRow}
@@ -551,6 +553,7 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/settings/health-connect')}
               />
             )}
+            */}
             <SettingsItem
               testID={TestIDs.Settings.WidgetsRow}
               icon="apps-outline"
@@ -575,12 +578,6 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.sectionContent}>
             <SettingsItem
-              testID={TestIDs.Settings.HelpRow}
-              icon="help-circle-outline"
-              title="Help & Feedback"
-              onPress={() => {}}
-            />
-            <SettingsItem
               testID={TestIDs.Settings.HealthNoticeRow}
               icon="heart-outline"
               title="Health & Safety Notice"
@@ -596,30 +593,6 @@ export default function SettingsScreen() {
             ABOUT
           </Text>
           <View style={styles.sectionContent}>
-            <Pressable
-              testID={TestIDs.Settings.AboutRow}
-              style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}
-              onPress={() => router.push('/settings/about')}
-              onLongPress={handleVersionTap}
-              delayLongPress={0}
-            >
-              <View
-                style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}
-              >
-                <Ionicons name="information-circle-outline" size={20} color={colors.accent} />
-              </View>
-              <View style={styles.settingsContent}>
-                <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
-                  About NutritionRx
-                </Text>
-                <Pressable onPress={handleVersionTap}>
-                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
-                    Version 1.0.0
-                  </Text>
-                </Pressable>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </Pressable>
             <SettingsItem
               testID={TestIDs.Settings.TermsRow}
               icon="document-text-outline"
@@ -739,6 +712,11 @@ export default function SettingsScreen() {
           <Text style={[styles.footerText, { color: colors.textTertiary }]}>
             Made with care by the NutritionRx team
           </Text>
+          <Pressable onPress={handleVersionTap}>
+            <Text style={[styles.footerText, { color: colors.textTertiary }]}>
+              Version {Constants.expoConfig?.version ?? '1.0.0'}
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
 
