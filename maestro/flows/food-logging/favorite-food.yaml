@@ -71,6 +71,38 @@ tags:
       id: "add-food-screen"
     timeout: 5000
 
-# Verify favorites section exists
+# Verify favorites section exists and the favorited item appears
 - assertVisible:
+    id: "add-food-favorites-section"
+
+- assertVisible:
+    id: "add-food-search-result-item-.*"
+
+# Unfavorite test: open the favorited food, unfavorite it, verify removal
+- tapOn:
+    id: "add-food-search-result-item-.*"
+    index: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "log-food-screen"
+    timeout: 5000
+
+# Unfavorite the food
+- tapOn:
+    id: "log-food-favorite-button"
+
+- waitForAnimationToEnd
+
+# Go back to add-food screen
+- tapOn:
+    id: "log-food-back-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "add-food-screen"
+    timeout: 5000
+
+# Verify the item is no longer in favorites
+- assertNotVisible:
     id: "add-food-favorites-section"

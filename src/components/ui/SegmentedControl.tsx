@@ -75,6 +75,9 @@ export function SegmentedControl<T extends string | number>({
           testID={option.testID}
           style={styles.segment}
           onPress={() => handlePress(option.value)}
+          accessibilityRole="tab"
+          accessibilityLabel={option.label}
+          accessibilityState={{ selected: option.value === value }}
         >
           <Text
             style={[
@@ -112,6 +115,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing[2],
     paddingHorizontal: spacing[3],
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,

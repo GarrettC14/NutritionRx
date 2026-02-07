@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   button_small: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
   },
   button_medium: {
     width: 44,

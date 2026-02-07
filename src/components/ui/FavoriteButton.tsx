@@ -58,6 +58,9 @@ export function FavoriteButton({
       disabled={disabled}
       style={[styles.container, animatedStyle, style]}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      accessibilityState={{ disabled, selected: isFavorite }}
     >
       <Ionicons
         name={isFavorite ? 'star' : 'star-outline'}

@@ -63,24 +63,20 @@ tags:
 
 - waitForAnimationToEnd
 
-# Verify week navigation
+# Verify week navigation buttons appeared after enabling
 - assertVisible:
     id: "settings-meal-planning-week-prev-button"
-    optional: true
 - assertVisible:
     id: "settings-meal-planning-week-next-button"
-    optional: true
 
 # Navigate weeks
 - tapOn:
     id: "settings-meal-planning-week-next-button"
-    optional: true
 
 - waitForAnimationToEnd
 
 - tapOn:
     id: "settings-meal-planning-week-prev-button"
-    optional: true
 
 - waitForAnimationToEnd
 
@@ -90,4 +86,3 @@ tags:
 
 - assertVisible:
     id: "settings-screen"
-    optional: true

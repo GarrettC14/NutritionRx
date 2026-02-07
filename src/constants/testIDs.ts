@@ -384,6 +384,20 @@ export const TestIDs = {
   SettingsHealthConnect: {
     Screen: 'settings-health-connect-screen',
     BackButton: 'settings-health-connect-back-button',
+    ConnectNowButton: 'settings-health-connect-connect-now-button',
+    SyncNutritionRow: 'settings-health-connect-sync-nutrition-row',
+    SyncWaterRow: 'settings-health-connect-sync-water-row',
+    ReadWeightRow: 'settings-health-connect-read-weight-row',
+    AdjustForActivityRow: 'settings-health-connect-adjust-activity-row',
+    HowThisWorksButton: 'settings-health-connect-how-this-works-button',
+    ManageButton: 'settings-health-connect-manage-button',
+    ErrorBanner: 'settings-health-connect-error-banner',
+    ErrorDismissButton: 'settings-health-connect-error-dismiss-button',
+    PrivacyNotice: 'settings-health-connect-privacy-notice',
+    HelpSection: 'settings-health-connect-help-section',
+    OnboardingCard: 'settings-health-connect-onboarding-card',
+    ExplainerModalTitle: 'settings-health-connect-explainer-modal-title',
+    ExplainerModalGotIt: 'settings-health-connect-explainer-modal-got-it',
   },
 
   SettingsAppleHealth: {

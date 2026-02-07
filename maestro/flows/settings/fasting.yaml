@@ -32,9 +32,11 @@ tags:
 - waitForAnimationToEnd
 
 # Select a protocol
+- assertVisible:
+    id: "settings-fasting-protocol-option-16:8"
+
 - tapOn:
     id: "settings-fasting-protocol-option-16:8"
-    optional: true
 
 - waitForAnimationToEnd
 

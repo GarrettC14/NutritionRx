@@ -97,6 +97,9 @@ export function MealSection({
         onPress={toggleExpanded}
         onLongPress={handleMenuPress}
         delayLongPress={300}
+        accessibilityRole="button"
+        accessibilityLabel={`${MEAL_TYPE_LABELS[mealType]}, ${totalCalories} calories, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
+        accessibilityState={{ expanded: isExpanded }}
       >
         <View style={styles.headerLeft}>
           <Animated.View style={chevronStyle}>
@@ -120,6 +123,8 @@ export function MealSection({
             style={[styles.addButton, { backgroundColor: colors.bgInteractive }]}
             onPress={handleAddPress}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Add food to ${MEAL_TYPE_LABELS[mealType]}`}
           >
             <Ionicons name="add" size={18} color={colors.accent} />
           </Pressable>
@@ -164,6 +169,8 @@ export function MealSection({
               testID={mealCopyButton(mealType)}
               style={styles.copyButton}
               onPress={handleCopyMeal}
+              accessibilityRole="button"
+              accessibilityLabel={`Copy ${MEAL_TYPE_LABELS[mealType]} to tomorrow`}
             >
               <Ionicons name="copy-outline" size={14} color={colors.textTertiary} />
               <Text style={[styles.copyButtonText, { color: colors.textTertiary }]}>
@@ -184,6 +191,8 @@ export function MealSection({
         <Pressable
           style={styles.modalOverlay}
           onPress={() => setShowMenu(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Close menu"
         >
           <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
             <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
@@ -192,6 +201,8 @@ export function MealSection({
             <Pressable
               style={[styles.menuItem, { borderBottomColor: colors.borderDefault }]}
               onPress={handleCopyMeal}
+              accessibilityRole="menuitem"
+              accessibilityLabel="Copy to Tomorrow"
             >
               <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
               <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
@@ -201,6 +212,8 @@ export function MealSection({
             <Pressable
               style={styles.menuItem}
               onPress={() => setShowMenu(false)}
+              accessibilityRole="menuitem"
+              accessibilityLabel="Cancel"
             >
               <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
               <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>

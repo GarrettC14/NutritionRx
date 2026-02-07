@@ -81,6 +81,7 @@ export function Button({
           container: {
             paddingVertical: spacing[2],
             paddingHorizontal: spacing[3],
+            minHeight: 44,
           },
           text: typography.body.small,
         };
@@ -127,6 +128,9 @@ export function Button({
       ]}
       disabled={disabled || loading}
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={buttonText || undefined}
+      accessibilityState={{ disabled: !!disabled, busy: loading }}
       {...props}
     >
       {loading ? (

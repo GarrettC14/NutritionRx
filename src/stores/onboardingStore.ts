@@ -19,6 +19,7 @@ interface OnboardingState {
   // Actions
   loadOnboarding: () => Promise<void>;
   completeOnboarding: (goalPath: GoalPath, energyUnit: EnergyUnit, weightUnit: 'lbs' | 'kg') => Promise<void>;
+  migrateFromLegacy: () => Promise<void>;
   setGoalPath: (goal: GoalPath) => void;
   setEnergyUnit: (unit: EnergyUnit) => void;
   setWeightUnit: (unit: 'lbs' | 'kg') => void;
@@ -105,6 +106,19 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to complete onboarding',
         isLoading: false,
       });
+    }
+  },
+
+  migrateFromLegacy: async () => {
+    // Migrate from legacy profile flags to onboarding store
+    try {
+      const { energyUnit, weightUnit } = get();
+      const data = await onboardingRepository.completeOnboarding('track', energyUnit, weightUnit);
+      set({ ...mapDataToState(data) });
+    } catch (error) {
+      console.error('Failed to migrate legacy onboarding:', error);
+      // Still mark as complete in memory to avoid blocking the user
+      set({ isComplete: true });
     }
   },
 

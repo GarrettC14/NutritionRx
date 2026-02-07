@@ -37,6 +37,8 @@ export function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCar
         pressed && styles.pressed,
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${entry.calories} calories${subtitle ? `, ${subtitle}` : ''}`}
     >
       <View style={styles.iconContainer}>
         <Ionicons
@@ -77,6 +79,8 @@ export function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCar
           style={styles.deleteButton}
           onPress={onDelete}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete ${title}`}
         >
           <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
         </Pressable>

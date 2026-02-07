@@ -11,6 +11,7 @@ import {
 import { LogEntry, QuickAddEntry, DailyTotals, DailySummary } from '@/types/domain';
 import { MealType, MEAL_ORDER } from '@/constants/mealTypes';
 import { useSettingsStore } from './settingsStore';
+import { useOnboardingStore } from './onboardingStore';
 
 interface FoodLogState {
   // State
@@ -172,6 +173,10 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       // Update streak
       get().loadStreak();
 
+      // Track first food and increment count for onboarding celebrations
+      useOnboardingStore.getState().markFirstFoodLogged();
+      useOnboardingStore.getState().incrementFoodsLogged();
+
       return entry;
     } catch (error) {
       set({
@@ -245,6 +250,10 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       // Update streak
       get().loadStreak();
+
+      // Track first food and increment count for onboarding celebrations
+      useOnboardingStore.getState().markFirstFoodLogged();
+      useOnboardingStore.getState().incrementFoodsLogged();
 
       return entry;
     } catch (error) {

@@ -110,3 +110,32 @@ tags:
     visible:
       id: "home-screen"
     timeout: 3000
+
+# Verify the quick-add entry appears in Lunch section
+- extendedWaitUntil:
+    visible:
+      id: "home-date-label"
+    timeout: 8000
+
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Expand Lunch section
+- tapOn:
+    id: "meal-lunch-section"
+
+- waitForAnimationToEnd
+
+# Verify the logged entry is visible
+- assertVisible:
+    id: "meal-entry-item-.*"

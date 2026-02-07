@@ -59,6 +59,8 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel="View macro details"
     >
       <Text style={styles.title}>Macros</Text>
 

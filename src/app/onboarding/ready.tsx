@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,17 +45,34 @@ export default function ReadyScreen() {
   const { completeOnboarding, goalPath, energyUnit, weightUnit } = useOnboardingStore();
   const { setWeightUnit } = useSettingsStore();
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeRoute, setActiveRoute] = useState<string | null>(null);
+
   const handleAction = async (route: string) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setActiveRoute(route);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
 
-    // Complete onboarding with current preferences
-    await completeOnboarding(goalPath || 'track', energyUnit, weightUnit);
+    try {
+      // Complete onboarding with current preferences
+      await completeOnboarding(goalPath || 'track', energyUnit, weightUnit);
 
-    // Also update the settings store weight unit for consistency
-    await setWeightUnit(weightUnit);
+      // Also update the settings store weight unit for consistency
+      await setWeightUnit(weightUnit);
 
-    // Navigate to the chosen destination
-    router.replace(route as any);
+      // Navigate to the chosen destination
+      router.replace(route as any);
+    } catch (error) {
+      Alert.alert(
+        'Setup Error',
+        'Something went wrong while saving your preferences. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
+      setActiveRoute(null);
+    }
   };
 
   const handleBack = () => {
@@ -100,23 +118,27 @@ export default function ReadyScreen() {
           entering={FadeIn.duration(400).delay(600)}
           style={styles.options}
         >
-          {actionOptions.map((option, index) => (
-            <Pressable
-              key={option.route}
-              testID={option.testID}
-              style={[
-                styles.optionCard,
-                { backgroundColor: colors.bgSecondary },
-              ]}
-              onPress={() => handleAction(option.route)}
-            >
-              <Ionicons name={option.icon} size={24} color={colors.accent} style={{ marginRight: spacing[3] }} />
-              <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
-                {option.label}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </Pressable>
-          ))}
+          {actionOptions.map((option) => {
+            const isActive = activeRoute === option.route;
+            return (
+              <Pressable
+                key={option.route}
+                testID={option.testID}
+                style={[
+                  styles.optionCard,
+                  { backgroundColor: colors.bgSecondary, opacity: isLoading && !isActive ? 0.5 : 1 },
+                ]}
+                onPress={() => handleAction(option.route)}
+                disabled={isLoading}
+              >
+                <Ionicons name={option.icon} size={24} color={colors.accent} style={{ marginRight: spacing[3] }} />
+                <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
+                  {isActive ? 'Setting up...' : option.label}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </Pressable>
+            );
+          })}
         </Animated.View>
       </View>
     </SafeAreaView>

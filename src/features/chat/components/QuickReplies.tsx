@@ -34,6 +34,9 @@ export function QuickReplies({ replies, onSelect, disabled }: QuickRepliesProps)
             },
           ]}
           disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={reply.text}
+          accessibilityState={{ disabled: !!disabled }}
         >
           <Text style={[styles.text, { color: colors.accent }]}>
             {reply.text}

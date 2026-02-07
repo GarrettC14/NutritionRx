@@ -22,19 +22,20 @@ tags:
 - assertVisible:
     id: "paywall-close-button"
 
-# These elements require offerings to load (may not be available in dev builds)
+# Wait for offerings to load, then assert all paywall elements strictly
+- extendedWaitUntil:
+    visible:
+      id: "paywall-subscribe-button"
+    timeout: 20000
+
 - assertVisible:
     id: "paywall-subscribe-button"
-    optional: true
 - assertVisible:
     id: "paywall-restore-button"
-    optional: true
 - assertVisible:
     id: "paywall-terms-link"
-    optional: true
 - assertVisible:
     id: "paywall-privacy-link"
-    optional: true
 
 # Close paywall
 - tapOn:

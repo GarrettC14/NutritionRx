@@ -13,9 +13,9 @@ function safePercent(value: number, target: number): number {
   return Math.round((value / target) * 100);
 }
 
-function average(items: { [key: string]: number }[], key: string): number {
+function average<T>(items: T[], key: keyof T): number {
   if (items.length === 0) return 0;
-  return items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length;
+  return items.reduce((sum, item) => sum + (Number(item[key]) || 0), 0) / items.length;
 }
 
 export const questionRegistry: DailyQuestionDefinition[] = [

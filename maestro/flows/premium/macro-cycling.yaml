@@ -58,23 +58,29 @@ tags:
     id: "macro-cycling-close-button"
 
 # Select a pattern
+- assertVisible:
+    id: "macro-cycling-pattern-option-high-low"
+
 - tapOn:
     id: "macro-cycling-pattern-option-high-low"
-    optional: true
 
 - waitForAnimationToEnd
 
 # Select days
+- assertVisible:
+    id: "macro-cycling-day-pill-0"
+
 - tapOn:
     id: "macro-cycling-day-pill-0"
-    optional: true
 
 - waitForAnimationToEnd
 
 # Continue through setup
+- assertVisible:
+    id: "macro-cycling-continue-button"
+
 - tapOn:
     id: "macro-cycling-continue-button"
-    optional: true
 
 # Close
 - tapOn:

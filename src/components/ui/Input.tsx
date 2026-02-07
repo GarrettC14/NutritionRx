@@ -66,6 +66,8 @@ export function Input({
             rightIcon ? styles.inputWithRightIcon : undefined,
             style,
           ]}
+          accessibilityLabel={label || props.placeholder}
+          accessibilityHint={helper}
           placeholderTextColor={colors.textTertiary}
           onFocus={(e) => {
             setIsFocused(true);

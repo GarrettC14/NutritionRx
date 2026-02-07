@@ -3,8 +3,15 @@
  * Classify device capability to determine which LLM provider to use.
  */
 
-import DeviceInfo from 'react-native-device-info';
 import { Platform } from 'react-native';
+
+// Lazy load react-native-device-info — throws at import time in Expo Go
+let DeviceInfo: any = null;
+try {
+  DeviceInfo = require('react-native-device-info').default;
+} catch {
+  console.log('[DeviceClassifier] react-native-device-info not available');
+}
 
 export type DeviceCapability =
   | 'apple_foundation'
@@ -21,7 +28,17 @@ export interface DeviceClassification {
   isAppleIntelligenceEligible: boolean;
 }
 
+const UNSUPPORTED_FALLBACK: DeviceClassification = {
+  capability: 'unsupported',
+  ramGB: 0,
+  architecture: 'unknown',
+  model: 'unknown',
+  isAppleIntelligenceEligible: false,
+};
+
 export async function classifyDevice(): Promise<DeviceClassification> {
+  if (!DeviceInfo) return UNSUPPORTED_FALLBACK;
+
   const totalMemory = await DeviceInfo.getTotalMemory();
   const ramGB = totalMemory / (1024 * 1024 * 1024);
   const abis = await DeviceInfo.supportedAbis();

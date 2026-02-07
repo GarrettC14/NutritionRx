@@ -72,7 +72,10 @@ tags:
 
 - waitForAnimationToEnd
 
+# Verify default widget(s) restored
+- assertVisible:
+    id: "widget-calorie-ring"
+
 # Exit edit mode
 - tapOn:
     id: "home-edit-button"
-    optional: true

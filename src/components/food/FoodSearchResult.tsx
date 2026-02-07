@@ -24,6 +24,8 @@ export function FoodSearchResult({ food, testID, onPress }: FoodSearchResultProp
         pressed && styles.pressed,
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${food.name}${food.brand ? `, ${food.brand}` : ''}, ${food.calories} calories per ${food.servingSize} ${food.servingUnit}`}
     >
       <View style={styles.content}>
         <Text

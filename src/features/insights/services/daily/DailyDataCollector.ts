@@ -80,12 +80,14 @@ export async function collectDailyInsightData(): Promise<DailyInsightData> {
   for (const entry of todayEntries) {
     const mealLabel = entry.mealType || 'Snack';
     if (!mealGroups.has(mealLabel)) {
-      mealGroups.set(mealLabel, { foods: [], firstTime: entry.loggedAt || '' });
+      const timeStr = entry.createdAt instanceof Date ? entry.createdAt.toISOString() : '';
+      mealGroups.set(mealLabel, { foods: [], firstTime: timeStr });
     }
     const group = mealGroups.get(mealLabel)!;
     group.foods.push(entry);
-    if (entry.loggedAt && entry.loggedAt < group.firstTime) {
-      group.firstTime = entry.loggedAt;
+    const entryTime = entry.createdAt instanceof Date ? entry.createdAt.toISOString() : '';
+    if (entryTime && entryTime < group.firstTime) {
+      group.firstTime = entryTime;
     }
   }
 

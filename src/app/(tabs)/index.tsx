@@ -10,13 +10,15 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
-import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore } from '@/stores';
+import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useOnboardingStore } from '@/stores';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { useProgressiveTooltips } from '@/hooks/useProgressiveTooltips';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
 import { WidgetRenderer } from '@/components/dashboard/WidgetRenderer';
 import { WidgetPickerModal } from '@/components/dashboard/WidgetPickerModal';
+import { FirstFoodCelebration } from '@/components/onboarding/FirstFoodCelebration';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { DashboardWidget } from '@/types/dashboard';
 import { DayTargets } from '@/types/planning';
@@ -32,6 +34,7 @@ export default function TodayScreen() {
     setSelectedDate,
     entries,
     quickAddEntries,
+    dailyTotals,
     streak,
     isLoaded: dataLoaded,
     loadEntriesForDate,
@@ -45,6 +48,7 @@ export default function TodayScreen() {
   } = useFoodLogStore();
 
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { firstFoodLoggedAt } = useOnboardingStore();
   const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore();
   const {
     config: macroCycleConfig,
@@ -65,7 +69,11 @@ export default function TodayScreen() {
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
   const [showWidgetPicker, setShowWidgetPicker] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [listKey, setListKey] = useState(0);
+
+  // Progressive tooltips — auto-check after dashboard settles
+  useProgressiveTooltips({ autoCheck: true, autoCheckDelay: 1000 });
 
   // Get visible widgets sorted by position
   const visibleWidgets = widgets
@@ -84,6 +92,16 @@ export default function TodayScreen() {
     loadTodayWater();
     loadMacroCycleConfig();
   }, []);
+
+  // Show first food celebration when firstFoodLoggedAt transitions to a recent value
+  useEffect(() => {
+    if (firstFoodLoggedAt) {
+      const ageMs = Date.now() - new Date(firstFoodLoggedAt).getTime();
+      if (ageMs < 5000) {
+        setShowCelebration(true);
+      }
+    }
+  }, [firstFoodLoggedAt]);
 
   // Date navigation
   const navigateDate = useCallback((direction: 'prev' | 'next') => {
@@ -491,6 +509,13 @@ export default function TodayScreen() {
             </View>
           </Pressable>
         </Modal>
+
+        {/* First Food Celebration */}
+        <FirstFoodCelebration
+          visible={showCelebration}
+          onDismiss={() => setShowCelebration(false)}
+          caloriesLogged={dailyTotals.calories}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

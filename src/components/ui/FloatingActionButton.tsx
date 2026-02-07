@@ -72,6 +72,8 @@ function AnimatedMenuItem({
     <AnimatedPressable
       style={[styles.menuItemContainer, animatedStyle]}
       onPress={() => onPress(item)}
+      accessibilityRole="button"
+      accessibilityLabel={item.label}
     >
       <View style={[styles.menuItemLabel, { backgroundColor: colors.bgElevated }]}>
         <Text style={[styles.menuItemLabelText, { color: colors.textPrimary }]}>
@@ -169,6 +171,8 @@ export function FloatingActionButton({
                   shadowStyle,
                 ]}
                 onPress={handlePrimaryPress}
+                accessibilityRole="button"
+                accessibilityLabel="Close menu"
               >
                 <Animated.View style={iconRotateStyle}>
                   <Ionicons name="close" size={28} color="#FFFFFF" />
@@ -190,6 +194,8 @@ export function FloatingActionButton({
               shadowStyle,
             ]}
             onPress={handlePrimaryPress}
+            accessibilityRole="button"
+            accessibilityLabel={primaryLabel}
           >
             <Ionicons name={primaryIcon} size={28} color="#FFFFFF" />
           </Pressable>

@@ -76,9 +76,10 @@ export default function LegalAcknowledgmentScreen() {
 
   const handleCheckboxPress = () => {
     if (!hasScrolledToBottom) {
-      // Scroll to bottom first — programmatic scrollToEnd fires onScroll
+      // Scroll to bottom and set state immediately so the next tap toggles the checkbox
       console.log('[Legal] Checkbox pressed before scroll — calling scrollToEnd');
-      scrollViewRef.current?.scrollToEnd({ animated: false });
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+      setHasScrolledToBottom(true);
       return;
     }
 
@@ -225,6 +226,11 @@ export default function LegalAcknowledgmentScreen() {
             {content.buttonText}
           </Button>
 
+          {/* Welcome message */}
+          <Text style={[styles.welcomeMessage, { color: colors.textSecondary }]}>
+            Welcome to NutritionRx — let's set up your preferences
+          </Text>
+
           {/* Terms Link */}
           <Pressable testID={TestIDs.Legal.TermsLink} onPress={handleTermsPress} style={styles.termsLink}>
             <Text style={[styles.termsText, { color: colors.textTertiary }]}>
@@ -298,6 +304,11 @@ const styles = StyleSheet.create({
   },
   proceedButton: {
     marginTop: spacing[4],
+  },
+  welcomeMessage: {
+    ...typography.body.small,
+    textAlign: 'center',
+    marginTop: spacing[3],
   },
   termsLink: {
     alignItems: 'center',

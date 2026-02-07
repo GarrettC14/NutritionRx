@@ -89,7 +89,7 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}>
       {/* Collapsible Header */}
-      <Pressable style={styles.header} onPress={toggleExpanded}>
+      <Pressable style={styles.header} onPress={toggleExpanded} accessibilityRole="button" accessibilityLabel={`Water, ${glasses} of ${goal} glasses`} accessibilityState={{ expanded: isExpanded }}>
         <View style={styles.headerLeft}>
           <Animated.View style={chevronStyle}>
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
@@ -109,6 +109,8 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
             style={[styles.headerAddButton, { backgroundColor: colors.bgInteractive }]}
             onPress={handleAddGlass}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Add glass of water"
           >
             <Ionicons name="add" size={18} color={WATER_BLUE} />
           </Pressable>
@@ -140,6 +142,9 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
               style={[styles.actionButton, { backgroundColor: colors.bgInteractive }]}
               onPress={handleRemoveGlass}
               disabled={glasses === 0}
+              accessibilityRole="button"
+              accessibilityLabel="Remove glass of water"
+              accessibilityState={{ disabled: glasses === 0 }}
             >
               <Ionicons
                 name="remove"
@@ -150,6 +155,8 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
             <Pressable
               style={[styles.addButton, { backgroundColor: WATER_BLUE }]}
               onPress={handleAddGlass}
+              accessibilityRole="button"
+              accessibilityLabel="Add glass of water"
             >
               <Ionicons name="add" size={24} color="#FFFFFF" />
               <Text style={styles.addButtonText}>Add Glass</Text>

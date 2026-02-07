@@ -87,10 +87,12 @@ tags:
 - tapOn:
     id: "log-entry-delete-button"
 
-# Confirm deletion
+# Confirm deletion dialog appeared
+- assertVisible:
+    id: "ui-confirm-dialog"
+
 - tapOn:
     id: "ui-confirm-dialog-confirm"
-    optional: true
 
 - waitForAnimationToEnd
 
@@ -98,3 +100,25 @@ tags:
     visible:
       id: "home-screen"
     timeout: 5000
+
+# Verify the entry is gone after deletion
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+- tapOn:
+    id: "meal-snack-section"
+
+- waitForAnimationToEnd
+
+- assertNotVisible:
+    id: "meal-entry-item-.*"

@@ -29,6 +29,7 @@ interface SettingRowProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  testID?: string;
 }
 
 function SettingRow({
@@ -37,11 +38,12 @@ function SettingRow({
   value,
   onValueChange,
   disabled = false,
+  testID,
 }: SettingRowProps) {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.settingRow, disabled && styles.settingRowDisabled]}>
+    <View style={[styles.settingRow, disabled && styles.settingRowDisabled]} testID={testID}>
       <View style={styles.settingInfo}>
         <Text
           style={[
@@ -99,7 +101,7 @@ function ActivityExplainerModal({
           style={[styles.modalContent, { backgroundColor: colors.bgPrimary }]}
           onPress={(e) => e.stopPropagation()}
         >
-          <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+          <Text style={[styles.modalTitle, { color: colors.textPrimary }]} testID="settings-health-connect-explainer-modal-title">
             Exercise calories explained
           </Text>
           <Text style={[styles.modalText, { color: colors.textSecondary }]}>
@@ -144,6 +146,7 @@ function ActivityExplainerModal({
             size="lg"
             fullWidth
             onPress={onClose}
+            testID="settings-health-connect-explainer-modal-got-it"
           >
             Got it
           </Button>
@@ -360,7 +363,7 @@ export function HealthConnectIntegrationScreen() {
           Health Connect
         </Text>
 
-        <Card variant="elevated" padding="lg" style={styles.onboardingCard}>
+        <Card variant="elevated" padding="lg" style={styles.onboardingCard} testID="settings-health-connect-onboarding-card">
           <View style={styles.onboardingContainer}>
             <View
               style={[
@@ -428,6 +431,7 @@ export function HealthConnectIntegrationScreen() {
               onPress={handleConnect}
               loading={isLoading}
               style={styles.connectButton}
+              testID="settings-health-connect-connect-now-button"
             >
               Connect Now
             </Button>
@@ -459,12 +463,12 @@ export function HealthConnectIntegrationScreen() {
 
       {/* Error banner */}
       {syncError && (
-        <View style={[styles.errorBanner, { backgroundColor: colors.error + '15' }]}>
+        <View style={[styles.errorBanner, { backgroundColor: colors.error + '15' }]} testID="settings-health-connect-error-banner">
           <Ionicons name="alert-circle-outline" size={18} color={colors.error} />
           <Text style={[styles.errorText, { color: colors.error }]}>
             {syncError}
           </Text>
-          <Pressable onPress={resetSyncError}>
+          <Pressable onPress={resetSyncError} testID="settings-health-connect-error-dismiss-button">
             <Ionicons name="close" size={18} color={colors.error} />
           </Pressable>
         </View>
@@ -489,6 +493,7 @@ export function HealthConnectIntegrationScreen() {
           size="sm"
           onPress={openSettings}
           style={styles.settingsLink}
+          testID="settings-health-connect-manage-button"
         >
           Manage in Health Connect
         </Button>

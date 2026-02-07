@@ -55,6 +55,8 @@ export function ChatInput({
           multiline
           maxLength={500}
           editable={!disabled}
+          accessibilityLabel="Message input"
+          accessibilityHint="Type your question here"
         />
         <Pressable
           onPress={handleSend}
@@ -66,6 +68,9 @@ export function ChatInput({
               opacity: pressed && canSend ? 0.7 : 1,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Send message"
+          accessibilityState={{ disabled: !canSend }}
         >
           <Ionicons
             name="send"

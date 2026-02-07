@@ -64,6 +64,8 @@ export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel={`Weekly average: ${weeklyAverage > 0 ? `${weeklyAverage} calories, ${percentOfGoal}% of goal` : 'No data this week'}`}
     >
       <View style={styles.iconContainer}>
         <Ionicons name="calendar-outline" size={22} color={colors.accent} />

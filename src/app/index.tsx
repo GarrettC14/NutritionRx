@@ -13,7 +13,7 @@ export default function AppInitializer() {
   const { loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
   const { loadEntries: loadWeightEntries } = useWeightStore();
   const { loadActiveGoal } = useGoalStore();
-  const { loadOnboarding, isComplete: onboardingComplete, isLoaded: onboardingLoaded } = useOnboardingStore();
+  const { loadOnboarding, isComplete: onboardingComplete, isLoaded: onboardingLoaded, migrateFromLegacy } = useOnboardingStore();
   const { isLoading: legalLoading, needsAcknowledgment } = useLegalAcknowledgment();
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -39,6 +39,14 @@ export default function AppInitializer() {
     initialize();
   }, []);
 
+  // Legacy migration: if old profile flags exist but onboarding store isn't complete, migrate
+  useEffect(() => {
+    if (!isInitialized || !profileLoaded || !onboardingLoaded) return;
+    if (!onboardingComplete && (profile?.hasCompletedOnboarding || profile?.onboardingSkipped)) {
+      migrateFromLegacy();
+    }
+  }, [isInitialized, profileLoaded, onboardingLoaded]);
+
   // Show loading spinner while initializing
   if (!isInitialized || !profileLoaded || !onboardingLoaded || legalLoading) {
     return (
@@ -53,11 +61,8 @@ export default function AppInitializer() {
     return <Redirect href="/legal-acknowledgment" />;
   }
 
-  // Check if onboarding is needed (check both new onboarding store and legacy profile)
-  const needsOnboarding = !onboardingComplete && !profile?.hasCompletedOnboarding && !profile?.onboardingSkipped;
-
-  // Redirect based on onboarding status
-  if (needsOnboarding) {
+  // Redirect based on onboarding status (single source of truth)
+  if (!onboardingComplete) {
     return <Redirect href="/onboarding" />;
   }
 

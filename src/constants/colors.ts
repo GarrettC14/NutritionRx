@@ -11,7 +11,7 @@ export const colors = {
     textPrimary: '#F0F6FC',
     textSecondary: '#8B949E',
     textTertiary: '#6E7681',
-    textDisabled: '#484F58',
+    textDisabled: '#7A828D',
 
     // Borders
     borderDefault: '#30363D',
@@ -60,7 +60,7 @@ export const colors = {
     textPrimary: '#1F2328',
     textSecondary: '#656D76',
     textTertiary: '#8C959F',
-    textDisabled: '#AFB8C1',
+    textDisabled: '#6E7781',
 
     // Borders
     borderDefault: '#D0D7DE',

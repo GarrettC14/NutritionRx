@@ -48,7 +48,14 @@ export function CollapsibleSection({
 
   return (
     <View testID={testID} style={styles.container}>
-      <Pressable onPress={handleToggle} style={styles.header}>
+      <Pressable
+        onPress={handleToggle}
+        style={styles.header}
+        accessibilityRole="button"
+        accessibilityLabel={`${title}, ${itemCount} items`}
+        accessibilityState={{ expanded: isExpanded }}
+        accessibilityHint={isExpanded ? 'Double tap to collapse' : 'Double tap to expand'}
+      >
         <Animated.View style={chevronStyle}>
           <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
         </Animated.View>
@@ -84,6 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[1],
     paddingVertical: spacing[2],
+    minHeight: 44,
   },
   title: {
     ...typography.caption,

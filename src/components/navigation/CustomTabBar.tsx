@@ -128,6 +128,9 @@ export function CustomTabBar() {
               testID={TAB_TEST_IDS[tab.name]}
               style={styles.tab}
               onPress={() => handleTabPress(tab)}
+              accessibilityRole="tab"
+              accessibilityLabel={tab.title}
+              accessibilityState={{ selected: isActive }}
             >
               <Ionicons
                 name={isActive ? tab.iconActive : tab.icon}
@@ -163,6 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 44,
     gap: 2,
   },
   label: {

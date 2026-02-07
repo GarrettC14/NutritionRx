@@ -4,7 +4,6 @@ import { useOnboardingStore } from '@/stores';
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 
 export interface ProgressiveTooltipTriggers {
-  checkWaterTrackingIntro: () => boolean;
   checkMealCollapseTip: () => boolean;
   checkQuickAddDiscovery: () => boolean;
   checkWeeklySummary: () => boolean;
@@ -38,25 +37,6 @@ export function useProgressiveTooltips(
   const { totalFoodsLogged, daysTracked, firstFoodLoggedAt } = useOnboardingStore();
 
   const hasAutoChecked = useRef(false);
-
-  /**
-   * Water Tracking Introduction
-   * Trigger: First time viewing diary AND hasn't seen this tooltip
-   */
-  const checkWaterTrackingIntro = useCallback((): boolean => {
-    if (hasSeen(TOOLTIP_IDS.WATER_TRACKING)) return false;
-
-    return showTooltipIfNotSeen(
-      createTooltip(TOOLTIP_IDS.WATER_TRACKING,
-        'Stay hydrated! Tap the water droplets to track your daily water intake. Your goal is 8 glasses per day.',
-        {
-          icon: 'water-outline',
-          position: 'center',
-          actions: [{ label: 'Got it!', onPress: () => {}, primary: true }],
-        }
-      )
-    );
-  }, [hasSeen, showTooltipIfNotSeen]);
 
   /**
    * Meal Collapse Tip
@@ -166,7 +146,6 @@ export function useProgressiveTooltips(
       hasAutoChecked.current = true;
 
       // Check tooltips in priority order - stop if one is shown
-      if (checkWaterTrackingIntro()) return;
       if (checkMealCollapseTip()) return;
       if (checkQuickAddDiscovery()) return;
       if (checkWeeklySummary()) return;
@@ -176,14 +155,12 @@ export function useProgressiveTooltips(
   }, [
     autoCheck,
     autoCheckDelay,
-    checkWaterTrackingIntro,
     checkMealCollapseTip,
     checkQuickAddDiscovery,
     checkWeeklySummary,
   ]);
 
   return {
-    checkWaterTrackingIntro,
     checkMealCollapseTip,
     checkQuickAddDiscovery,
     checkWeeklySummary,

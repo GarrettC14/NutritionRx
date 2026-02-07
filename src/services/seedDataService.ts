@@ -6,135 +6,7 @@
 import { getDatabase } from '@/db/database';
 import { generateId } from '@/utils/generateId';
 import { MealType } from '@/constants/mealTypes';
-
-// Micronutrient data for seed foods (per 100g serving)
-// Based on USDA data
-const FOOD_MICRONUTRIENTS: Record<string, Record<string, number>> = {
-  'seed-001': { // Chicken Breast
-    vitamin_b6: 0.6,
-    niacin: 13.7,
-    riboflavin: 0.11,
-    thiamin: 0.07,
-    vitamin_b12: 0.34,
-    phosphorus: 228,
-    selenium: 27.6,
-    zinc: 0.9,
-    potassium: 256,
-    magnesium: 29,
-    iron: 0.4,
-  },
-  'seed-004': { // Egg, Whole
-    vitamin_a: 160,
-    vitamin_d: 2.0,
-    vitamin_b12: 0.89,
-    riboflavin: 0.46,
-    folate: 47,
-    phosphorus: 198,
-    selenium: 30.7,
-    zinc: 1.29,
-    iron: 1.75,
-    choline: 293,
-  },
-  'seed-013': { // Salmon, Wild
-    vitamin_d: 11.0,
-    vitamin_b12: 3.18,
-    niacin: 8.67,
-    vitamin_b6: 0.64,
-    riboflavin: 0.38,
-    thiamin: 0.23,
-    phosphorus: 252,
-    selenium: 36.5,
-    potassium: 490,
-    magnesium: 30,
-    omega_3_dha: 1.43,
-    omega_3_epa: 0.86,
-  },
-  'seed-024': { // Banana
-    vitamin_c: 8.7,
-    vitamin_b6: 0.37,
-    folate: 20,
-    potassium: 358,
-    magnesium: 27,
-    manganese: 0.27,
-  },
-  'seed-026': { // Orange
-    vitamin_c: 53.2,
-    folate: 30,
-    thiamin: 0.09,
-    potassium: 181,
-    calcium: 40,
-  },
-  'seed-036': { // Broccoli
-    vitamin_c: 89.2,
-    vitamin_k: 101.6,
-    folate: 63,
-    vitamin_a: 31,
-    potassium: 316,
-    phosphorus: 66,
-    magnesium: 21,
-    calcium: 47,
-    iron: 0.73,
-    fiber: 2.6,
-  },
-  'seed-038': { // Spinach
-    vitamin_k: 482.9,
-    vitamin_a: 469,
-    folate: 194,
-    vitamin_c: 28.1,
-    iron: 2.71,
-    magnesium: 79,
-    potassium: 558,
-    calcium: 99,
-    manganese: 0.9,
-  },
-  'seed-044': { // Sweet Potato
-    vitamin_a: 709,
-    vitamin_c: 2.4,
-    vitamin_b6: 0.21,
-    potassium: 337,
-    manganese: 0.26,
-    fiber: 3.0,
-  },
-  'seed-063': { // Greek Yogurt, Nonfat
-    vitamin_b12: 0.75,
-    riboflavin: 0.28,
-    calcium: 110,
-    phosphorus: 135,
-    potassium: 141,
-    zinc: 0.52,
-  },
-  'seed-066': { // Milk, Whole
-    vitamin_d: 1.3,
-    vitamin_b12: 0.45,
-    riboflavin: 0.18,
-    calcium: 113,
-    phosphorus: 84,
-    potassium: 132,
-  },
-  'seed-076': { // Almonds
-    vitamin_e: 25.6,
-    riboflavin: 1.01,
-    magnesium: 270,
-    phosphorus: 481,
-    manganese: 2.18,
-    copper: 1.03,
-    zinc: 3.12,
-    calcium: 269,
-    iron: 3.71,
-  },
-  'seed-055': { // Quinoa
-    folate: 42,
-    vitamin_b6: 0.12,
-    thiamin: 0.11,
-    riboflavin: 0.11,
-    iron: 1.49,
-    magnesium: 64,
-    phosphorus: 152,
-    zinc: 1.09,
-    manganese: 0.63,
-    copper: 0.19,
-  },
-};
+import { SEED_MICRONUTRIENTS, getSeedFoodIds } from '@/data/seedMicronutrients';
 
 // Sample log entries for the past 7 days
 const SAMPLE_LOG_ENTRIES = [
@@ -200,20 +72,28 @@ export async function seedMicronutrientData(): Promise<{ success: boolean; error
 
     console.log('[SeedData] Starting micronutrient data seeding...');
 
-    // 1. Insert micronutrient data for seed foods
+    // 1. Insert micronutrient data for all 150 seed foods (3,551 rows)
     const now = new Date().toISOString();
-    for (const [foodId, nutrients] of Object.entries(FOOD_MICRONUTRIENTS)) {
-      for (const [nutrientId, amount] of Object.entries(nutrients)) {
-        await db.runAsync(
-          `INSERT OR REPLACE INTO food_item_nutrients
-           (id, food_item_id, nutrient_id, amount, created_at)
-           VALUES (?, ?, ?, ?, ?)`,
-          [generateId(), foodId, nutrientId, amount, now]
-        );
-      }
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < SEED_MICRONUTRIENTS.length; i += BATCH_SIZE) {
+      const batch = SEED_MICRONUTRIENTS.slice(i, i + BATCH_SIZE);
+      const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
+      const params = batch.flatMap((row) => [
+        generateId(),
+        row.food_item_id,
+        row.nutrient_id,
+        row.amount,
+        now,
+      ]);
+      await db.runAsync(
+        `INSERT OR REPLACE INTO food_item_nutrients
+         (id, food_item_id, nutrient_id, amount, created_at)
+         VALUES ${placeholders}`,
+        params
+      );
     }
 
-    console.log('[SeedData] Micronutrient data inserted for seed foods');
+    console.log(`[SeedData] Micronutrient data inserted — ${SEED_MICRONUTRIENTS.length} rows across 150 foods`);
 
     // 2. Get existing food item data for creating log entries
     const foodData: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {};
@@ -278,18 +158,17 @@ export async function clearSeedData(): Promise<{ success: boolean; error?: strin
   try {
     const db = getDatabase();
 
-    // Delete seeded micronutrient data (identified by seed food IDs)
-    const seedFoodIds = Object.keys(FOOD_MICRONUTRIENTS);
+    // Delete seeded micronutrient data for all seed foods
+    const seedFoodIds = getSeedFoodIds();
     const fnPlaceholders = seedFoodIds.map(() => '?').join(',');
     await db.runAsync(
       `DELETE FROM food_item_nutrients WHERE food_item_id IN (${fnPlaceholders})`,
       seedFoodIds
     );
 
-    // Delete log entries from the past 7 days that reference seed foods
-    const placeholders = seedFoodIds.map(() => '?').join(',');
+    // Delete log entries that reference seed foods
     await db.runAsync(
-      `DELETE FROM log_entries WHERE food_item_id IN (${placeholders})`,
+      `DELETE FROM log_entries WHERE food_item_id IN (${fnPlaceholders})`,
       seedFoodIds
     );
 

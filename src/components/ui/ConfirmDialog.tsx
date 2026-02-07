@@ -98,6 +98,8 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
                       { backgroundColor: colors.bgInteractive },
                     ]}
                     onPress={handleCancel}
+                    accessibilityRole="button"
+                    accessibilityLabel={cancelLabel || 'Cancel'}
                   >
                     <Text
                       style={[styles.actionText, { color: colors.textPrimary }]}
@@ -118,6 +120,8 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
                     },
                   ]}
                   onPress={handleConfirm}
+                  accessibilityRole="button"
+                  accessibilityLabel={confirmLabel}
                 >
                   <Text style={[styles.actionText, { color: '#FFFFFF' }]}>
                     {confirmLabel}

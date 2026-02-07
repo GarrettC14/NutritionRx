@@ -77,4 +77,28 @@ tags:
 - assertVisible:
     id: "home-date-label"
 
+# --- STEP 6: Verify the logged entry appears on home screen ---
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+# Expand Breakfast section (quick-add was sent to breakfast)
+- tapOn:
+    id: "meal-breakfast-section"
+
+- waitForAnimationToEnd
+
+# Verify the logged entry is visible
+- assertVisible:
+    id: "meal-entry-item-.*"
+
 # --- SMOKE TEST COMPLETE ---

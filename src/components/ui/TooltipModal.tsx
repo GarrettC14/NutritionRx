@@ -73,7 +73,7 @@ export function TooltipModal() {
       onRequestClose={handleDefaultDismiss}
     >
       <Animated.View style={[styles.overlay, overlayStyle]}>
-        <Pressable testID={TestIDs.UI.TooltipDismiss} style={styles.overlayPress} onPress={handleDefaultDismiss}>
+        <Pressable testID={TestIDs.UI.TooltipDismiss} style={styles.overlayPress} onPress={handleDefaultDismiss} accessibilityRole="button" accessibilityLabel="Dismiss tooltip">
           <Animated.View
             style={[
               styles.card,
@@ -108,6 +108,8 @@ export function TooltipModal() {
                         : { backgroundColor: 'transparent' },
                     ]}
                     onPress={() => handleAction(action)}
+                    accessibilityRole="button"
+                    accessibilityLabel={action.label}
                   >
                     <Text
                       style={[

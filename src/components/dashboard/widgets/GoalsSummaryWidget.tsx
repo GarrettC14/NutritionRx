@@ -43,6 +43,8 @@ export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel="View and edit your goals"
     >
       <View style={styles.header}>
         <Text style={styles.title}>Your Goals</Text>
