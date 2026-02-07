@@ -21,7 +21,7 @@ export { useInsightsStore } from './stores/insightsStore';
 export { useAlertDismissalStore } from './stores/alertDismissalStore';
 
 // Services
-export { LLMService, MODEL_CONFIG, DEVICE_REQUIREMENTS } from './services/LLMService';
+export { LLMService } from './services/LLMService';
 export { buildInsightPrompt, parseInsightResponse, getCategoryIcon, getCategoryTitle } from './services/InsightPromptBuilder';
 export { generateFallbackInsights, getEmptyStateMessage } from './services/FallbackInsights';
 export { calculateDeficiencies, getSeverityColor, getSeverityIcon } from './services/DeficiencyCalculator';

@@ -23,7 +23,7 @@ import {
 } from '@/utils/devTools';
 import type { SeedOptions, SeedProgress, SeedResult } from '@/utils/devTools';
 import { TestIDs } from '@/constants/testIDs';
-import { LLMService, MODEL_CONFIG } from '@/features/insights/services/LLMService';
+import { LLMService } from '@/features/insights/services/LLMService';
 import type { LLMStatus } from '@/features/insights/types/insights.types';
 
 // ============================================================
@@ -345,7 +345,8 @@ export default function DeveloperScreen() {
                   <StatRow label="Status" value={llmInfo.status} colors={colors} />
                   <StatRow label="Downloaded" value={llmInfo.isDownloaded ? 'Yes' : 'No'} colors={colors} />
                   <StatRow label="File size" value={formatBytes(llmInfo.modelSize)} colors={colors} />
-                  <StatRow label="Model" value={MODEL_CONFIG.fileName} colors={colors} />
+                  <StatRow label="Provider" value={LLMService.getProviderName()} colors={colors} />
+                  <StatRow label="Model" value={LLMService.getModelConfig()?.name ?? 'N/A'} colors={colors} />
                   <StatRow label="llama.rn available" value={llmInfo.isAvailable ? 'Yes' : 'No'} colors={colors} isLast />
                 </>
               ) : (
