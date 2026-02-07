@@ -7,7 +7,16 @@
 import type { UnifiedNutritionContext } from './nutritionContextBuilder';
 import type { DerivedInsight } from './derivedNutritionInsights';
 
-export function formatNutritionContext(ctx: UnifiedNutritionContext): string {
+interface FormatOptions {
+  includeDerived?: boolean;
+  includeFrequentFoods?: boolean;
+}
+
+export function formatNutritionContext(
+  ctx: UnifiedNutritionContext,
+  options: FormatOptions = {},
+): string {
+  const { includeDerived = true, includeFrequentFoods = true } = options;
   const sections: string[] = [];
 
   sections.push(formatProfileSection(ctx.profile));
@@ -20,11 +29,11 @@ export function formatNutritionContext(ctx: UnifiedNutritionContext): string {
     sections.push(formatWeightTrendSection(ctx.metrics.weightTrend, ctx.profile));
   }
 
-  if (ctx.derivedInsights.length > 0) {
+  if (includeDerived && ctx.derivedInsights.length > 0) {
     sections.push(formatDerivedInsightsSection(ctx.derivedInsights));
   }
 
-  if (ctx.frequentFoods.length > 0) {
+  if (includeFrequentFoods && ctx.frequentFoods.length > 0) {
     sections.push(formatFrequentFoods(ctx.frequentFoods));
   }
 

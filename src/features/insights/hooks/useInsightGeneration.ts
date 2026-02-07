@@ -6,8 +6,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useInsightsStore } from '../stores/insightsStore';
 import { LLMService } from '../services/LLMService';
-import { buildInsightPrompt, parseInsightResponse } from '../services/InsightPromptBuilder';
+import { parseInsightResponse } from '../services/InsightPromptBuilder';
 import { generateFallbackInsights, getEmptyStateMessage } from '../services/FallbackInsights';
+import { buildUnifiedNutritionContext } from '@/services/context/nutritionContextBuilder';
+import { buildSystemPrompt, buildDailyUserMessage } from '@/services/context/nutritionSystemPrompt';
 import type { InsightInputData, Insight, LLMStatus } from '../types/insights.types';
 
 interface UseInsightGenerationResult {
@@ -77,24 +79,30 @@ export function useInsightGeneration(): UseInsightGenerationResult {
         setLLMStatus(status);
 
         if (status === 'ready' && llmEnabled) {
-          // Try LLM generation
-          console.log('[LLM:useInsightGeneration] Building prompt for LLM...');
-          const prompt = buildInsightPrompt(data);
-          console.log(`[LLM:useInsightGeneration] Prompt built (${prompt.length} chars), generating...`);
-          const result = await LLMService.generate(prompt, 512);
+          // Try LLM generation with context pipeline
+          try {
+            console.log('[LLM:useInsightGeneration] Building context pipeline...');
+            const ctx = await buildUnifiedNutritionContext();
+            const systemPrompt = buildSystemPrompt(ctx);
+            const userMessage = buildDailyUserMessage();
+            console.log(`[LLM:useInsightGeneration] System prompt built (${systemPrompt.length} chars), generating with context pipeline...`);
 
-          console.log(`[LLM:useInsightGeneration] LLM result — success=${result.success}, textLength=${result.text?.length || 0}`);
-          if (result.success && result.text) {
-            const insights = parseInsightResponse(result.text);
-            console.log(`[LLM:useInsightGeneration] Parsed ${insights.length} insights from LLM response`);
-            if (insights.length > 0) {
-              console.log(`[LLM:useInsightGeneration] Setting ${insights.length} LLM insights: [${insights.map(i => i.category).join(', ')}]`);
-              setInsights(insights, 'llm');
-              return;
+            const result = await LLMService.generateWithSystem(systemPrompt, userMessage, 512);
+
+            console.log(`[LLM:useInsightGeneration] LLM result — success=${result.success}, textLength=${result.text?.length || 0}`);
+            if (result.success && result.text) {
+              const insights = parseInsightResponse(result.text);
+              console.log(`[LLM:useInsightGeneration] Parsed ${insights.length} insights from LLM response`);
+              if (insights.length > 0) {
+                console.log(`[LLM:useInsightGeneration] Setting ${insights.length} LLM insights: [${insights.map(i => i.category).join(', ')}]`);
+                setInsights(insights, 'llm');
+                return;
+              }
             }
+            console.log('[LLM:useInsightGeneration] LLM returned no usable insights, falling back');
+          } catch (pipelineErr) {
+            console.error('[LLM:useInsightGeneration] Context pipeline failed, falling back:', pipelineErr);
           }
-          // If LLM failed, fall through to fallback
-          console.log('[LLM:useInsightGeneration] LLM returned no usable insights, falling back');
         }
 
         // Use fallback insights

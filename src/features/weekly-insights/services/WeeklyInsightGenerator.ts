@@ -11,6 +11,8 @@ import type {
 import { WeeklyPromptBuilder } from './WeeklyPromptBuilder';
 import { generateHeadline } from '../constants/headlineTemplates';
 import { getQuestionById } from '../constants/questionLibrary';
+import { buildUnifiedNutritionContext } from '@/services/context/nutritionContextBuilder';
+import { buildSystemPrompt } from '@/services/context/nutritionSystemPrompt';
 
 export class WeeklyInsightGenerator {
   /**
@@ -28,16 +30,31 @@ export class WeeklyInsightGenerator {
     const icon = definition?.icon ?? 'bulb-outline';
     console.log(`[LLM:WeeklyGenerator] Question definition — icon=${icon}, hasDefinition=${!!definition}`);
 
-    // Try LLM generation
+    // Try LLM generation with context pipeline
     try {
       const status = await LLMService.getStatus();
       console.log(`[LLM:WeeklyGenerator] LLM status: ${status}`);
 
       if (status === 'ready') {
-        console.log(`[LLM:WeeklyGenerator] Building prompt for ${questionId}...`);
-        const prompt = WeeklyPromptBuilder.build(questionId, analysisResult);
-        console.log(`[LLM:WeeklyGenerator] Prompt built (${prompt.length} chars), generating with maxTokens=200...`);
-        const result = await LLMService.generate(prompt, 200);
+        // Build enriched system prompt from context pipeline
+        let systemPrompt = '';
+        try {
+          console.log(`[LLM:WeeklyGenerator] Building context pipeline for ${questionId}...`);
+          const ctx = await buildUnifiedNutritionContext();
+          systemPrompt = buildSystemPrompt(ctx);
+          console.log(`[LLM:WeeklyGenerator] System prompt built (${systemPrompt.length} chars)`);
+        } catch (ctxErr) {
+          console.error(`[LLM:WeeklyGenerator] Context pipeline failed, using question prompt only:`, ctxErr);
+        }
+
+        console.log(`[LLM:WeeklyGenerator] Building question prompt for ${questionId}...`);
+        const questionPrompt = WeeklyPromptBuilder.build(questionId, analysisResult);
+        console.log(`[LLM:WeeklyGenerator] Question prompt built (${questionPrompt.length} chars), generating...`);
+
+        // Use system+user separation when context is available, otherwise fall back to legacy
+        const result = systemPrompt
+          ? await LLMService.generateWithSystem(systemPrompt, questionPrompt, 200)
+          : await LLMService.generate(questionPrompt, 200);
 
         console.log(`[LLM:WeeklyGenerator] LLM result — success=${result.success}, textLength=${result.text?.length || 0}`);
         if (result.success && result.text) {
