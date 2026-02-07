@@ -1,0 +1,52 @@
+appId: com.nutritionrx.app
+name: Health Connect Settings Toggles
+tags:
+  - health
+  - health-connect
+  - settings
+---
+# Note: This test assumes Health Connect is already connected
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-bar-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+# Scroll to find Health Connect row
+- scrollUntilVisible:
+    element:
+      id: "settings-health-connect-row"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "settings-health-connect-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-health-connect-screen"
+    timeout: 5000
+
+# If connected, verify all toggle rows are present
+- runFlow:
+    when:
+      visible:
+        id: "settings-health-connect-sync-nutrition-row"
+    commands:
+      - assertVisible:
+          id: "settings-health-connect-sync-water-row"
+      - assertVisible:
+          id: "settings-health-connect-read-weight-row"
+      - assertVisible:
+          id: "settings-health-connect-adjust-activity-row"
+      - assertVisible:
+          id: "settings-health-connect-how-this-works-button"
+      - assertVisible:
+          id: "settings-health-connect-manage-button"

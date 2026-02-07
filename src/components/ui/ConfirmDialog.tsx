@@ -66,7 +66,6 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
               styles.card,
               {
                 backgroundColor: colors.bgElevated,
-                shadowColor: colors.textPrimary,
               },
             ]}
           >
@@ -151,10 +150,6 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     borderRadius: borderRadius.xl,
     padding: spacing[6],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
   },
   iconContainer: {
     alignItems: 'center',

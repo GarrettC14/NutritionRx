@@ -71,7 +71,7 @@ export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
         <Ionicons name="calendar-outline" size={22} color={colors.accent} />
       </View>
 
-      <View style={styles.info}>
+      <View style={styles.info} accessibilityLiveRegion="polite">
         <Text style={styles.title}>Weekly Avg</Text>
         <View style={styles.valueRow}>
           <Text style={styles.value}>

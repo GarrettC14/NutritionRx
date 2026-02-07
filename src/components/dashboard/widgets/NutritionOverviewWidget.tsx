@@ -92,6 +92,8 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
         onPress={handleRingPress}
         style={styles.ringSection}
         disabled={isEditMode}
+        accessibilityRole="button"
+        accessibilityLabel={`Calorie ring showing ${primaryValue.toLocaleString()} ${primaryLabel.toLowerCase()}. Tap to toggle view`}
       >
         <View style={[styles.ringContainer, { width: ringSize, height: ringSize }]}>
           <Svg width={ringSize} height={ringSize} style={StyleSheet.absoluteFill}>
@@ -120,7 +122,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
           </Svg>
 
           {/* Center Content */}
-          <View style={styles.centerContent}>
+          <View style={styles.centerContent} accessibilityLiveRegion="polite">
             <Text style={[styles.label, { color: colors.textTertiary }]}>
               {primaryLabel}
             </Text>

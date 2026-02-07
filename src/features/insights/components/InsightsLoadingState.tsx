@@ -11,7 +11,7 @@ export function InsightsLoadingState() {
   const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityLiveRegion="polite">
       {[1, 2].map((i) => (
         <View
           key={i}

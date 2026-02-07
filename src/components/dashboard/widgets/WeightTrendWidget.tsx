@@ -116,6 +116,8 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel={`Weight trend${typeof latestWeight === 'number' ? `, current ${latestWeight.toFixed(1)} lbs` : ''}. Tap to log weight`}
     >
       <View style={styles.header}>
         <Text style={styles.title}>Weight Trend</Text>
@@ -132,7 +134,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
         )}
       </View>
 
-      <View style={styles.statsRow}>
+      <View style={styles.statsRow} accessibilityLiveRegion="polite">
         <View style={styles.stat}>
           <Text style={styles.statLabel}>Current</Text>
           <Text style={styles.statValue}>

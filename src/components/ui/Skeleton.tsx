@@ -6,6 +6,7 @@ import Animated, {
   withRepeat,
   withTiming,
   interpolate,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { borderRadius as br } from '@/constants/spacing';
@@ -19,18 +20,21 @@ interface SkeletonBoxProps {
 
 export function SkeletonBox({ width, height, borderRadius = br.md, style }: SkeletonBoxProps) {
   const { colors, isDark } = useTheme();
-  const shimmer = useSharedValue(0);
+  const reducedMotion = useReducedMotion();
+  const shimmer = useSharedValue(reducedMotion ? 0.5 : 0);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 1000 }),
-      -1,
-      true
-    );
-  }, []);
+    if (!reducedMotion) {
+      shimmer.value = withRepeat(
+        withTiming(1, { duration: 1000 }),
+        -1,
+        true
+      );
+    }
+  }, [reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(shimmer.value, [0, 1], [0.3, 0.7]),
+    opacity: reducedMotion ? 0.5 : interpolate(shimmer.value, [0, 1], [0.3, 0.7]),
   }));
 
   const baseColor = isDark ? colors.bgSecondary : colors.borderDefault;
@@ -63,18 +67,21 @@ export function SkeletonCircle({ size, style }: SkeletonCircleProps) {
 // Skeleton for the calorie ring
 export function CalorieRingSkeleton({ size = 220 }: { size?: number }) {
   const { colors, isDark } = useTheme();
-  const shimmer = useSharedValue(0);
+  const reducedMotion = useReducedMotion();
+  const shimmer = useSharedValue(reducedMotion ? 0.5 : 0);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 1000 }),
-      -1,
-      true
-    );
-  }, []);
+    if (!reducedMotion) {
+      shimmer.value = withRepeat(
+        withTiming(1, { duration: 1000 }),
+        -1,
+        true
+      );
+    }
+  }, [reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(shimmer.value, [0, 1], [0.3, 0.6]),
+    opacity: reducedMotion ? 0.5 : interpolate(shimmer.value, [0, 1], [0.3, 0.6]),
   }));
 
   const baseColor = isDark ? colors.bgSecondary : colors.borderDefault;

@@ -11,7 +11,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:maestro": "maestro test maestro/",
+    "test:maestro:smoke": "maestro test maestro/smoke/",
+    "test:maestro:flow": "maestro test",
+    "test:maestro:premium": "maestro test maestro/flows/premium/"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -59,6 +63,12 @@
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "@types/uuid": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native-a11y": "^3.5.1",
     "expo-build-properties": "^1.0.10",
     "jest": "^30.2.0",
     "react-test-renderer": "^19.1.0",

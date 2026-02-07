@@ -63,6 +63,9 @@ export function PhotoThumbnail({
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Progress photo from ${formatDate(photo.date)}, ${CATEGORY_LABELS[photo.category]} view${isSelected ? ', selected' : ''}`}
+      accessibilityState={{ selected: isSelected }}
     >
       <Image
         source={{ uri: photo.thumbnailUri || photo.localUri }}

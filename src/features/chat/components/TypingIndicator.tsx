@@ -3,8 +3,8 @@
  * Animated dots showing the assistant is generating a response
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Animated, StyleSheet, AccessibilityInfo } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing, borderRadius } from '@/constants/spacing';
 
@@ -15,11 +15,29 @@ const ANIMATION_DELAY = 150;
 
 export function TypingIndicator() {
   const { colors } = useTheme();
+  const [reducedMotion, setReducedMotion] = useState(false);
   const dot1 = useRef(new Animated.Value(0.3)).current;
   const dot2 = useRef(new Animated.Value(0.3)).current;
   const dot3 = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReducedMotion,
+    );
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      // Set static opacity instead of pulsing
+      dot1.setValue(0.7);
+      dot2.setValue(0.7);
+      dot3.setValue(0.7);
+      return;
+    }
+
     const createAnimation = (dot: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
@@ -46,10 +64,10 @@ export function TypingIndicator() {
     animation.start();
 
     return () => animation.stop();
-  }, [dot1, dot2, dot3]);
+  }, [dot1, dot2, dot3, reducedMotion]);
 
   return (
-    <View style={[styles.container, { paddingHorizontal: spacing[4] }]}>
+    <View style={[styles.container, { paddingHorizontal: spacing[4] }]} accessibilityLiveRegion="polite" accessibilityLabel="Assistant is typing">
       <View
         style={[
           styles.bubble,

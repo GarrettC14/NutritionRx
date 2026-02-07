@@ -9,11 +9,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Platform,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DraggableFlatList, {
   ScaleDecorator,
   RenderItemParams,
@@ -110,18 +110,24 @@ export function DashboardScreen() {
               <TouchableOpacity
                 style={styles.restoreButton}
                 onPress={handleRestoreDefaults}
+                accessibilityRole="button"
+                accessibilityLabel="Restore default widget layout"
               >
                 <Text style={styles.restoreButtonText}>Restore</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.addButton}
                 onPress={handleAddWidget}
+                accessibilityRole="button"
+                accessibilityLabel="Add widget"
               >
                 <Ionicons name="add" size={22} color={colors.accent} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.doneButton}
                 onPress={handleDoneEditing}
+                accessibilityRole="button"
+                accessibilityLabel="Done editing dashboard"
               >
                 <Text style={styles.doneButtonText}>Done</Text>
               </TouchableOpacity>
@@ -130,6 +136,8 @@ export function DashboardScreen() {
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => setEditMode(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Edit dashboard layout"
             >
               <Ionicons name="pencil-outline" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -162,6 +170,8 @@ export function DashboardScreen() {
           <TouchableOpacity
             style={styles.emptyAddButton}
             onPress={handleAddWidget}
+            accessibilityRole="button"
+            accessibilityLabel="Add widget to dashboard"
           >
             <Ionicons name="add" size={20} color={'#fff'} />
             <Text style={styles.emptyAddButtonText}>Add Widget</Text>
@@ -183,6 +193,8 @@ export function DashboardScreen() {
               <TouchableOpacity
                 style={styles.addWidgetCard}
                 onPress={handleAddWidget}
+                accessibilityRole="button"
+                accessibilityLabel="Add widget"
               >
                 <Ionicons name="add-circle" size={32} color={colors.accent} />
                 <Text style={styles.addWidgetText}>Add Widget</Text>

@@ -47,7 +47,7 @@ export default function UnitsSettingsScreen() {
         >
           {/* Weight Unit */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
               WEIGHT UNIT
             </Text>
             <View style={styles.options}>

@@ -6,6 +6,7 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
@@ -21,6 +22,7 @@ const SPRING_CONFIG = {
 
 export function TooltipModal() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { activeTooltip, hideTooltip } = useTooltipContext();
 
   const translateY = useSharedValue(300);
@@ -28,11 +30,21 @@ export function TooltipModal() {
 
   useEffect(() => {
     if (activeTooltip) {
-      opacity.value = withTiming(1, { duration: 200 });
-      translateY.value = withSpring(0, SPRING_CONFIG);
+      if (reducedMotion) {
+        opacity.value = 1;
+        translateY.value = 0;
+      } else {
+        opacity.value = withTiming(1, { duration: 200 });
+        translateY.value = withSpring(0, SPRING_CONFIG);
+      }
     } else {
-      opacity.value = withTiming(0, { duration: 150 });
-      translateY.value = withTiming(300, { duration: 150 });
+      if (reducedMotion) {
+        opacity.value = 0;
+        translateY.value = 300;
+      } else {
+        opacity.value = withTiming(0, { duration: 150 });
+        translateY.value = withTiming(300, { duration: 150 });
+      }
     }
   }, [activeTooltip]);
 
@@ -80,7 +92,6 @@ export function TooltipModal() {
               cardStyle,
               {
                 backgroundColor: colors.bgElevated,
-                shadowColor: colors.textPrimary,
               },
               position === 'top' && styles.cardTop,
               position === 'bottom' && styles.cardBottom,
@@ -149,10 +160,6 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     borderRadius: borderRadius.xl,
     padding: spacing[6],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
   },
   cardTop: {
     position: 'absolute',

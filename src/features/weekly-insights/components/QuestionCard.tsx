@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Animated, { FadeIn, Layout } from 'react-native-reanimated';
+import Animated, { FadeIn, Layout, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import type {
@@ -66,6 +66,7 @@ export function QuestionCard({
   onFollowUp,
 }: QuestionCardProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const catColor = WEEKLY_CATEGORY_COLORS[question.definition.category] || '#999999';
 
   // Determine expanded sub-state
@@ -98,7 +99,7 @@ export function QuestionCard({
   };
 
   return (
-    <Animated.View layout={Layout.duration(200)} style={{ marginBottom: isExpanded ? 14 : 10 }}>
+    <Animated.View layout={reducedMotion ? undefined : Layout.duration(200)} style={{ marginBottom: isExpanded ? 14 : 10 }}>
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.7}
@@ -112,6 +113,8 @@ export function QuestionCard({
             borderLeftColor: getLeftBorderColor(),
           },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={`${question.definition.displayText}, ${isExpanded ? 'collapse' : 'expand'}`}
       >
         {/* Collapsed Header */}
         <View style={styles.header}>
@@ -140,7 +143,7 @@ export function QuestionCard({
 
         {/* Expanded Content */}
         {isExpanded && (
-          <Animated.View entering={FadeIn.duration(200)} style={styles.expandedContent}>
+          <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)} style={styles.expandedContent}>
             {expandedState === 'insufficient_data' && (
               <InsufficientDataState daysNeeded={daysNeeded} colors={colors} />
             )}
@@ -201,7 +204,7 @@ function ErrorState({
           {error}
         </Text>
       </View>
-      <TouchableOpacity onPress={onRetry} style={styles.retryButton}>
+      <TouchableOpacity onPress={onRetry} style={styles.retryButton} accessibilityRole="button" accessibilityLabel="Retry generating insight">
         <Ionicons name="refresh-outline" size={14} color={colors.accent} />
         <Text style={[styles.retryText, { color: colors.accent }]}>Tap to retry</Text>
       </TouchableOpacity>

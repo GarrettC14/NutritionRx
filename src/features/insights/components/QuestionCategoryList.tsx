@@ -18,6 +18,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -59,6 +60,7 @@ function CategoryRow({
   responses,
 }: CategoryRowProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const rotation = useSharedValue(expanded ? 0 : -90);
 
   const chevronStyle = useAnimatedStyle(() => ({
@@ -66,8 +68,12 @@ function CategoryRow({
   }));
 
   const handleToggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    rotation.value = withTiming(expanded ? -90 : 0, { duration: 200 });
+    if (!reducedMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    rotation.value = reducedMotion
+      ? (expanded ? -90 : 0)
+      : withTiming(expanded ? -90 : 0, { duration: 200 });
     onToggle();
   };
 
@@ -83,6 +89,8 @@ function CategoryRow({
           styles.categoryHeader,
           { borderColor: colors.borderDefault },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={`${meta.label} category, ${questions.length} questions`}
       >
         <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
           <Ionicons name={meta.icon as any} size={18} color={catColor} />

@@ -144,7 +144,7 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <Pressable style={styles.overlayPress} onPress={onClose}>
+        <Pressable style={styles.overlayPress} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close insight detail">
           <View
             style={[
               styles.card,
@@ -221,6 +221,8 @@ export function InsightDetailSheet({ questionId, visible, onClose }: InsightDeta
                 <Pressable
                   style={[styles.actionButton, { backgroundColor: colors.accent }]}
                   onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel="Okay, close dialog"
                 >
                   <Text style={styles.actionText}>Okay</Text>
                 </Pressable>

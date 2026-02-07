@@ -3,16 +3,19 @@
  * Template-generated headline — never depends on LLM.
  * Taps open /daily-insights screen for full question-based experience.
  * Premium feature - shows locked state for free users.
+ * Shows download prompt when LLM model is not yet downloaded.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { useLLMStatus } from '@/hooks/useLLMStatus';
 import { useSubscriptionStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
+import { ModelDownloadSheet } from '@/components/llm/ModelDownloadSheet';
 import { useDailyInsightData } from '@/features/insights/hooks/useDailyInsightData';
 import { useDailyInsightStore } from '@/features/insights/stores/dailyInsightStore';
 
@@ -21,6 +24,8 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
   const { headline, isLoaded, data } = useDailyInsightData();
+  const { needsDownload, isUnsupported } = useLLMStatus();
+  const [showDownloadSheet, setShowDownloadSheet] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     await useDailyInsightStore.getState().refreshData();
@@ -31,6 +36,10 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       router.push('/daily-insights');
     }
   };
+
+  const handleDownloadComplete = useCallback(async () => {
+    await useDailyInsightStore.getState().refreshData();
+  }, []);
 
   const styles = createStyles(colors);
 
@@ -51,6 +60,32 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       );
     }
 
+    // Download prompt — show when premium and model not downloaded (not unsupported)
+    if (isPremium && needsDownload && !isUnsupported) {
+      return (
+        <TouchableOpacity
+          style={[styles.downloadCard, { backgroundColor: colors.premiumGoldMuted }]}
+          onPress={() => setShowDownloadSheet(true)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Download AI model for personalized insights"
+        >
+          <Ionicons name="sparkles" size={22} color={colors.premiumGold} />
+          <View style={styles.downloadCardText}>
+            <Text style={[styles.downloadTitle, { color: colors.textPrimary }]}>
+              Enable AI Insights
+            </Text>
+            <Text style={[styles.downloadSubtitle, { color: colors.textSecondary }]}>
+              Download a small model for personalized insights
+            </Text>
+          </View>
+          <View style={[styles.downloadBadge, { backgroundColor: colors.accent }]}>
+            <Text style={styles.downloadBadgeText}>Download</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     // Empty state — no meals logged
     if (!data || data.todayMealCount === 0) {
       return (
@@ -65,7 +100,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
 
     // Headline display
     return (
-      <View style={styles.headlineContainer}>
+      <View style={styles.headlineContainer} accessibilityLiveRegion="polite">
         <View style={styles.headlineRow}>
           <Ionicons name={headline.icon as any} size={22} color={colors.accent} />
           <Text style={[styles.headlineText, { color: colors.textPrimary }]}>
@@ -85,6 +120,8 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
       style={styles.contentTouchable}
+      accessibilityRole="button"
+      accessibilityLabel="View daily insights"
     >
       {renderContent()}
     </TouchableOpacity>
@@ -107,6 +144,8 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
           onPress={handleRefresh}
           disabled={isEditMode}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Refresh daily insight"
         >
           <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -126,6 +165,13 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
           </LockedContentArea>
         </View>
       )}
+
+      {/* Download sheet */}
+      <ModelDownloadSheet
+        visible={showDownloadSheet}
+        onDismiss={() => setShowDownloadSheet(false)}
+        onComplete={handleDownloadComplete}
+      />
     </View>
   );
 }
@@ -185,6 +231,36 @@ const createStyles = (colors: any) =>
     },
     skeletonShort: {
       width: '60%',
+    },
+    // Download prompt
+    downloadCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 12,
+      borderRadius: 12,
+    },
+    downloadCardText: {
+      flex: 1,
+      gap: 2,
+    },
+    downloadTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    downloadSubtitle: {
+      fontSize: 12,
+      lineHeight: 16,
+    },
+    downloadBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    downloadBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '600',
     },
     // Empty state
     emptyContainer: {

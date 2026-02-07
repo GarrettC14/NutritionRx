@@ -104,6 +104,14 @@ export default function MealPlanningScreen() {
   const { showTooltipIfNotSeen } = useTooltipContext();
   const { showConfirm } = useConfirmDialog();
 
+  // Optimistic local state for switches to prevent rubber-band lag
+  const [localEnabled, setLocalEnabled] = useState(settings?.enabled ?? false);
+  const [localShowOnToday, setLocalShowOnToday] = useState(settings?.showOnToday ?? true);
+
+  // Sync local state when store state settles
+  useEffect(() => { setLocalEnabled(settings?.enabled ?? false); }, [settings?.enabled]);
+  useEffect(() => { setLocalShowOnToday(settings?.showOnToday ?? true); }, [settings?.showOnToday]);
+
   // Load data on mount
   useEffect(() => {
     loadSettings();
@@ -112,16 +120,18 @@ export default function MealPlanningScreen() {
 
   const weekDates = getWeekDates(selectedWeekStart);
 
-  const handleToggleEnabled = async (value: boolean) => {
+  const handleToggleEnabled = (value: boolean) => {
+    setLocalEnabled(value);
     if (value) {
-      await enableMealPlanning();
+      enableMealPlanning();
     } else {
-      await disableMealPlanning();
+      disableMealPlanning();
     }
   };
 
-  const handleToggleShowOnToday = async (value: boolean) => {
-    await updateSettings({ showOnToday: value });
+  const handleToggleShowOnToday = (value: boolean) => {
+    setLocalShowOnToday(value);
+    updateSettings({ showOnToday: value });
   };
 
   const handleDayPress = (date: string) => {
@@ -246,7 +256,7 @@ export default function MealPlanningScreen() {
             </Text>
           </View>
           <Switch
-            value={settings?.enabled ?? false}
+            value={localEnabled}
             onValueChange={handleToggleEnabled}
             trackColor={{ false: colors.bgElevated, true: SAGE_GREEN }}
             thumbColor="#fff"
@@ -269,7 +279,7 @@ export default function MealPlanningScreen() {
                 </Text>
               </View>
               <Switch
-                value={settings?.showOnToday ?? true}
+                value={localShowOnToday}
                 onValueChange={handleToggleShowOnToday}
                 trackColor={{ false: colors.bgElevated, true: SAGE_GREEN }}
                 thumbColor="#fff"
@@ -471,7 +481,7 @@ export default function MealPlanningScreen() {
                         onPress={() => handleAddMeal(selectedDate!, slot)}
                         testID={settingsMealPlanningAddMealButton(slot)}
                       >
-                        <Ionicons name="add" size={16} color="#fff" />
+                        <Ionicons name="add" size={20} color="#fff" />
                       </Pressable>
                     </View>
 
@@ -698,9 +708,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addMealButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },

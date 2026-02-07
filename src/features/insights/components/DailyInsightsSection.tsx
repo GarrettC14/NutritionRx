@@ -70,6 +70,8 @@ export function DailyInsightsSection() {
         <TouchableOpacity
           style={[styles.downloadPrompt, { backgroundColor: colors.bgPrimary, borderColor: colors.borderDefault }]}
           onPress={downloadModel}
+          accessibilityRole="button"
+          accessibilityLabel="Enable AI Insights, download 1GB model for personalized insights"
         >
           <View style={styles.downloadRow}>
             <Ionicons name="sparkles" size={20} color={colors.premiumGold} />
@@ -137,7 +139,7 @@ export function DailyInsightsSection() {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={refresh} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={refresh} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Refresh insights">
           <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>

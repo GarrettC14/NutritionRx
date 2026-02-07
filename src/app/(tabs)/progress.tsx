@@ -240,7 +240,7 @@ export default function ProgressScreen() {
     <SafeAreaView testID={TestIDs.Progress.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
           Your Journey
         </Text>
         <Pressable
@@ -307,7 +307,7 @@ export default function ProgressScreen() {
         {/* Weight Section */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} accessibilityRole="header">
               Weight
             </Text>
             <View style={styles.timeRangeButtons}>
@@ -364,7 +364,7 @@ export default function ProgressScreen() {
         {/* Calories Section */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} accessibilityRole="header">
               Calories
             </Text>
             <View style={styles.timeRangeButtons}>
@@ -422,7 +422,7 @@ export default function ProgressScreen() {
         {hasCalorieData && avgMacros.calories > 0 && (
           <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} accessibilityRole="header">
                 Average Macros
               </Text>
               <View style={styles.timeRangeButtons}>
@@ -464,7 +464,7 @@ export default function ProgressScreen() {
         {hasEnoughData && (
           <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} accessibilityRole="header">
                 Insights
               </Text>
               <View style={styles.timeRangeButtons}>

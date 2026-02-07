@@ -43,6 +43,8 @@ export function LockedOverlay({
         style={StyleSheet.absoluteFill}
         activeOpacity={0.9}
         onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={message}
       >
         <BlurView
           intensity={12}

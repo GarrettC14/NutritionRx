@@ -1,6 +1,7 @@
 /**
  * Tooltip System Integration Tests
- * End-to-end tests for progressive discovery tooltips
+ * End-to-end tests for progressive discovery tooltips.
+ * Mock boundary: AsyncStorage is mocked; hook and store logic run real code.
  */
 
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';

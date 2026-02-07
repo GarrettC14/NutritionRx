@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   TextInput,
+  AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -188,9 +189,11 @@ export default function LogFoodScreen() {
         carbs: calculatedNutrition.carbs,
         fat: calculatedNutrition.fat,
       });
+      AccessibilityInfo.announceForAccessibility('Food logged successfully');
       router.dismiss();
     } catch (error) {
       console.error('Failed to save log entry:', error);
+      AccessibilityInfo.announceForAccessibility('Failed to log food');
     } finally {
       setIsSaving(false);
     }
@@ -235,7 +238,7 @@ export default function LogFoodScreen() {
         <Pressable testID={TestIDs.LogFood.BackButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
           Add to {MEAL_TYPE_LABELS[mealType]}
         </Text>
         <FavoriteButton
@@ -269,8 +272,8 @@ export default function LogFoodScreen() {
         </View>
 
         {/* How Much Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+        <View style={styles.section} accessible={true} accessibilityLabel="Serving size and unit">
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             HOW MUCH?
           </Text>
 
@@ -323,8 +326,8 @@ export default function LogFoodScreen() {
         </View>
 
         {/* Meal Type Selector */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+        <View style={styles.section} accessible={true} accessibilityLabel="Select meal">
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             MEAL
           </Text>
           <View style={styles.mealSelector}>
@@ -396,7 +399,7 @@ export default function LogFoodScreen() {
         {food.usdaFdcId && micronutrients && Object.keys(micronutrients).length > 0 && (
           <View style={[styles.micronutrientCard, { backgroundColor: colors.bgSecondary }]}>
             <View style={styles.micronutrientHeader}>
-              <Text style={[styles.micronutrientTitle, { color: colors.textPrimary }]}>
+              <Text style={[styles.micronutrientTitle, { color: colors.textPrimary }]} accessibilityRole="header">
                 Micronutrients
               </Text>
               <View style={[styles.nutrientCountBadge, { backgroundColor: colors.accent + '20' }]}>

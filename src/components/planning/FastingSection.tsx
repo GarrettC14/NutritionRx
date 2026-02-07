@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -53,6 +54,7 @@ function formatTime(date: Date): string {
 
 function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const { showConfirm } = useConfirmDialog();
   const {
@@ -101,8 +103,12 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
   }, [activeSession, getTimeRemaining]);
 
   const toggleExpanded = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    if (!reducedMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    rotation.value = reducedMotion
+      ? (isExpanded ? 0 : 90)
+      : withTiming(isExpanded ? 0 : 90, { duration: 200 });
     setIsExpanded(!isExpanded);
   };
 
@@ -174,7 +180,7 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
       ]}
     >
       {/* Collapsible Header */}
-      <Pressable style={styles.header} onPress={toggleExpanded}>
+      <Pressable style={styles.header} onPress={toggleExpanded} accessibilityRole="button" accessibilityLabel={`Fasting, ${isExpanded ? 'collapse' : 'expand'}`}>
         <View style={styles.headerLeft}>
           <Animated.View style={chevronStyle}>
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
@@ -247,6 +253,8 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
                 <Pressable
                   style={[styles.secondaryButton, { backgroundColor: colors.bgInteractive }]}
                   onPress={handleEditTimes}
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit fasting times"
                 >
                   <Ionicons name="time-outline" size={18} color={colors.textPrimary} />
                   <Text style={[styles.secondaryButtonText, { color: colors.textPrimary }]}>
@@ -259,6 +267,8 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
                     { backgroundColor: isComplete ? colors.success : FASTING_GREEN },
                   ]}
                   onPress={handleEndFast}
+                  accessibilityRole="button"
+                  accessibilityLabel={isComplete ? 'Complete fast' : 'End fast early'}
                 >
                   <Ionicons name={isComplete ? 'checkmark' : 'stop'} size={20} color="#FFFFFF" />
                   <Text style={styles.primaryButtonText}>
@@ -271,6 +281,8 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
                 <Pressable
                   style={[styles.secondaryButton, { backgroundColor: colors.bgInteractive }]}
                   onPress={handleViewStats}
+                  accessibilityRole="button"
+                  accessibilityLabel="View fasting stats"
                 >
                   <Ionicons name="stats-chart-outline" size={18} color={colors.textPrimary} />
                   <Text style={[styles.secondaryButtonText, { color: colors.textPrimary }]}>
@@ -280,6 +292,8 @@ function FastingSectionContent({ defaultExpanded = false }: FastingSectionProps)
                 <Pressable
                   style={[styles.primaryButton, { backgroundColor: FASTING_GREEN }]}
                   onPress={handleStartFast}
+                  accessibilityRole="button"
+                  accessibilityLabel="Start fast"
                 >
                   <Ionicons name="timer-outline" size={20} color="#FFFFFF" />
                   <Text style={styles.primaryButtonText}>Start Fast</Text>

@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   useSharedValue,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -32,6 +33,7 @@ const SLOT_LABELS: Record<MealSlot, string> = {
 
 export function PlannedMealsSection() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const { isPremium } = useSubscriptionStore();
   const { showConfirm } = useConfirmDialog();
@@ -50,9 +52,13 @@ export function PlannedMealsSection() {
 
   // Animated style must be called before any early returns (Rules of Hooks)
   const animatedContentStyle = useAnimatedStyle(() => ({
-    maxHeight: isExpanded ? withTiming(500, { duration: 300 }) : withTiming(0, { duration: 200 }),
-    opacity: isExpanded ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 200 }),
-    overflow: 'hidden',
+    maxHeight: reducedMotion
+      ? (isExpanded ? 500 : 0)
+      : (isExpanded ? withTiming(500, { duration: 300 }) : withTiming(0, { duration: 200 })),
+    opacity: reducedMotion
+      ? (isExpanded ? 1 : 0)
+      : (isExpanded ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 200 })),
+    overflow: 'hidden' as const,
   }));
 
   // Load data on mount
@@ -125,7 +131,7 @@ export function PlannedMealsSection() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
       {/* Header - always visible */}
-      <Pressable style={styles.header} onPress={handleToggle}>
+      <Pressable style={styles.header} onPress={handleToggle} accessibilityRole="button" accessibilityLabel={`Planned Meals, ${totalPending > 0 ? `${totalPending} meals remaining` : 'all meals completed'}, ${isExpanded ? 'collapse' : 'expand'}`}>
         <View style={styles.headerLeft}>
           <View style={[styles.iconContainer, { backgroundColor: SAGE_GREEN + '20' }]}>
             <Ionicons name="calendar-outline" size={20} color={SAGE_GREEN} />
@@ -190,12 +196,16 @@ export function PlannedMealsSection() {
                           <Pressable
                             style={[styles.actionButton, { backgroundColor: SAGE_GREEN }]}
                             onPress={() => handleLogMeal(meal)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Log ${meal.foodName}`}
                           >
                             <Ionicons name="checkmark" size={16} color="#fff" />
                           </Pressable>
                           <Pressable
                             style={[styles.actionButton, { backgroundColor: colors.bgSecondary }]}
                             onPress={() => handleSkipMeal(meal)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Skip ${meal.foodName}`}
                           >
                             <Ionicons name="close" size={16} color={colors.textSecondary} />
                           </Pressable>
@@ -232,7 +242,7 @@ export function PlannedMealsSection() {
           )}
 
           {/* View All Link */}
-          <Pressable style={styles.viewAllLink} onPress={handleViewMealPlanning}>
+          <Pressable style={styles.viewAllLink} onPress={handleViewMealPlanning} accessibilityRole="button" accessibilityLabel="View Meal Planning">
             <Text style={[styles.viewAllText, { color: SAGE_GREEN }]}>
               View Meal Planning
             </Text>

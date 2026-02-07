@@ -65,6 +65,8 @@ export function ProgressPhotosSummary({
       <Pressable
         style={[styles.addButton, { backgroundColor: colors.accent }]}
         onPress={onAddPress}
+        accessibilityRole="button"
+        accessibilityLabel="Take first progress photo"
       >
         <Ionicons name="add" size={20} color="#FFFFFF" />
         <Text style={styles.addButtonText}>Take First Photo</Text>
@@ -117,7 +119,7 @@ export function ProgressPhotosSummary({
     <>
       {/* Quick comparison preview */}
       {firstPhoto && latestPhoto && firstPhoto.id !== latestPhoto.id && (
-        <Pressable style={styles.comparisonPreview} onPress={onComparePress}>
+        <Pressable style={styles.comparisonPreview} onPress={onComparePress} accessibilityRole="button" accessibilityLabel="Compare progress photos">
           <View style={styles.comparisonPhotos}>
             <View style={styles.comparisonPhoto}>
               <Image
@@ -169,6 +171,8 @@ export function ProgressPhotosSummary({
           <Pressable
             style={[styles.addThumbnail, { backgroundColor: colors.bgTertiary }]}
             onPress={onAddPress}
+            accessibilityRole="button"
+            accessibilityLabel="Add new progress photo"
           >
             <Ionicons name="add" size={24} color={colors.accent} />
           </Pressable>
@@ -179,6 +183,8 @@ export function ProgressPhotosSummary({
               key={photo.id}
               style={styles.recentThumbnail}
               onPress={onPress}
+              accessibilityRole="button"
+              accessibilityLabel={`Progress photo from ${formatDate(photo.date)}`}
             >
               <Image
                 source={{ uri: photo.thumbnailUri || photo.localUri }}
@@ -231,6 +237,8 @@ export function ProgressPhotosSummary({
         style={[styles.header, !isPremium && styles.headerLocked]}
         onPress={isPremium ? onPress : undefined}
         disabled={!isPremium}
+        accessibilityRole="button"
+        accessibilityLabel={`Progress Photos, ${stats.totalPhotos} photo${stats.totalPhotos !== 1 ? 's' : ''}${daysSince !== null ? `, ${daysSince} days` : ''}`}
       >
         <View style={styles.headerLeft}>
           <Ionicons name="camera-outline" size={24} color={colors.accent} />

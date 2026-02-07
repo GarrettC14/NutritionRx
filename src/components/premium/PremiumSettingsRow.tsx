@@ -39,7 +39,7 @@ export function PremiumSettingsRow({
   };
 
   return (
-    <TouchableOpacity testID={testID} style={[styles.row, { backgroundColor: colors.bgSecondary }]} onPress={handlePress}>
+    <TouchableOpacity testID={testID} style={[styles.row, { backgroundColor: colors.bgSecondary }]} onPress={handlePress} accessibilityRole="button" accessibilityLabel={`${label}${!isPremium ? ', locked, tap to unlock' : ''}`}>
       {icon && (
         <View style={[styles.iconContainer, { backgroundColor: colors.bgInteractive }]}>
           <Ionicons name={icon} size={20} color={colors.accent} />

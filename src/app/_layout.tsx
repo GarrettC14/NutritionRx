@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Platform, LogBox } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, LogBox } from 'react-native';
 
 // Suppress on-screen LogBox bars so they don't intercept Maestro E2E taps.
 // Warnings still appear in Metro console / logcat.
 if (__DEV__) {
   LogBox.ignoreAllLogs(true);
 }
+// Allow font scaling for accessibility, cap at 2× to prevent layout breakage
+(Text as any).defaultProps = { ...(Text as any).defaultProps, maxFontSizeMultiplier: 2.0 };
+(TextInput as any).defaultProps = { ...(TextInput as any).defaultProps, maxFontSizeMultiplier: 1.5 };
+
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

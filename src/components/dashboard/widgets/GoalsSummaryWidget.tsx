@@ -51,7 +51,7 @@ export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
         <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
       </View>
 
-      <View style={styles.goalsGrid}>
+      <View style={styles.goalsGrid} accessibilityLiveRegion="polite">
         {/* Calorie Goal */}
         <View style={styles.goalItem}>
           <View style={[styles.goalIcon, { backgroundColor: `${colors.calories}20` }]}>

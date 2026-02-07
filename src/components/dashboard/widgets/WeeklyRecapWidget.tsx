@@ -104,6 +104,8 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
           activeOpacity={0.7}
           style={[styles.ctaButton, { backgroundColor: `${colors.accent}12` }]}
           disabled={isEditMode}
+          accessibilityRole="button"
+          accessibilityLabel="Explore your weekly insights"
         >
           <Text style={[styles.ctaText, { color: colors.accent }]}>
             Explore your week

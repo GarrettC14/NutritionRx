@@ -49,7 +49,7 @@ export function DeficiencyAlertCard({ alert, onDismiss }: DeficiencyAlertCardPro
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={onDismiss} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={onDismiss} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel={`Dismiss ${alert.nutrientName} alert`}>
           <Ionicons name="close" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>

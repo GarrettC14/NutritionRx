@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
@@ -20,6 +20,7 @@ export function FirstFoodCelebration({
   caloriesLogged,
 }: FirstFoodCelebrationProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { shouldShowCelebration } = useOnboardingStore();
   const { settings } = useSettingsStore();
 
@@ -41,14 +42,14 @@ export function FirstFoodCelebration({
       animationType="fade"
       onRequestClose={handleDismiss}
     >
-      <Pressable style={styles.overlay} onPress={handleDismiss}>
+      <Pressable style={styles.overlay} onPress={handleDismiss} accessibilityRole="button" accessibilityLabel="Dismiss celebration">
         <Pressable onPress={(e) => e.stopPropagation()}>
           <Animated.View
-            entering={ZoomIn.duration(300).springify().damping(15)}
+            entering={reducedMotion ? undefined : ZoomIn.duration(300).springify().damping(15)}
             style={[styles.card, { backgroundColor: colors.bgElevated }]}
           >
             {/* Icon */}
-            <Animated.View entering={FadeIn.delay(200)} style={{ marginBottom: spacing[4] }}>
+            <Animated.View entering={reducedMotion ? undefined : FadeIn.delay(200)} style={{ marginBottom: spacing[4] }}>
               <Ionicons name="trophy-outline" size={56} color={colors.accent} />
             </Animated.View>
 

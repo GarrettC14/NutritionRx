@@ -1,6 +1,7 @@
 /**
  * Water Tracking Integration Tests
- * End-to-end tests for water tracking feature
+ * End-to-end tests for water tracking feature.
+ * Mock boundary: database is mocked; store and repository logic run real code.
  */
 
 let glassCount = 0;

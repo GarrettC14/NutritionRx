@@ -162,7 +162,7 @@ export default function NutritionSettingsScreen() {
       showConfirm({
         title: 'Success',
         message: 'Nutrition preferences updated. Your macro targets have been recalculated.',
-        icon: '✅',
+        icon: 'checkmark-circle',
         confirmLabel: 'OK',
         cancelLabel: null,
         onConfirm: () => {},
@@ -228,7 +228,7 @@ export default function NutritionSettingsScreen() {
           {/* View Mode */}
           {!isEditing ? (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                 YOUR PREFERENCES
               </Text>
               <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
@@ -262,7 +262,7 @@ export default function NutritionSettingsScreen() {
               {/* Current Macros Display */}
               {activeGoal && (
                 <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
-                  <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.cardTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     CURRENT MACRO TARGETS
                   </Text>
                   <View style={styles.macroGrid}>
@@ -303,7 +303,7 @@ export default function NutritionSettingsScreen() {
               {/* Edit Mode */}
               {/* Eating Style Selection */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   EATING STYLE
                 </Text>
                 <Text style={[styles.sectionDescription, { color: colors.textTertiary }]}>
@@ -375,7 +375,7 @@ export default function NutritionSettingsScreen() {
 
               {/* Protein Priority Selection */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   PROTEIN PRIORITY
                 </Text>
                 <Text style={[styles.sectionDescription, { color: colors.textTertiary }]}>
@@ -453,7 +453,7 @@ export default function NutritionSettingsScreen() {
               {/* Preview */}
               {previewMacros && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     NEW MACRO PREVIEW
                   </Text>
                   <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>

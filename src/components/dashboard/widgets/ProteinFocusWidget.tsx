@@ -46,6 +46,8 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel={`Protein: ${proteinConsumed}g consumed of ${proteinTarget}g goal, ${remaining}g remaining`}
     >
       <View style={styles.ringContainer}>
         <Svg width={size} height={size}>
@@ -72,7 +74,7 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
             transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
         </Svg>
-        <View style={styles.ringContent}>
+        <View style={styles.ringContent} accessibilityLiveRegion="polite">
           <Text style={styles.remainingNumber}>{remaining}g</Text>
           <Text style={styles.remainingLabel}>remaining</Text>
         </View>

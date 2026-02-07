@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -33,6 +34,7 @@ export function CollapsibleSection({
   testID,
 }: CollapsibleSectionProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const rotation = useSharedValue(defaultExpanded ? 0 : -90);
 
@@ -41,8 +43,12 @@ export function CollapsibleSection({
   }));
 
   const handleToggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    rotation.value = withTiming(isExpanded ? -90 : 0, { duration: 200 });
+    if (!reducedMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    rotation.value = reducedMotion
+      ? (isExpanded ? -90 : 0)
+      : withTiming(isExpanded ? -90 : 0, { duration: 200 });
     setIsExpanded(!isExpanded);
   };
 

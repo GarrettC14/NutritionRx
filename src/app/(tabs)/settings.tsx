@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Linking, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,6 +13,9 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { PremiumSettingsRow } from '@/components/premium/PremiumSettingsRow';
+import { ModelDownloadSheet } from '@/components/llm/ModelDownloadSheet';
+import { useLLMStatus } from '@/hooks/useLLMStatus';
+import { LLMService } from '@/features/insights/services/LLMService';
 import { seedDatabase } from '@/utils/devTools/seedDatabase';
 import { DEFAULT_SEED_OPTIONS } from '@/utils/devTools/types';
 import { TestIDs } from '@/constants/testIDs';
@@ -156,6 +159,36 @@ export default function SettingsScreen() {
   const { showConfirm } = useConfirmDialog();
 
   const [isSeeding, setIsSeeding] = useState(false);
+  const [showDownloadSheet, setShowDownloadSheet] = useState(false);
+  const { status: llmStatus, isReady: llmReady, needsDownload: llmNeedsDownload, isUnsupported: llmUnsupported, providerName } = useLLMStatus();
+
+  const [modelSizeText, setModelSizeText] = useState<string | null>(null);
+  React.useEffect(() => {
+    if (llmReady) {
+      LLMService.getModelSize().then((bytes) => {
+        if (bytes > 0) {
+          setModelSizeText(`${Math.round(bytes / (1024 * 1024))} MB`);
+        }
+      });
+    }
+  }, [llmReady]);
+
+  const handleDeleteModel = () => {
+    showConfirm({
+      title: 'Delete AI Model',
+      message: 'This will remove the downloaded model. You can re-download it anytime.',
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        await LLMService.deleteModel();
+        const { useDailyInsightStore } = await import('@/features/insights/stores/dailyInsightStore');
+        useDailyInsightStore.setState({ llmStatus: 'not_downloaded' });
+        setModelSizeText(null);
+      },
+    });
+  };
 
   const handleSeedDatabase = async () => {
     setIsSeeding(true);
@@ -244,7 +277,7 @@ export default function SettingsScreen() {
     <SafeAreaView testID={TestIDs.Settings.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
           Settings
         </Text>
       </View>
@@ -257,7 +290,7 @@ export default function SettingsScreen() {
       >
         {/* Premium Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             PREMIUM
           </Text>
           <View style={styles.sectionContent}>
@@ -323,7 +356,7 @@ export default function SettingsScreen() {
 
         {/* Your Plan Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             YOUR PLAN
           </Text>
           <View style={styles.sectionContent}>
@@ -361,7 +394,7 @@ export default function SettingsScreen() {
 
         {/* Tracking Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             TRACKING
           </Text>
           <View style={styles.sectionContent}>
@@ -382,9 +415,97 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* AI Model Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
+            AI MODEL
+          </Text>
+          <View style={styles.sectionContent}>
+            {/* Status row — always visible */}
+            <View style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}>
+              <View
+                style={[
+                  styles.settingsIcon,
+                  { backgroundColor: llmReady ? colors.successBg : colors.bgInteractive },
+                ]}
+              >
+                <Ionicons
+                  name="hardware-chip-outline"
+                  size={20}
+                  color={llmReady ? colors.success : colors.accent}
+                />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                  AI Model
+                </Text>
+                <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                  {llmReady
+                    ? `Ready — ${providerName}`
+                    : llmNeedsDownload
+                      ? 'Download required'
+                      : llmUnsupported
+                        ? 'Not available on this device'
+                        : 'Checking...'}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor: llmReady
+                      ? colors.success
+                      : llmNeedsDownload
+                        ? colors.warning
+                        : colors.textTertiary,
+                  },
+                ]}
+              />
+            </View>
+
+            {/* Storage row — only when ready and provider is not Apple Foundation */}
+            {llmReady && modelSizeText && providerName !== 'Apple Foundation' && (
+              <View style={[styles.settingsItem, { backgroundColor: colors.bgSecondary }]}>
+                <View style={[styles.settingsIcon, { backgroundColor: colors.bgInteractive }]}>
+                  <Ionicons name="folder-outline" size={20} color={colors.accent} />
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={[styles.settingsTitle, { color: colors.textPrimary }]}>
+                    Model Storage
+                  </Text>
+                  <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+                    {modelSizeText}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Download row — only when not downloaded */}
+            {llmNeedsDownload && (
+              <SettingsItem
+                icon="cloud-download-outline"
+                title="Download Model"
+                subtitle="Required for AI-powered insights"
+                onPress={() => setShowDownloadSheet(true)}
+              />
+            )}
+
+            {/* Delete row — only when ready and Llama provider */}
+            {llmReady && providerName !== 'Apple Foundation' && (
+              <SettingsItem
+                icon="trash-outline"
+                title="Delete Model"
+                onPress={handleDeleteModel}
+                danger
+                showChevron={false}
+              />
+            )}
+          </View>
+        </View>
+
         {/* Profile Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             PROFILE
           </Text>
           <View style={styles.sectionContent}>
@@ -408,7 +529,7 @@ export default function SettingsScreen() {
 
         {/* Connections Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             CONNECTIONS
           </Text>
           <View style={styles.sectionContent}>
@@ -449,7 +570,7 @@ export default function SettingsScreen() {
 
         {/* Support Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             SUPPORT
           </Text>
           <View style={styles.sectionContent}>
@@ -471,7 +592,7 @@ export default function SettingsScreen() {
 
         {/* About Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             ABOUT
           </Text>
           <View style={styles.sectionContent}>
@@ -516,7 +637,7 @@ export default function SettingsScreen() {
 
         {/* Danger Zone Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
             DANGER ZONE
           </Text>
           <View style={styles.sectionContent}>
@@ -533,7 +654,7 @@ export default function SettingsScreen() {
         {/* Developer Section - for testing */}
         {__DEV__ && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
               DEVELOPER
             </Text>
             <View style={styles.sectionContent}>
@@ -620,6 +741,12 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      <ModelDownloadSheet
+        visible={showDownloadSheet}
+        onDismiss={() => setShowDownloadSheet(false)}
+        onComplete={() => setShowDownloadSheet(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -716,6 +843,11 @@ const styles = StyleSheet.create({
   },
   segmentLabelSelected: {
     fontWeight: '600',
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   footer: {
     alignItems: 'center',

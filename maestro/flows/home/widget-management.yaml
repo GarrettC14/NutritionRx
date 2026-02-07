@@ -75,6 +75,8 @@ tags:
 # Verify default widget(s) restored
 - assertVisible:
     id: "widget-calorie-ring"
+- assertVisible:
+    id: "widget-macro-bars"
 
 # Exit edit mode
 - tapOn:

@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withSequence,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -30,6 +31,7 @@ export function FavoriteButton({
   testID,
 }: FavoriteButtonProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -43,10 +45,12 @@ export function FavoriteButton({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
     // Animate scale: 1 -> 1.3 -> 1
-    scale.value = withSequence(
-      withSpring(1.3, { damping: 10, stiffness: 400 }),
-      withSpring(1, { damping: 10, stiffness: 400 })
-    );
+    if (!reducedMotion) {
+      scale.value = withSequence(
+        withSpring(1.3, { damping: 10, stiffness: 400 }),
+        withSpring(1, { damping: 10, stiffness: 400 })
+      );
+    }
 
     onPress();
   };

@@ -177,6 +177,8 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
             style={[styles.logButton, { backgroundColor: colors.accent }]}
             onPress={handleLogFood}
             disabled={isEditMode}
+            accessibilityRole="button"
+            accessibilityLabel="Log food to track nutrients"
           >
             <Text style={styles.logButtonText}>Log Food</Text>
           </TouchableOpacity>
@@ -202,7 +204,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
 
     // Gaps found state
     return (
-      <View style={styles.gapsContent}>
+      <View style={styles.gapsContent} accessibilityLiveRegion="polite">
         {topGaps.map(renderNutrientRow)}
 
         {suggestion && (
@@ -221,6 +223,8 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
       style={styles.contentTouchable}
+      accessibilityRole="button"
+      accessibilityLabel="View micronutrient details"
     >
       {renderContent()}
     </TouchableOpacity>

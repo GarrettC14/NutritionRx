@@ -1,6 +1,7 @@
 /**
  * Integration tests for the onboarding flow
- * Tests the complete flow from repository to store to UI
+ * Tests the complete flow from repository to store to UI.
+ * Mock boundary: database and AsyncStorage are mocked; store and repository logic run real code.
  */
 
 import { useOnboardingStore } from '@/stores/onboardingStore';

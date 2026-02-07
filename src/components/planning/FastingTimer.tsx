@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   interpolate,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -31,6 +32,7 @@ export function FastingTimer({
   children,
 }: FastingTimerProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -38,11 +40,14 @@ export function FastingTimer({
 
   // Animate progress changes
   const animatedProgress = useDerivedValue(() => {
+    if (reducedMotion) {
+      return progress;
+    }
     return withTiming(progress, {
       duration: 500,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
     });
-  }, [progress]);
+  }, [progress, reducedMotion]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = interpolate(

@@ -36,6 +36,8 @@ export function FollowUpChips({ followUpIds, onFollowUp }: FollowUpChipsProps) {
           key={id}
           onPress={() => onFollowUp(id)}
           style={[styles.chip, { backgroundColor: colors.accent + '15', borderColor: colors.accent + '30' }]}
+          accessibilityRole="button"
+          accessibilityLabel={`Follow-up: ${definition!.shortDescription}`}
         >
           <Text style={[styles.chipText, { color: colors.accent }]} numberOfLines={1}>
             {definition!.shortDescription}

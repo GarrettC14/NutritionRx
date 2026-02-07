@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
   withSequence,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { usePinStatus, PinnedItem, createPinnableItem } from '@/modules/widgets';
@@ -54,6 +55,7 @@ export function PinToWidgetButton({
   showLabel = false,
 }: PinToWidgetButtonProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { isPinned, isLoading, toggle } = usePinStatus(food.id);
 
   const scale = useSharedValue(1);
@@ -63,17 +65,19 @@ export function PinToWidgetButton({
 
   const handlePress = useCallback(async () => {
     // Animate
-    scale.value = withSequence(
-      withSpring(0.8, { damping: 10 }),
-      withSpring(1, { damping: 10 })
-    );
-
-    if (!isPinned) {
-      rotation.value = withSequence(
-        withSpring(-15, { damping: 10 }),
-        withSpring(15, { damping: 10 }),
-        withSpring(0, { damping: 10 })
+    if (!reducedMotion) {
+      scale.value = withSequence(
+        withSpring(0.8, { damping: 10 }),
+        withSpring(1, { damping: 10 })
       );
+
+      if (!isPinned) {
+        rotation.value = withSequence(
+          withSpring(-15, { damping: 10 }),
+          withSpring(15, { damping: 10 }),
+          withSpring(0, { damping: 10 })
+        );
+      }
     }
 
     // Haptic feedback

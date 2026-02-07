@@ -101,10 +101,10 @@ export default function WaterSettingsScreen() {
 
           {/* Glass Goal Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
               DAILY GLASS GOAL
             </Text>
-            <View style={styles.goalGrid}>
+            <View style={styles.goalGrid} accessible={true} accessibilityLabel="Select daily water glass goal">
               {GLASS_GOAL_OPTIONS.map((option) => (
                 <Pressable
                   key={option}
@@ -182,10 +182,10 @@ export default function WaterSettingsScreen() {
 
           {/* Glass Size Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
               GLASS SIZE
             </Text>
-            <View style={styles.options}>
+            <View style={styles.options} accessible={true} accessibilityLabel="Select glass size">
               {GLASS_SIZE_OPTIONS.map((option) => (
                 <Pressable
                   key={option.value}

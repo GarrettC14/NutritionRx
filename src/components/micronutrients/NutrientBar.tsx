@@ -141,6 +141,8 @@ export function NutrientBar({
           { backgroundColor: colors.bgSecondary },
         ]}
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${nutrient.name}, ${Math.round(percentOfTarget)}% of target, ${status}`}
       >
         {Content}
       </Pressable>

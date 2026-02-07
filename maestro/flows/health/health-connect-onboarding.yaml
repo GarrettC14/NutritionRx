@@ -1,0 +1,50 @@
+appId: com.nutritionrx.app
+name: Health Connect Onboarding
+tags:
+  - health
+  - health-connect
+  - onboarding
+---
+- launchApp:
+    clearState: true
+- runFlow: ../../utils/complete-onboarding.yaml
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-bar-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+# Scroll to find Health Connect row
+- scrollUntilVisible:
+    element:
+      id: "settings-health-connect-row"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "settings-health-connect-row"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-health-connect-screen"
+    timeout: 5000
+
+# Verify onboarding UI is shown (not connected state)
+- assertVisible:
+    id: "settings-health-connect-onboarding-card"
+
+- assertVisible:
+    id: "settings-health-connect-connect-now-button"
+
+# Tap Connect Now (triggers permission flow — system UI follows)
+- tapOn:
+    id: "settings-health-connect-connect-now-button"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Note: The actual permission dialog is system UI — testing stops here

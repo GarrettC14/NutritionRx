@@ -44,7 +44,7 @@ export function MacroSummary({ totals, goals, variant = 'compact' }: MacroSummar
 
   if (variant === 'detailed') {
     return (
-      <View style={[styles.detailedContainer, { backgroundColor: colors.bgSecondary }]}>
+      <View style={[styles.detailedContainer, { backgroundColor: colors.bgSecondary }]} accessibilityLiveRegion="polite">
         {macros.map((macro, index) => {
           const percentage = Math.min((macro.value / macro.goal) * 100, 100);
           return (
@@ -76,7 +76,7 @@ export function MacroSummary({ totals, goals, variant = 'compact' }: MacroSummar
   }
 
   return (
-    <View style={[styles.compactContainer, { backgroundColor: colors.bgSecondary }]}>
+    <View style={[styles.compactContainer, { backgroundColor: colors.bgSecondary }]} accessibilityLiveRegion="polite">
       {macros.map((macro) => (
         <View key={macro.label} style={styles.compactItem}>
           <View style={[styles.macroDot, { backgroundColor: macro.color }]} />

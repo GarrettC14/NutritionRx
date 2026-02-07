@@ -3,7 +3,7 @@
  * Full screen with snapshot cards, suggested questions, category browser, and detail sheet.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
+import { useLLMStatus } from '@/hooks/useLLMStatus';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
 import { useDailyInsightData } from '../hooks/useDailyInsightData';
 import { useDailyInsightStore } from '../stores/dailyInsightStore';
-import { LLMService } from '../services/LLMService';
 import { SnapshotCards } from '../components/SnapshotCards';
 import { SuggestedQuestions } from '../components/SuggestedQuestions';
 import { QuestionCategoryList } from '../components/QuestionCategoryList';
@@ -34,15 +34,14 @@ export function DailyInsightsScreen() {
   const { colors } = useTheme();
 
   const { data, headline, suggestedQuestions, isLoaded } = useDailyInsightData();
-  const { cache, llmStatus } = useDailyInsightStore();
+  const { cache } = useDailyInsightStore();
   const refreshData = useDailyInsightStore((s) => s.refreshData);
   const getAvailableQuestions = useDailyInsightStore((s) => s.getAvailableQuestions);
+  const { status: llmStatus, isDownloading, downloadProgress, startDownload } = useLLMStatus();
 
   const [selectedQuestion, setSelectedQuestion] = useState<DailyQuestionId | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadPercent, setDownloadPercent] = useState(0);
 
   const groupedQuestions = getAvailableQuestions();
 
@@ -65,35 +64,8 @@ export function DailyInsightsScreen() {
 
   const handleDownloadModel = useCallback(async () => {
     console.log('[LLM:DailyScreen] handleDownloadModel() started');
-    setIsDownloading(true);
-    setDownloadPercent(0);
-
-    try {
-      const result = await LLMService.downloadModel((progress) => {
-        setDownloadPercent(progress.percentage);
-      });
-
-      if (result.success) {
-        console.log('[LLM:DailyScreen] Model download succeeded, setting status to ready');
-        useDailyInsightStore.setState({ llmStatus: 'ready' });
-      } else {
-        console.log(`[LLM:DailyScreen] Model download failed: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('[LLM:DailyScreen] Download failed:', error);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, []);
-
-  // Check LLM status on mount
-  useEffect(() => {
-    console.log('[LLM:DailyScreen] Mount — checking LLM status');
-    LLMService.getStatus().then((status) => {
-      console.log(`[LLM:DailyScreen] LLM status on mount: ${status}`);
-      useDailyInsightStore.setState({ llmStatus: status });
-    });
-  }, []);
+    await startDownload();
+  }, [startDownload]);
 
   const styles = createStyles(colors);
 
@@ -101,13 +73,13 @@ export function DailyInsightsScreen() {
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing[2] }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Today's Insights
         </Text>
-        <TouchableOpacity onPress={handleRefresh} disabled={isRefreshing} hitSlop={12}>
+        <TouchableOpacity onPress={handleRefresh} disabled={isRefreshing} hitSlop={12} accessibilityRole="button" accessibilityLabel="Refresh insights">
           {isRefreshing ? (
             <ActivityIndicator size="small" color={colors.textSecondary} />
           ) : (
@@ -179,13 +151,13 @@ export function DailyInsightsScreen() {
                   <>
                     <ActivityIndicator size="small" color={colors.accent} />
                     <Text style={[styles.llmBannerText, { color: colors.textSecondary }]}>
-                      Downloading AI model... {downloadPercent}%
+                      Downloading AI model... {downloadProgress}%
                     </Text>
                     <View style={[styles.downloadBar, { backgroundColor: colors.bgInteractive }]}>
                       <View
                         style={[
                           styles.downloadFill,
-                          { width: `${downloadPercent}%`, backgroundColor: colors.accent },
+                          { width: `${downloadProgress}%`, backgroundColor: colors.accent },
                         ]}
                       />
                     </View>
@@ -204,6 +176,8 @@ export function DailyInsightsScreen() {
                     <TouchableOpacity
                       style={[styles.downloadButton, { backgroundColor: colors.accent }]}
                       onPress={handleDownloadModel}
+                      accessibilityRole="button"
+                      accessibilityLabel="Download AI model"
                     >
                       <Text style={styles.downloadButtonText}>Download</Text>
                     </TouchableOpacity>

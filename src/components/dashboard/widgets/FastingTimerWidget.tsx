@@ -171,6 +171,8 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
               style={[styles.setupButton, { borderColor: colors.accent }]}
               onPress={handlePress}
               disabled={isEditMode}
+              accessibilityRole="button"
+              accessibilityLabel="Configure fasting timer"
             >
               <Text style={[styles.setupButtonText, { color: colors.accent }]}>
                 Configure
@@ -193,6 +195,8 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
               style={[styles.actionButton, { backgroundColor: stateColor }]}
               onPress={handleEndFast}
               disabled={isEditMode}
+              accessibilityRole="button"
+              accessibilityLabel="End fast"
             >
               <Text style={styles.actionButtonText}>End Fast</Text>
             </TouchableOpacity>
@@ -204,7 +208,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
         const phase = getFastingPhase(hoursElapsed);
 
         return (
-          <View style={styles.timerContent}>
+          <View style={styles.timerContent} accessibilityLiveRegion="polite">
             {/* Large countdown */}
             <Text style={[styles.timerText, { color: colors.textPrimary }]}>
               {timeRemaining ? formatTime(timeRemaining.hours, timeRemaining.minutes) : '--:--'}
@@ -253,6 +257,8 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
               style={[styles.actionButton, { backgroundColor: stateColor }]}
               onPress={handleStartFast}
               disabled={isEditMode}
+              accessibilityRole="button"
+              accessibilityLabel="Start fast"
             >
               <Text style={styles.actionButtonText}>Start Fast</Text>
             </TouchableOpacity>
@@ -267,6 +273,8 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode || currentState === 'not_configured'}
       style={styles.contentTouchable}
+      accessibilityRole="button"
+      accessibilityLabel="View fasting timer details"
     >
       {renderContent()}
     </TouchableOpacity>

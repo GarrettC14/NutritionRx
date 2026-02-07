@@ -154,7 +154,7 @@ export function PhotoComparison({
         </View>
 
         {onClose && (
-          <Pressable onPress={onClose} style={styles.closeButton}>
+          <Pressable onPress={onClose} style={styles.closeButton} accessibilityRole="button" accessibilityLabel="Close comparison">
             <Ionicons name="close" size={24} color={colors.textPrimary} />
           </Pressable>
         )}
@@ -168,6 +168,9 @@ export function PhotoComparison({
             mode === 'side_by_side' && { backgroundColor: colors.bgInteractive },
           ]}
           onPress={() => onModeChange?.('side_by_side')}
+          accessibilityRole="button"
+          accessibilityLabel={`Side by Side view${mode === 'side_by_side' ? ', selected' : ''}`}
+          accessibilityState={{ selected: mode === 'side_by_side' }}
         >
           <Ionicons
             name="grid-outline"
@@ -190,6 +193,9 @@ export function PhotoComparison({
             mode === 'slider_overlay' && { backgroundColor: colors.bgInteractive },
           ]}
           onPress={() => onModeChange?.('slider_overlay')}
+          accessibilityRole="button"
+          accessibilityLabel={`Slider view${mode === 'slider_overlay' ? ', selected' : ''}`}
+          accessibilityState={{ selected: mode === 'slider_overlay' }}
         >
           <Ionicons
             name="git-compare-outline"

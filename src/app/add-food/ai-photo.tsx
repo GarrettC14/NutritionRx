@@ -21,6 +21,7 @@ import Animated, {
   FadeIn,
   FadeOut,
   SlideInUp,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -44,6 +45,7 @@ const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
 export default function AIPhotoScreen() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const cameraRef = useRef<CameraView>(null);
@@ -456,7 +458,7 @@ export default function AIPhotoScreen() {
   if (screenState.step === 'analyzing') {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-        <Animated.View entering={FadeIn} style={styles.analyzingContainer}>
+        <Animated.View entering={reducedMotion ? undefined : FadeIn} style={styles.analyzingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={[styles.analyzingTitle, { color: colors.textPrimary }]}>
             Analyzing your food...
@@ -521,7 +523,7 @@ export default function AIPhotoScreen() {
               return (
                 <Animated.View
                   key={food.id}
-                  entering={SlideInUp.delay(100)}
+                  entering={reducedMotion ? undefined : SlideInUp.delay(100)}
                   style={[
                     styles.foodCard,
                     {

@@ -57,6 +57,8 @@ export function WidgetRenderer({
           style={styles.deleteButton}
           onPress={handleDelete}
           hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${definition.name} widget`}
         >
           <View style={styles.deleteButtonInner}>
             <Ionicons name="remove" size={14} color="#fff" />
@@ -78,6 +80,8 @@ export function WidgetRenderer({
             onLongPress={handleDragStart}
             delayLongPress={150}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Reorder ${definition.name} widget, long press to drag`}
           >
             <Ionicons name="menu" size={20} color={colors.textSecondary} />
           </TouchableOpacity>

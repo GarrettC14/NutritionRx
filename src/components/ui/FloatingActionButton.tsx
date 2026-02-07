@@ -13,6 +13,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -102,13 +103,16 @@ export function FloatingActionButton({
   onToggleExpand,
 }: FloatingActionButtonProps) {
   const { colors, isDark } = useTheme();
+  const reducedMotion = useReducedMotion();
   const expandProgress = useSharedValue(0);
 
   React.useEffect(() => {
-    expandProgress.value = withSpring(isExpanded ? 1 : 0, {
-      damping: 15,
-      stiffness: 200,
-    });
+    expandProgress.value = reducedMotion
+      ? (isExpanded ? 1 : 0)
+      : withSpring(isExpanded ? 1 : 0, {
+          damping: 15,
+          stiffness: 200,
+        });
   }, [isExpanded]);
 
   const handlePrimaryPress = async () => {

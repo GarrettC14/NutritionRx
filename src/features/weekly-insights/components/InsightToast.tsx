@@ -5,12 +5,13 @@
 
 import React, { useEffect } from 'react';
 import { Text, StyleSheet } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useWeeklyInsightsStore } from '../stores/weeklyInsightsStore';
 
 export function InsightToast() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const toast = useWeeklyInsightsStore((s) => s.toast);
   const hideToast = useWeeklyInsightsStore((s) => s.hideToast);
 
@@ -27,14 +28,15 @@ export function InsightToast() {
 
   return (
     <Animated.View
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(200)}
+      entering={reducedMotion ? undefined : FadeIn.duration(200)}
+      exiting={reducedMotion ? undefined : FadeOut.duration(200)}
       style={[
         styles.container,
         {
           backgroundColor: colors.textPrimary,
         },
       ]}
+      accessibilityLiveRegion="polite"
     >
       <Text style={[styles.text, { color: colors.bgPrimary }]}>
         {toast.message}

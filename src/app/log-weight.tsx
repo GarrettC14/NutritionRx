@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -97,9 +98,11 @@ export default function LogWeightScreen() {
         weightKg,
         notes: notes.trim() || undefined,
       });
+      AccessibilityInfo.announceForAccessibility('Weight logged successfully');
       router.back();
     } catch (error) {
       console.error('Failed to save weight:', error);
+      AccessibilityInfo.announceForAccessibility('Failed to log weight');
     } finally {
       setIsSaving(false);
     }
@@ -119,7 +122,7 @@ export default function LogWeightScreen() {
           <Pressable testID={TestIDs.LogWeight.CloseButton} onPress={() => router.back()}>
             <Ionicons name="close" size={28} color={colors.textPrimary} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
             {existingEntry ? 'Update Weight' : 'Log Weight'}
           </Text>
           <View style={{ width: 28 }} />

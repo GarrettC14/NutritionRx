@@ -78,6 +78,8 @@ export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
                   onPress={() => toggleMeal(meal.type)}
                   disabled={!hasItems || isEditMode}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${meal.label}, ${hasItems ? `${meal.items.length} item${meal.items.length !== 1 ? 's' : ''}, ${meal.totalCalories} calories` : 'no items logged'}`}
                 >
                   <View style={styles.mealInfo}>
                     <Text

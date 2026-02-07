@@ -85,7 +85,7 @@ export default function GoalPathScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]} accessibilityRole="header">
           What brings you to{'\n'}NutritionRx?
         </Text>
 

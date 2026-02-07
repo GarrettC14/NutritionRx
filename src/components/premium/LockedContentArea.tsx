@@ -65,6 +65,8 @@ export function LockedContentArea({
         style={[StyleSheet.absoluteFill, { borderRadius }]}
         activeOpacity={0.9}
         onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={message}
       >
         <BlurView
           intensity={100}

@@ -64,7 +64,7 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
     >
       <Text style={styles.title}>Macros</Text>
 
-      <View style={styles.macroList}>
+      <View style={styles.macroList} accessibilityLiveRegion="polite">
         {macros.map((macro) => {
           const progress = Math.min(macro.consumed / macro.target, 1);
           const remaining = Math.max(0, macro.target - macro.consumed);

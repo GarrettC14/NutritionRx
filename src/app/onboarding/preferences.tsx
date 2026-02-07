@@ -95,13 +95,13 @@ export default function PreferencesScreen() {
 
       <View style={styles.content}>
         {/* Title */}
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]} accessibilityRole="header">
           A few quick preferences
         </Text>
 
         {/* Energy Unit */}
         <View style={styles.preferenceSection}>
-          <Text style={[styles.preferenceLabel, { color: colors.textPrimary }]}>
+          <Text style={[styles.preferenceLabel, { color: colors.textPrimary }]} accessibilityRole="header">
             Energy unit
           </Text>
           <ToggleButtonGroup
@@ -113,7 +113,7 @@ export default function PreferencesScreen() {
 
         {/* Weight Unit */}
         <View style={styles.preferenceSection}>
-          <Text style={[styles.preferenceLabel, { color: colors.textPrimary }]}>
+          <Text style={[styles.preferenceLabel, { color: colors.textPrimary }]} accessibilityRole="header">
             Weight unit
           </Text>
           <ToggleButtonGroup

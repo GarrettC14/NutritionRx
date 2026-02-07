@@ -154,7 +154,7 @@ export default function GoalsSettingsScreen() {
           {/* Current Goal Display */}
           {activeGoal && !isEditing ? (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                 CURRENT GOAL
               </Text>
               <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
@@ -264,10 +264,10 @@ export default function GoalsSettingsScreen() {
             <>
               {/* Goal Type Selection */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   GOAL TYPE
                 </Text>
-                <View style={styles.optionGrid}>
+                <View style={styles.optionGrid} accessible={true} accessibilityLabel="Goal type selection">
                   {goalTypeOptions.map((option) => (
                     <Pressable
                       key={option.value}
@@ -313,7 +313,7 @@ export default function GoalsSettingsScreen() {
               {/* Target Weight (optional for lose/gain) */}
               {selectedGoalType !== 'maintain' && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     TARGET WEIGHT (OPTIONAL)
                   </Text>
                   <View style={[styles.inputCard, { backgroundColor: colors.bgSecondary }]}>
@@ -342,7 +342,7 @@ export default function GoalsSettingsScreen() {
               {/* Rate Selection */}
               {selectedGoalType !== 'maintain' && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     RATE
                   </Text>
                   <View style={styles.rateOptions}>

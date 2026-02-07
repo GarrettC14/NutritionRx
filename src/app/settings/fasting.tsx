@@ -49,7 +49,7 @@ const PROTOCOL_OPTIONS: ProtocolOption[] = [
   {
     value: '20:4',
     label: '20:4',
-    description: 'Warrior Diet, one main meal',
+    description: 'Advanced, one main meal',
     fastHours: 20,
     eatHours: 4,
   },
@@ -115,6 +115,18 @@ export default function FastingSettingsScreen() {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [customHours, setCustomHours] = useState(16);
 
+  // Optimistic local state for switches to prevent rubber-band lag
+  const [localEnabled, setLocalEnabled] = useState(config?.enabled ?? false);
+  const [localNotifyOpen, setLocalNotifyOpen] = useState(config?.notifications?.windowOpens ?? false);
+  const [localNotifyClose, setLocalNotifyClose] = useState(config?.notifications?.windowClosesSoon ?? false);
+  const [localNotifyComplete, setLocalNotifyComplete] = useState(config?.notifications?.fastComplete ?? false);
+
+  // Sync local state when store state settles
+  useEffect(() => { setLocalEnabled(config?.enabled ?? false); }, [config?.enabled]);
+  useEffect(() => { setLocalNotifyOpen(config?.notifications?.windowOpens ?? false); }, [config?.notifications?.windowOpens]);
+  useEffect(() => { setLocalNotifyClose(config?.notifications?.windowClosesSoon ?? false); }, [config?.notifications?.windowClosesSoon]);
+  useEffect(() => { setLocalNotifyComplete(config?.notifications?.fastComplete ?? false); }, [config?.notifications?.fastComplete]);
+
   // Load data on mount
   useEffect(() => {
     loadConfig();
@@ -128,11 +140,12 @@ export default function FastingSettingsScreen() {
     }
   }, [config]);
 
-  const handleToggleEnabled = async (value: boolean) => {
+  const handleToggleEnabled = (value: boolean) => {
+    setLocalEnabled(value);
     if (value) {
-      await enableFasting();
+      enableFasting();
     } else {
-      await disableFasting();
+      disableFasting();
     }
   };
 
@@ -169,12 +182,17 @@ export default function FastingSettingsScreen() {
     return date;
   };
 
-  const handleNotificationToggle = async (
+  const handleNotificationToggle = (
     key: 'windowOpens' | 'windowClosesSoon' | 'fastComplete',
     value: boolean
   ) => {
+    // Optimistic local update
+    if (key === 'windowOpens') setLocalNotifyOpen(value);
+    else if (key === 'windowClosesSoon') setLocalNotifyClose(value);
+    else if (key === 'fastComplete') setLocalNotifyComplete(value);
+
     if (!config) return;
-    await updateConfig({
+    updateConfig({
       notifications: {
         ...config.notifications,
         [key]: value,
@@ -238,7 +256,7 @@ export default function FastingSettingsScreen() {
                   </Text>
                 </View>
                 <Switch
-                  value={config?.enabled ?? false}
+                  value={localEnabled}
                   onValueChange={handleToggleEnabled}
                   trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                   thumbColor="#FFFFFF"
@@ -252,7 +270,7 @@ export default function FastingSettingsScreen() {
             <>
               {/* Protocol Selection */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   FASTING PROTOCOL
                 </Text>
                 <View style={styles.optionsList}>
@@ -306,7 +324,7 @@ export default function FastingSettingsScreen() {
 
               {/* Eating Window */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   TYPICAL EATING WINDOW
                 </Text>
                 <Text style={[styles.sectionDescription, { color: colors.textTertiary }]}>
@@ -355,7 +373,7 @@ export default function FastingSettingsScreen() {
 
               {/* Notifications */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   NOTIFICATIONS
                 </Text>
                 <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
@@ -364,7 +382,7 @@ export default function FastingSettingsScreen() {
                       Eating window opens
                     </Text>
                     <Switch
-                      value={config.notifications.windowOpens}
+                      value={localNotifyOpen}
                       onValueChange={(v) => handleNotificationToggle('windowOpens', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
@@ -379,7 +397,7 @@ export default function FastingSettingsScreen() {
                       Eating window closes soon
                     </Text>
                     <Switch
-                      value={config.notifications.windowClosesSoon}
+                      value={localNotifyClose}
                       onValueChange={(v) => handleNotificationToggle('windowClosesSoon', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
@@ -394,7 +412,7 @@ export default function FastingSettingsScreen() {
                       Fast completed
                     </Text>
                     <Switch
-                      value={config.notifications.fastComplete}
+                      value={localNotifyComplete}
                       onValueChange={(v) => handleNotificationToggle('fastComplete', v)}
                       trackColor={{ false: colors.bgInteractive, true: FASTING_GREEN }}
                       thumbColor="#FFFFFF"
@@ -407,7 +425,7 @@ export default function FastingSettingsScreen() {
               {/* Stats */}
               {stats && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     STATISTICS
                   </Text>
                   <View style={[styles.statsCard, { backgroundColor: colors.bgSecondary }]}>
@@ -474,7 +492,7 @@ export default function FastingSettingsScreen() {
               {/* Recent History */}
               {recentSessions.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                     RECENT FASTS
                   </Text>
                   <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>

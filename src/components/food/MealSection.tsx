@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -50,6 +50,7 @@ export function MealSection({
   defaultExpanded = false,
 }: MealSectionProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -68,8 +69,12 @@ export function MealSection({
   const hasEntries = itemCount > 0;
 
   const toggleExpanded = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    if (!reducedMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    rotation.value = reducedMotion
+      ? (isExpanded ? 0 : 90)
+      : withTiming(isExpanded ? 0 : 90, { duration: 200 });
     setIsExpanded(!isExpanded);
   };
 

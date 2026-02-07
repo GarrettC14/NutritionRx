@@ -33,7 +33,7 @@ export function PremiumGate({
   }
 
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={styles.container}>
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={styles.container} accessibilityRole="button" accessibilityLabel="Unlock premium features">
       <View pointerEvents="none">{children}</View>
     </TouchableOpacity>
   );

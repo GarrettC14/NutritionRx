@@ -27,6 +27,8 @@ export function HeadlineInsightCard({ headline, onPress }: HeadlineInsightCardPr
           borderLeftColor: colors.premiumGold,
         },
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={`Headline insight: ${headline}`}
     >
       <View style={styles.content}>
         <Ionicons name="sparkles" size={18} color={colors.premiumGold} />

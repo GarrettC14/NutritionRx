@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager, AccessibilityInfo } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
@@ -52,6 +52,7 @@ interface WaterSectionProps {
 
 export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionProps) {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const { todayLog, goalGlasses, addGlass, removeGlass, hasMetGoal } = useWaterStore();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -68,8 +69,12 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
   const goalMet = hasMetGoal();
 
   const toggleExpanded = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    if (!reducedMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    rotation.value = reducedMotion
+      ? (isExpanded ? 0 : 90)
+      : withTiming(isExpanded ? 0 : 90, { duration: 200 });
     setIsExpanded(!isExpanded);
   };
 
@@ -77,12 +82,14 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
     e?.stopPropagation?.();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     await addGlass();
+    AccessibilityInfo.announceForAccessibility(`${glasses + 1} of ${goal} glasses`);
   };
 
   const handleRemoveGlass = async () => {
     if (glasses > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       await removeGlass();
+      AccessibilityInfo.announceForAccessibility(`${glasses - 1} of ${goal} glasses`);
     }
   };
 
@@ -101,7 +108,7 @@ export function WaterSection({ onPress, defaultExpanded = false }: WaterSectionP
             </View>
           )}
         </View>
-        <View style={styles.headerRight}>
+        <View style={styles.headerRight} accessibilityLiveRegion="polite">
           <Text style={[styles.count, { color: colors.textSecondary }]}>
             {glasses}/{goal} glasses
           </Text>

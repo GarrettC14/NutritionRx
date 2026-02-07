@@ -37,11 +37,13 @@ export function PremiumBanner({
         <Pressable
           style={[styles.compactButton, { backgroundColor: colors.accent }]}
           onPress={onUpgradePress}
+          accessibilityRole="button"
+          accessibilityLabel="Upgrade"
         >
           <Text style={styles.compactButtonText}>Upgrade</Text>
         </Pressable>
         {onDismiss && (
-          <Pressable style={styles.dismissButton} onPress={onDismiss}>
+          <Pressable style={styles.dismissButton} onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Close">
             <Ionicons name="close" size={18} color={colors.textTertiary} />
           </Pressable>
         )}
@@ -62,7 +64,7 @@ export function PremiumBanner({
           </Text>
         </View>
         {onDismiss && (
-          <Pressable style={styles.expandedDismiss} onPress={onDismiss}>
+          <Pressable style={styles.expandedDismiss} onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Close">
             <Ionicons name="close" size={20} color={colors.textTertiary} />
           </Pressable>
         )}
@@ -70,6 +72,8 @@ export function PremiumBanner({
       <Pressable
         style={[styles.expandedButton, { backgroundColor: colors.accent }]}
         onPress={onUpgradePress}
+        accessibilityRole="button"
+        accessibilityLabel="Unlock Premium"
       >
         <Text style={styles.expandedButtonText}>Unlock Premium</Text>
         <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />

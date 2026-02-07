@@ -27,7 +27,7 @@ export function ModelDownloadProgress({ progress, isDownloading, onCancel }: Mod
           <ActivityIndicator size="small" color={colors.accent} />
           <Text style={[styles.title, { color: colors.textPrimary }]}>Downloading AI Model</Text>
         </View>
-        <TouchableOpacity onPress={onCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={onCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Cancel model download">
           <Ionicons name="close" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -41,9 +41,11 @@ export function ModelDownloadProgress({ progress, isDownloading, onCancel }: Mod
         />
       </View>
 
-      <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-        {progress}% complete
-      </Text>
+      <View accessibilityLiveRegion="polite">
+        <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+          {progress}% complete
+        </Text>
+      </View>
     </View>
   );
 }

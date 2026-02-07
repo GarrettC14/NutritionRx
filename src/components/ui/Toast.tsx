@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  AccessibilityInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -78,6 +79,9 @@ export function Toast({
 
   useEffect(() => {
     if (visible) {
+      // Announce toast title for screen readers
+      AccessibilityInfo.announceForAccessibility(title);
+
       // Animate in
       Animated.parallel([
         Animated.timing(opacity, {
@@ -140,7 +144,7 @@ export function Toast({
         ]}
       >
         <Ionicons name={config.icon} size={24} color={config.iconColor} />
-        <View style={styles.textContainer}>
+        <View style={styles.textContainer} accessibilityLiveRegion="polite">
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {title}
           </Text>

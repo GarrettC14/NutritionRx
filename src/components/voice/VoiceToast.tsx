@@ -110,7 +110,7 @@ export function VoiceToast({
         ]}
       >
         <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={24} color={colors.textPrimary} style={{ marginRight: spacing[3] }} />
-        <View style={styles.textContainer}>
+        <View style={styles.textContainer} accessibilityLiveRegion="polite">
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {title}
           </Text>

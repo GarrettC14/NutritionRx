@@ -26,6 +26,8 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
+    // Expo Router screen components (src/app/) are excluded from unit test
+    // coverage because they are thin UI wrappers tested via Maestro E2E flows.
     '!src/app/**/*',
     '!src/__mocks__/**/*',
   ],

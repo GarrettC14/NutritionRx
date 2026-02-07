@@ -30,7 +30,7 @@ export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
         />
       </View>
 
-      <View style={styles.info}>
+      <View style={styles.info} accessibilityLiveRegion="polite">
         <Text style={styles.streakNumber}>{currentStreak}</Text>
         <Text style={styles.label}>day streak</Text>
       </View>

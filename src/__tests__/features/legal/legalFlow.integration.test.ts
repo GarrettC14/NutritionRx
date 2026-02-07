@@ -1,3 +1,8 @@
+/**
+ * Legal Flow Integration Tests
+ * Tests store + repository integration with mocked database layer.
+ * Mock boundary: database module is mocked; store and repository logic run real code.
+ */
 import { getDatabase } from '@/db/database';
 import { LEGAL_DISCLAIMER_VERSION } from '@/features/legal/config/legal';
 

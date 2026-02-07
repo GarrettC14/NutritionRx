@@ -147,7 +147,7 @@ export function MicronutrientSummary({
       </View>
 
       {/* Category breakdown */}
-      <View style={styles.categories}>
+      <View style={styles.categories} accessibilityLiveRegion="polite">
         {categorySummaries.map(summary => (
           <View
             key={summary.category}

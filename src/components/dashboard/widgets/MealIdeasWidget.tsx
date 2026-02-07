@@ -99,7 +99,10 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
 
   const handlePress = () => {
     if (!isEditMode) {
-      router.push('/add-food');
+      router.push({
+        pathname: '/add-food',
+        params: { searchQuery: suggestion.title },
+      });
     }
   };
 
@@ -145,6 +148,8 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
           onPress={handlePress}
           activeOpacity={isEditMode ? 1 : 0.8}
           disabled={isEditMode}
+          accessibilityRole="button"
+          accessibilityLabel={`Meal idea: ${suggestion.title}, ${suggestion.description}. Tap to log this meal`}
         >
           {contentArea}
         </TouchableOpacity>

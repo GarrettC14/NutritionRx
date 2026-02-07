@@ -47,6 +47,8 @@ export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
       onPress={handlePress}
       activeOpacity={isEditMode ? 1 : 0.8}
       disabled={isEditMode}
+      accessibilityRole="button"
+      accessibilityLabel={`Calories: ${caloriesConsumed} consumed of ${calorieTarget} goal, ${remaining} remaining`}
     >
       <View style={styles.ringContainer}>
         <Svg width={size} height={size}>
@@ -73,7 +75,7 @@ export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
             transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
         </Svg>
-        <View style={styles.ringContent}>
+        <View style={styles.ringContent} accessibilityLiveRegion="polite">
           <Text style={styles.remainingNumber}>{remaining}</Text>
           <Text style={styles.remainingLabel}>remaining</Text>
         </View>

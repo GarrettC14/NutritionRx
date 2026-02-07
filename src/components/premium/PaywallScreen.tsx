@@ -12,7 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated';
 import { TestIDs } from '@/constants/testIDs';
 
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
@@ -99,6 +99,7 @@ export function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const params = useLocalSearchParams<{ context?: string }>();
 
   const { currentOffering, error, purchasePackage, restorePurchases, clearError } =
@@ -360,7 +361,7 @@ export function PaywallScreen() {
   if (!currentOffering) {
     return (
       <View testID={TestIDs.Paywall.Screen} style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <TouchableOpacity testID={TestIDs.Paywall.CloseButton} style={styles.closeButton} onPress={handleDismiss}>
+        <TouchableOpacity testID={TestIDs.Paywall.CloseButton} style={styles.closeButton} onPress={handleDismiss} accessibilityRole="button" accessibilityLabel="Close">
           <Ionicons name="close" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
         <ActivityIndicator size="large" color={colors.accent} />
@@ -371,7 +372,7 @@ export function PaywallScreen() {
   return (
     <View testID={TestIDs.Paywall.Screen} style={styles.container}>
       {/* Close Button */}
-      <TouchableOpacity style={styles.closeButton} onPress={handleDismiss}>
+      <TouchableOpacity style={styles.closeButton} onPress={handleDismiss} accessibilityRole="button" accessibilityLabel="Close">
         <Ionicons name="close" size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
@@ -403,13 +404,13 @@ export function PaywallScreen() {
         {/* Error Banner */}
         {error && (
           <Animated.View
-            entering={FadeIn.duration(200)}
-            exiting={FadeOut.duration(200)}
+            entering={reducedMotion ? undefined : FadeIn.duration(200)}
+            exiting={reducedMotion ? undefined : FadeOut.duration(200)}
             style={styles.errorBanner}
           >
             <Ionicons name="alert-circle" size={20} color={colors.error} />
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={clearError}>
+            <TouchableOpacity onPress={clearError} accessibilityRole="button" accessibilityLabel="Dismiss error">
               <Ionicons name="close" size={18} color={colors.error} />
             </TouchableOpacity>
           </Animated.View>
@@ -425,6 +426,8 @@ export function PaywallScreen() {
                 selectedPackage === 'monthly' && styles.pricingOptionSelected,
               ]}
               onPress={() => setSelectedPackage('monthly')}
+              accessibilityRole="button"
+              accessibilityLabel={`Monthly plan, ${monthlyPackage.product.priceString} per month`}
             >
               <View style={styles.pricingHeader}>
                 <Text style={styles.pricingLabel}>Monthly</Text>
@@ -444,6 +447,8 @@ export function PaywallScreen() {
                 selectedPackage === 'annual' && styles.pricingOptionSelected,
               ]}
               onPress={() => setSelectedPackage('annual')}
+              accessibilityRole="button"
+              accessibilityLabel={`Annual plan, ${annualPackage.product.priceString} per year, save ${getAnnualSavings()}%`}
             >
               <View style={styles.pricingHeader}>
                 <Text style={styles.pricingLabel}>Annual</Text>
@@ -468,6 +473,8 @@ export function PaywallScreen() {
                 selectedPackage === 'bundle' && styles.pricingOptionSelected,
               ]}
               onPress={() => setSelectedPackage('bundle')}
+              accessibilityRole="button"
+              accessibilityLabel={`Both Apps Bundle, ${bundlePackage.product.priceString} per year, includes GymRx and NutritionRx`}
             >
               <View style={styles.pricingHeader}>
                 <Text style={styles.pricingLabel}>Both Apps Bundle</Text>
@@ -491,6 +498,8 @@ export function PaywallScreen() {
           ]}
           onPress={handlePurchase}
           disabled={isPurchasing || isRestoring}
+          accessibilityRole="button"
+          accessibilityLabel="Continue"
         >
           {isPurchasing ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
@@ -505,6 +514,8 @@ export function PaywallScreen() {
             style={styles.footerLink}
             onPress={handleRestore}
             disabled={isPurchasing || isRestoring}
+            accessibilityRole="button"
+            accessibilityLabel="Restore purchases"
           >
             {isRestoring ? (
               <ActivityIndicator size="small" color={colors.textSecondary} />
@@ -516,6 +527,8 @@ export function PaywallScreen() {
           <TouchableOpacity
             style={styles.footerLink}
             onPress={() => Linking.openURL('https://cascadesoftware.app/terms')}
+            accessibilityRole="link"
+            accessibilityLabel="Terms and Privacy"
           >
             <Text style={styles.footerLinkText}>Terms & Privacy</Text>
           </TouchableOpacity>

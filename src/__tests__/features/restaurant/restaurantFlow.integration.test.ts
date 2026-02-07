@@ -1,6 +1,7 @@
 /**
  * Restaurant Feature Integration Tests
- * End-to-end tests for the restaurant/chain database flow
+ * End-to-end tests for the restaurant/chain database flow.
+ * Mock boundary: database is mocked; service and repository logic run real code.
  */
 
 import { MealType } from '@/constants/mealTypes';

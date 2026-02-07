@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { useInsightsStore } from '../stores/insightsStore';
 import { LLMService } from '../services/LLMService';
 import { parseInsightResponse } from '../services/InsightPromptBuilder';
@@ -96,6 +97,7 @@ export function useInsightGeneration(): UseInsightGenerationResult {
               if (insights.length > 0) {
                 console.log(`[LLM:useInsightGeneration] Setting ${insights.length} LLM insights: [${insights.map(i => i.category).join(', ')}]`);
                 setInsights(insights, 'llm');
+                AccessibilityInfo.announceForAccessibility('Insight generated');
                 return;
               }
             }
@@ -110,10 +112,12 @@ export function useInsightGeneration(): UseInsightGenerationResult {
         const fallbackInsights = generateFallbackInsights(data);
         console.log(`[LLM:useInsightGeneration] Generated ${fallbackInsights.length} fallback insights: [${fallbackInsights.map(i => i.category).join(', ')}]`);
         setInsights(fallbackInsights, 'fallback');
+        AccessibilityInfo.announceForAccessibility('Insight generated');
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate insights';
         setGenerationError(errorMessage);
         console.error('[LLM:useInsightGeneration] generateInsights ERROR:', errorMessage, err);
+        AccessibilityInfo.announceForAccessibility('Could not generate insight');
 
         // Try fallback even on error
         try {

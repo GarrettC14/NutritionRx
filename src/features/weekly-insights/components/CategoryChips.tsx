@@ -59,6 +59,8 @@ export function CategoryChips({
             ? { backgroundColor: colors.accent }
             : { backgroundColor: 'transparent', borderColor: colors.borderDefault, borderWidth: 1 },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={`All categories${selectedCategory === null ? ', selected' : ''}`}
       >
         <Text
           style={[
@@ -84,6 +86,8 @@ export function CategoryChips({
                 ? { backgroundColor: catColor }
                 : { backgroundColor: 'transparent', borderColor: catColor + '50', borderWidth: 1 },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={`${CATEGORY_LABELS[category]}${isSelected ? ', selected' : ''}`}
           >
             <Text
               style={[

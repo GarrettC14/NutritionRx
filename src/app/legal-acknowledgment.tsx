@@ -17,6 +17,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
@@ -29,6 +30,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function LegalAcknowledgmentScreen() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const { acknowledge } = useLegalAcknowledgment();
 
@@ -86,10 +88,12 @@ export default function LegalAcknowledgmentScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const newChecked = !isChecked;
     setIsChecked(newChecked);
-    checkScale.value = withSpring(newChecked ? 1 : 0, {
-      damping: 15,
-      stiffness: 300,
-    });
+    checkScale.value = reducedMotion
+      ? (newChecked ? 1 : 0)
+      : withSpring(newChecked ? 1 : 0, {
+          damping: 15,
+          stiffness: 300,
+        });
   };
 
   const handleProceed = async () => {

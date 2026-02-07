@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   TextInput,
+  AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -62,9 +63,11 @@ export default function QuickAddScreen() {
         fat: fatNum || undefined,
         description: description.trim() || undefined,
       });
+      AccessibilityInfo.announceForAccessibility('Quick add saved');
       router.dismiss();
     } catch (error) {
       console.error('Failed to save quick add:', error);
+      AccessibilityInfo.announceForAccessibility('Failed to save quick add');
     } finally {
       setIsSaving(false);
     }
@@ -92,7 +95,7 @@ export default function QuickAddScreen() {
         <Pressable testID={TestIDs.QuickAdd.BackButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
           Quick Add
         </Text>
         <View style={{ width: 28 }} />
@@ -106,7 +109,7 @@ export default function QuickAddScreen() {
       >
         {/* Calories (Required) */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             Calories *
           </Text>
           <View style={styles.inputRow}>
@@ -131,10 +134,10 @@ export default function QuickAddScreen() {
 
         {/* Macros (Optional) */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             Macros (Optional)
           </Text>
-          <View style={styles.macroGrid}>
+          <View style={styles.macroGrid} accessible={true} accessibilityLabel="Macro nutrients, optional">
             <View style={styles.macroItem}>
               <View
                 style={[
@@ -209,7 +212,7 @@ export default function QuickAddScreen() {
 
         {/* Meal Type */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             Meal
           </Text>
           <View style={styles.mealSelector}>
@@ -251,7 +254,7 @@ export default function QuickAddScreen() {
 
         {/* Description (Optional) */}
         <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]} accessibilityRole="header">
             Description (Optional)
           </Text>
           <TextInput

@@ -184,7 +184,7 @@ export function WeeklyInsightsScreen() {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
         <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -212,7 +212,7 @@ export function WeeklyInsightsScreen() {
     <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
       {/* Header */}
       <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>

@@ -30,6 +30,8 @@ export function QuestionCard({ question, onPress, hasResponse = false }: Questio
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={question.text}
     >
       <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
         <Ionicons name={question.icon as any} size={18} color={catColor} />

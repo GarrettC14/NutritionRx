@@ -19,6 +19,8 @@ export function RestaurantCard({ restaurant, onPress }: RestaurantCardProps) {
   return (
     <Pressable
       testID={`restaurant-item-${restaurant.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={`${restaurant.name}, ${restaurant.metadata.itemCount} items`}
       style={({ pressed }) => [
         styles.container,
         { backgroundColor: colors.bgSecondary },

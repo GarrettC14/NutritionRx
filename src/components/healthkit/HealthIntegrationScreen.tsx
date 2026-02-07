@@ -2,7 +2,7 @@
  * Health Integration Screen
  * Settings screen for managing Apple Health connection and sync preferences
  */
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,19 @@ function SettingRow({
 }: SettingRowProps) {
   const { colors } = useTheme();
 
+  // Optimistic local state to prevent rubber-band lag on async handlers
+  const [localValue, setLocalValue] = useState(value);
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newValue: boolean) => {
+    setLocalValue(newValue);
+    onValueChange(newValue);
+  };
+
   return (
     <View style={[styles.settingRow, disabled && styles.settingRowDisabled]}>
       <View style={styles.settingInfo}>
@@ -59,8 +72,8 @@ function SettingRow({
         </Text>
       </View>
       <Switch
-        value={value}
-        onValueChange={onValueChange}
+        value={localValue}
+        onValueChange={handleChange}
         trackColor={{ false: colors.bgInteractive, true: colors.success }}
         thumbColor="#FFFFFF"
         disabled={disabled}

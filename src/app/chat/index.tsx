@@ -3,23 +3,26 @@
  * GPT-powered nutrition chat — premium feature
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { useLLMStatus } from '@/hooks/useLLMStatus';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
 import { useChatStore } from '@/features/chat/stores/chatStore';
+import { ModelDownloadSheet } from '@/components/llm/ModelDownloadSheet';
 
 function ChatPreview() {
   const { colors } = useTheme();
   const router = useRouter();
 
   return (
-    <View style={[styles.previewContainer, { backgroundColor: colors.bgPrimary }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.previewContainer, { backgroundColor: colors.bgPrimary }]}>
       <View style={styles.previewContent}>
         <View style={[styles.iconCircle, { backgroundColor: colors.premiumGoldMuted }]}>
           <Ionicons name="chatbubbles-outline" size={48} color={colors.premiumGold} />
@@ -45,7 +48,66 @@ function ChatPreview() {
           <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
         </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
+  );
+}
+
+function ChatDownloadPrompt() {
+  const { colors } = useTheme();
+  const [showDownloadSheet, setShowDownloadSheet] = useState(false);
+
+  return (
+    <SafeAreaView edges={['bottom']} style={[styles.previewContainer, { backgroundColor: colors.bgPrimary }]}>
+      <View style={styles.previewContent}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.premiumGoldMuted }]}>
+          <Ionicons name="chatbubbles-outline" size={48} color={colors.premiumGold} />
+        </View>
+        <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>
+          Nutrition Assistant
+        </Text>
+        <Text style={[styles.previewDescription, { color: colors.textSecondary }]}>
+          Download a small AI model to start chatting about your nutrition.
+        </Text>
+        <Pressable
+          onPress={() => setShowDownloadSheet(true)}
+          style={({ pressed }) => [
+            styles.upgradeButton,
+            {
+              backgroundColor: colors.accent,
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="cloud-download-outline" size={16} color="#FFFFFF" />
+          <Text style={styles.upgradeButtonText}>Download Model</Text>
+        </Pressable>
+      </View>
+      <ModelDownloadSheet
+        visible={showDownloadSheet}
+        onDismiss={() => setShowDownloadSheet(false)}
+        onComplete={() => setShowDownloadSheet(false)}
+      />
+    </SafeAreaView>
+  );
+}
+
+function ChatUnsupported() {
+  const { colors } = useTheme();
+
+  return (
+    <SafeAreaView edges={['bottom']} style={[styles.previewContainer, { backgroundColor: colors.bgPrimary }]}>
+      <View style={styles.previewContent}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.bgInteractive }]}>
+          <Ionicons name="chatbubbles-outline" size={48} color={colors.textTertiary} />
+        </View>
+        <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>
+          Nutrition Assistant
+        </Text>
+        <Text style={[styles.previewDescription, { color: colors.textSecondary }]}>
+          AI chat is not available on this device.
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -54,6 +116,14 @@ export default function ChatRoute() {
   const { isPremium } = useSubscriptionStore();
   const clearChat = useChatStore((s) => s.clearChat);
   const messageCount = useChatStore((s) => s.messageCount);
+  const { needsDownload, isUnsupported } = useLLMStatus();
+
+  const renderContent = () => {
+    if (!isPremium) return <ChatPreview />;
+    if (isUnsupported) return <ChatUnsupported />;
+    if (needsDownload) return <ChatDownloadPrompt />;
+    return <ChatScreen />;
+  };
 
   return (
     <>
@@ -70,7 +140,7 @@ export default function ChatRoute() {
             ) : null,
         }}
       />
-      {isPremium ? <ChatScreen /> : <ChatPreview />}
+      {renderContent()}
     </>
   );
 }

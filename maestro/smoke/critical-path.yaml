@@ -19,6 +19,10 @@ tags:
 - assertVisible:
     id: "home-screen"
 
+# Verify default widgets are visible
+- assertVisible:
+    id: "widget-calorie-ring"
+
 - scrollUntilVisible:
     element:
       id: "home-date-label"

@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -172,12 +171,24 @@ export default function MacroCyclingSetupScreen() {
       }
 
       await enableCycling(patternType, markedDays, dayTargets);
-      Alert.alert('Success', 'Macro cycling has been enabled!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      showConfirm({
+        title: 'Success',
+        message: 'Macro cycling has been enabled!',
+        icon: 'checkmark-circle',
+        confirmLabel: 'OK',
+        cancelLabel: null,
+        onConfirm: () => router.back(),
+      });
     } catch (error) {
       console.error('Failed to save macro cycling:', error);
-      Alert.alert('Error', 'Failed to save settings. Please try again.');
+      showConfirm({
+        title: 'Error',
+        message: 'Failed to save settings. Please try again.',
+        icon: 'alert-circle',
+        confirmLabel: 'OK',
+        cancelLabel: null,
+        onConfirm: () => {},
+      });
     } finally {
       setIsSaving(false);
     }
@@ -620,9 +631,9 @@ export default function MacroCyclingSetupScreen() {
           {renderCurrentStep()}
         </ScrollView>
 
-        {/* Footer */}
+        {/* Footer — grey action on top, primary CTA below */}
         <View style={styles.footer}>
-          {config?.enabled && step === 1 && (
+          {step === 1 && config?.enabled && (
             <Button
               testID={TestIDs.MacroCycling.DisableButton}
               label="Disable Cycling"
@@ -632,34 +643,32 @@ export default function MacroCyclingSetupScreen() {
               style={{ marginBottom: spacing[3] }}
             />
           )}
-          <View style={styles.footerButtons}>
-            {step > 1 && (
-              <Button
-                testID={TestIDs.MacroCycling.BackStepButton}
-                label="Back"
-                variant="secondary"
-                onPress={() => setStep(step - 1)}
-                style={{ flex: 1, marginRight: spacing[2] }}
-              />
-            )}
-            {step < 3 ? (
-              <Button
-                testID={TestIDs.MacroCycling.ContinueButton}
-                label="Continue"
-                onPress={() => setStep(step + 1)}
-                style={{ flex: step > 1 ? 1 : undefined }}
-                fullWidth={step === 1}
-              />
-            ) : (
-              <Button
-                testID={TestIDs.MacroCycling.EnableButton}
-                label="Enable Macro Cycling"
-                onPress={handleSave}
-                loading={isSaving}
-                style={{ flex: 1 }}
-              />
-            )}
-          </View>
+          {step > 1 && (
+            <Button
+              testID={TestIDs.MacroCycling.BackStepButton}
+              label="Back"
+              variant="secondary"
+              onPress={() => setStep(step - 1)}
+              fullWidth
+              style={{ marginBottom: spacing[3] }}
+            />
+          )}
+          {step < 3 ? (
+            <Button
+              testID={TestIDs.MacroCycling.ContinueButton}
+              label="Continue"
+              onPress={() => setStep(step + 1)}
+              fullWidth
+            />
+          ) : (
+            <Button
+              testID={TestIDs.MacroCycling.EnableButton}
+              label="Enable Macro Cycling"
+              onPress={handleSave}
+              loading={isSaving}
+              fullWidth
+            />
+          )}
         </View>
       </SafeAreaView>
     </>
@@ -949,8 +958,5 @@ const styles = StyleSheet.create({
   footer: {
     padding: componentSpacing.screenEdgePadding,
     paddingTop: spacing[3],
-  },
-  footerButtons: {
-    flexDirection: 'row',
   },
 });

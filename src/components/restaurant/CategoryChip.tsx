@@ -50,6 +50,9 @@ export function CategoryChip({ label, iconName, isSelected, onPress, testID }: C
   return (
     <Pressable
       testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${isSelected ? 'selected' : 'not selected'}`}
+      accessibilityState={{ selected: isSelected }}
       style={({ pressed }) => [
         styles.container,
         {

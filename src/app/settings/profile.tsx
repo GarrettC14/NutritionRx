@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, ScrollView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,10 +8,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
-import { useProfileStore, useSettingsStore } from '@/stores';
+import { useProfileStore, useSettingsStore, useWeightStore } from '@/stores';
 import { ActivityLevel, Sex } from '@/types/domain';
 import { ACTIVITY_OPTIONS } from '@/constants/defaults';
 import { TestIDs, settingsActivityLevel } from '@/constants/testIDs';
+
+const KG_PER_LB = 0.453592;
+const LB_PER_KG = 2.20462;
 
 const cmToFeetInches = (cm: number): { feet: number; inches: number } => {
   const totalInches = cm / 2.54;
@@ -30,6 +33,8 @@ export default function ProfileSettingsScreen() {
   const router = useRouter();
   const { profile, updateProfile, isLoading, loadProfile } = useProfileStore();
   const { settings } = useSettingsStore();
+  const { latestEntry, loadLatest, addEntry } = useWeightStore();
+  const useLbs = settings.weightUnit === 'lbs';
 
   const [sex, setSex] = useState<Sex | undefined>(profile?.sex);
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(profile?.dateOfBirth);
@@ -37,6 +42,7 @@ export default function ProfileSettingsScreen() {
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | undefined>(
     profile?.activityLevel
   );
+  const [weightDisplay, setWeightDisplay] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +50,7 @@ export default function ProfileSettingsScreen() {
 
   useEffect(() => {
     loadProfile();
+    loadLatest();
   }, []);
 
   useEffect(() => {
@@ -55,6 +62,15 @@ export default function ProfileSettingsScreen() {
     }
   }, [profile]);
 
+  useEffect(() => {
+    if (latestEntry) {
+      const display = useLbs
+        ? (latestEntry.weightKg * LB_PER_KG).toFixed(1)
+        : latestEntry.weightKg.toFixed(1);
+      setWeightDisplay(display);
+    }
+  }, [latestEntry, useLbs]);
+
   const handleSave = async () => {
     try {
       await updateProfile({
@@ -63,6 +79,19 @@ export default function ProfileSettingsScreen() {
         heightCm,
         activityLevel,
       });
+
+      // Save weight if user entered a value
+      const parsed = parseFloat(weightDisplay);
+      if (!isNaN(parsed) && parsed > 0) {
+        const weightKg = useLbs ? parsed * KG_PER_LB : parsed;
+        const currentKg = latestEntry?.weightKg;
+        // Only create a new entry if the value actually changed
+        if (!currentKg || Math.abs(weightKg - currentKg) > 0.05) {
+          const today = new Date().toISOString().split('T')[0];
+          await addEntry({ weightKg, date: today });
+        }
+      }
+
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully.');
     } catch (error) {
@@ -102,6 +131,14 @@ export default function ProfileSettingsScreen() {
       return `${feet}'${inches}"`;
     }
     return `${heightCm} cm`;
+  };
+
+  const formatWeight = (): string => {
+    if (!latestEntry) return 'Not set';
+    if (useLbs) {
+      return `${(latestEntry.weightKg * LB_PER_KG).toFixed(1)} lbs`;
+    }
+    return `${latestEntry.weightKg.toFixed(1)} kg`;
   };
 
   const getActivityLabel = (): string => {
@@ -148,7 +185,7 @@ export default function ProfileSettingsScreen() {
           {/* View Mode */}
           {!isEditing ? (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                 YOUR PROFILE
               </Text>
               <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
@@ -170,6 +207,13 @@ export default function ProfileSettingsScreen() {
                   <Text style={[styles.profileLabel, { color: colors.textSecondary }]}>Height</Text>
                   <Text style={[styles.profileValue, { color: colors.textPrimary }]}>
                     {formatHeight()}
+                  </Text>
+                </View>
+
+                <View style={styles.profileRow}>
+                  <Text style={[styles.profileLabel, { color: colors.textSecondary }]}>Weight</Text>
+                  <Text style={[styles.profileValue, { color: colors.textPrimary }]}>
+                    {formatWeight()}
                   </Text>
                 </View>
 
@@ -204,7 +248,7 @@ export default function ProfileSettingsScreen() {
               {/* Edit Mode */}
               {/* Sex Selection */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>SEX</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">SEX</Text>
                 <View style={styles.optionRow}>
                   {sexOptions.map((option) => (
                     <Pressable
@@ -242,7 +286,7 @@ export default function ProfileSettingsScreen() {
 
               {/* Birthday */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>BIRTHDAY</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">BIRTHDAY</Text>
                 <Pressable
                   style={[styles.dateButton, { backgroundColor: colors.bgSecondary }]}
                   onPress={() => setShowDatePicker(true)}
@@ -291,14 +335,14 @@ export default function ProfileSettingsScreen() {
               {/* Height */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>HEIGHT</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">HEIGHT</Text>
                   <Pressable onPress={() => setUseFeetInches(!useFeetInches)} testID={TestIDs.SettingsProfile.HeightUnitToggle}>
                     <Text style={[styles.unitToggle, { color: colors.accent }]}>
                       {useFeetInches ? 'Use cm' : 'Use ft/in'}
                     </Text>
                   </Pressable>
                 </View>
-                <View style={[styles.heightCard, { backgroundColor: colors.bgSecondary }]}>
+                <View style={[styles.heightCard, { backgroundColor: colors.bgSecondary }]} accessible={true} accessibilityLabel="Height">
                   <View style={styles.heightControls}>
                     <Pressable
                       style={[styles.heightButton, { backgroundColor: colors.bgInteractive }]}
@@ -323,9 +367,29 @@ export default function ProfileSettingsScreen() {
                 </View>
               </View>
 
+              {/* Weight */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
+                  WEIGHT
+                </Text>
+                <View style={[styles.weightInputCard, { backgroundColor: colors.bgSecondary }]}>
+                  <TextInput
+                    style={[styles.weightInput, { color: colors.textPrimary }]}
+                    value={weightDisplay}
+                    onChangeText={setWeightDisplay}
+                    keyboardType="decimal-pad"
+                    placeholder={useLbs ? '150.0' : '68.0'}
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                  <Text style={[styles.weightUnitLabel, { color: colors.textSecondary }]}>
+                    {useLbs ? 'lbs' : 'kg'}
+                  </Text>
+                </View>
+              </View>
+
               {/* Activity Level */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
                   ACTIVITY LEVEL
                 </Text>
                 <View style={styles.activityOptions}>
@@ -508,6 +572,20 @@ const styles = StyleSheet.create({
   },
   heightValue: {
     ...typography.metric.large,
+  },
+  weightInputCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing[4],
+    borderRadius: borderRadius.lg,
+  },
+  weightInput: {
+    ...typography.metric.large,
+    flex: 1,
+  },
+  weightUnitLabel: {
+    ...typography.body.medium,
+    fontWeight: '600',
   },
   activityOptions: {
     gap: spacing[3],

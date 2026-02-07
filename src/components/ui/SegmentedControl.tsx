@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { View, Pressable, Text, StyleSheet, ViewStyle, Animated } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Pressable, Text, StyleSheet, ViewStyle, Animated, AccessibilityInfo } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -25,19 +25,37 @@ export function SegmentedControl<T extends string | number>({
   style,
 }: SegmentedControlProps<T>) {
   const { colors } = useTheme();
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReducedMotion,
+    );
+    return () => subscription.remove();
+  }, []);
 
   const selectedIndex = options.findIndex((opt) => opt.value === value);
   const segmentWidth = 100 / options.length;
   const animatedPosition = useRef(new Animated.Value(selectedIndex)).current;
 
   useEffect(() => {
-    Animated.spring(animatedPosition, {
-      toValue: selectedIndex,
-      useNativeDriver: false,
-      speed: 20,
-      bounciness: 0,
-    }).start();
-  }, [selectedIndex]);
+    if (reducedMotion) {
+      Animated.timing(animatedPosition, {
+        toValue: selectedIndex,
+        useNativeDriver: false,
+        duration: 0,
+      }).start();
+    } else {
+      Animated.spring(animatedPosition, {
+        toValue: selectedIndex,
+        useNativeDriver: false,
+        speed: 20,
+        bounciness: 0,
+      }).start();
+    }
+  }, [selectedIndex, reducedMotion]);
 
   const handlePress = async (optionValue: T) => {
     if (optionValue !== value) {

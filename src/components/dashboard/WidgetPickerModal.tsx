@@ -67,6 +67,8 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
         ]}
         onPress={() => !isAdded && handleAddWidget(definition.type)}
         disabled={isAdded}
+        accessibilityRole="button"
+        accessibilityLabel={`${isAdded ? 'Already added' : 'Add'} ${definition.name} widget${definition.isPremium ? ', premium feature' : ''}`}
       >
         <View
           style={[
@@ -131,7 +133,12 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
       <View style={styles.container} testID={TestIDs.Home.WidgetPickerModal}>
         <View style={styles.header}>
           <Text style={styles.title}>Add Widget</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel="Close widget picker"
+          >
             <Ionicons name="close" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>

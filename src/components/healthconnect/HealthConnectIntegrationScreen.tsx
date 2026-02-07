@@ -3,7 +3,7 @@
  * Settings screen for managing Health Connect connection and sync preferences on Android
  * Follows the "Nourished Calm" design philosophy with supportive, non-judgmental language
  */
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -42,6 +42,20 @@ function SettingRow({
 }: SettingRowProps) {
   const { colors } = useTheme();
 
+  // Optimistic local state to prevent rubber-band lag on async handlers
+  const [localValue, setLocalValue] = useState(value);
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    // Skip the first render — localValue is already initialized from value
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newValue: boolean) => {
+    setLocalValue(newValue);
+    onValueChange(newValue);
+  };
+
   return (
     <View style={[styles.settingRow, disabled && styles.settingRowDisabled]} testID={testID}>
       <View style={styles.settingInfo}>
@@ -63,8 +77,8 @@ function SettingRow({
         </Text>
       </View>
       <Switch
-        value={value}
-        onValueChange={onValueChange}
+        value={localValue}
+        onValueChange={handleChange}
         trackColor={{ false: colors.bgInteractive, true: colors.success }}
         thumbColor="#FFFFFF"
         disabled={disabled}
@@ -96,7 +110,7 @@ function ActivityExplainerModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close explanation">
         <Pressable
           style={[styles.modalContent, { backgroundColor: colors.bgPrimary }]}
           onPress={(e) => e.stopPropagation()}
@@ -468,7 +482,7 @@ export function HealthConnectIntegrationScreen() {
           <Text style={[styles.errorText, { color: colors.error }]}>
             {syncError}
           </Text>
-          <Pressable onPress={resetSyncError} testID="settings-health-connect-error-dismiss-button">
+          <Pressable onPress={resetSyncError} testID="settings-health-connect-error-dismiss-button" accessibilityRole="button" accessibilityLabel="Dismiss error">
             <Ionicons name="close" size={18} color={colors.error} />
           </Pressable>
         </View>
@@ -510,6 +524,7 @@ export function HealthConnectIntegrationScreen() {
             description="Share your meals and macros with Health Connect"
             value={syncNutritionEnabled}
             onValueChange={setSyncNutritionEnabled}
+            testID="settings-health-connect-sync-nutrition-row"
           />
           <Divider />
           <SettingRow
@@ -517,6 +532,7 @@ export function HealthConnectIntegrationScreen() {
             description="Share your daily hydration"
             value={syncWaterEnabled}
             onValueChange={setSyncWaterEnabled}
+            testID="settings-health-connect-sync-water-row"
           />
           <Divider />
           <SettingRow
@@ -524,6 +540,7 @@ export function HealthConnectIntegrationScreen() {
             description="Use weight from your smart scale or other apps"
             value={readWeightEnabled}
             onValueChange={setReadWeightEnabled}
+            testID="settings-health-connect-read-weight-row"
           />
         </View>
       </Card>
@@ -545,10 +562,14 @@ export function HealthConnectIntegrationScreen() {
             description="Add exercise calories to your daily goal"
             value={adjustForActivityEnabled}
             onValueChange={setAdjustForActivityEnabled}
+            testID="settings-health-connect-adjust-activity-row"
           />
           <Pressable
             style={styles.howItWorksButton}
             onPress={() => setShowActivityExplainer(true)}
+            testID="settings-health-connect-how-this-works-button"
+            accessibilityRole="button"
+            accessibilityLabel="How activity adjustment works"
           >
             <Text style={[styles.howItWorksText, { color: colors.accent }]}>
               How this works
@@ -581,13 +602,13 @@ export function HealthConnectIntegrationScreen() {
       )}
 
       {/* Privacy notice */}
-      <Text style={[styles.privacyText, { color: colors.textTertiary }]}>
+      <Text style={[styles.privacyText, { color: colors.textTertiary }]} testID="settings-health-connect-privacy-notice">
         Your health data syncs directly with Health Connect. We never access
         your health information directly.
       </Text>
 
       {/* Help section */}
-      <Card variant="default" padding="md" style={styles.helpCard}>
+      <Card variant="default" padding="md" style={styles.helpCard} testID="settings-health-connect-help-section">
         <View style={styles.helpHeader}>
           <Ionicons name="help-circle-outline" size={20} color={colors.accent} />
           <Text style={[styles.helpTitle, { color: colors.textPrimary }]}>

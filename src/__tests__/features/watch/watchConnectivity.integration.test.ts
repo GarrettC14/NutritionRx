@@ -1,6 +1,7 @@
 /**
  * Watch Connectivity Integration Tests
- * End-to-end tests for Apple Watch communication flow
+ * End-to-end tests for Apple Watch communication flow.
+ * Mock boundary: native modules are mocked; service logic runs real code.
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react-native';

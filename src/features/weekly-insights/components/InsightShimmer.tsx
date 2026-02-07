@@ -11,20 +11,24 @@ import Animated, {
   withRepeat,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 
 export function InsightShimmer() {
   const { colors } = useTheme();
-  const opacity = useSharedValue(0.3);
+  const reducedMotion = useReducedMotion();
+  const opacity = useSharedValue(reducedMotion ? 0.5 : 0.3);
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(0.7, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  }, [opacity]);
+    if (!reducedMotion) {
+      opacity.value = withRepeat(
+        withTiming(0.7, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true
+      );
+    }
+  }, [opacity, reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

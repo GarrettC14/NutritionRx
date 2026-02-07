@@ -34,6 +34,8 @@ export function WeekNavigation({ weekStart, onNavigate }: WeekNavigationProps) {
         onPress={goToPrevWeek}
         style={styles.arrowButton}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        accessibilityRole="button"
+        accessibilityLabel="Go to previous week"
       >
         <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
       </TouchableOpacity>
@@ -54,6 +56,8 @@ export function WeekNavigation({ weekStart, onNavigate }: WeekNavigationProps) {
         style={styles.arrowButton}
         disabled={isCurrent}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        accessibilityRole="button"
+        accessibilityLabel="Go to next week"
       >
         <Ionicons
           name="chevron-forward"

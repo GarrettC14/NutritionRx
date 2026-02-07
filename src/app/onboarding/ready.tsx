@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
@@ -41,6 +41,7 @@ const actionOptions: ActionOption[] = [
 
 export default function ReadyScreen() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const { completeOnboarding, goalPath, energyUnit, weightUnit } = useOnboardingStore();
   const { setWeightUnit } = useSettingsStore();
@@ -91,7 +92,7 @@ export default function ReadyScreen() {
       <View style={styles.content}>
         {/* Checkmark with animation */}
         <Animated.View
-          entering={ZoomIn.duration(400).delay(200)}
+          entering={reducedMotion ? undefined : ZoomIn.duration(400).delay(200)}
           style={[styles.checkContainer, { backgroundColor: colors.success + '20' }]}
         >
           <Ionicons name="checkmark" size={48} color={colors.success} />
@@ -99,7 +100,7 @@ export default function ReadyScreen() {
 
         {/* Title */}
         <Animated.Text
-          entering={FadeIn.duration(400).delay(400)}
+          entering={reducedMotion ? undefined : FadeIn.duration(400).delay(400)}
           style={[styles.title, { color: colors.textPrimary }]}
         >
           You're ready!
@@ -107,7 +108,7 @@ export default function ReadyScreen() {
 
         {/* Subtitle */}
         <Animated.Text
-          entering={FadeIn.duration(400).delay(500)}
+          entering={reducedMotion ? undefined : FadeIn.duration(400).delay(500)}
           style={[styles.subtitle, { color: colors.textSecondary }]}
         >
           How would you like to start?
@@ -115,7 +116,7 @@ export default function ReadyScreen() {
 
         {/* Action Options */}
         <Animated.View
-          entering={FadeIn.duration(400).delay(600)}
+          entering={reducedMotion ? undefined : FadeIn.duration(400).delay(600)}
           style={styles.options}
         >
           {actionOptions.map((option) => {

@@ -59,7 +59,7 @@ function useDebounce<T>(value: T, delay: number): T {
 export default function AddFoodScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const params = useLocalSearchParams<{ mealType?: string; date?: string }>();
+  const params = useLocalSearchParams<{ mealType?: string; date?: string; searchQuery?: string }>();
 
   const mealType = (params.mealType as MealType) || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
@@ -68,7 +68,7 @@ export default function AddFoodScreen() {
   const [activeTab, setActiveTab] = useState<AddFoodTab>('all');
 
   // Search state
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState(params.searchQuery || '');
   const debouncedSearch = useDebounce(searchText, SEARCH_SETTINGS.debounceMs);
 
 

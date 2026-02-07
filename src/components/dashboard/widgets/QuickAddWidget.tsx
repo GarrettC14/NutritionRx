@@ -96,6 +96,8 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
           onPress={handleAddNew}
           disabled={isEditMode}
           style={styles.addButton}
+          accessibilityRole="button"
+          accessibilityLabel="Add new food"
         >
           <Ionicons name="add" size={20} color={colors.accent} />
         </TouchableOpacity>
@@ -120,6 +122,8 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
               onPress={() => handleQuickAdd(item)}
               disabled={isEditMode}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Quick add ${item.name}, ${item.calories} calories`}
             >
               <View style={styles.itemIcon}>
                 <Ionicons

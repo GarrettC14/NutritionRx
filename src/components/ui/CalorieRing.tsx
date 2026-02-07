@@ -111,7 +111,7 @@ export function CalorieRing({
         </Svg>
 
         {/* Center Content */}
-        <View style={styles.centerContent}>
+        <View style={styles.centerContent} accessibilityLiveRegion="polite">
           {/* Label */}
           <Text style={[styles.label, { color: colors.textTertiary }]}>
             {primaryLabel}

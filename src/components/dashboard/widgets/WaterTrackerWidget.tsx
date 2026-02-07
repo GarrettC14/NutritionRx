@@ -43,7 +43,7 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
           <Ionicons name="water" size={22} color={waterColor} />
         </View>
 
-        <View style={styles.info}>
+        <View style={styles.info} accessibilityLiveRegion="polite">
           <Text style={styles.title}>Water</Text>
           <Text style={styles.count}>
             {waterIntake} of {dailyGoal} glasses
@@ -65,6 +65,8 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
         onPress={handleAddWater}
         disabled={isEditMode}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Add glass of water, ${waterIntake} of ${dailyGoal} glasses logged`}
       >
         <Ionicons name="add" size={22} color="#FFFFFF" />
       </TouchableOpacity>
