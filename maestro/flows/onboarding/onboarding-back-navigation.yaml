@@ -38,17 +38,11 @@ tags:
 - tapOn:
     id: "legal-proceed-button"
 
-# Welcome → Goal
+# Legal → Goal (app goes directly from legal to goal — no welcome screen)
 - extendedWaitUntil:
     visible:
-      id: "onboarding-welcome-screen"
+      id: "onboarding-goal-screen"
     timeout: 5000
-
-- tapOn:
-    id: "onboarding-begin-button"
-
-- assertVisible:
-    id: "onboarding-goal-screen"
 
 # Goal → Preferences
 - tapOn:

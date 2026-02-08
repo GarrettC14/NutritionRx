@@ -203,36 +203,36 @@ describe('useGoalStore', () => {
 
   describe('calculateTargetCalories', () => {
     it('returns TDEE for maintain goal', () => {
-      const result = useGoalStore.getState().calculateTargetCalories(2500, 'maintain', 0, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(2500, 'maintain', 0, 'male', 80);
       expect(result).toBe(2500);
     });
 
     it('subtracts deficit for lose goal', () => {
-      // ratePercent=0.5 -> weeklyKg = 0.005, dailyDeficit = (0.005 * 7700) / 7 = 5.5
-      const result = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.5, 'male');
-      const expectedDeficit = (0.5 / 100 * CALORIES_PER_KG) / 7;
+      // ratePercent=0.5, weightKg=80 -> weeklyKg = 0.005 * 80 = 0.4, dailyDeficit = (0.4 * 7700) / 7 = 440
+      const result = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.5, 'male', 80);
+      const expectedDeficit = (0.5 / 100 * 80 * CALORIES_PER_KG) / 7;
       expect(result).toBe(2500 - expectedDeficit);
     });
 
     it('adds surplus for gain goal', () => {
-      const result = useGoalStore.getState().calculateTargetCalories(2500, 'gain', 0.5, 'male');
-      const expectedSurplus = (0.5 / 100 * CALORIES_PER_KG) / 7;
+      const result = useGoalStore.getState().calculateTargetCalories(2500, 'gain', 0.5, 'male', 80);
+      const expectedSurplus = (0.5 / 100 * 80 * CALORIES_PER_KG) / 7;
       expect(result).toBe(2500 + expectedSurplus);
     });
 
     it('enforces male calorie floor', () => {
       // With a very aggressive deficit, should not go below 1500 for male
-      const result = useGoalStore.getState().calculateTargetCalories(1400, 'lose', 1.0, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(1400, 'lose', 1.0, 'male', 80);
       expect(result).toBe(CALORIE_FLOORS.male);
     });
 
     it('enforces female calorie floor', () => {
-      const result = useGoalStore.getState().calculateTargetCalories(1100, 'lose', 1.0, 'female');
+      const result = useGoalStore.getState().calculateTargetCalories(1100, 'lose', 1.0, 'female', 60);
       expect(result).toBe(CALORIE_FLOORS.female);
     });
 
     it('does not apply floor when target is above floor', () => {
-      const result = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.25, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.25, 'male', 80);
       expect(result).toBeGreaterThan(CALORIE_FLOORS.male);
     });
   });

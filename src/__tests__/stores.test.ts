@@ -326,33 +326,33 @@ describe('Goal Store Calculations', () => {
 
   describe('calculateTargetCalories', () => {
     it('should return TDEE for maintenance', () => {
-      const target = useGoalStore.getState().calculateTargetCalories(2500, 'maintain', 0, 'male');
+      const target = useGoalStore.getState().calculateTargetCalories(2500, 'maintain', 0, 'male', 80);
 
       expect(target).toBe(2500);
     });
 
     it('should create deficit for weight loss', () => {
-      const target = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.5, 'male');
+      const target = useGoalStore.getState().calculateTargetCalories(2500, 'lose', 0.5, 'male', 80);
 
-      // 0.5% of body weight per week = ~275 calorie deficit (based on 7700 cal/kg)
+      // 0.5% of 80kg body weight per week = 0.4kg * 7700/7 = ~440 calorie deficit
       expect(target).toBeLessThan(2500);
     });
 
     it('should create surplus for weight gain', () => {
-      const target = useGoalStore.getState().calculateTargetCalories(2500, 'gain', 0.25, 'male');
+      const target = useGoalStore.getState().calculateTargetCalories(2500, 'gain', 0.25, 'male', 80);
 
       expect(target).toBeGreaterThan(2500);
     });
 
     it('should not go below calorie floor for females', () => {
-      const target = useGoalStore.getState().calculateTargetCalories(1500, 'lose', 1, 'female');
+      const target = useGoalStore.getState().calculateTargetCalories(1500, 'lose', 1, 'female', 60);
 
       // Should not go below 1200
       expect(target).toBeGreaterThanOrEqual(1200);
     });
 
     it('should not go below calorie floor for males', () => {
-      const target = useGoalStore.getState().calculateTargetCalories(1800, 'lose', 1, 'male');
+      const target = useGoalStore.getState().calculateTargetCalories(1800, 'lose', 1, 'male', 80);
 
       // Should not go below 1500
       expect(target).toBeGreaterThanOrEqual(1500);

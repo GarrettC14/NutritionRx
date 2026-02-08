@@ -211,8 +211,8 @@ describe('Goal & Profile Integration', () => {
       const expectedBmr = 1830;
       // TDEE = 1830 * 1.55 = 2836.5
       const expectedTdee = expectedBmr * ACTIVITY_MULTIPLIERS.moderately_active;
-      // Deficit = (0.5/100 * 7700) / 7 = 5.5
-      const dailyDeficit = (0.5 / 100 * CALORIES_PER_KG) / 7;
+      // Deficit = (0.5/100 * 85 * 7700) / 7 = 467.86
+      const dailyDeficit = (0.5 / 100 * 85 * CALORIES_PER_KG) / 7;
       const expectedCalories = Math.round(expectedTdee - dailyDeficit);
 
       expect(goal.initialTdeeEstimate).toBe(Math.round(expectedTdee));
@@ -324,49 +324,51 @@ describe('Goal & Profile Integration', () => {
   describe('Deficit/surplus targets adjust calories correctly', () => {
     it('maintain goal sets target calories equal to TDEE', () => {
       const tdee = 2500;
-      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'maintain', 0, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'maintain', 0, 'male', 80);
       expect(result).toBe(2500);
     });
 
     it('lose goal subtracts a deficit from TDEE', () => {
       const tdee = 2500;
+      const weightKg = 80;
       const ratePercent = 0.5; // 0.5% of body weight per week
-      const dailyDeficit = (ratePercent / 100 * CALORIES_PER_KG) / 7;
+      const dailyDeficit = (ratePercent / 100 * weightKg * CALORIES_PER_KG) / 7;
       const expected = tdee - dailyDeficit;
 
-      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', ratePercent, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', ratePercent, 'male', weightKg);
       expect(result).toBe(expected);
       expect(result).toBeLessThan(tdee);
     });
 
     it('gain goal adds a surplus to TDEE', () => {
       const tdee = 2500;
+      const weightKg = 80;
       const ratePercent = 0.25;
-      const dailySurplus = (ratePercent / 100 * CALORIES_PER_KG) / 7;
+      const dailySurplus = (ratePercent / 100 * weightKg * CALORIES_PER_KG) / 7;
       const expected = tdee + dailySurplus;
 
-      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'gain', ratePercent, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(tdee, 'gain', ratePercent, 'male', weightKg);
       expect(result).toBe(expected);
       expect(result).toBeGreaterThan(tdee);
     });
 
     it('larger rate percent creates larger deficit', () => {
       const tdee = 2500;
-      const smallDeficit = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', 0.25, 'male');
-      const largeDeficit = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', 1.0, 'male');
+      const smallDeficit = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', 0.25, 'male', 80);
+      const largeDeficit = useGoalStore.getState().calculateTargetCalories(tdee, 'lose', 1.0, 'male', 80);
 
       expect(largeDeficit).toBeLessThan(smallDeficit);
     });
 
     it('enforces male calorie floor of 1500', () => {
       // Very aggressive deficit that would go below floor
-      const result = useGoalStore.getState().calculateTargetCalories(1400, 'lose', 1.0, 'male');
+      const result = useGoalStore.getState().calculateTargetCalories(1400, 'lose', 1.0, 'male', 80);
       expect(result).toBe(CALORIE_FLOORS.male);
       expect(result).toBe(1500);
     });
 
     it('enforces female calorie floor of 1200', () => {
-      const result = useGoalStore.getState().calculateTargetCalories(1100, 'lose', 1.0, 'female');
+      const result = useGoalStore.getState().calculateTargetCalories(1100, 'lose', 1.0, 'female', 60);
       expect(result).toBe(CALORIE_FLOORS.female);
       expect(result).toBe(1200);
     });
@@ -386,7 +388,7 @@ describe('Goal & Profile Integration', () => {
       // BMR = 10*90 + 6.25*182 - 5*35 + 5 = 900 + 1137.5 - 175 + 5 = 1867.5
       const expectedBmr = 1867.5;
       const expectedTdee = expectedBmr * ACTIVITY_MULTIPLIERS.lightly_active;
-      const dailyDeficit = (0.5 / 100 * CALORIES_PER_KG) / 7;
+      const dailyDeficit = (0.5 / 100 * 90 * CALORIES_PER_KG) / 7;
       const expectedCalories = Math.round(expectedTdee - dailyDeficit);
 
       expect(goal.initialTdeeEstimate).toBe(Math.round(expectedTdee));

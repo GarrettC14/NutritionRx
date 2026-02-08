@@ -69,7 +69,7 @@ interface GoalState {
   // Calculations
   calculateBMR: (weightKg: number, heightCm: number, age: number, sex: 'male' | 'female') => number;
   calculateTDEE: (bmr: number, activityLevel: keyof typeof ACTIVITY_MULTIPLIERS) => number;
-  calculateTargetCalories: (tdee: number, goalType: GoalType, ratePercent: number, sex: 'male' | 'female') => number;
+  calculateTargetCalories: (tdee: number, goalType: GoalType, ratePercent: number, sex: 'male' | 'female', weightKg: number) => number;
   calculateMacros: (targetCalories: number, weightKg: number) => { protein: number; carbs: number; fat: number };
 }
 
@@ -166,7 +166,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     try {
       const bmr = get().calculateBMR(params.currentWeightKg, params.heightCm, params.age, params.sex);
       const tdee = get().calculateTDEE(bmr, params.activityLevel);
-      const targetCalories = get().calculateTargetCalories(tdee, params.type, params.targetRatePercent, params.sex);
+      const targetCalories = get().calculateTargetCalories(tdee, params.type, params.targetRatePercent, params.sex, params.currentWeightKg);
 
       // Use macroCalculator with eating style and protein priority if provided
       const eatingStyle = params.eatingStyle ?? 'flexible';
@@ -319,8 +319,8 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     return bmr * ACTIVITY_MULTIPLIERS[activityLevel];
   },
 
-  calculateTargetCalories: (tdee, goalType, ratePercent, sex) => {
-    const weeklyKgChange = ratePercent / 100; // % of body weight per week
+  calculateTargetCalories: (tdee, goalType, ratePercent, sex, weightKg) => {
+    const weeklyKgChange = (ratePercent / 100) * weightKg;
     const dailyDeficitOrSurplus = (weeklyKgChange * CALORIES_PER_KG) / 7;
 
     let targetCalories: number;

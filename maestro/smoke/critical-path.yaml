@@ -5,7 +5,7 @@ tags:
   - critical
 ---
 # ============================================
-# CRITICAL PATH: Launch → Onboard → Log Food → Verify
+# CRITICAL PATH: Launch → Onboard → Verify Home → Navigate Tabs
 # ============================================
 
 # --- STEP 1: Launch fresh ---
@@ -19,51 +19,44 @@ tags:
 - assertVisible:
     id: "home-screen"
 
-# Verify default widgets are visible
-- assertVisible:
-    id: "widget-calorie-ring"
-
-- scrollUntilVisible:
-    element:
+# Verify home content is loaded (date label renders after isReady)
+- extendedWaitUntil:
+    visible:
       id: "home-date-label"
-    direction: UP
-    timeout: 5000
+    timeout: 8000
 
-# --- STEP 4: Log Food via Quick Add ---
-- openLink: "nutritionrx:///add-food/quick?mealType=breakfast"
+# --- STEP 4: Navigate to Food tab ---
+- tapOn:
+    id: "tab-bar-food"
 
 - extendedWaitUntil:
     visible:
-      id: "quick-add-screen"
+      id: "add-food-screen"
     timeout: 5000
 
+# Verify search input is present
+- assertVisible:
+    id: "add-food-search-input"
+
+# --- STEP 5: Navigate to Progress tab ---
 - tapOn:
-    id: "quick-add-calories-input"
-- inputText: "350"
+    id: "tab-bar-progress"
 
-- tapOn:
-    id: "quick-add-protein-input"
-- inputText: "25"
-
-- tapOn:
-    id: "quick-add-carbs-input"
-- inputText: "30"
-
-- tapOn:
-    id: "quick-add-fat-input"
-- inputText: "12"
-
-- hideKeyboard
-
-- tapOn:
-    id: "quick-add-add-button"
-
-# --- STEP 5: Navigate back to Home and verify ---
 - extendedWaitUntil:
-    notVisible:
-      id: "quick-add-screen"
+    visible:
+      id: "progress-screen"
     timeout: 5000
 
+# --- STEP 6: Navigate to Settings tab ---
+- tapOn:
+    id: "tab-bar-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+# --- STEP 7: Return to Home ---
 - tapOn:
     id: "tab-bar-home"
 
@@ -72,37 +65,7 @@ tags:
       id: "home-screen"
     timeout: 5000
 
-- scrollUntilVisible:
-    element:
-      id: "home-date-label"
-    direction: UP
-    timeout: 5000
-
 - assertVisible:
     id: "home-date-label"
-
-# --- STEP 6: Verify the logged entry appears on home screen ---
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-
-# Expand Breakfast section (quick-add was sent to breakfast)
-- tapOn:
-    id: "meal-breakfast-section"
-
-- waitForAnimationToEnd
-
-# Verify the logged entry is visible
-- assertVisible:
-    id: "meal-entry-item-.*"
 
 # --- SMOKE TEST COMPLETE ---

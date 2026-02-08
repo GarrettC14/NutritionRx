@@ -4,6 +4,11 @@ name: Complete Onboarding Utility
 # Starts from fresh install, ends on Home screen
 # Note: LogBox warnings are suppressed via LogBox.ignoreAllLogs() in _layout.tsx
 
+# Dismiss any stale system dialogs (e.g. "Open in NutritionRx?" from deep links)
+- tapOn:
+    text: "Cancel"
+    optional: true
+
 # Wait for JS bundle to load from Metro (can take 20-30s after clearState)
 - extendedWaitUntil:
     visible:
@@ -36,18 +41,11 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "legal-proceed-button"
 
-# Onboarding Welcome
+# Goal Selection (app goes directly from legal to goal — no welcome screen)
 - extendedWaitUntil:
     visible:
-      id: "onboarding-welcome-screen"
+      id: "onboarding-goal-screen"
     timeout: 5000
-
-- tapOn:
-    id: "onboarding-begin-button"
-
-# Goal Selection
-- assertVisible:
-    id: "onboarding-goal-screen"
 
 - tapOn:
     id: "onboarding-goal-option-lose"
