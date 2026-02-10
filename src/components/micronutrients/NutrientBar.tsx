@@ -21,15 +21,6 @@ interface NutrientBarProps {
   compact?: boolean;
 }
 
-const STATUS_COLORS: Record<NutrientStatus, string> = {
-  deficient: '#E53935', // Red
-  low: '#FB8C00', // Orange
-  adequate: '#7CB342', // Light green
-  optimal: '#43A047', // Green
-  high: '#FB8C00', // Orange
-  excessive: '#E53935', // Red
-};
-
 export function NutrientBar({
   nutrient,
   amount,
@@ -41,7 +32,15 @@ export function NutrientBar({
 }: NutrientBarProps) {
   const { colors } = useTheme();
 
-  const statusColor = STATUS_COLORS[status];
+  const statusColorMap: Record<NutrientStatus, string> = {
+    deficient: colors.error,
+    low: colors.warning,
+    adequate: colors.accent,
+    optimal: colors.success,
+    high: colors.warning,
+    excessive: colors.error,
+  };
+  const statusColor = statusColorMap[status];
   const barWidth = Math.min(percentOfTarget, 100);
   const showOverflow = percentOfTarget > 100;
 
@@ -95,7 +94,7 @@ export function NutrientBar({
       </View>
 
       {/* Progress bar */}
-      <View style={[styles.barContainer, { backgroundColor: colors.bgTertiary }]}>
+      <View style={[styles.barContainer, { backgroundColor: colors.bgInteractive }]}>
         <View
           style={[
             styles.bar,

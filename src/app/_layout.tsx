@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { initDatabase } from '@/db/database';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/contexts/TooltipContext';
 import { TooltipModal } from '@/components/ui/TooltipModal';
@@ -117,6 +118,34 @@ function RootLayoutContent() {
           }}
         />
 
+        {/* Micronutrients detail - pushed screen */}
+        <Stack.Screen name="micronutrients" />
+
+        {/* Progress Photos - pushed screen with default animation */}
+        <Stack.Screen name="progress-photos" />
+
+        {/* Progress Photos Capture - modal slide up */}
+        <Stack.Screen
+          name="progress-photos/capture"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+            gestureDirection: 'vertical',
+          }}
+        />
+
+        {/* Progress Photos Compare - modal slide up */}
+        <Stack.Screen
+          name="progress-photos/compare"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+            gestureDirection: 'vertical',
+          }}
+        />
+
         {/* Paywall - full screen modal, no swipe dismiss */}
         <Stack.Screen
           name="paywall"
@@ -183,12 +212,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: DEFAULT_BG }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <TooltipProvider>
-            <ConfirmDialogProvider>
-              <RootLayoutContent />
-              <TooltipModal />
-            </ConfirmDialogProvider>
-          </TooltipProvider>
+          <BottomSheetModalProvider>
+            <TooltipProvider>
+              <ConfirmDialogProvider>
+                <RootLayoutContent />
+                <TooltipModal />
+              </ConfirmDialogProvider>
+            </TooltipProvider>
+          </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

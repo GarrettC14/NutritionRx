@@ -196,37 +196,29 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
       const db = getDatabase();
       const { profile, getTargetForNutrient, getStatusForIntake } = get();
 
-      // Get all log entries for the date
-      const logEntries = await db.getAllAsync<{
-        id: string;
-        food_item_id: string;
-        servings: number;
+      // Get total foods logged for the date
+      const countResult = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM log_entries WHERE date = ?',
+        [date]
+      );
+      const totalFoodsLogged = countResult?.count ?? 0;
+
+      // Single JOIN query to get all nutrient totals — replaces N+1 per-entry queries
+      const nutrientRows = await db.getAllAsync<{
+        nutrient_id: string;
+        total: number;
       }>(
-        'SELECT id, food_item_id, servings FROM log_entries WHERE date = ?',
+        `SELECT fin.nutrient_id, SUM(fin.amount * le.servings) as total
+         FROM log_entries le
+         JOIN food_item_nutrients fin ON fin.food_item_id = le.food_item_id
+         WHERE le.date = ?
+         GROUP BY fin.nutrient_id`,
         [date]
       );
 
-      // Build nutrient totals
-      const nutrientTotals = new Map<string, number>();
-
-      for (const entry of logEntries) {
-        // Get extended nutrients for this food
-        const nutrients = await db.getAllAsync<{
-          nutrient_id: string;
-          amount: number;
-        }>(
-          'SELECT nutrient_id, amount FROM food_item_nutrients WHERE food_item_id = ?',
-          [entry.food_item_id]
-        );
-
-        for (const nutrient of nutrients) {
-          const current = nutrientTotals.get(nutrient.nutrient_id) || 0;
-          nutrientTotals.set(
-            nutrient.nutrient_id,
-            current + nutrient.amount * entry.servings
-          );
-        }
-      }
+      const nutrientTotals = new Map<string, number>(
+        nutrientRows.map(r => [r.nutrient_id, r.total])
+      );
 
       // Build intake objects
       const intakeList: NutrientIntake[] = [];
@@ -252,8 +244,8 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
       const dailyIntake: DailyNutrientIntake = {
         date,
         nutrients: intakeList,
-        totalFoodsLogged: logEntries.length,
-        hasCompleteData: logEntries.length > 0,
+        totalFoodsLogged,
+        hasCompleteData: totalFoodsLogged > 0,
       };
 
       set({ dailyIntake, isLoading: false });
@@ -267,28 +259,38 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
     try {
       const db = getDatabase();
 
+      // Compute contributors on-the-fly via JOIN (nutrient_contributors table is never populated)
       const rows = await db.getAllAsync<{
-        id: string;
-        date: string;
         log_entry_id: string;
         food_name: string;
         amount: number;
-        percent_of_daily: number;
       }>(
-        `SELECT id, date, log_entry_id, food_name, amount, percent_of_daily
-         FROM nutrient_contributors
-         WHERE date = ? AND nutrient_id = ?
-         ORDER BY amount DESC`,
+        `SELECT
+           le.id AS log_entry_id,
+           fi.name AS food_name,
+           fin.amount * le.servings AS amount
+         FROM log_entries le
+         JOIN food_item_nutrients fin ON fin.food_item_id = le.food_item_id
+         JOIN food_items fi ON fi.id = le.food_item_id
+         WHERE le.date = ?
+           AND fin.nutrient_id = ?
+           AND fin.amount > 0
+         ORDER BY fin.amount * le.servings DESC
+         LIMIT 10`,
         [date, nutrientId]
       );
 
+      const totalAmount = rows.reduce((sum, r) => sum + r.amount, 0);
+
       const contributors: NutrientContributor[] = rows.map(row => ({
         nutrientId,
-        date: row.date,
+        date,
         logEntryId: row.log_entry_id,
         foodName: row.food_name,
         amount: row.amount,
-        percentOfDailyIntake: row.percent_of_daily,
+        percentOfDailyIntake: totalAmount > 0
+          ? Math.round((row.amount / totalAmount) * 1000) / 10
+          : 0,
       }));
 
       set({ contributors });

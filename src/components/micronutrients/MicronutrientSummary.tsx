@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -36,6 +37,7 @@ export function MicronutrientSummary({
   isPremium = false,
 }: MicronutrientSummaryProps) {
   const { colors } = useTheme();
+  const router = useRouter();
 
   // Calculate category summaries
   const categorySummaries: CategorySummary[] = React.useMemo(() => {
@@ -97,10 +99,10 @@ export function MicronutrientSummary({
 
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case 'deficient': return '#E53935';
-      case 'low': return '#FB8C00';
-      case 'optimal': return '#43A047';
-      case 'excessive': return '#E53935';
+      case 'deficient': return colors.error;
+      case 'low': return colors.warning;
+      case 'optimal': return colors.success;
+      case 'excessive': return colors.error;
       default: return colors.textTertiary;
     }
   };
@@ -121,25 +123,25 @@ export function MicronutrientSummary({
       {/* Quick stats */}
       <View style={styles.quickStats}>
         {overallStats.deficient > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: '#E5393520' }]}>
-            <View style={[styles.statDot, { backgroundColor: '#E53935' }]} />
-            <Text style={[styles.statText, { color: '#E53935' }]}>
+          <View style={[styles.statBadge, { backgroundColor: colors.errorBg }]}>
+            <View style={[styles.statDot, { backgroundColor: colors.error }]} />
+            <Text style={[styles.statText, { color: colors.error }]}>
               {overallStats.deficient} low
             </Text>
           </View>
         )}
         {overallStats.optimal > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: '#43A04720' }]}>
-            <View style={[styles.statDot, { backgroundColor: '#43A047' }]} />
-            <Text style={[styles.statText, { color: '#43A047' }]}>
+          <View style={[styles.statBadge, { backgroundColor: colors.successBg }]}>
+            <View style={[styles.statDot, { backgroundColor: colors.success }]} />
+            <Text style={[styles.statText, { color: colors.success }]}>
               {overallStats.optimal} optimal
             </Text>
           </View>
         )}
         {overallStats.excessive > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: '#FB8C0020' }]}>
-            <View style={[styles.statDot, { backgroundColor: '#FB8C00' }]} />
-            <Text style={[styles.statText, { color: '#FB8C00' }]}>
+          <View style={[styles.statBadge, { backgroundColor: colors.warningBg }]}>
+            <View style={[styles.statDot, { backgroundColor: colors.warning }]} />
+            <Text style={[styles.statText, { color: colors.warning }]}>
               {overallStats.excessive} high
             </Text>
           </View>
@@ -168,7 +170,7 @@ export function MicronutrientSummary({
             </View>
 
             {/* Mini progress bar */}
-            <View style={[styles.miniBar, { backgroundColor: colors.bgTertiary }]}>
+            <View style={[styles.miniBar, { backgroundColor: colors.bgInteractive }]}>
               <View
                 style={[
                   styles.miniBarFill,
@@ -176,10 +178,10 @@ export function MicronutrientSummary({
                     width: `${Math.min(summary.averagePercent, 100)}%`,
                     backgroundColor:
                       summary.averagePercent >= 75
-                        ? '#43A047'
+                        ? colors.success
                         : summary.averagePercent >= 50
-                        ? '#FB8C00'
-                        : '#E53935',
+                        ? colors.warning
+                        : colors.error,
                   },
                 ]}
               />
@@ -196,11 +198,8 @@ export function MicronutrientSummary({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSecondary }]}>
-      {/* Header with overall status - dimmed when locked */}
-      <View
-        style={[styles.header, !isPremium && styles.headerLocked]}
-        pointerEvents={isPremium ? 'auto' : 'none'}
-      >
+      {/* Header with overall status */}
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
           <View style={styles.headerText}>
@@ -212,6 +211,18 @@ export function MicronutrientSummary({
             </Text>
           </View>
         </View>
+        {isPremium && (
+          <TouchableOpacity
+            onPress={() => router.push('/micronutrients')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="View all micronutrients"
+          >
+            <Text style={[styles.viewAll, { color: colors.accent }]}>
+              View All
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Content area - locked for non-premium */}
@@ -243,8 +254,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing[4],
   },
-  headerLocked: {
-    opacity: 0.5,
+  viewAll: {
+    ...typography.body.small,
+    fontWeight: '600',
   },
   headerLeft: {
     flexDirection: 'row',
