@@ -534,6 +534,7 @@ export default function SettingsScreen() {
             CONNECTIONS
           </Text>
           <View style={styles.sectionContent}>
+            {/* TODO: Re-enable health integrations in a post-launch release
             {Platform.OS === 'ios' && (
               <SettingsItem
                 testID={TestIDs.Settings.AppleHealthRow}
@@ -543,7 +544,6 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/settings/apple-health')}
               />
             )}
-            {/* TODO: Re-enable Health Connect when ready to ship
             {Platform.OS === 'android' && (
               <SettingsItem
                 testID={TestIDs.Settings.HealthConnectRow}
