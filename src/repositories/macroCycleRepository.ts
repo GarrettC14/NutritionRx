@@ -131,7 +131,9 @@ export const macroCycleRepository = {
       return baseTargets;
     }
 
-    // Get day of week (0 = Sunday)
+    // Parse at noon local time to avoid date-shifting from UTC offset.
+    // e.g., '2026-02-10' parsed as UTC in some engines would roll back
+    // to Feb 9 in UTC-8. Noon gives a 12-hour buffer in either direction.
     const dayOfWeek = new Date(date + 'T12:00:00').getDay();
 
     // Return day-specific targets if they exist
@@ -145,7 +147,7 @@ export const macroCycleRepository = {
   getDayType(
     dayOfWeek: number,
     config: MacroCycleConfig
-  ): 'training' | 'rest' | 'high_carb' | 'low_carb' | 'custom' | null {
+  ): 'training' | 'rest' | 'high_carb' | 'low_carb' | 'custom' | 'even' | null {
     if (!config.enabled) return null;
 
     const isMarkedDay = config.markedDays.includes(dayOfWeek);
@@ -155,6 +157,8 @@ export const macroCycleRepository = {
         return isMarkedDay ? 'training' : 'rest';
       case 'high_low_carb':
         return isMarkedDay ? 'high_carb' : 'low_carb';
+      case 'even_distribution':
+        return 'even';
       case 'custom':
         return 'custom';
       default:
@@ -197,6 +201,14 @@ export const macroCycleRepository = {
     await db.runAsync('DELETE FROM macro_cycle_overrides WHERE date = ?', [date]);
   },
 
+  async getAllOverrides(): Promise<MacroCycleOverride[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<MacroCycleOverrideRow>(
+      'SELECT * FROM macro_cycle_overrides ORDER BY date ASC'
+    );
+    return rows.map(mapOverrideRowToOverride);
+  },
+
   async clearAllOverrides(): Promise<void> {
     const db = getDatabase();
     await db.runAsync('DELETE FROM macro_cycle_overrides');
@@ -229,10 +241,10 @@ export const macroCycleRepository = {
     }
 
     return {
-      calories: Math.round(totalCalories / 7),
-      protein: Math.round(totalProtein / 7),
-      carbs: Math.round(totalCarbs / 7),
-      fat: Math.round(totalFat / 7),
+      calories: Math.round(totalCalories / daysWithTargets),
+      protein: Math.round(totalProtein / daysWithTargets),
+      carbs: Math.round(totalCarbs / daysWithTargets),
+      fat: Math.round(totalFat / daysWithTargets),
     };
   },
 };

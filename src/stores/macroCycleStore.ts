@@ -6,12 +6,14 @@ import {
   MacroCyclePatternType,
   DayTargets,
   MacroAdjustment,
+  LOW_CARB_SCALE,
 } from '@/types/planning';
 
 interface MacroCycleState {
   // State
   config: MacroCycleConfig | null;
   todayOverride: MacroCycleOverride | null;
+  allOverrides: MacroCycleOverride[];
   isLoading: boolean;
   isLoaded: boolean;
   error: string | null;
@@ -34,11 +36,14 @@ interface MacroCycleState {
   loadTodayOverride: () => Promise<void>;
   setTodayOverride: (targets: DayTargets) => Promise<void>;
   clearTodayOverride: () => Promise<void>;
+  loadAllOverrides: () => Promise<void>;
+  clearOverride: (date: string) => Promise<void>;
+  clearAllOverrides: () => Promise<void>;
 
   // Computed / Helpers
   getTargetsForDate: (date: string, baseTargets: DayTargets) => Promise<DayTargets>;
   getTodayTargets: (baseTargets: DayTargets) => Promise<DayTargets>;
-  getDayType: (dayOfWeek: number) => 'training' | 'rest' | 'high_carb' | 'low_carb' | 'custom' | null;
+  getDayType: (dayOfWeek: number) => 'training' | 'rest' | 'high_carb' | 'low_carb' | 'custom' | 'even' | null;
   getWeeklyAverage: () => DayTargets | null;
   calculateDayTargets: (
     baseTargets: DayTargets,
@@ -52,6 +57,7 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
   // Initial state
   config: null,
   todayOverride: null,
+  allOverrides: [],
   isLoading: false,
   isLoaded: false,
   error: null,
@@ -156,6 +162,42 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
     }
   },
 
+  loadAllOverrides: async () => {
+    try {
+      const allOverrides = await macroCycleRepository.getAllOverrides();
+      set({ allOverrides });
+    } catch (error) {
+      console.error('Failed to load overrides:', error);
+    }
+  },
+
+  clearOverride: async (date) => {
+    try {
+      await macroCycleRepository.clearOverride(date);
+      const allOverrides = get().allOverrides.filter((o) => o.date !== date);
+      const today = new Date().toISOString().split('T')[0];
+      set({
+        allOverrides,
+        todayOverride: date === today ? null : get().todayOverride,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to clear override',
+      });
+    }
+  },
+
+  clearAllOverrides: async () => {
+    try {
+      await macroCycleRepository.clearAllOverrides();
+      set({ allOverrides: [], todayOverride: null });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to clear all overrides',
+      });
+    }
+  },
+
   // ============================================================
   // Computed / Helpers
   // ============================================================
@@ -210,14 +252,16 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
             fat: baseTargets.fat + adjustment.fat, // adjustment.fat is negative for high carb
           };
         } else {
-          // Low carb day: less carbs, more fat (inverse of adjustment)
+          // Low carb day: less carbs, more fat (softened inverse of adjustment)
           dayTargets[day] = {
             calories: baseTargets.calories,
             protein: baseTargets.protein,
-            carbs: baseTargets.carbs - Math.round(adjustment.carbs * 0.67), // Smaller inverse
-            fat: baseTargets.fat - Math.round(adjustment.fat * 0.67),
+            carbs: baseTargets.carbs - Math.round(adjustment.carbs * LOW_CARB_SCALE),
+            fat: baseTargets.fat - Math.round(adjustment.fat * LOW_CARB_SCALE),
           };
         }
+      } else if (patternType === 'even_distribution') {
+        dayTargets[day] = { ...baseTargets };
       } else {
         // Custom: user sets each day manually (handled outside this function)
         dayTargets[day] = { ...baseTargets };

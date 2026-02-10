@@ -2,7 +2,7 @@
 // Macro Cycling Types
 // ============================================================
 
-export type MacroCyclePatternType = 'training_rest' | 'high_low_carb' | 'custom';
+export type MacroCyclePatternType = 'training_rest' | 'high_low_carb' | 'even_distribution' | 'custom';
 
 export interface DayTargets {
   calories: number;
@@ -31,6 +31,13 @@ export interface MacroCycleOverride {
   fat: number;
   createdAt: string;
 }
+
+// Carb cycling scaling factors.
+// High carb days apply the full adjustment; low carb days use a smaller inverse
+// to avoid overly restrictive days. The asymmetry is intentional — aggressive carb
+// cuts on rest days can impair recovery and mood, so the low side is softened.
+export const HIGH_CARB_SCALE = 1.0;
+export const LOW_CARB_SCALE = 0.67;
 
 // Adjustment values for setup wizard (relative to base targets)
 export interface MacroAdjustment {

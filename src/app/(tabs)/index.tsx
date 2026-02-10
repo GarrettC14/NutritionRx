@@ -171,6 +171,8 @@ export default function TodayScreen() {
         return { label: 'Low Carb', icon: 'trending-down-outline' as const };
       case 'custom':
         return { label: 'Custom', icon: 'settings-outline' as const };
+      case 'even':
+        return null;
       default:
         return null;
     }
