@@ -46,19 +46,15 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
   const generateForQuestion = useCallback(
     async (question: ScoredQuestion): Promise<WeeklyInsightResponse> => {
       const weekStart = getEffectiveWeekStart();
-      console.log(`[LLM:useWeeklyInsightGen] generateForQuestion() — questionId=${question.questionId}, weekStart=${weekStart}`);
 
       // Check cache first
       const cached = getCachedResponse(question.questionId);
       if (cached && cached.weekStartDate === weekStart) {
-        console.log(`[LLM:useWeeklyInsightGen] CACHE HIT for ${question.questionId} — source=${cached.source}`);
         return cached;
       }
-      console.log(`[LLM:useWeeklyInsightGen] CACHE MISS for ${question.questionId}`);
 
       // Guard against concurrent generation — only one LLM call at a time
       if (useWeeklyInsightsStore.getState().isGenerating) {
-        console.log(`[LLM:useWeeklyInsightGen] Already generating, showing toast for ${question.questionId}`);
         showToast('AI is thinking about another question...');
         const templateResponse = WeeklyInsightGenerator.generateTemplateResponse(
           question.questionId,
@@ -73,7 +69,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
       clearQuestionError(question.questionId);
 
       try {
-        console.log(`[LLM:useWeeklyInsightGen] Generating insight for ${question.questionId}...`);
         const response = await WeeklyInsightGenerator.generateInsight(
           question.questionId,
           question.analysisResult,
@@ -81,7 +76,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
         );
 
         const enriched = enrichResponse(response, question);
-        console.log(`[LLM:useWeeklyInsightGen] Generated — source=${enriched.source}, textLength=${enriched.text.length}, sentiment=${enriched.sentiment}`);
         setCachedResponse(question.questionId, enriched);
         return enriched;
       } catch (err) {
@@ -91,7 +85,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
         setQuestionError(question.questionId, message);
 
         // Return template fallback
-        console.log(`[LLM:useWeeklyInsightGen] Falling back to template for ${question.questionId}`);
         const templateResponse = WeeklyInsightGenerator.generateTemplateResponse(
           question.questionId,
           question.analysisResult,
@@ -107,7 +100,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
 
   const retryForQuestion = useCallback(
     async (question: ScoredQuestion): Promise<WeeklyInsightResponse> => {
-      console.log(`[LLM:useWeeklyInsightGen] retryForQuestion() — questionId=${question.questionId}`);
       clearQuestionError(question.questionId);
       return generateForQuestion(question);
     },

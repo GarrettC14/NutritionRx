@@ -3,7 +3,7 @@
  * Full-screen composition: Header + WeekNav + Calendar + Stats + Headline + CategoryChips + Questions + NeedsMoreData
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -29,6 +30,7 @@ import { HeadlineInsightCard } from './HeadlineInsightCard';
 import { CategoryChips } from './CategoryChips';
 import { NeedsMoreDataSection } from './NeedsMoreDataSection';
 import { InsightToast } from './InsightToast';
+import { ModelDownloadSheet } from '@/components/llm/ModelDownloadSheet';
 import type { ScoredQuestion, WeeklyInsightResponse, WeeklyQuestionCategory } from '../types/weeklyInsights.types';
 
 export function WeeklyInsightsScreen() {
@@ -49,20 +51,38 @@ export function WeeklyInsightsScreen() {
   const perQuestionErrors = useWeeklyInsightsStore((s) => s.perQuestionErrors);
 
   // Data hooks
-  const { data, isLoading: isDataLoading } = useWeeklyData();
+  const { data, isLoading: isDataLoading, error: dataError, refresh } = useWeeklyData();
   const { questions, unavailableQuestions, headline } = useWeeklyQuestions(data);
   const { generateForQuestion, retryForQuestion, isGenerating } = useWeeklyInsightGeneration();
 
-  // Local state for per-question responses
+  /**
+   * LOCAL vs STORE response state:
+   *
+   * - `responses` (local useState): Drives the current render cycle. Updated
+   *   immediately when a generation completes for instant UI feedback.
+   *   Cleared on week navigation and pull-to-refresh.
+   *
+   * - `cache.responses` (Zustand store): Persisted across app restarts via
+   *   zustand/persist. Written alongside local state via setCachedResponse().
+   *   NOT cleared on pull-to-refresh (by design — cache invalidation is
+   *   time-based, not user-triggered).
+   *
+   * On mount, local state is hydrated from the store cache if available.
+   * If modifying response handling, ensure both sources stay in sync.
+   */
   const [responses, setResponses] = useState<Record<string, WeeklyInsightResponse>>({});
   const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [showDownloadSheet, setShowDownloadSheet] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refs for scroll-to-target behavior
+  const scrollViewRef = useRef<ScrollView>(null);
+  const questionCardRefs = useRef<Record<string, View | null>>({});
 
   // Check LLM status on mount
   useEffect(() => {
     const checkLLM = async () => {
-      console.log('[LLM:WeeklyScreen] Mount — checking LLM status');
       const status = await LLMService.getStatus();
-      console.log(`[LLM:WeeklyScreen] LLM status on mount: ${status}`);
       setLLMStatus(status);
     };
     checkLLM();
@@ -75,10 +95,12 @@ export function WeeklyInsightsScreen() {
     return Array.from(cats);
   }, [questions]);
 
-  // Filter questions by selected category
+  // Filter questions by selected category, keeping pinned highlights always visible
   const filteredQuestions = useMemo(() => {
     if (!selectedCategory) return questions;
-    return questions.filter((q) => q.definition.category === selectedCategory);
+    return questions.filter(
+      (q) => q.isPinned || q.definition.category === selectedCategory
+    );
   }, [questions, selectedCategory]);
 
   // Find the headline question (first non-highlights or first question)
@@ -89,7 +111,6 @@ export function WeeklyInsightsScreen() {
 
   const handleNavigate = useCallback(
     (newWeekStart: string) => {
-      console.log(`[LLM:WeeklyScreen] handleNavigate(${newWeekStart})`);
       setSelectedWeek(newWeekStart);
       selectQuestion(null);
       setResponses({});
@@ -101,11 +122,9 @@ export function WeeklyInsightsScreen() {
   const handleQuestionPress = useCallback(
     async (question: ScoredQuestion) => {
       const qId = question.questionId;
-      console.log(`[LLM:WeeklyScreen] handleQuestionPress(${qId}) — currentSelected=${selectedQuestionId}`);
 
       // Toggle if already selected
       if (selectedQuestionId === qId) {
-        console.log(`[LLM:WeeklyScreen] Toggling off ${qId}`);
         selectQuestion(null);
         return;
       }
@@ -118,16 +137,13 @@ export function WeeklyInsightsScreen() {
       // Check for cached response
       const cached = getCachedResponse(qId);
       if (cached) {
-        console.log(`[LLM:WeeklyScreen] Cache hit for ${qId}, source=${cached.source}`);
         setResponses((prev) => ({ ...prev, [qId]: cached }));
         return;
       }
 
       // Generate new response
-      console.log(`[LLM:WeeklyScreen] Generating response for ${qId}...`);
       setGeneratingId(qId);
       const response = await generateForQuestion(question);
-      console.log(`[LLM:WeeklyScreen] Response for ${qId} — source=${response.source}, length=${response.text?.length || 0}`);
       setResponses((prev) => ({ ...prev, [qId]: response }));
       setGeneratingId(null);
     },
@@ -136,7 +152,6 @@ export function WeeklyInsightsScreen() {
 
   const handleRetry = useCallback(
     async (question: ScoredQuestion) => {
-      console.log(`[LLM:WeeklyScreen] handleRetry(${question.questionId})`);
       setGeneratingId(question.questionId);
       const response = await retryForQuestion(question);
       setResponses((prev) => ({ ...prev, [question.questionId]: response }));
@@ -145,25 +160,27 @@ export function WeeklyInsightsScreen() {
     [retryForQuestion]
   );
 
-  const handleFollowUp = useCallback(
-    (questionId: string) => {
-      console.log(`[LLM:WeeklyScreen] handleFollowUp(${questionId})`);
-      // Collapse current, expand target
-      const targetQuestion = questions.find((q) => q.questionId === questionId);
-      if (targetQuestion) {
-        selectQuestion(null);
-        // Small delay to allow collapse animation
-        setTimeout(() => handleQuestionPress(targetQuestion), 100);
+  const scrollToQuestion = useCallback((questionId: string) => {
+    setTimeout(() => {
+      const ref = questionCardRefs.current[questionId];
+      if (ref && scrollViewRef.current) {
+        ref.measureLayout(
+          scrollViewRef.current.getInnerViewNode(),
+          (_x: number, y: number) => {
+            scrollViewRef.current?.scrollTo({ y: y - 20, animated: true });
+          },
+          () => {}
+        );
       }
-    },
-    [questions, selectQuestion, handleQuestionPress]
-  );
+    }, 150);
+  }, []);
 
   const handleHeadlinePress = useCallback(() => {
     if (headlineQuestion) {
       handleQuestionPress(headlineQuestion);
+      scrollToQuestion(headlineQuestion.questionId);
     }
-  }, [headlineQuestion, handleQuestionPress]);
+  }, [headlineQuestion, handleQuestionPress, scrollToQuestion]);
 
   const styles = createStyles(colors);
 
@@ -179,8 +196,52 @@ export function WeeklyInsightsScreen() {
     );
   }
 
+  // Error state
+  if (dataError && !data) {
+    return (
+      <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
+        <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Weekly Insights
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.emptyNavWrapper}>
+          <WeekNavigation weekStart={weekStart} onNavigate={handleNavigate} />
+        </View>
+        <View style={styles.centered}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.textSecondary} style={styles.emptyIcon} />
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+            Couldn't load your insights
+          </Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            There was a problem reading your data. This usually resolves on its own.
+          </Text>
+          <TouchableOpacity
+            onPress={refresh}
+            style={[styles.retryButton, { backgroundColor: colors.accent }]}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   // Empty state
   if (!data || data.loggedDayCount < 2) {
+    const daysLogged = data?.loggedDayCount ?? 0;
+    const daysRemaining = 2 - daysLogged;
+    const emptyMessage =
+      daysLogged === 0
+        ? 'Log your meals for 2 days this week to unlock your weekly insights.'
+        : 'One more day of logging and your weekly insights will be ready!';
+
     return (
       <View style={[styles.screen, { backgroundColor: colors.bgPrimary }]}>
         <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
@@ -198,10 +259,10 @@ export function WeeklyInsightsScreen() {
         <View style={styles.centered}>
           <Ionicons name="bar-chart-outline" size={48} color={colors.textSecondary} style={styles.emptyIcon} />
           <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-            Almost there!
+            {daysLogged === 0 ? 'Your week awaits' : 'Almost ready!'}
           </Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Log a few more days to unlock your weekly insights
+            {emptyMessage}
           </Text>
         </View>
       </View>
@@ -222,21 +283,47 @@ export function WeeklyInsightsScreen() {
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              setResponses({});
+              selectQuestion(null);
+              const status = await LLMService.getStatus();
+              setLLMStatus(status);
+              await refresh();
+              setRefreshing(false);
+            }}
+            tintColor="#7C9A82"
+            colors={['#7C9A82']}
+          />
+        }
       >
         {/* Week Navigation */}
         <WeekNavigation weekStart={weekStart} onNavigate={handleNavigate} />
 
         {/* LLM Status Banner */}
         {llmStatus === 'not_downloaded' && (
-          <View style={[styles.llmBanner, { backgroundColor: colors.premiumGoldSubtle, borderColor: colors.premiumGoldMuted }]}>
+          <TouchableOpacity
+            onPress={() => setShowDownloadSheet(true)}
+            activeOpacity={0.7}
+            style={[styles.llmBanner, { backgroundColor: colors.premiumGoldSubtle, borderColor: colors.premiumGoldMuted }]}
+            accessibilityRole="button"
+            accessibilityLabel="Download AI model for personalized insights"
+          >
             <Ionicons name="sparkles" size={16} color={colors.premiumGold} />
             <Text style={[styles.llmBannerText, { color: colors.textSecondary }]}>
               Download AI model for personalized narratives
             </Text>
-          </View>
+            <View style={[styles.llmBannerButton, { backgroundColor: colors.premiumGold }]}>
+              <Text style={styles.llmBannerButtonText}>Download</Text>
+            </View>
+          </TouchableOpacity>
         )}
 
         {/* Mini Calendar */}
@@ -282,19 +369,22 @@ export function WeeklyInsightsScreen() {
             );
 
             return (
-              <QuestionCard
+              <View
                 key={qId}
-                question={question}
-                onPress={() => handleQuestionPress(question)}
-                isExpanded={selectedQuestionId === qId}
-                response={responses[qId] ?? null}
-                isGenerating={generatingId === qId}
-                questionError={perQuestionErrors[qId] ?? null}
-                insufficientData={insufficientData}
-                daysNeeded={daysNeeded}
-                onRetry={() => handleRetry(question)}
-                onFollowUp={handleFollowUp}
-              />
+                ref={(ref) => { questionCardRefs.current[qId] = ref; }}
+              >
+                <QuestionCard
+                  question={question}
+                  onPress={() => handleQuestionPress(question)}
+                  isExpanded={selectedQuestionId === qId}
+                  response={responses[qId] ?? null}
+                  isGenerating={generatingId === qId}
+                  questionError={perQuestionErrors[qId] ?? null}
+                  insufficientData={insufficientData}
+                  daysNeeded={daysNeeded}
+                  onRetry={() => handleRetry(question)}
+                />
+              </View>
             );
           })}
         </View>
@@ -308,6 +398,16 @@ export function WeeklyInsightsScreen() {
 
       {/* Toast Overlay */}
       <InsightToast />
+
+      {/* Model Download Sheet */}
+      <ModelDownloadSheet
+        visible={showDownloadSheet}
+        onDismiss={() => setShowDownloadSheet(false)}
+        onComplete={async () => {
+          const status = await LLMService.getStatus();
+          setLLMStatus(status);
+        }}
+      />
     </View>
   );
 }
@@ -365,6 +465,16 @@ const createStyles = (colors: any) =>
       fontSize: 13,
       flex: 1,
     },
+    llmBannerButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: 8,
+    },
+    llmBannerButtonText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '600',
+    },
     questionsSection: {
       marginTop: 4,
     },
@@ -395,5 +505,16 @@ const createStyles = (colors: any) =>
       fontSize: 15,
       textAlign: 'center',
       lineHeight: 22,
+    },
+    retryButton: {
+      marginTop: 20,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 10,
+    },
+    retryButtonText: {
+      color: '#FFFFFF',
+      fontSize: 15,
+      fontWeight: '600',
     },
   });

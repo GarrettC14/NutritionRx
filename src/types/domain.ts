@@ -6,6 +6,7 @@ import { MealType } from '@/constants/mealTypes';
 
 export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed';
 export type GoalType = 'lose' | 'maintain' | 'gain';
+export type PlanningMode = 'rate' | 'timeline';
 export type DataQuality = 'good' | 'partial' | 'insufficient';
 export type Sex = 'male' | 'female';
 export type ActivityLevel =
@@ -121,6 +122,8 @@ export interface Goal {
   currentProteinG: number;
   currentCarbsG: number;
   currentFatG: number;
+  planningMode: PlanningMode;
+  targetDate?: string;
   eatingStyle: EatingStyle;
   proteinPriority: ProteinPriority;
   isActive: boolean;

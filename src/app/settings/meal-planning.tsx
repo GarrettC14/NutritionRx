@@ -265,7 +265,7 @@ export default function MealPlanningScreen() {
         </View>
       </View>
 
-      {settings?.enabled && (
+      {localEnabled && (
         <>
           {/* Show on Today Tab Toggle */}
           <View style={[styles.section, { backgroundColor: colors.bgSecondary }]}>
@@ -471,48 +471,51 @@ export default function MealPlanningScreen() {
 
                 return (
                   <View key={slot} style={styles.mealSlotSection}>
-                    <View style={styles.mealSlotHeader}>
-                      <Ionicons name={icon as any} size={18} color={SAGE_GREEN} />
-                      <Text style={[styles.mealSlotLabel, { color: colors.textPrimary }]}>
-                        {label}
-                      </Text>
-                      <Pressable
-                        style={[styles.addMealButton, { backgroundColor: SAGE_GREEN }]}
-                        onPress={() => handleAddMeal(selectedDate!, slot)}
-                        testID={settingsMealPlanningAddMealButton(slot)}
-                      >
-                        <Ionicons name="add" size={20} color="#fff" />
-                      </Pressable>
+                    <View style={styles.mealSlotContent}>
+                      <View style={styles.mealSlotHeader}>
+                        <Ionicons name={icon as any} size={18} color={SAGE_GREEN} />
+                        <Text style={[styles.mealSlotLabel, { color: colors.textPrimary }]}>
+                          {label}
+                        </Text>
+                      </View>
+
+                      {meals.length > 0 ? (
+                        meals.map((meal: PlannedMeal) => (
+                          <View
+                            key={meal.id}
+                            style={[styles.mealItem, { backgroundColor: colors.bgElevated }]}
+                          >
+                            <View style={styles.mealItemInfo}>
+                              <Text style={[styles.mealItemName, { color: colors.textPrimary }]}>
+                                {meal.foodName}
+                              </Text>
+                              <Text style={[styles.mealItemMacros, { color: colors.textSecondary }]}>
+                                {meal.calories} cal • {meal.protein}g P • {meal.carbs}g C • {meal.fat}g F
+                              </Text>
+                            </View>
+                            <Pressable
+                              onPress={() => handleDeleteMeal(meal)}
+                              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                              testID={settingsMealPlanningDeleteMealButton(meal.id)}
+                            >
+                              <Ionicons name="trash-outline" size={18} color={colors.error} />
+                            </Pressable>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={[styles.noMeals, { color: colors.textTertiary }]}>
+                          No meals planned
+                        </Text>
+                      )}
                     </View>
 
-                    {meals.length > 0 ? (
-                      meals.map((meal: PlannedMeal) => (
-                        <View
-                          key={meal.id}
-                          style={[styles.mealItem, { backgroundColor: colors.bgElevated }]}
-                        >
-                          <View style={styles.mealItemInfo}>
-                            <Text style={[styles.mealItemName, { color: colors.textPrimary }]}>
-                              {meal.foodName}
-                            </Text>
-                            <Text style={[styles.mealItemMacros, { color: colors.textSecondary }]}>
-                              {meal.calories} cal • {meal.protein}g P • {meal.carbs}g C • {meal.fat}g F
-                            </Text>
-                          </View>
-                          <Pressable
-                            onPress={() => handleDeleteMeal(meal)}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            testID={settingsMealPlanningDeleteMealButton(meal.id)}
-                          >
-                            <Ionicons name="trash-outline" size={18} color={colors.error} />
-                          </Pressable>
-                        </View>
-                      ))
-                    ) : (
-                      <Text style={[styles.noMeals, { color: colors.textTertiary }]}>
-                        No meals planned
-                      </Text>
-                    )}
+                    <Pressable
+                      style={[styles.addMealButton, { backgroundColor: SAGE_GREEN }]}
+                      onPress={() => handleAddMeal(selectedDate!, slot)}
+                      testID={settingsMealPlanningAddMealButton(slot)}
+                    >
+                      <Ionicons name="add" size={20} color="#fff" />
+                    </Pressable>
                   </View>
                 );
               })}
@@ -694,7 +697,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
   },
   mealSlotSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing[4],
+    gap: spacing[3],
+  },
+  mealSlotContent: {
+    flex: 1,
   },
   mealSlotHeader: {
     flexDirection: 'row',

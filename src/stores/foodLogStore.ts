@@ -11,6 +11,7 @@ import {
 import { LogEntry, QuickAddEntry, DailyTotals, DailySummary } from '@/types/domain';
 import { MealType, MEAL_ORDER } from '@/constants/mealTypes';
 import { useSettingsStore } from './settingsStore';
+import { useGoalStore } from './goalStore';
 import { useOnboardingStore } from './onboardingStore';
 
 interface FoodLogState {
@@ -416,13 +417,13 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
   getDailySummary: () => {
     const state = get();
-    const settings = useSettingsStore.getState().settings;
+    const goalState = useGoalStore.getState();
 
     const goals = {
-      calories: settings.dailyCalorieGoal,
-      protein: settings.dailyProteinGoal,
-      carbs: settings.dailyCarbsGoal,
-      fat: settings.dailyFatGoal,
+      calories: goalState.calorieGoal || 2000,
+      protein: goalState.proteinGoal || 150,
+      carbs: goalState.carbGoal || 250,
+      fat: goalState.fatGoal || 65,
     };
 
     const entriesByMeal = state.getEntriesByMeal();

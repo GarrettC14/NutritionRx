@@ -9,7 +9,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
@@ -17,10 +17,9 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
-  const { proteinGoal } = useGoalStore();
+  const { protein: proteinTarget } = useResolvedTargets();
 
   const proteinConsumed = Math.round(totals.protein);
-  const proteinTarget = proteinGoal || 150;
   const remaining = Math.max(0, proteinTarget - proteinConsumed);
   const progress = Math.min(proteinConsumed / proteinTarget, 1);
 

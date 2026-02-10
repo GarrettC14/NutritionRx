@@ -9,12 +9,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useGoalStore, useWeightStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 
 export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
-  const { calorieGoal, proteinGoal, targetWeight, weeklyGoal } = useGoalStore();
+  const { targetWeight, weeklyGoal } = useGoalStore();
+  const { calories: calorieGoal, protein: proteinGoal } = useResolvedTargets();
   const { entries: weights } = useWeightStore();
 
   const currentWeight = weights.length > 0

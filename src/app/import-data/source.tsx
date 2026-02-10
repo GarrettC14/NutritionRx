@@ -96,7 +96,7 @@ export default function ImportSourceScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable testID={TestIDs.Import.SourceInstructionsBackButton} onPress={() => setShowInstructions(false)} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
             Export from {selectedConfig.name}
@@ -153,7 +153,7 @@ export default function ImportSourceScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Import.SourceBackButton} onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Select Source</Text>
         <View style={styles.headerSpacer} />

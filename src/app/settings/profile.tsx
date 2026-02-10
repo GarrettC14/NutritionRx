@@ -32,7 +32,7 @@ export default function ProfileSettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { profile, updateProfile, isLoading, loadProfile } = useProfileStore();
-  const { settings } = useSettingsStore();
+  const { settings, updateSettings } = useSettingsStore();
   const { latestEntry, loadLatest, addEntry } = useWeightStore();
   const useLbs = settings.weightUnit === 'lbs';
 
@@ -47,6 +47,7 @@ export default function ProfileSettingsScreen() {
   const [showActivityPicker, setShowActivityPicker] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [useFeetInches, setUseFeetInches] = useState(settings.weightUnit === 'lbs');
+  const [heightInput, setHeightInput] = useState('');
 
   useEffect(() => {
     loadProfile();
@@ -70,6 +71,15 @@ export default function ProfileSettingsScreen() {
       setWeightDisplay(display);
     }
   }, [latestEntry, useLbs]);
+
+  useEffect(() => {
+    if (useFeetInches) {
+      const { feet, inches } = cmToFeetInches(heightCm);
+      setHeightInput(`${feet}'${inches}"`);
+    } else {
+      setHeightInput(`${heightCm}`);
+    }
+  }, [heightCm, useFeetInches]);
 
   const handleSave = async () => {
     try {
@@ -112,6 +122,35 @@ export default function ProfileSettingsScreen() {
   const handleHeightAdjust = (delta: number) => {
     const newHeight = Math.max(100, Math.min(250, heightCm + delta));
     setHeightCm(newHeight);
+  };
+
+  const handleHeightInputEnd = () => {
+    if (useFeetInches) {
+      // Parse formats like 5'10", 5'10, 5' 10
+      const match = heightInput.match(/(\d+)['\s]+(\d+)/);
+      if (match) {
+        const feet = parseInt(match[1], 10);
+        const inches = parseInt(match[2], 10);
+        if (feet >= 0 && inches >= 0 && inches < 12) {
+          const cm = feetInchesToCm(feet, inches);
+          setHeightCm(Math.max(100, Math.min(250, cm)));
+          return;
+        }
+      }
+    } else {
+      const parsed = parseInt(heightInput, 10);
+      if (!isNaN(parsed) && parsed >= 100 && parsed <= 250) {
+        setHeightCm(parsed);
+        return;
+      }
+    }
+    // Reset to current value if parsing failed
+    if (useFeetInches) {
+      const { feet, inches } = cmToFeetInches(heightCm);
+      setHeightInput(`${feet}'${inches}"`);
+    } else {
+      setHeightInput(`${heightCm}`);
+    }
   };
 
   const getAge = (): number | null => {
@@ -352,9 +391,14 @@ export default function ProfileSettingsScreen() {
                       <Ionicons name="remove" size={24} color={colors.textPrimary} />
                     </Pressable>
                     <View style={styles.heightDisplay}>
-                      <Text style={[styles.heightValue, { color: colors.textPrimary }]}>
-                        {formatHeight()}
-                      </Text>
+                      <TextInput
+                        style={[styles.heightValue, { color: colors.textPrimary, textAlign: 'center' }]}
+                        value={heightInput}
+                        onChangeText={setHeightInput}
+                        onEndEditing={handleHeightInputEnd}
+                        keyboardType={useFeetInches ? 'default' : 'number-pad'}
+                        returnKeyType="done"
+                      />
                     </View>
                     <Pressable
                       style={[styles.heightButton, { backgroundColor: colors.bgInteractive }]}
@@ -369,9 +413,29 @@ export default function ProfileSettingsScreen() {
 
               {/* Weight */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
-                  WEIGHT
-                </Text>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
+                    WEIGHT
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      const newUnit = useLbs ? 'kg' : 'lbs';
+                      // Convert the displayed value to the new unit
+                      const parsed = parseFloat(weightDisplay);
+                      if (!isNaN(parsed) && parsed > 0) {
+                        const converted = useLbs
+                          ? (parsed * KG_PER_LB).toFixed(1)
+                          : (parsed * LB_PER_KG).toFixed(1);
+                        setWeightDisplay(converted);
+                      }
+                      updateSettings({ weightUnit: newUnit });
+                    }}
+                  >
+                    <Text style={[styles.unitToggle, { color: colors.accent }]}>
+                      {useLbs ? 'Use kg' : 'Use lbs'}
+                    </Text>
+                  </Pressable>
+                </View>
                 <View style={[styles.weightInputCard, { backgroundColor: colors.bgSecondary }]}>
                   <TextInput
                     style={[styles.weightInput, { color: colors.textPrimary }]}
@@ -576,12 +640,14 @@ const styles = StyleSheet.create({
   weightInputCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: spacing[4],
     borderRadius: borderRadius.lg,
   },
   weightInput: {
     ...typography.metric.large,
-    flex: 1,
+    textAlign: 'center',
+    minWidth: 100,
   },
   weightUnitLabel: {
     ...typography.body.medium,

@@ -16,7 +16,6 @@ export class HighlightsAnalyzer {
    * Q-HI-01: What went well this week? (always pinned first)
    */
   static analyzeHighlights(data: WeeklyCollectedData): HighlightsAnalysis {
-    console.log(`[LLM:Analyzer:HI-01] analyzeHighlights() — loggedDays=${data.loggedDayCount}, streak=${data.loggingStreak}`);
     const logged = data.days.filter((d) => d.isLogged);
     const highlights: string[] = [];
 
@@ -97,7 +96,6 @@ export class HighlightsAnalyzer {
     // Cap at 3 highlights
     const topHighlights = highlights.slice(0, 3);
 
-    console.log(`[LLM:Analyzer:HI-01] Result — ${topHighlights.length} highlights: ${JSON.stringify(topHighlights)}`);
     return {
       questionId: 'Q-HI-01',
       highlights: topHighlights,
@@ -110,7 +108,6 @@ export class HighlightsAnalyzer {
    * Q-HI-02: What's one thing I could focus on next week? (always pinned last)
    */
   static analyzeFocusSuggestion(data: WeeklyCollectedData): FocusSuggestionAnalysis {
-    console.log(`[LLM:Analyzer:HI-02] analyzeFocusSuggestion() — loggedDays=${data.loggedDayCount}, avgProtein=${Math.round(data.avgProtein)}, waterTarget=${data.waterTarget}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     // Priority: (1) macro shortfall, (2) hydration gap, (3) logging consistency, (4) weekend pattern

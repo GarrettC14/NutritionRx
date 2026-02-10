@@ -23,7 +23,6 @@ export class ConsistencyAnalyzer {
    * Q-CON-01: How consistent were my macros this week?
    */
   static analyzeMacroConsistency(data: WeeklyCollectedData): ConsistencyAnalysis {
-    console.log(`[LLM:Analyzer:CON-01] analyzeMacroConsistency() — loggedDays=${data.loggedDayCount}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 3) {
@@ -73,7 +72,6 @@ export class ConsistencyAnalyzer {
     if (logged.length >= 5) score += 0.2;
     score = clamp(score, 0.3, 1.0);
 
-    console.log(`[LLM:Analyzer:CON-01] Result — calCV=${calorieCV.toFixed(1)}, proCV=${proteinCV.toFixed(1)}, carbCV=${carbCV.toFixed(1)}, fatCV=${fatCV.toFixed(1)}, consistency=${overallConsistency}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-CON-01',
       calorieCV,
@@ -92,7 +90,6 @@ export class ConsistencyAnalyzer {
    * Q-CON-02: Which days threw off my averages?
    */
   static analyzeOutliers(data: WeeklyCollectedData): OutlierAnalysis {
-    console.log(`[LLM:Analyzer:CON-02] analyzeOutliers() — loggedDays=${data.loggedDayCount}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     if (logged.length < 4) {
@@ -138,7 +135,6 @@ export class ConsistencyAnalyzer {
       score = 0.1; // 0 outliers = boring
     }
 
-    console.log(`[LLM:Analyzer:CON-02] Result — mean=${Math.round(weekMean)}, stdDev=${Math.round(weekStdDev)}, outliers=${outlierDays.length}, score=${score.toFixed(2)}`);
     return {
       questionId: 'Q-CON-02',
       weekMean: Math.round(weekMean),
@@ -153,7 +149,6 @@ export class ConsistencyAnalyzer {
    * Q-CON-03: How many days did I hit my targets?
    */
   static analyzeTargetHits(data: WeeklyCollectedData): TargetHitAnalysis {
-    console.log(`[LLM:Analyzer:CON-03] analyzeTargetHits() — loggedDays=${data.loggedDayCount}, calTarget=${data.calorieTarget}, proTarget=${data.proteinTarget}`);
     const logged = data.days.filter((d) => d.isLogged);
 
     const calorieHitDays = logged.filter(

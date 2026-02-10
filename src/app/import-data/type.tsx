@@ -30,7 +30,7 @@ export default function ImportTypeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Import.TypeBackButton} onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Import Type</Text>
         <View style={styles.headerSpacer} />

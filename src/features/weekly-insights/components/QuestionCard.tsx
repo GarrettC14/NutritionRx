@@ -15,27 +15,21 @@ import { useTheme } from '@/hooks/useTheme';
 import type {
   ScoredQuestion,
   WeeklyInsightResponse,
-  WeeklyQuestionCategory,
   InsightSentiment,
 } from '../types/weeklyInsights.types';
 import { InsightShimmer } from './InsightShimmer';
-
-
-const WEEKLY_CATEGORY_COLORS: Record<WeeklyQuestionCategory, string> = {
-  consistency: '#FFA726',
-  macro_balance: '#AB47BC',
-  calorie_trend: '#66BB6A',
-  hydration: '#81D4FA',
-  timing: '#FFCA28',
-  nutrients: '#26A69A',
-  comparison: '#42A5F5',
-  highlights: '#7E57C2',
-};
+import { WEEKLY_CATEGORY_COLORS } from '../constants/categoryColors';
 
 const SENTIMENT_BORDER_COLORS: Record<InsightSentiment, string> = {
   positive: '#66BB6A',
   neutral: '#9E9E9E',
   negative: '#FFA726',
+};
+
+const SENTIMENT_ICONS: Record<InsightSentiment, { name: string; color: string; label: string }> = {
+  positive: { name: 'checkmark-circle-outline', color: '#7C9A82', label: 'Positive trend' },
+  neutral: { name: 'remove-circle-outline', color: '#C4A95A', label: 'Mixed results' },
+  negative: { name: 'arrow-down-circle-outline', color: '#C67D5B', label: 'Needs attention' },
 };
 
 type ExpandedState = 'insufficient_data' | 'loading' | 'error' | 'success';
@@ -50,7 +44,6 @@ interface QuestionCardProps {
   insufficientData: boolean;
   daysNeeded: number;
   onRetry: () => void;
-  onFollowUp: (questionId: string) => void;
 }
 
 export function QuestionCard({
@@ -63,7 +56,6 @@ export function QuestionCard({
   insufficientData,
   daysNeeded,
   onRetry,
-  onFollowUp,
 }: QuestionCardProps) {
   const { colors } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -141,6 +133,21 @@ export function QuestionCard({
           />
         </View>
 
+        {/* Sentiment icon (shown when expanded with a response) */}
+        {isExpanded && expandedState === 'success' && response?.sentiment && (
+          <View style={styles.sentimentRow}>
+            <Ionicons
+              name={SENTIMENT_ICONS[response.sentiment].name as any}
+              size={14}
+              color={SENTIMENT_ICONS[response.sentiment].color}
+              accessibilityLabel={SENTIMENT_ICONS[response.sentiment].label}
+            />
+            <Text style={[styles.sentimentLabel, { color: SENTIMENT_ICONS[response.sentiment].color }]}>
+              {SENTIMENT_ICONS[response.sentiment].label}
+            </Text>
+          </View>
+        )}
+
         {/* Expanded Content */}
         {isExpanded && (
           <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)} style={styles.expandedContent}>
@@ -175,16 +182,35 @@ function InsufficientDataState({
   daysNeeded: number;
   colors: any;
 }) {
+  const message =
+    daysNeeded > 0
+      ? `Log ${daysNeeded} more day${daysNeeded !== 1 ? 's' : ''} to see this insight`
+      : 'This insight compares weeks — check back after your second week of logging';
+
   return (
     <View style={styles.stateContainer}>
       <View style={styles.stateRow}>
-        <Ionicons name="warning-outline" size={18} color="#FFA726" />
+        <Ionicons name="time-outline" size={18} color="#C4A95A" />
         <Text style={[styles.stateText, { color: colors.textSecondary }]}>
-          Need {daysNeeded} more day{daysNeeded !== 1 ? 's' : ''} of logging to answer this question
+          {message}
         </Text>
       </View>
     </View>
   );
+}
+
+function getErrorInfo(error: string): { message: string; icon: string; showRetry: boolean } {
+  const lower = error.toLowerCase();
+  if (lower.includes('network') || lower.includes('connect') || lower.includes('fetch')) {
+    return { message: "Couldn't connect. Check your connection and try again.", icon: 'wifi-outline', showRetry: true };
+  }
+  if (lower.includes('timeout') || lower.includes('timed out')) {
+    return { message: 'This is taking longer than expected. Try again?', icon: 'time-outline', showRetry: true };
+  }
+  if (lower.includes('model') || lower.includes('unavailable') || lower.includes('unsupported')) {
+    return { message: "The AI model isn't available right now. You'll see template-based insights instead.", icon: 'cloud-offline-outline', showRetry: false };
+  }
+  return { message: 'Something went wrong. Try again, or your insights will refresh automatically.', icon: 'alert-circle-outline', showRetry: true };
 }
 
 function ErrorState({
@@ -196,18 +222,22 @@ function ErrorState({
   onRetry: () => void;
   colors: any;
 }) {
+  const errorInfo = getErrorInfo(error);
+
   return (
     <View style={styles.stateContainer}>
       <View style={styles.stateRow}>
-        <Ionicons name="alert-circle-outline" size={18} color="#EF5350" />
+        <Ionicons name={errorInfo.icon as any} size={18} color="#C67D5B" />
         <Text style={[styles.stateText, { color: colors.textSecondary }]}>
-          {error}
+          {errorInfo.message}
         </Text>
       </View>
-      <TouchableOpacity onPress={onRetry} style={styles.retryButton} accessibilityRole="button" accessibilityLabel="Retry generating insight">
-        <Ionicons name="refresh-outline" size={14} color={colors.accent} />
-        <Text style={[styles.retryText, { color: colors.accent }]}>Tap to retry</Text>
-      </TouchableOpacity>
+      {errorInfo.showRetry && (
+        <TouchableOpacity onPress={onRetry} style={styles.retryButton} accessibilityRole="button" accessibilityLabel="Retry generating insight">
+          <Ionicons name="refresh-outline" size={14} color={colors.accent} />
+          <Text style={[styles.retryText, { color: colors.accent }]}>Tap to retry</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -229,10 +259,10 @@ function SuccessState({
               key={i}
               style={[styles.metricPill, { backgroundColor: colors.accent + '12' }]}
             >
-              <Text style={[styles.metricLabel, { color: colors.textTertiary }]}>
+              <Text style={[styles.metricLabel, { color: colors.textTertiary }]} numberOfLines={1}>
                 {metric.label}
               </Text>
-              <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
+              <Text style={[styles.metricValue, { color: colors.textPrimary }]} numberOfLines={1}>
                 {metric.value}
               </Text>
             </View>
@@ -284,6 +314,17 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginTop: 2,
   },
+  sentimentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+    marginLeft: 38,
+  },
+  sentimentLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
   expandedContent: {
     marginTop: 12,
     marginLeft: 38,
@@ -328,6 +369,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
+    maxWidth: '45%',
   },
   metricLabel: {
     fontSize: 10,

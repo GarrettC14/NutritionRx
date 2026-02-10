@@ -169,7 +169,7 @@ export default function RestaurantListScreen() {
       <SafeAreaView testID={TestIDs.Restaurant.ListScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <View style={styles.header}>
           <Pressable onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
             Restaurants
@@ -207,7 +207,7 @@ export default function RestaurantListScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Restaurant.BackButton} onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Restaurants

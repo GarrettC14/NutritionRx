@@ -261,7 +261,7 @@ export default function LogEntryScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
-            <Ionicons name="close" size={28} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Edit Entry</Text>
           <View style={{ width: 50 }} />
@@ -277,7 +277,7 @@ export default function LogEntryScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
-            <Ionicons name="close" size={28} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Edit Entry</Text>
           <View style={{ width: 50 }} />
@@ -304,7 +304,7 @@ export default function LogEntryScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.LogEntry.CloseButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Edit Entry</Text>
         <Pressable testID={TestIDs.LogEntry.SaveButton} onPress={handleSave} disabled={!isValid || isSaving}>

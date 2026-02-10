@@ -91,7 +91,7 @@ export default function LegalTermsScreen() {
           style={styles.backButton}
           testID={TestIDs.LegalTerms.BackButton}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Terms of Service

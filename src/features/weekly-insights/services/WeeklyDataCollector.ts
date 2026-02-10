@@ -3,11 +3,12 @@
  * Gathers all data needed for weekly analysis from existing repositories/stores
  */
 
-import { logEntryRepository, waterRepository } from '@/repositories';
+import { logEntryRepository, waterRepository, macroCycleRepository } from '@/repositories';
 import { useGoalStore } from '@/stores/goalStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWaterStore } from '@/stores/waterStore';
 import { useFoodLogStore } from '@/stores/foodLogStore';
+import { useMacroCycleStore } from '@/stores/macroCycleStore';
 import type { DayData, WeeklyCollectedData } from '../types/weeklyInsights.types';
 import { addDays, getWeekEnd, getDayName, getDayOfWeek } from '../utils/weekUtils';
 import { mean } from '../utils/statisticsUtils';
@@ -18,19 +19,31 @@ export class WeeklyDataCollector {
    * meal counts, food names, water, and prior week data.
    */
   static async collect(weekStartDate: string): Promise<WeeklyCollectedData> {
-    console.log(`[LLM:WeeklyData] collect() called — weekStart=${weekStartDate}`);
     const weekEndDate = getWeekEnd(weekStartDate);
 
-    // Gather targets from stores
+    // Gather base targets from stores
     const { calorieGoal, proteinGoal } = useGoalStore.getState();
     const settings = useSettingsStore.getState().settings;
     const { goalGlasses, glassSizeMl } = useWaterStore.getState();
     const { streak } = useFoodLogStore.getState();
 
-    const calorieTarget = calorieGoal ?? settings.dailyCalorieGoal ?? 2000;
-    const proteinTarget = proteinGoal ?? settings.dailyProteinGoal ?? 150;
+    let calorieTarget = calorieGoal ?? settings.dailyCalorieGoal ?? 2000;
+    let proteinTarget = proteinGoal ?? settings.dailyProteinGoal ?? 150;
     const waterTargetMl = goalGlasses * glassSizeMl;
-    console.log(`[LLM:WeeklyData] Targets — cal=${calorieTarget}, protein=${proteinTarget}, waterMl=${waterTargetMl}`);
+
+    // Resolve via macro cycling if active (uses today's targets for the weekly summary)
+    const cycleConfig = useMacroCycleStore.getState().config;
+    if (cycleConfig?.enabled) {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const baseTargets = { calories: calorieTarget, protein: proteinTarget, carbs: 250, fat: 65 };
+        const resolved = await macroCycleRepository.getTargetsForDate(today, baseTargets);
+        calorieTarget = resolved.calories;
+        proteinTarget = resolved.protein;
+      } catch {
+        // Fall back to base targets on error
+      }
+    }
 
     // Fetch data from repositories
     const [dailyTotalsRange, logEntries, waterLogs] = await Promise.all([
@@ -90,7 +103,6 @@ export class WeeklyDataCollector {
 
     const loggedDays = days.filter((d) => d.isLogged);
     const loggedDayCount = loggedDays.length;
-    console.log(`[LLM:WeeklyData] Built ${days.length} days, ${loggedDayCount} logged, ${days.filter((d) => d.isComplete).length} complete`);
 
     // Compute averages from logged days only
     const avgCalories = mean(loggedDays.map((d) => d.calories));
@@ -109,8 +121,6 @@ export class WeeklyDataCollector {
       WeeklyDataCollector.collectBasic(priorWeekStart),
       WeeklyDataCollector.collectBasic(twoWeeksAgoStart),
     ]);
-    console.log(`[LLM:WeeklyData] Prior weeks — priorWeek=${priorWeek ? `${priorWeek.loggedDayCount} days` : 'null'}, twoWeeksAgo=${twoWeeksAgo ? `${twoWeeksAgo.loggedDayCount} days` : 'null'}`);
-    console.log(`[LLM:WeeklyData] Averages — cal=${Math.round(avgCalories)}, protein=${Math.round(avgProtein)}, carbs=${Math.round(avgCarbs)}, fat=${Math.round(avgFat)}, water=${Math.round(avgWater)}, meals=${avgMealCount.toFixed(1)}, totalMeals=${totalMeals}`);
 
     return {
       weekStartDate,
@@ -142,16 +152,28 @@ export class WeeklyDataCollector {
    * Returns null if no data found.
    */
   static async collectBasic(weekStartDate: string): Promise<WeeklyCollectedData | null> {
-    console.log(`[LLM:WeeklyData] collectBasic() called — weekStart=${weekStartDate}`);
     const weekEndDate = getWeekEnd(weekStartDate);
 
     const { calorieGoal, proteinGoal } = useGoalStore.getState();
     const settings = useSettingsStore.getState().settings;
     const { goalGlasses, glassSizeMl } = useWaterStore.getState();
 
-    const calorieTarget = calorieGoal ?? settings.dailyCalorieGoal ?? 2000;
-    const proteinTarget = proteinGoal ?? settings.dailyProteinGoal ?? 150;
+    let calorieTarget = calorieGoal ?? settings.dailyCalorieGoal ?? 2000;
+    let proteinTarget = proteinGoal ?? settings.dailyProteinGoal ?? 150;
     const waterTargetMl = goalGlasses * glassSizeMl;
+
+    // Resolve via macro cycling if active
+    const cycleConfig = useMacroCycleStore.getState().config;
+    if (cycleConfig?.enabled) {
+      try {
+        const baseTargets = { calories: calorieTarget, protein: proteinTarget, carbs: 250, fat: 65 };
+        const resolved = await macroCycleRepository.getTargetsForDate(weekStartDate, baseTargets);
+        calorieTarget = resolved.calories;
+        proteinTarget = resolved.protein;
+      } catch {
+        // Fall back to base targets on error
+      }
+    }
 
     const dailyTotalsRange = await logEntryRepository.getDailyTotalsForRange(
       weekStartDate,
@@ -188,7 +210,6 @@ export class WeeklyDataCollector {
     const loggedDayCount = loggedDays.length;
 
     if (loggedDayCount === 0) {
-      console.log(`[LLM:WeeklyData] collectBasic → null (no logged days for ${weekStartDate})`);
       return null;
     }
 

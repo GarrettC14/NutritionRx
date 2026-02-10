@@ -103,6 +103,7 @@ const mockGoal: Goal = {
   currentProteinG: 153,
   currentCarbsG: 200,
   currentFatG: 60,
+  planningMode: 'rate' as const,
   eatingStyle: 'flexible',
   proteinPriority: 'active',
   isActive: true,

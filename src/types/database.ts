@@ -126,6 +126,8 @@ export interface GoalRow {
   current_fat_g: number;
   eating_style: EatingStyle | null;
   protein_priority: ProteinPriority | null;
+  planning_mode: 'rate' | 'timeline' | null;
+  target_date: string | null;
   is_active: number;
   completed_at: string | null;
   created_at: string;

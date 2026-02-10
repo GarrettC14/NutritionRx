@@ -4,9 +4,10 @@
  * Pulls from existing stores and repositories, cached 15 minutes.
  */
 
-import { logEntryRepository, waterRepository } from '@/repositories';
+import { logEntryRepository, waterRepository, macroCycleRepository } from '@/repositories';
 import { useGoalStore } from '@/stores/goalStore';
 import { useWaterStore } from '@/stores/waterStore';
+import { useMacroCycleStore } from '@/stores/macroCycleStore';
 import type { DailyInsightData, FoodEntry, MealWithTimestamp, WeeklyDailyTotal } from '../../types/dailyInsights.types';
 import type { DeficiencyCheck } from '../../types/insights.types';
 
@@ -117,14 +118,33 @@ export async function collectDailyInsightData(): Promise<DailyInsightData> {
   const todayFiber = 0; // Placeholder — fiber tracking not yet available
   console.log(`[LLM:DataCollector] Today's macros — cal=${todayCalories}, prot=${todayProtein}g, carbs=${todayCarbs}g, fat=${todayFat}g, meals=${mealsWithTimestamps.length}`);
 
-  // 5. Targets from goal store
+  // 5. Targets — resolve via macro cycling if active, else fall back to goal store
   const goalState = useGoalStore.getState();
   const activeGoal = goalState.activeGoal;
-  const calorieTarget = activeGoal?.currentTargetCalories || activeGoal?.initialTargetCalories || 2000;
-  const proteinTarget = activeGoal?.currentProteinG || activeGoal?.initialProteinG || 150;
-  const carbTarget = goalState.carbGoal || computeCarbTarget(calorieTarget, proteinTarget, goalState.fatGoal);
-  const fatTarget = goalState.fatGoal || computeFatTarget(calorieTarget, proteinTarget);
+  const baseCalorieTarget = activeGoal?.currentTargetCalories || activeGoal?.initialTargetCalories || 2000;
+  const baseProteinTarget = activeGoal?.currentProteinG || activeGoal?.initialProteinG || 150;
+  const baseCarbTarget = goalState.carbGoal || computeCarbTarget(baseCalorieTarget, baseProteinTarget, goalState.fatGoal);
+  const baseFatTarget = goalState.fatGoal || computeFatTarget(baseCalorieTarget, baseProteinTarget);
   const userGoal = activeGoal?.type || 'maintain';
+
+  const cycleConfig = useMacroCycleStore.getState().config;
+  let calorieTarget = baseCalorieTarget;
+  let proteinTarget = baseProteinTarget;
+  let carbTarget = baseCarbTarget;
+  let fatTarget = baseFatTarget;
+
+  if (cycleConfig?.enabled) {
+    try {
+      const baseTargets = { calories: baseCalorieTarget, protein: baseProteinTarget, carbs: baseCarbTarget, fat: baseFatTarget };
+      const resolved = await macroCycleRepository.getTargetsForDate(today, baseTargets);
+      calorieTarget = resolved.calories;
+      proteinTarget = resolved.protein;
+      carbTarget = resolved.carbs;
+      fatTarget = resolved.fat;
+    } catch {
+      // Fall back to base targets on error
+    }
+  }
   console.log(`[LLM:DataCollector] Targets — cal=${calorieTarget}, prot=${proteinTarget}g, carbs=${carbTarget}g, fat=${fatTarget}g, goal=${userGoal}, hasActiveGoal=${!!activeGoal}`);
 
   // 6. Water

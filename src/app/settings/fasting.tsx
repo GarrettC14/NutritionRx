@@ -266,7 +266,7 @@ export default function FastingSettingsScreen() {
             </View>
           </View>
 
-          {config?.enabled && (
+          {localEnabled && (
             <>
               {/* Protocol Selection */}
               <View style={styles.section}>

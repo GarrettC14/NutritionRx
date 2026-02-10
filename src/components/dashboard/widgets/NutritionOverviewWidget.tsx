@@ -9,7 +9,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
@@ -23,13 +23,12 @@ interface MacroData {
 export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
-  const { calorieGoal, proteinGoal, carbGoal, fatGoal } = useGoalStore();
+  const { calories: calorieTarget, protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
 
   const [view, setView] = useState<'consumed' | 'remaining'>('consumed');
 
   // Calorie calculations
   const caloriesConsumed = Math.round(totals.calories);
-  const calorieTarget = calorieGoal || 2000;
   const caloriesRemaining = Math.max(0, calorieTarget - caloriesConsumed);
   const calorieProgress = calorieTarget > 0 ? Math.min(caloriesConsumed / calorieTarget, 1) : 0;
   const isOver = caloriesConsumed > calorieTarget;
@@ -48,19 +47,19 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
     {
       name: 'Protein',
       consumed: Math.round(totals.protein),
-      target: proteinGoal || 150,
+      target: proteinTarget,
       color: colors.protein,
     },
     {
       name: 'Carbs',
       consumed: Math.round(totals.carbs),
-      target: carbGoal || 250,
+      target: carbTarget,
       color: colors.carbs,
     },
     {
       name: 'Fat',
       consumed: Math.round(totals.fat),
-      target: fatGoal || 65,
+      target: fatTarget,
       color: colors.fat,
     },
   ];

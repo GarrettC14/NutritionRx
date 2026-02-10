@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing } from '@/constants/spacing';
 import { useFoodLogStore } from '@/stores/foodLogStore';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useGoalStore } from '@/stores/goalStore';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { useProfileStore } from '@/stores/profileStore';
 import { useChatStore } from '../stores/chatStore';
 import { ChatContext, ChatMessage } from '../types/chat';
@@ -39,17 +39,12 @@ export function ChatScreen() {
   // App state for context
   const dailyTotals = useFoodLogStore((s) => s.dailyTotals);
   const entries = useFoodLogStore((s) => s.entries);
-  const settings = useSettingsStore((s) => s.settings);
   const activeGoal = useGoalStore((s) => s.activeGoal);
+  const { calories: calorieTarget, protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
   const profile = useProfileStore((s) => s.profile);
 
   // Build context from current app state
   const context = useMemo((): ChatContext => {
-    const calorieTarget = activeGoal?.currentTargetCalories ?? settings.dailyCalorieGoal;
-    const proteinTarget = activeGoal?.currentProteinG ?? settings.dailyProteinGoal;
-    const carbTarget = activeGoal?.currentCarbsG ?? settings.dailyCarbsGoal;
-    const fatTarget = activeGoal?.currentFatG ?? settings.dailyFatGoal;
-
     // Get goal type description
     let primaryGoal = 'General nutrition';
     if (activeGoal) {
@@ -97,7 +92,7 @@ export function ChatScreen() {
       preferences: { restrictions },
       recentFoods,
     };
-  }, [dailyTotals, entries, settings, activeGoal, profile]);
+  }, [dailyTotals, entries, calorieTarget, proteinTarget, carbTarget, fatTarget, activeGoal, profile]);
 
   const handleSend = useCallback(
     (text: string) => {

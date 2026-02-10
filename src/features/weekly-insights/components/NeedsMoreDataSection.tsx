@@ -30,9 +30,9 @@ export function NeedsMoreDataSection({ questions, currentLoggedDays }: NeedsMore
         const daysNeeded = question.definition.minimumLoggedDays - currentLoggedDays;
         const helperText =
           daysNeeded > 0
-            ? `Log ${daysNeeded} more day${daysNeeded !== 1 ? 's' : ''}`
+            ? `Log ${daysNeeded} more day${daysNeeded !== 1 ? 's' : ''} to see this insight`
             : question.definition.requiresPriorWeek
-              ? 'Needs prior week data'
+              ? 'This insight compares weeks — check back after your second week of logging'
               : 'More data needed';
 
         return (

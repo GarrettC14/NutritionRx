@@ -117,7 +117,7 @@ export default function ImportPreviewScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Import.PreviewBackButton} onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Preview</Text>
         <View style={styles.headerSpacer} />

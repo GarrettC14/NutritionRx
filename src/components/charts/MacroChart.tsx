@@ -5,7 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { DailyTotals } from '@/types/domain';
-import { useSettingsStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 
 interface MacroChartProps {
   totals: DailyTotals;
@@ -111,7 +111,7 @@ function DonutChart({
 
 export function MacroChart({ totals, showGoalComparison = true }: MacroChartProps) {
   const { colors } = useTheme();
-  const { settings } = useSettingsStore();
+  const { protein: proteinGoal, carbs: carbsGoal, fat: fatGoal } = useResolvedTargets();
 
   // Calculate calories from macros
   const proteinCals = totals.protein * PROTEIN_CAL;
@@ -131,9 +131,9 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
   ].filter(d => d.percentage > 0);
 
   // Goal calculations
-  const goalProteinCals = settings.dailyProteinGoal * PROTEIN_CAL;
-  const goalCarbsCals = settings.dailyCarbsGoal * CARBS_CAL;
-  const goalFatCals = settings.dailyFatGoal * FAT_CAL;
+  const goalProteinCals = proteinGoal * PROTEIN_CAL;
+  const goalCarbsCals = carbsGoal * CARBS_CAL;
+  const goalFatCals = fatGoal * FAT_CAL;
   const goalTotalCals = goalProteinCals + goalCarbsCals + goalFatCals;
 
   const goalProteinPct = goalTotalCals > 0 ? Math.round((goalProteinCals / goalTotalCals) * 100) : 0;
@@ -161,7 +161,7 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
             label="Protein"
             grams={totals.protein}
             percent={proteinPct}
-            goalGrams={showGoalComparison ? settings.dailyProteinGoal : undefined}
+            goalGrams={showGoalComparison ? proteinGoal : undefined}
             color={colors.protein}
             textColor={colors.textPrimary}
             subtextColor={colors.textSecondary}
@@ -170,7 +170,7 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
             label="Carbs"
             grams={totals.carbs}
             percent={carbsPct}
-            goalGrams={showGoalComparison ? settings.dailyCarbsGoal : undefined}
+            goalGrams={showGoalComparison ? carbsGoal : undefined}
             color={colors.carbs}
             textColor={colors.textPrimary}
             subtextColor={colors.textSecondary}
@@ -179,7 +179,7 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
             label="Fat"
             grams={totals.fat}
             percent={fatPct}
-            goalGrams={showGoalComparison ? settings.dailyFatGoal : undefined}
+            goalGrams={showGoalComparison ? fatGoal : undefined}
             color={colors.fat}
             textColor={colors.textPrimary}
             subtextColor={colors.textSecondary}

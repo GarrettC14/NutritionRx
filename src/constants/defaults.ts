@@ -53,6 +53,13 @@ export const DATA_QUALITY_THRESHOLDS = {
   partial: 3,  // 3-4 days logged
 } as const;
 
+// Timeline planning safety thresholds
+export const TIMELINE_SAFETY = {
+  maxWeeklyLossKg: 0.9,   // ~2 lbs/week hard ceiling
+  maxWeeklyGainKg: 0.45,  // ~1 lb/week hard ceiling
+  minWeeks: 1,
+} as const;
+
 // Maximum weekly adjustment limits
 export const MAX_WEEKLY_ADJUSTMENTS = {
   burnEstimate: 150,    // kcal

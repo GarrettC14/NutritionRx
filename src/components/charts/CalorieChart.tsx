@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Rect, Line, Text as SvgText, G } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { DailyTotals } from '@/types/domain';
-import { useSettingsStore } from '@/stores';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 64;
@@ -25,8 +25,7 @@ const formatDateLabel = (dateStr: string): string => {
 
 export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
   const { colors } = useTheme();
-  const { settings } = useSettingsStore();
-  const calorieGoal = settings.dailyCalorieGoal;
+  const { calories: calorieGoal } = useResolvedTargets();
 
   if (data.length === 0) {
     return null;

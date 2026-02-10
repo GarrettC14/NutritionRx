@@ -236,7 +236,7 @@ export default function LogFoodScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.LogFood.BackButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
           Add to {MEAL_TYPE_LABELS[mealType]}

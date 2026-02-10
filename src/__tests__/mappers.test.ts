@@ -264,6 +264,8 @@ describe('Type Mappers', () => {
       current_fat_g: 65,
       eating_style: 'flexible',
       protein_priority: 'active',
+      planning_mode: 'rate',
+      target_date: null,
       is_active: 1,
       completed_at: null,
       created_at: '2026-01-01T00:00:00.000Z',

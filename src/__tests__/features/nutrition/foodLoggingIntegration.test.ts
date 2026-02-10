@@ -511,6 +511,7 @@ describe('Food Logging Integration', () => {
           currentProteinG: 153,
           currentCarbsG: 200,
           currentFatG: 60,
+          planningMode: 'rate' as const,
           eatingStyle: 'flexible' as const,
           proteinPriority: 'active' as const,
           isActive: true,

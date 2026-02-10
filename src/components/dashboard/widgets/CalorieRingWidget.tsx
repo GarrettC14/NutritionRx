@@ -9,7 +9,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
@@ -17,10 +17,9 @@ export function CalorieRingWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
-  const { calorieGoal } = useGoalStore();
+  const { calories: calorieTarget } = useResolvedTargets();
 
   const caloriesConsumed = Math.round(totals.calories);
-  const calorieTarget = calorieGoal || 2000;
 
   const remaining = Math.max(0, calorieTarget - caloriesConsumed);
   const progress = Math.min(caloriesConsumed / calorieTarget, 1);

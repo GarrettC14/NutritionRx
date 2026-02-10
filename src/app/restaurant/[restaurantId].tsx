@@ -145,7 +145,7 @@ export default function RestaurantMenuScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Restaurant.MenuBackButton} onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <View style={[styles.headerBadge, { backgroundColor: branding.backgroundColor }]}>
           <Text style={[styles.headerBadgeText, { color: branding.textColor }]}>

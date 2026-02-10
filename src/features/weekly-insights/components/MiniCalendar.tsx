@@ -37,35 +37,67 @@ function getDayStatus(day: DayData, target: number): DayStatus {
   return 'under_moderate';
 }
 
+const LEGEND_ITEMS: Array<{ status: DayStatus; label: string }> = [
+  { status: 'on_target', label: 'On target' },
+  { status: 'over_moderate', label: 'Slightly over' },
+  { status: 'over_high', label: 'Over' },
+  { status: 'under_moderate', label: 'Slightly under' },
+  { status: 'under_low', label: 'Under' },
+  { status: 'no_data', label: 'No data' },
+];
+
 export function MiniCalendar({ days, calorieTarget, large = false }: MiniCalendarProps) {
   const { colors } = useTheme();
   const dotSize = large ? 28 : 24;
 
   return (
-    <View style={styles.container}>
-      {days.map((day, index) => {
-        const status = getDayStatus(day, calorieTarget);
-        const color = STATUS_COLORS[status];
+    <View>
+      <View style={styles.container}>
+        {days.map((day, index) => {
+          const status = getDayStatus(day, calorieTarget);
+          const color = STATUS_COLORS[status];
 
-        return (
-          <View key={day.date} style={styles.dayColumn}>
-            <Text style={[styles.dayLabel, { color: colors.textTertiary }]}>
-              {DAY_ABBREVIATIONS[index]}
-            </Text>
+          return (
+            <View key={day.date} style={styles.dayColumn}>
+              <Text style={[styles.dayLabel, { color: colors.textTertiary }]}>
+                {DAY_ABBREVIATIONS[index]}
+              </Text>
+              <View
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: color,
+                    width: dotSize,
+                    height: dotSize,
+                    borderRadius: dotSize / 2,
+                  },
+                ]}
+              />
+            </View>
+          );
+        })}
+      </View>
+      {large && (
+        <View style={styles.legendRow}>
+          {LEGEND_ITEMS.map((item) => (
             <View
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: color,
-                  width: dotSize,
-                  height: dotSize,
-                  borderRadius: dotSize / 2,
-                },
-              ]}
-            />
-          </View>
-        );
-      })}
+              key={item.status}
+              style={styles.legendItem}
+              accessibilityLabel={`${item.label}`}
+            >
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: STATUS_COLORS[item.status] },
+                ]}
+              />
+              <Text style={[styles.legendLabel, { color: colors.textTertiary }]}>
+                {item.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -84,4 +116,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   dot: {},
+  legendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 10,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendLabel: {
+    fontSize: 10,
+  },
 });

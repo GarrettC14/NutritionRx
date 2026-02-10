@@ -6,6 +6,7 @@ import {
   Pressable,
   TextInput,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   AccessibilityInfo,
 } from 'react-native';
@@ -116,11 +117,12 @@ export default function LogWeightScreen() {
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
       >
         {/* Header */}
         <View style={styles.header}>
           <Pressable testID={TestIDs.LogWeight.CloseButton} onPress={() => router.back()}>
-            <Ionicons name="close" size={28} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
             {existingEntry ? 'Update Weight' : 'Log Weight'}
@@ -129,7 +131,12 @@ export default function LogWeightScreen() {
         </View>
 
         {/* Content */}
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Date */}
           <Text style={[styles.dateText, { color: colors.textSecondary }]}>
             {new Date().toLocaleDateString('en-US', {
@@ -244,7 +251,7 @@ export default function LogWeightScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </ScrollView>
 
         {/* Save Button */}
         <View style={styles.footer}>
@@ -279,10 +286,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.title.medium,
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingTop: spacing[4],
+    paddingBottom: spacing[4],
     gap: spacing[4],
   },
   dateText: {

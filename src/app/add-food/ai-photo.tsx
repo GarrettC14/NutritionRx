@@ -425,7 +425,7 @@ export default function AIPhotoScreen() {
             style={[styles.headerButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
             onPress={handleRetake}
           >
-            <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </Pressable>
           <Text style={styles.headerTitle}>Preview</Text>
           <View style={{ width: 44 }} />
@@ -489,7 +489,7 @@ export default function AIPhotoScreen() {
         {/* Header */}
         <View style={styles.resultsHeader}>
           <Pressable onPress={handleRetake}>
-            <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={24} color={colors.accent} />
           </Pressable>
           <Text style={[styles.resultsTitle, { color: colors.textPrimary }]}>
             Food Detected

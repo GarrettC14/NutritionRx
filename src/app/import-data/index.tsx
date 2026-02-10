@@ -76,7 +76,7 @@ export default function ImportWelcomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable testID={TestIDs.Import.IndexBackButton} onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
       </View>
 

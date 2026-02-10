@@ -11,24 +11,28 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import { useFoodLogStore, useGoalStore, useSubscriptionStore } from '@/stores';
+import { useFoodLogStore, useSubscriptionStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
 import { MiniCalendar } from '@/features/weekly-insights/components/MiniCalendar';
 import type { DayData } from '@/features/weekly-insights/types/weeklyInsights.types';
 import { getWeekStart, addDays, getDayOfWeek, getDayName } from '@/features/weekly-insights/utils/weekUtils';
 import { WeeklyDataCollector } from '@/features/weekly-insights/services/WeeklyDataCollector';
+import { QuestionScorer } from '@/features/weekly-insights/services/QuestionScorer';
+import { generateHeadline } from '@/features/weekly-insights/constants/headlineTemplates';
 
 export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
   const { streak } = useFoodLogStore();
-  const { calorieGoal } = useGoalStore();
+  const { calories: resolvedCalorieTarget } = useResolvedTargets();
 
   const [days, setDays] = useState<DayData[]>([]);
   const [daysLogged, setDaysLogged] = useState(0);
-  const [calorieTarget, setCalorieTarget] = useState(calorieGoal || 2000);
+  const [calorieTarget, setCalorieTarget] = useState(resolvedCalorieTarget);
+  const [headline, setHeadline] = useState<string | null>(null);
 
   // Fetch full week data from repository
   useEffect(() => {
@@ -41,6 +45,18 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
         setDays(collected.days);
         setDaysLogged(collected.loggedDayCount);
         setCalorieTarget(collected.calorieTarget);
+
+        // Generate headline from top question
+        if (collected.loggedDayCount >= 2) {
+          try {
+            const allScored = QuestionScorer.scoreAllQuestions(collected);
+            const topQuestions = QuestionScorer.selectTopQuestions(allScored);
+            const headlineQ = topQuestions.find((q) => q.definition.category !== 'highlights') ?? topQuestions[0];
+            if (headlineQ) {
+              setHeadline(generateHeadline(headlineQ.questionId, headlineQ.analysisResult));
+            }
+          } catch {}
+        }
       })
       .catch(() => {
         if (cancelled) return;
@@ -71,7 +87,7 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
     return () => {
       cancelled = true;
     };
-  }, [calorieGoal]);
+  }, [resolvedCalorieTarget]);
 
   const handleExplore = () => {
     if (!isEditMode && isPremium) {
@@ -97,6 +113,13 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
         <View style={styles.calendarSection}>
           <MiniCalendar days={days} calorieTarget={calorieTarget} />
         </View>
+
+        {/* Headline */}
+        {headline && (
+          <TouchableOpacity onPress={handleExplore} activeOpacity={0.7} disabled={isEditMode}>
+            <Text style={styles.headline} numberOfLines={1}>{headline}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* CTA */}
         <TouchableOpacity
@@ -228,7 +251,14 @@ const createStyles = (colors: any) =>
     },
     contentContainer: {},
     calendarSection: {
-      marginBottom: 16,
+      marginBottom: 12,
+    },
+    headline: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 12,
     },
     ctaButton: {
       flexDirection: 'row',

@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPhotoStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { logEntryRepository, weightRepository } from '@/repositories';
 import { WeightChart, CalorieChart, MacroChart } from '@/components/charts';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
@@ -58,6 +59,7 @@ export default function ProgressScreen() {
   const router = useRouter();
   const { entries: weightEntries, loadEntriesForRange } = useWeightStore();
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { calories: resolvedCalorieGoal } = useResolvedTargets();
   const { isPremium } = usePremium();
 
   // Micronutrient store
@@ -516,7 +518,7 @@ export default function ProgressScreen() {
                   icon="flame-outline"
                   title="Avg. Daily Calories"
                   value={insightsData.avgCalories.toLocaleString()}
-                  subtitle={`goal: ${settings.dailyCalorieGoal.toLocaleString()}`}
+                  subtitle={`goal: ${resolvedCalorieGoal.toLocaleString()}`}
                   colors={colors}
                 />
               )}

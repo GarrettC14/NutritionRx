@@ -19,7 +19,6 @@ export function useWeeklyQuestions(
 ): UseWeeklyQuestionsResult {
   return useMemo(() => {
     if (!data || data.loggedDayCount < 2) {
-      console.log(`[LLM:WeeklyQuestions] useMemo — insufficient data (loggedDays=${data?.loggedDayCount ?? 0}), returning defaults`);
       return {
         questions: [],
         unavailableQuestions: [],
@@ -27,7 +26,6 @@ export function useWeeklyQuestions(
       };
     }
 
-    console.log(`[LLM:WeeklyQuestions] useMemo — scoring questions for ${data.loggedDayCount} logged days`);
     const allScored = QuestionScorer.scoreAllQuestions(data);
     const questions = QuestionScorer.selectTopQuestions(allScored);
 
@@ -47,7 +45,6 @@ export function useWeeklyQuestions(
       headline = generateHeadline(headlineQuestion.questionId, headlineQuestion.analysisResult);
     }
 
-    console.log(`[LLM:WeeklyQuestions] Result — ${questions.length} questions selected, ${unavailableQuestions.length} unavailable, headline="${headline.substring(0, 80)}..."`);
     return { questions, unavailableQuestions, headline };
   }, [data]);
 }

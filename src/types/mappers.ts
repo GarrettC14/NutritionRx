@@ -17,6 +17,7 @@ import {
   WeightEntry,
   UserProfile,
   Goal,
+  PlanningMode,
   WeeklyReflection,
   DailyMetabolism,
 } from './domain';
@@ -135,6 +136,8 @@ export function mapGoalRowToDomain(row: GoalRow): Goal {
     currentProteinG: row.current_protein_g,
     currentCarbsG: row.current_carbs_g,
     currentFatG: row.current_fat_g,
+    planningMode: (row.planning_mode as PlanningMode) ?? 'rate',
+    targetDate: row.target_date ?? undefined,
     eatingStyle: (row.eating_style as Goal['eatingStyle']) ?? 'flexible',
     proteinPriority: (row.protein_priority as Goal['proteinPriority']) ?? 'active',
     isActive: row.is_active === 1,

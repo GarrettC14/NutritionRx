@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 
 interface MacroData {
@@ -22,25 +22,25 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
-  const { proteinGoal, carbGoal, fatGoal } = useGoalStore();
+  const { protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
 
   const macros: MacroData[] = [
     {
       name: 'Protein',
       consumed: Math.round(totals.protein),
-      target: proteinGoal || 150,
+      target: proteinTarget,
       color: colors.protein,
     },
     {
       name: 'Carbs',
       consumed: Math.round(totals.carbs),
-      target: carbGoal || 250,
+      target: carbTarget,
       color: colors.carbs,
     },
     {
       name: 'Fat',
       consumed: Math.round(totals.fat),
-      target: fatGoal || 65,
+      target: fatTarget,
       color: colors.fat,
     },
   ];

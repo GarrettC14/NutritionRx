@@ -7,6 +7,7 @@ import {
   GoalType,
   EatingStyle,
   ProteinPriority,
+  PlanningMode,
 } from '@/repositories';
 import { Goal, WeeklyReflection, UserProfile } from '@/types/domain';
 import {
@@ -16,8 +17,69 @@ import {
   CALORIES_PER_GRAM,
   MAX_WEEKLY_ADJUSTMENTS,
   DATA_QUALITY_THRESHOLDS,
+  TIMELINE_SAFETY,
 } from '@/constants/defaults';
 import { macroCalculator } from '@/services/macroCalculator';
+import { useWeightStore } from './weightStore';
+
+// ============================================================
+// Pure calculation helpers for timeline planning
+// ============================================================
+
+export function calculateTimelineRate(
+  currentWeightKg: number,
+  targetWeightKg: number,
+  targetDate: string
+): { weeklyRateKg: number; totalWeeks: number } {
+  const now = new Date();
+  const target = new Date(targetDate);
+  const diffMs = target.getTime() - now.getTime();
+  const totalWeeks = Math.max(diffMs / (7 * 24 * 60 * 60 * 1000), TIMELINE_SAFETY.minWeeks);
+  const totalChange = Math.abs(currentWeightKg - targetWeightKg);
+  const weeklyRateKg = totalChange / totalWeeks;
+  return { weeklyRateKg, totalWeeks };
+}
+
+export function calculateEstimatedCompletion(
+  currentWeightKg: number,
+  targetWeightKg: number,
+  ratePercent: number
+): string | null {
+  if (!targetWeightKg || ratePercent === 0) return null;
+  const weeklyKgChange = (ratePercent / 100) * currentWeightKg;
+  if (weeklyKgChange === 0) return null;
+  const totalChange = Math.abs(currentWeightKg - targetWeightKg);
+  const weeksNeeded = totalChange / weeklyKgChange;
+  const completionDate = new Date();
+  completionDate.setDate(completionDate.getDate() + Math.round(weeksNeeded * 7));
+  return completionDate.toISOString().split('T')[0];
+}
+
+export function getSafeRate(
+  goalType: GoalType,
+  currentWeightKg: number
+): number {
+  const maxKgPerWeek = goalType === 'lose'
+    ? TIMELINE_SAFETY.maxWeeklyLossKg
+    : TIMELINE_SAFETY.maxWeeklyGainKg;
+  // Convert to rate percent (% of bodyweight)
+  return (maxKgPerWeek / currentWeightKg) * 100;
+}
+
+export function getSuggestedDate(
+  currentWeightKg: number,
+  targetWeightKg: number,
+  goalType: GoalType
+): string {
+  const maxKgPerWeek = goalType === 'lose'
+    ? TIMELINE_SAFETY.maxWeeklyLossKg
+    : TIMELINE_SAFETY.maxWeeklyGainKg;
+  const totalChange = Math.abs(currentWeightKg - targetWeightKg);
+  const weeksNeeded = totalChange / maxKgPerWeek;
+  const suggestedDate = new Date();
+  suggestedDate.setDate(suggestedDate.getDate() + Math.ceil(weeksNeeded * 7));
+  return suggestedDate.toISOString().split('T')[0];
+}
 
 interface GoalState {
   // State
@@ -27,6 +89,10 @@ interface GoalState {
   pendingReflection: WeeklyReflection | null;
   isLoading: boolean;
   error: string | null;
+
+  // Current weight state (from weight store)
+  currentWeightKg: number | null;
+  currentWeightLastUpdated: string | null;
 
   // Computed getters (derived from activeGoal)
   calorieGoal: number | null;
@@ -41,6 +107,8 @@ interface GoalState {
   loadProfile: () => Promise<void>;
   loadReflections: () => Promise<void>;
   loadPendingReflection: () => Promise<void>;
+  loadCurrentWeight: () => Promise<void>;
+  updateCurrentWeight: (weightKg: number) => Promise<void>;
 
   // Goal management
   createGoal: (params: {
@@ -54,6 +122,8 @@ interface GoalState {
     activityLevel: keyof typeof ACTIVITY_MULTIPLIERS;
     eatingStyle?: EatingStyle;
     proteinPriority?: ProteinPriority;
+    planningMode?: PlanningMode;
+    targetDate?: string;
   }) => Promise<Goal>;
   updateGoalTargets: (
     newTdee: number,
@@ -90,6 +160,10 @@ export const useGoalStore = create<GoalState>((set, get) => ({
   pendingReflection: null,
   isLoading: false,
   error: null,
+
+  // Current weight state
+  currentWeightKg: null,
+  currentWeightLastUpdated: null,
 
   // Computed values (derived from activeGoal)
   calorieGoal: null,
@@ -161,12 +235,56 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     }
   },
 
+  loadCurrentWeight: async () => {
+    try {
+      const weightStore = useWeightStore.getState();
+      await weightStore.loadLatest();
+      const latest = useWeightStore.getState().latestEntry;
+      set({
+        currentWeightKg: latest?.weightKg ?? null,
+        currentWeightLastUpdated: latest?.date ?? null,
+      });
+    } catch (error) {
+      console.error('Failed to load current weight:', error);
+    }
+  },
+
+  updateCurrentWeight: async (weightKg: number) => {
+    try {
+      const weightStore = useWeightStore.getState();
+      const today = new Date().toISOString().split('T')[0];
+      await weightStore.addEntry({ weightKg, date: today });
+      set({
+        currentWeightKg: weightKg,
+        currentWeightLastUpdated: today,
+      });
+    } catch (error) {
+      console.error('Failed to update current weight:', error);
+    }
+  },
+
   createGoal: async (params) => {
     set({ isLoading: true, error: null });
     try {
       const bmr = get().calculateBMR(params.currentWeightKg, params.heightCm, params.age, params.sex);
       const tdee = get().calculateTDEE(bmr, params.activityLevel);
-      const targetCalories = get().calculateTargetCalories(tdee, params.type, params.targetRatePercent, params.sex, params.currentWeightKg);
+
+      // If timeline mode, derive rate from timeline and cap at safety limits
+      let effectiveRatePercent = params.targetRatePercent;
+      if (params.planningMode === 'timeline' && params.targetDate && params.targetWeightKg) {
+        const { weeklyRateKg } = calculateTimelineRate(
+          params.currentWeightKg,
+          params.targetWeightKg,
+          params.targetDate
+        );
+        const maxKg = params.type === 'lose'
+          ? TIMELINE_SAFETY.maxWeeklyLossKg
+          : TIMELINE_SAFETY.maxWeeklyGainKg;
+        const cappedKg = Math.min(weeklyRateKg, maxKg);
+        effectiveRatePercent = (cappedKg / params.currentWeightKg) * 100;
+      }
+
+      const targetCalories = get().calculateTargetCalories(tdee, params.type, effectiveRatePercent, params.sex, params.currentWeightKg);
 
       // Use macroCalculator with eating style and protein priority if provided
       const eatingStyle = params.eatingStyle ?? 'flexible';
@@ -182,7 +300,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       const input: CreateGoalInput = {
         type: params.type,
         targetWeightKg: params.targetWeightKg,
-        targetRatePercent: params.targetRatePercent,
+        targetRatePercent: effectiveRatePercent,
         startDate: new Date().toISOString().split('T')[0],
         startWeightKg: params.currentWeightKg,
         initialTdeeEstimate: Math.round(tdee),
@@ -192,6 +310,8 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         initialFatG: macros.fat,
         eatingStyle,
         proteinPriority,
+        planningMode: params.planningMode ?? 'rate',
+        targetDate: params.targetDate,
       };
 
       const goal = await goalRepository.createGoal(input);

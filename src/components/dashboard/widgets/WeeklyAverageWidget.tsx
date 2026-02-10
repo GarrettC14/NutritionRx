@@ -8,14 +8,15 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import { useFoodLogStore, useGoalStore } from '@/stores';
+import { useFoodLogStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 
 export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { entries } = useFoodLogStore();
-  const { calorieGoal } = useGoalStore();
+  const { calories: calorieTarget } = useResolvedTargets();
 
   const { weeklyAverage, daysLogged } = useMemo(() => {
     const now = new Date();
@@ -46,7 +47,7 @@ export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
     };
   }, [entries]);
 
-  const target = calorieGoal || 2000;
+  const target = calorieTarget;
   const difference = weeklyAverage - target;
   const percentOfGoal = Math.round((weeklyAverage / target) * 100);
 

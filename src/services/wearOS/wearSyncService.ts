@@ -8,6 +8,9 @@ import { Platform, NativeModules, NativeEventEmitter } from 'react-native';
 import { useFoodLogStore } from '@/stores/foodLogStore';
 import { useWaterStore } from '@/stores/waterStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useGoalStore } from '@/stores/goalStore';
+import { useMacroCycleStore } from '@/stores/macroCycleStore';
+import { macroCycleRepository } from '@/repositories';
 import {
   WearDailySummary,
   WearRecentFood,
@@ -146,17 +149,44 @@ export async function syncToWatch(): Promise<boolean> {
     const waterProgress = waterStore.getTodayProgress();
     const goals = settingsStore.settings;
 
+    // Resolve targets — use goalStore as primary, fall back to defaults
+    const goalState = useGoalStore.getState();
+    let calorieGoal = goalState.calorieGoal || 2000;
+    let proteinGoal = goalState.proteinGoal || 150;
+    let carbsGoal = goalState.carbGoal || 250;
+    let fatGoal = goalState.fatGoal || 65;
+
+    // Resolve via macro cycling if active
+    const cycleConfig = useMacroCycleStore.getState().config;
+    if (cycleConfig?.enabled) {
+      try {
+        const baseTargets = {
+          calories: calorieGoal,
+          protein: proteinGoal,
+          carbs: carbsGoal,
+          fat: fatGoal,
+        };
+        const resolved = await macroCycleRepository.getTargetsForDate(today, baseTargets);
+        calorieGoal = resolved.calories;
+        proteinGoal = resolved.protein;
+        carbsGoal = resolved.carbs;
+        fatGoal = resolved.fat;
+      } catch {
+        // Fall back to base goals on error
+      }
+    }
+
     // Build daily summary
     const dailySummary: WearDailySummary = {
       date: today,
       calories: summary.totals.calories,
-      calorieGoal: goals.calorieGoal || 2000,
+      calorieGoal,
       protein: summary.totals.protein,
-      proteinGoal: goals.proteinGoal || 150,
+      proteinGoal,
       carbs: summary.totals.carbs,
-      carbsGoal: goals.carbsGoal || 250,
+      carbsGoal,
       fat: summary.totals.fat,
-      fatGoal: goals.fatGoal || 65,
+      fatGoal,
       water: waterProgress.glasses,
       waterGoal: waterProgress.goal,
       lastSyncTime: Date.now(),

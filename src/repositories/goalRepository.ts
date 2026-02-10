@@ -12,6 +12,8 @@ export type GoalType = 'lose' | 'maintain' | 'gain';
 export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
 export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
 
+export type PlanningMode = 'rate' | 'timeline';
+
 export interface CreateGoalInput {
   type: GoalType;
   targetWeightKg?: number;
@@ -25,6 +27,8 @@ export interface CreateGoalInput {
   initialFatG: number;
   eatingStyle: EatingStyle;
   proteinPriority: ProteinPriority;
+  planningMode?: PlanningMode;
+  targetDate?: string;
 }
 
 export interface UpdateGoalInput {
@@ -37,6 +41,8 @@ export interface UpdateGoalInput {
   currentFatG?: number;
   eatingStyle?: EatingStyle;
   proteinPriority?: ProteinPriority;
+  planningMode?: PlanningMode;
+  targetDate?: string | null;
   isActive?: boolean;
   completedAt?: string;
 }
@@ -119,9 +125,9 @@ export const goalRepository = {
         id, type, target_weight_kg, target_rate_percent, start_date, start_weight_kg,
         initial_tdee_estimate, initial_target_calories, initial_protein_g, initial_carbs_g, initial_fat_g,
         current_tdee_estimate, current_target_calories, current_protein_g, current_carbs_g, current_fat_g,
-        eating_style, protein_priority,
+        eating_style, protein_priority, planning_mode, target_date,
         is_active, completed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.type,
@@ -141,6 +147,8 @@ export const goalRepository = {
         input.initialFatG,
         input.eatingStyle,
         input.proteinPriority,
+        input.planningMode ?? 'rate',
+        input.targetDate ?? null,
         1, // is_active
         null,
         now,
@@ -195,6 +203,14 @@ export const goalRepository = {
     if (updates.proteinPriority !== undefined) {
       setClauses.push('protein_priority = ?');
       values.push(updates.proteinPriority);
+    }
+    if (updates.planningMode !== undefined) {
+      setClauses.push('planning_mode = ?');
+      values.push(updates.planningMode);
+    }
+    if (updates.targetDate !== undefined) {
+      setClauses.push('target_date = ?');
+      values.push(updates.targetDate);
     }
     if (updates.isActive !== undefined) {
       setClauses.push('is_active = ?');

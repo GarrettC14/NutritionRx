@@ -104,5 +104,4 @@ export { HeadlineInsightCard } from './components/HeadlineInsightCard';
 export { CategoryChips } from './components/CategoryChips';
 export { InsightShimmer } from './components/InsightShimmer';
 export { InsightToast } from './components/InsightToast';
-export { FollowUpChips } from './components/FollowUpChips';
 export { NeedsMoreDataSection } from './components/NeedsMoreDataSection';

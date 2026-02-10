@@ -36,7 +36,7 @@ export default function HealthNoticeScreen() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsHealthNotice.BackButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Health & Safety Notice

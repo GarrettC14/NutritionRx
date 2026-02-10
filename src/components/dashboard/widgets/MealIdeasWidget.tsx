@@ -10,7 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
-import { useGoalStore, useSubscriptionStore } from '@/stores';
+import { useSubscriptionStore } from '@/stores';
+import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
 
@@ -49,14 +50,14 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
-  const { calorieGoal, proteinGoal } = useGoalStore();
+  const { calories: calorieTarget, protein: proteinTarget } = useResolvedTargets();
   const { isPremium } = useSubscriptionStore();
 
   // Determine what type of meal to suggest based on remaining macros
   const { suggestion, reason } = useMemo(() => {
-    const caloriesRemaining = (calorieGoal || 2000) - totals.calories;
-    const proteinRemaining = (proteinGoal || 150) - totals.protein;
-    const proteinPercentRemaining = proteinRemaining / (proteinGoal || 150);
+    const caloriesRemaining = calorieTarget - totals.calories;
+    const proteinRemaining = proteinTarget - totals.protein;
+    const proteinPercentRemaining = proteinRemaining / proteinTarget;
 
     // If low on calories but need protein
     if (caloriesRemaining < 400 && proteinRemaining > 20) {
@@ -95,7 +96,7 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
       suggestion: MEAL_SUGGESTIONS.balanced[0],
       reason: 'Balanced nutrition',
     };
-  }, [totals, calorieGoal, proteinGoal]);
+  }, [totals, calorieTarget, proteinTarget]);
 
   const handlePress = () => {
     if (!isEditMode) {
