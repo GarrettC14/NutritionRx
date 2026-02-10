@@ -18,6 +18,7 @@ export type {
   GoalType,
   EatingStyle,
   ProteinPriority,
+  PlanningMode,
   CreateGoalInput,
   UpdateGoalInput,
   CreateWeeklyReflectionInput,
@@ -47,3 +48,6 @@ export { mealPlanRepository } from './mealPlanRepository';
 export type { CreatePlannedMealInput } from './mealPlanRepository';
 
 export { micronutrientRepository } from './micronutrientRepository';
+
+export { reflectionRepository } from './reflectionRepository';
+export type { Reflection, Sentiment, CreateReflectionInput } from './reflectionRepository';
