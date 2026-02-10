@@ -58,6 +58,14 @@ function RootLayoutContent() {
           }}
         />
 
+        {/* Legal terms - pushed from legal acknowledgment, back only */}
+        <Stack.Screen
+          name="legal-terms"
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+
         {/* Full screen modal flow - slide up, no gesture dismiss */}
         <Stack.Screen
           name="onboarding"

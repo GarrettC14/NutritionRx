@@ -112,8 +112,7 @@ export default function LegalAcknowledgmentScreen() {
   };
 
   const handleTermsPress = () => {
-    // TODO: Open terms of service URL or modal
-    console.log('Open terms of service');
+    router.push('/legal-terms');
   };
 
   const content = NUTRITION_DISCLAIMER_CONTENT;

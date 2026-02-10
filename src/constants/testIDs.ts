@@ -21,6 +21,15 @@ export const TestIDs = {
   },
 
   // ===========================================================
+  // Legal Terms (full TOS from legal acknowledgment flow)
+  // ===========================================================
+  LegalTerms: {
+    Screen: 'legal-terms-screen',
+    ScrollView: 'legal-terms-scroll-view',
+    BackButton: 'legal-terms-back-button',
+  },
+
+  // ===========================================================
   // Onboarding
   // ===========================================================
   Onboarding: {

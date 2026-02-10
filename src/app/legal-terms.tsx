@@ -74,19 +74,23 @@ const TERMS_SECTIONS = [
   },
 ];
 
-export default function TermsOfServiceScreen() {
+export default function LegalTermsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
-      edges={['bottom']}
-      testID={TestIDs.SettingsTermsOfService.Screen}
+      edges={['top', 'bottom']}
+      testID={TestIDs.LegalTerms.Screen}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} testID={TestIDs.SettingsTermsOfService.BackButton}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backButton}
+          testID={TestIDs.LegalTerms.BackButton}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -99,7 +103,7 @@ export default function TermsOfServiceScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        testID={TestIDs.SettingsTermsOfService.ScrollView}
+        testID={TestIDs.LegalTerms.ScrollView}
       >
         {/* Last Updated */}
         <Text style={[styles.lastUpdated, { color: colors.textTertiary }]}>
