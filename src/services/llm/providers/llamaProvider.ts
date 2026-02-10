@@ -55,9 +55,15 @@ export class LlamaProvider implements LLMProvider {
     try {
       const file = new File(Paths.document, this.model.filename);
       if (!file.exists) return false;
-      // Verify file size is within 5% of expected (accounts for minor version differences)
+      // Verify file size is within 20% of expected (accounts for minor version differences)
       const ratio = file.size / this.model.sizeBytes;
-      return ratio >= 0.80 && ratio <= 1.20;
+      const passed = ratio >= 0.80 && ratio <= 1.20;
+      if (!passed) {
+        console.log(
+          `[LlamaProvider] Integrity check failed: actual=${file.size} expected=${this.model.sizeBytes} ratio=${ratio.toFixed(3)}`
+        );
+      }
+      return passed;
     } catch {
       return false;
     }

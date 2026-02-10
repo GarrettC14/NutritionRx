@@ -28,7 +28,7 @@ export const MODEL_CATALOG: ModelConfig[] = [
     huggingFaceFile: 'SmolLM2-1.7B-Instruct-Q4_K_M.gguf',
     downloadUrl:
       'https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q4_K_M.gguf',
-    sizeBytes: 1_020_000_000,
+    sizeBytes: 1_055_609_824,
     sizeLabel: '~1 GB',
     minRAMGB: 6,
     contextSize: 2048,
@@ -44,8 +44,8 @@ export const MODEL_CATALOG: ModelConfig[] = [
     huggingFaceFile: 'Llama-3.2-1B-Instruct-Q4_K_M.gguf',
     downloadUrl:
       'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
-    sizeBytes: 670_000_000,
-    sizeLabel: '~670 MB',
+    sizeBytes: 807_694_464,
+    sizeLabel: '~808 MB',
     minRAMGB: 4,
     contextSize: 1536,
     threads: 4,
@@ -60,8 +60,8 @@ export const MODEL_CATALOG: ModelConfig[] = [
     huggingFaceFile: 'qwen2.5-0.5b-instruct-q4_k_m.gguf',
     downloadUrl:
       'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf',
-    sizeBytes: 390_000_000,
-    sizeLabel: '~390 MB',
+    sizeBytes: 491_400_032,
+    sizeLabel: '~491 MB',
     minRAMGB: 3,
     contextSize: 2048,
     threads: 2,
