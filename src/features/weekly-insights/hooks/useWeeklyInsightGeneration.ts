@@ -39,7 +39,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
   const setIsGenerating = useWeeklyInsightsStore((s) => s.setIsGenerating);
   const setGenerationError = useWeeklyInsightsStore((s) => s.setGenerationError);
   const getEffectiveWeekStart = useWeeklyInsightsStore((s) => s.getEffectiveWeekStart);
-  const showToast = useWeeklyInsightsStore((s) => s.showToast);
   const setQuestionError = useWeeklyInsightsStore((s) => s.setQuestionError);
   const clearQuestionError = useWeeklyInsightsStore((s) => s.clearQuestionError);
 
@@ -55,7 +54,6 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
 
       // Guard against concurrent generation — only one LLM call at a time
       if (useWeeklyInsightsStore.getState().isGenerating) {
-        showToast('AI is thinking about another question...');
         const templateResponse = WeeklyInsightGenerator.generateTemplateResponse(
           question.questionId,
           question.analysisResult,
@@ -95,7 +93,7 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
         setIsGenerating(false);
       }
     },
-    [getCachedResponse, setCachedResponse, setIsGenerating, setGenerationError, getEffectiveWeekStart, showToast, setQuestionError, clearQuestionError]
+    [getCachedResponse, setCachedResponse, setIsGenerating, setGenerationError, getEffectiveWeekStart, setQuestionError, clearQuestionError]
   );
 
   const retryForQuestion = useCallback(

@@ -142,6 +142,18 @@ export default function GoalsSettingsScreen() {
     return isLbs ? lbsToKg(parsed) : parsed;
   }, [targetWeight, isLbs]);
 
+  // Directional validation: warn if target weight contradicts goal type
+  const directionalWarning = useMemo(() => {
+    if (!resolvedCurrentWeightKg || !targetWeightKg) return null;
+    if (selectedGoalType === 'lose' && targetWeightKg >= resolvedCurrentWeightKg) {
+      return 'Your target weight is higher than your current weight. Did you mean to gain?';
+    }
+    if (selectedGoalType === 'gain' && targetWeightKg <= resolvedCurrentWeightKg) {
+      return 'Your target weight is lower than your current weight. Did you mean to lose?';
+    }
+    return null;
+  }, [resolvedCurrentWeightKg, targetWeightKg, selectedGoalType]);
+
   const timelineInfo = useMemo(() => {
     if (!resolvedCurrentWeightKg || !targetWeightKg) return null;
     const targetDateStr = toISODate(targetDate);
@@ -264,7 +276,10 @@ export default function GoalsSettingsScreen() {
       return;
     }
 
-    if (!resolvedCurrentWeightKg) {
+    // For lose/gain, require explicit weight. For maintain, allow fallback.
+    const weightForGoal = resolvedCurrentWeightKg
+      ?? (selectedGoalType === 'maintain' ? (activeGoal?.startWeightKg ?? 70) : null);
+    if (!weightForGoal) {
       Alert.alert('Weight Required', 'Please enter your current weight.');
       return;
     }
@@ -296,20 +311,20 @@ export default function GoalsSettingsScreen() {
 
       // For timeline mode, derive rate; for rate mode, use selected rate
       let rateForGoal = selectedGoalType === 'maintain' ? 0 : selectedRate;
-      if (isTimeline && finalTargetWeightKg && resolvedCurrentWeightKg) {
+      if (isTimeline && finalTargetWeightKg && weightForGoal) {
         const { weeklyRateKg } = calculateTimelineRate(
-          resolvedCurrentWeightKg,
+          weightForGoal,
           finalTargetWeightKg,
           targetDateStr!
         );
-        rateForGoal = (weeklyRateKg / resolvedCurrentWeightKg) * 100;
+        rateForGoal = (weeklyRateKg / weightForGoal) * 100;
       }
 
       await createGoal({
         type: selectedGoalType,
         targetWeightKg: finalTargetWeightKg,
         targetRatePercent: rateForGoal,
-        currentWeightKg: resolvedCurrentWeightKg,
+        currentWeightKg: weightForGoal,
         sex: profile.sex || 'male',
         heightCm: profile.heightCm || 170,
         age,
@@ -621,6 +636,11 @@ export default function GoalsSettingsScreen() {
                 {resolvedCurrentWeightKg && (
                   <Text style={[styles.currentNote, { color: colors.textTertiary }]}>
                     Current: {currentWeightDisplay}
+                  </Text>
+                )}
+                {directionalWarning && (
+                  <Text style={[styles.warningText, { color: colors.warning }]}>
+                    {directionalWarning}
                   </Text>
                 )}
               </View>
@@ -1018,6 +1038,10 @@ const styles = StyleSheet.create({
     ...typography.title.large,
   },
   currentNote: {
+    ...typography.caption,
+    marginTop: spacing[2],
+  },
+  warningText: {
     ...typography.caption,
     marginTop: spacing[2],
   },

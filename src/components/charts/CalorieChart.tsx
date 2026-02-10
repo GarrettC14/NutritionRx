@@ -17,9 +17,12 @@ interface CalorieChartProps {
   showGoalLine?: boolean;
 }
 
-// Format date for display
-const formatDateLabel = (dateStr: string): string => {
+// Format date for display - show day letter for short ranges, date number for longer ones
+const formatDateLabel = (dateStr: string, useDate: boolean): string => {
   const date = new Date(dateStr + 'T12:00:00');
+  if (useDate) {
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  }
   return date.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
 };
 
@@ -36,9 +39,10 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Calculate statistics
-  const totalCalories = sortedData.reduce((sum, d) => sum + d.totals.calories, 0);
-  const avgCalories = Math.round(totalCalories / sortedData.length);
+  // Calculate statistics (only average over days with actual data)
+  const daysWithData = sortedData.filter(d => d.totals.calories > 0);
+  const totalCalories = daysWithData.reduce((sum, d) => sum + d.totals.calories, 0);
+  const avgCalories = daysWithData.length > 0 ? Math.round(totalCalories / daysWithData.length) : 0;
   const maxCalories = Math.max(...sortedData.map(d => d.totals.calories));
 
   // Determine y-axis max
@@ -47,8 +51,10 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
   // Chart dimensions
   const chartWidth = CHART_WIDTH - PADDING.left - PADDING.right;
   const chartHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-  const barWidth = Math.min(30, (chartWidth / sortedData.length) - 8);
+  const barWidth = Math.max(3, Math.min(30, (chartWidth / sortedData.length) - 4));
   const barSpacing = (chartWidth - barWidth * sortedData.length) / (sortedData.length + 1);
+  // Skip labels when bars are too dense to avoid overlap
+  const labelInterval = sortedData.length > 21 ? 7 : sortedData.length > 10 ? 3 : 1;
 
   // Calculate goal line position
   const goalLineY = PADDING.top + chartHeight - (calorieGoal / yMax) * chartHeight;
@@ -130,15 +136,17 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
                   ry={4}
                 />
                 {/* X-axis label */}
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={PADDING.top + chartHeight + 15}
-                  fill={colors.textTertiary}
-                  fontSize={10}
-                  textAnchor="middle"
-                >
-                  {formatDateLabel(day.date)}
-                </SvgText>
+                {index % labelInterval === 0 && (
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={PADDING.top + chartHeight + 15}
+                    fill={colors.textTertiary}
+                    fontSize={10}
+                    textAnchor="middle"
+                  >
+                    {formatDateLabel(day.date, labelInterval > 1)}
+                  </SvgText>
+                )}
               </G>
             );
           })}

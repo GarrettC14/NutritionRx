@@ -54,6 +54,28 @@ const getDateRange = (range: TimeRange): { start: string; end: string } => {
   return { start: start.toISOString().split('T')[0], end: endStr };
 };
 
+// Fill in missing dates in a range with zero totals so the chart shows the full time window
+const fillMissingDates = (
+  data: Array<{ date: string; totals: DailyTotals }>,
+  start: string,
+  end: string
+): Array<{ date: string; totals: DailyTotals }> => {
+  const dataMap = new Map(data.map((d) => [d.date, d]));
+  const result: Array<{ date: string; totals: DailyTotals }> = [];
+  const emptyTotals: DailyTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+  const current = new Date(start + 'T12:00:00');
+  const endDate = new Date(end + 'T12:00:00');
+
+  while (current <= endDate) {
+    const dateStr = current.toISOString().split('T')[0];
+    result.push(dataMap.get(dateStr) ?? { date: dateStr, totals: { ...emptyTotals } });
+    current.setDate(current.getDate() + 1);
+  }
+
+  return result;
+};
+
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -80,6 +102,13 @@ export default function ProgressScreen() {
     isLoaded: photosLoaded,
   } = useProgressPhotoStore();
 
+  // Track mount/unmount for tab switch debugging
+  useEffect(() => {
+    const mountTime = Date.now();
+    console.log(`[Progress] component MOUNTED at ${new Date().toISOString()}`);
+    return () => console.log(`[Progress] component UNMOUNTED (was alive ${Date.now() - mountTime}ms)`);
+  }, []);
+
   // Independent time range states for each section
   const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('30d');
   const [calorieTimeRange, setCalorieTimeRange] = useState<TimeRange>('30d');
@@ -100,20 +129,25 @@ export default function ProgressScreen() {
 
   // Load weight data based on weight time range
   const loadWeightData = useCallback(async () => {
+    const t0 = Date.now();
     const { start, end } = getDateRange(weightTimeRange);
     await loadEntriesForRange(start, end);
+    console.log(`[Progress] loadWeightData (${weightTimeRange}): ${Date.now() - t0}ms`);
   }, [weightTimeRange, loadEntriesForRange]);
 
   // Load calorie data based on calorie time range
   const loadCalorieData = useCallback(async () => {
+    const t0 = Date.now();
     const { start, end } = getDateRange(calorieTimeRange);
     const calorieHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
-    setCalorieData(calorieHistory);
+    setCalorieData(fillMissingDates(calorieHistory, start, end));
     setDaysLogged(calorieHistory.length);
+    console.log(`[Progress] loadCalorieData (${calorieTimeRange}): ${Date.now() - t0}ms`);
   }, [calorieTimeRange]);
 
   // Load average macros based on macro time range
   const loadMacroData = useCallback(async () => {
+    const t0 = Date.now();
     const { start, end } = getDateRange(macroTimeRange);
     const macroHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
 
@@ -137,15 +171,21 @@ export default function ProgressScreen() {
     } else {
       setAvgMacros({ calories: 0, protein: 0, carbs: 0, fat: 0 });
     }
+    console.log(`[Progress] loadMacroData (${macroTimeRange}): ${Date.now() - t0}ms`);
   }, [macroTimeRange]);
 
   // Load insights data based on insights time range
   const loadInsightsData = useCallback(async () => {
+    const t0 = Date.now();
     const { start, end } = getDateRange(insightsTimeRange);
+    const t1 = Date.now();
     const insightsHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
+    console.log(`[Progress] loadInsightsData - getDailyTotals: ${Date.now() - t1}ms`);
 
     // Get weight entries count for the insights range (without affecting the weight store)
+    const t2 = Date.now();
     const insightsWeightEntries = await weightRepository.findByDateRange(start, end);
+    console.log(`[Progress] loadInsightsData - findByDateRange: ${Date.now() - t2}ms`);
 
     const avgCals = insightsHistory.length > 0
       ? Math.round(insightsHistory.reduce((sum, day) => sum + day.totals.calories, 0) / insightsHistory.length)
@@ -156,31 +196,45 @@ export default function ProgressScreen() {
       weightEntries: insightsWeightEntries.length,
       avgCalories: avgCals,
     });
+    console.log(`[Progress] loadInsightsData total (${insightsTimeRange}): ${Date.now() - t0}ms`);
   }, [insightsTimeRange]);
 
   // Combined load for initial load and refresh
   const loadAllData = useCallback(async () => {
+    const t0 = Date.now();
+    console.log('[Progress] loadAllData started');
     await Promise.all([
       loadWeightData(),
       loadCalorieData(),
       loadMacroData(),
       loadInsightsData(),
     ]);
+    console.log(`[Progress] loadAllData total: ${Date.now() - t0}ms`);
   }, [loadWeightData, loadCalorieData, loadMacroData, loadInsightsData]);
 
   useEffect(() => {
-    loadSettings();
-    loadNutrientProfile();
-    loadPhotos();
+    const t0 = Date.now();
+    console.log('[Progress] side-effect loads started (settings, nutrients, photos)');
+    Promise.all([
+      (async () => { const t = Date.now(); await loadSettings(); console.log(`[Progress] loadSettings: ${Date.now() - t}ms`); })(),
+      (async () => { const t = Date.now(); await loadNutrientProfile(); console.log(`[Progress] loadNutrientProfile: ${Date.now() - t}ms`); })(),
+      (async () => { const t = Date.now(); await loadPhotos(); console.log(`[Progress] loadPhotos: ${Date.now() - t}ms`); })(),
+    ]).then(() => console.log(`[Progress] side-effect loads total: ${Date.now() - t0}ms`));
   }, [loadSettings, loadNutrientProfile, loadPhotos]);
 
   // Initial load
   useEffect(() => {
     const initialLoad = async () => {
+      const t0 = Date.now();
+      console.log('[Progress] initialLoad started');
       await loadAllData();
+      console.log(`[Progress] initialLoad - after loadAllData: ${Date.now() - t0}ms`);
+      const t1 = Date.now();
       const today = new Date().toISOString().split('T')[0];
       await loadDailyIntake(today);
+      console.log(`[Progress] loadDailyIntake: ${Date.now() - t1}ms`);
       setDataLoaded(true);
+      console.log(`[Progress] initialLoad total: ${Date.now() - t0}ms`);
     };
     initialLoad();
   }, []);
@@ -231,6 +285,7 @@ export default function ProgressScreen() {
   // Show skeleton on initial load to prevent flash
   const isReady = dataLoaded && settingsLoaded && nutrientsLoaded && photosLoaded;
   if (!isReady) {
+    console.log(`[Progress] not ready — dataLoaded=${dataLoaded} settingsLoaded=${settingsLoaded} nutrientsLoaded=${nutrientsLoaded} photosLoaded=${photosLoaded}`);
     return (
       <SafeAreaView testID={TestIDs.Progress.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <ProgressScreenSkeleton />
