@@ -68,6 +68,20 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
         });
 
         if (usdaResults.length > 0) {
+          // Helper: find nutrient value with fallback IDs
+          // USDA Foundation foods may use alternate energy IDs (2048/2047) instead of 1008
+          const findNutrient = (
+            nutrients: typeof usdaResults[0]['foodNutrients'],
+            ...ids: number[]
+          ): number => {
+            if (!nutrients) return 0;
+            for (const id of ids) {
+              const found = nutrients.find((n) => n.nutrientId === id);
+              if (found && found.value > 0) return found.value;
+            }
+            return 0;
+          };
+
           // Convert USDA results to FoodItem format (unsaved, prefixed IDs)
           const usdaFoods: FoodItem[] = usdaResults
             .filter((r) => r.description)
@@ -76,16 +90,16 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
               name: r.description,
               brand: r.brandOwner || undefined,
               calories: Math.round(
-                r.foodNutrients?.find((n) => n.nutrientId === 1008)?.value || 0
+                findNutrient(r.foodNutrients, 1008, 2048, 2047)
               ),
               protein: Math.round(
-                r.foodNutrients?.find((n) => n.nutrientId === 1003)?.value || 0
+                findNutrient(r.foodNutrients, 1003)
               ),
               carbs: Math.round(
-                r.foodNutrients?.find((n) => n.nutrientId === 1005)?.value || 0
+                findNutrient(r.foodNutrients, 1005)
               ),
               fat: Math.round(
-                r.foodNutrients?.find((n) => n.nutrientId === 1004)?.value || 0
+                findNutrient(r.foodNutrients, 1004)
               ),
               servingSize: r.servingSize || 100,
               servingUnit: r.servingSizeUnit || 'g',
