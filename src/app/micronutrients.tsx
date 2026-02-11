@@ -10,11 +10,9 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
@@ -36,6 +34,7 @@ import { StatusOverviewCard } from '@/features/micronutrients/components/StatusO
 import { StatusFilterChips } from '@/features/micronutrients/components/StatusFilterChips';
 import { NutrientDetailSheet } from '@/features/micronutrients/components/NutrientDetailSheet';
 import { NutrientTargetEditor } from '@/features/micronutrients/components/NutrientTargetEditor';
+import { ThemedDatePicker } from '@/components/ui/ThemedDatePicker';
 import {
   useFilteredNutrients,
   NutrientWithDetails,
@@ -90,18 +89,11 @@ export default function MicronutrientsScreen() {
   }, []);
 
   // Handle date change
-  const handleDateChange = useCallback((_: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (date) {
-      const dateStr = date.toISOString().split('T')[0];
-      setSelectedDate(dateStr);
-      loadDailyIntake(dateStr);
-    }
+  const handleDateSelect = useCallback((date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    setSelectedDate(dateStr);
+    loadDailyIntake(dateStr);
   }, [loadDailyIntake]);
-
-  const handleDatePickerDone = useCallback(() => {
-    setShowDatePicker(false);
-  }, []);
 
   // Visible nutrients based on premium status
   const visibleNutrients = useMemo(() => {
@@ -224,22 +216,13 @@ export default function MicronutrientsScreen() {
       </View>
 
       {/* Date Picker */}
-      {showDatePicker && (
-        <View style={[styles.datePickerContainer, { backgroundColor: colors.bgSecondary }]}>
-          <DateTimePicker
-            value={new Date(selectedDate + 'T12:00:00')}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-            maximumDate={new Date()}
-          />
-          {Platform.OS === 'ios' && (
-            <Pressable onPress={handleDatePickerDone} style={styles.datePickerDone}>
-              <Text style={[styles.datePickerDoneText, { color: colors.accent }]}>Done</Text>
-            </Pressable>
-          )}
-        </View>
-      )}
+      <ThemedDatePicker
+        visible={showDatePicker}
+        value={new Date(selectedDate + 'T12:00:00')}
+        onSelect={handleDateSelect}
+        onClose={() => setShowDatePicker(false)}
+        maximumDate={new Date()}
+      />
 
       {isLoading && !dailyIntake ? (
         <View style={styles.loadingContainer}>
@@ -415,18 +398,6 @@ const styles = StyleSheet.create({
   dateText: {
     ...typography.body.small,
     fontWeight: '500',
-  },
-  datePickerContainer: {
-    paddingBottom: spacing[2],
-  },
-  datePickerDone: {
-    alignItems: 'flex-end',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-  },
-  datePickerDoneText: {
-    ...typography.body.medium,
-    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
