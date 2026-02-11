@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { PhotoTimelineEntry, PhotoCategory } from '@/types/progressPhotos';
+import { useSettingsStore } from '@/stores';
 import { PhotoThumbnail } from './PhotoThumbnail';
 
 interface PhotoTimelineProps {
@@ -34,6 +35,13 @@ export function PhotoTimeline({
   emptyMessage = 'No photos yet',
 }: PhotoTimelineProps) {
   const { colors } = useTheme();
+  const weightUnit = useSettingsStore((s) => s.settings.weightUnit);
+  const isLbs = weightUnit === 'lbs';
+
+  const displayWeight = (weightKg: number): string => {
+    if (isLbs) return `${(weightKg * 2.20462).toFixed(1)} lbs`;
+    return `${weightKg.toFixed(1)} kg`;
+  };
 
   const formatDate = (date: string): string => {
     const d = new Date(date);
@@ -89,16 +97,14 @@ export function PhotoTimeline({
               <Text style={[styles.dateText, { color: colors.textPrimary }]}>
                 {formatDate(entry.date)}
               </Text>
-              {entry.daysSinceFirst > 0 && (
-                <Text style={[styles.daysText, { color: colors.textTertiary }]}>
-                  Day {entry.daysSinceFirst}
-                </Text>
-              )}
+              <Text style={[styles.daysText, { color: colors.textTertiary }]}>
+                Day {entry.daysSinceFirst + 1}
+              </Text>
               {entry.weight && (
                 <View style={[styles.weightBadge, { backgroundColor: colors.bgTertiary }]}>
                   <Ionicons name="scale-outline" size={12} color={colors.textSecondary} />
                   <Text style={[styles.weightText, { color: colors.textSecondary }]}>
-                    {entry.weight.toFixed(1)} kg
+                    {displayWeight(entry.weight)}
                   </Text>
                 </View>
               )}

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,12 @@ import {
   Pressable,
   TextInput,
   Image,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Linking,
+  AppState,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -22,9 +23,10 @@ import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { useProgressPhotoStore } from '@/stores';
+import { useProgressPhotoStore, useSettingsStore } from '@/stores';
 import { PhotoCategory } from '@/types/progressPhotos';
 import { Button } from '@/components/ui/Button';
+import { Toast, useToast } from '@/components/ui/Toast';
 
 const PHOTO_DIR = Paths.document.uri + 'progress-photos/';
 
@@ -43,8 +45,11 @@ export default function CaptureScreen() {
   const insets = useSafeAreaInsets();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
+  const { toastState, showError, hideToast } = useToast();
 
   const addPhoto = useProgressPhotoStore((s) => s.addPhoto);
+  const weightUnit = useSettingsStore((s) => s.settings.weightUnit);
+  const isLbs = weightUnit === 'lbs';
 
   const [step, setStep] = useState<Step>('capture');
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
@@ -53,6 +58,16 @@ export default function CaptureScreen() {
   const [notes, setNotes] = useState('');
   const [weight, setWeight] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Re-check camera permission when returning from Settings
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && permission && !permission.granted) {
+        requestPermission();
+      }
+    });
+    return () => sub.remove();
+  }, [permission, requestPermission]);
 
   const handleTakePhoto = async () => {
     if (!cameraRef.current) return;
@@ -68,8 +83,8 @@ export default function CaptureScreen() {
         setStep('preview');
       }
     } catch (error) {
-      console.error('Failed to take photo:', error);
-      Alert.alert('Error', 'Failed to capture photo. Please try again.');
+      if (__DEV__) console.warn('[Capture] takePicture failed:', error);
+      showError("Something went wrong. Let's try again.");
     }
   };
 
@@ -87,8 +102,8 @@ export default function CaptureScreen() {
         setStep('preview');
       }
     } catch (error) {
-      console.error('Failed to pick image:', error);
-      Alert.alert('Error', 'Failed to select image. Please try again.');
+      if (__DEV__) console.warn('[Capture] pickImage failed:', error);
+      showError("Something went wrong. Let's try again.");
     }
   };
 
@@ -101,11 +116,30 @@ export default function CaptureScreen() {
     setStep('form');
   };
 
+  /** Convert displayed weight to kg for storage */
+  const toKg = (value: number): number => isLbs ? value / 2.20462 : value;
+
+  /** Validate weight is in a sensible range for the current unit */
+  const isValidWeight = (value: number): boolean => {
+    if (value <= 0) return false;
+    return isLbs ? value <= 1000 : value <= 450;
+  };
+
   const handleSave = async () => {
     if (!capturedUri) return;
 
     setIsSaving(true);
     try {
+      // Validate weight if provided
+      const weightNum = weight ? parseFloat(weight) : undefined;
+      if (weightNum !== undefined) {
+        if (isNaN(weightNum) || !isValidWeight(weightNum)) {
+          showError('Please enter a valid weight');
+          setIsSaving(false);
+          return;
+        }
+      }
+
       // Ensure directory exists
       const dirInfo = await getInfoAsync(PHOTO_DIR);
       if (!dirInfo.exists) {
@@ -128,9 +162,9 @@ export default function CaptureScreen() {
       );
       await copyAsync({ from: manipulated.uri, to: thumbnailUri });
 
-      // Save to store
+      // Save to store — weight stored in kg (canonical unit)
       const today = new Date().toISOString().split('T')[0];
-      const weightNum = weight ? parseFloat(weight) : undefined;
+      const weightKg = weightNum && !isNaN(weightNum) ? toKg(weightNum) : undefined;
 
       await addPhoto({
         localUri: destUri,
@@ -139,14 +173,14 @@ export default function CaptureScreen() {
         timestamp,
         category,
         notes: notes.trim() || undefined,
-        weight: weightNum && !isNaN(weightNum) ? weightNum : undefined,
-        isPrivate: false,
+        weight: weightKg,
+        isPrivate: true,
       });
 
       router.back();
     } catch (error) {
-      console.error('Failed to save photo:', error);
-      Alert.alert('Error', 'Failed to save photo. Please try again.');
+      if (__DEV__) console.warn('[Capture] save failed:', error);
+      showError("Something went wrong. Let's try again.");
     } finally {
       setIsSaving(false);
     }
@@ -161,20 +195,35 @@ export default function CaptureScreen() {
     );
   }
 
-  // Permission denied
+  // Permission denied — recovery UI with Settings link + library fallback
   if (!permission.granted) {
+    const hasBeenDeniedBefore = permission.canAskAgain === false;
+
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
         <View style={styles.permissionContainer}>
           <Ionicons name="camera-outline" size={64} color={colors.textTertiary} />
           <Text style={[styles.permissionTitle, { color: colors.textPrimary }]}>
-            Camera Access Required
+            Camera Access Needed
           </Text>
           <Text style={[styles.permissionText, { color: colors.textSecondary }]}>
-            We need camera access to take progress photos.
+            Progress photos help you see your journey over time. Grant camera access to take a new photo, or choose one from your library.
           </Text>
           <View style={styles.permissionButtons}>
-            <Button onPress={requestPermission}>Allow Camera Access</Button>
+            {hasBeenDeniedBefore ? (
+              <Button onPress={() => Linking.openSettings()}>Open Settings</Button>
+            ) : (
+              <Button onPress={requestPermission}>Allow Camera Access</Button>
+            )}
+            <Pressable
+              style={[styles.libraryFallbackButton, { backgroundColor: colors.bgInteractive }]}
+              onPress={handlePickFromGallery}
+            >
+              <Ionicons name="images-outline" size={20} color={colors.accent} />
+              <Text style={[styles.libraryFallbackText, { color: colors.accent }]}>
+                Choose from Library
+              </Text>
+            </Pressable>
             <Pressable style={styles.textButton} onPress={() => router.back()}>
               <Text style={[styles.textButtonLabel, { color: colors.textSecondary }]}>
                 Go Back
@@ -182,6 +231,7 @@ export default function CaptureScreen() {
             </Pressable>
           </View>
         </View>
+        <Toast {...toastState} onDismiss={hideToast} />
       </SafeAreaView>
     );
   }
@@ -368,7 +418,7 @@ export default function CaptureScreen() {
                 placeholderTextColor={colors.textTertiary}
                 keyboardType="decimal-pad"
               />
-              <Text style={[styles.weightUnit, { color: colors.textSecondary }]}>kg</Text>
+              <Text style={[styles.weightUnit, { color: colors.textSecondary }]}>{isLbs ? 'lbs' : 'kg'}</Text>
             </View>
           </View>
         </ScrollView>
@@ -383,6 +433,7 @@ export default function CaptureScreen() {
           />
         </View>
       </KeyboardAvoidingView>
+      <Toast {...toastState} onDismiss={hideToast} />
     </SafeAreaView>
   );
 }
@@ -494,6 +545,20 @@ const styles = StyleSheet.create({
     marginTop: spacing[4],
     width: '100%',
     alignItems: 'center',
+  },
+  libraryFallbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    width: '100%',
+  },
+  libraryFallbackText: {
+    ...typography.body.medium,
+    fontWeight: '600',
   },
   textButton: {
     paddingVertical: spacing[2],

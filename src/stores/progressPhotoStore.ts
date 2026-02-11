@@ -60,6 +60,8 @@ interface ProgressPhotoState {
   getPhotosByCategory: (category: PhotoCategory) => ProgressPhoto[];
   getFirstPhoto: () => ProgressPhoto | undefined;
   getLatestPhoto: () => ProgressPhoto | undefined;
+  getPublicPhotos: () => ProgressPhoto[];
+  getFilteredPhotos: () => ProgressPhoto[];
 }
 
 // ============================================================
@@ -146,6 +148,15 @@ const applyFilter = (photos: ProgressPhoto[], filter: PhotoTimelineFilter): Prog
   });
 };
 
+/**
+ * Rebuild all derived state (timeline + stats) from the canonical photos array.
+ * Single place to ensure filtered/unfiltered consistency.
+ */
+const derivedState = (photos: ProgressPhoto[], filter: PhotoTimelineFilter) => ({
+  timeline: buildTimeline(applyFilter(photos, filter)),
+  stats: calculateStats(photos),
+});
+
 // ============================================================
 // Store
 // ============================================================
@@ -209,19 +220,17 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
       }));
 
       const { filter } = get();
-      const filteredPhotos = applyFilter(photos, filter);
 
       set({
         photos,
-        timeline: buildTimeline(filteredPhotos),
-        stats: calculateStats(photos),
+        ...derivedState(photos, filter),
         isLoading: false,
         isLoaded: true,
       });
     } catch (error) {
-      console.error('Failed to load progress photos:', error);
+      if (__DEV__) console.warn('[ProgressPhotos] loadPhotos failed:', error);
       set({
-        error: error instanceof Error ? error.message : 'Failed to load photos',
+        error: error instanceof Error ? error.message : 'Something went wrong',
         isLoading: false,
         isLoaded: true,
       });
@@ -263,17 +272,15 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
 
       const { photos, filter } = get();
       const updatedPhotos = [newPhoto, ...photos];
-      const filteredPhotos = applyFilter(updatedPhotos, filter);
 
       set({
         photos: updatedPhotos,
-        timeline: buildTimeline(filteredPhotos),
-        stats: calculateStats(updatedPhotos),
+        ...derivedState(updatedPhotos, filter),
       });
 
       return id;
     } catch (error) {
-      console.error('Failed to add photo:', error);
+      if (__DEV__) console.warn('[ProgressPhotos] addPhoto failed:', error);
       throw error;
     }
   },
@@ -316,15 +323,13 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
           ? { ...photo, ...updates, updatedAt: now }
           : photo
       );
-      const filteredPhotos = applyFilter(updatedPhotos, filter);
 
       set({
         photos: updatedPhotos,
-        timeline: buildTimeline(filteredPhotos),
-        stats: calculateStats(updatedPhotos),
+        ...derivedState(updatedPhotos, filter),
       });
     } catch (error) {
-      console.error('Failed to update photo:', error);
+      if (__DEV__) console.warn('[ProgressPhotos] updatePhoto failed:', error);
       throw error;
     }
   },
@@ -351,19 +356,17 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
 
       const { filter, selectedPhotoId, comparisonPhoto1Id, comparisonPhoto2Id } = get();
       const updatedPhotos = photos.filter(p => p.id !== id);
-      const filteredPhotos = applyFilter(updatedPhotos, filter);
 
       set({
         photos: updatedPhotos,
-        timeline: buildTimeline(filteredPhotos),
-        stats: calculateStats(updatedPhotos),
+        ...derivedState(updatedPhotos, filter),
         // Clear selections if deleted photo was selected
         selectedPhotoId: selectedPhotoId === id ? null : selectedPhotoId,
         comparisonPhoto1Id: comparisonPhoto1Id === id ? null : comparisonPhoto1Id,
         comparisonPhoto2Id: comparisonPhoto2Id === id ? null : comparisonPhoto2Id,
       });
     } catch (error) {
-      console.error('Failed to delete photo:', error);
+      if (__DEV__) console.warn('[ProgressPhotos] deletePhoto failed:', error);
       throw error;
     }
   },
@@ -400,7 +403,7 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
         comparisonPhoto2Id: null,
       });
     } catch (error) {
-      console.error('Failed to delete all photos:', error);
+      if (__DEV__) console.warn('[ProgressPhotos] deleteAllPhotos failed:', error);
       throw error;
     }
   },
@@ -475,5 +478,14 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
     return photos.reduce((latest, current) =>
       current.timestamp > latest.timestamp ? current : latest
     );
+  },
+
+  getPublicPhotos: () => {
+    return get().photos.filter(p => !p.isPrivate);
+  },
+
+  getFilteredPhotos: () => {
+    const { photos, filter } = get();
+    return applyFilter(photos, filter);
   },
 }));

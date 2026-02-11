@@ -11,6 +11,8 @@ import {
   Platform,
   Alert,
   Dimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -23,6 +25,7 @@ import { useProgressPhotoStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
 import { PhotoTimeline } from '@/components/progressPhotos';
 import { PhotoCategory, ProgressPhoto } from '@/types/progressPhotos';
+import { Toast, useToast } from '@/components/ui/Toast';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -39,12 +42,15 @@ export function ProgressPhotosScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
+  const { toastState, showError, showSuccess, hideToast } = useToast();
+
   const {
     timeline,
     photos,
     filter,
     loadPhotos,
     setFilter,
+    isLoading,
     isLoaded,
     deletePhoto,
     updatePhoto,
@@ -59,6 +65,7 @@ export function ProgressPhotosScreen() {
     filter: s.filter,
     loadPhotos: s.loadPhotos,
     setFilter: s.setFilter,
+    isLoading: s.isLoading,
     isLoaded: s.isLoaded,
     deletePhoto: s.deletePhoto,
     updatePhoto: s.updatePhoto,
@@ -71,6 +78,7 @@ export function ProgressPhotosScreen() {
 
   const [comparisonMode, setComparisonMode] = useState(false);
   const [viewerPhoto, setViewerPhoto] = useState<ProgressPhoto | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     loadPhotos();
@@ -79,13 +87,18 @@ export function ProgressPhotosScreen() {
   // Reload when screen regains focus (e.g. after capture)
   useFocusEffect(
     useCallback(() => {
-      if (isLoaded) {
-        // Reset to force reload
-        useProgressPhotoStore.setState({ isLoaded: false });
-        loadPhotos();
-      }
+      // Reset loaded flag and reload to pick up new photos
+      useProgressPhotoStore.setState({ isLoaded: false });
+      loadPhotos();
     }, [loadPhotos])
   );
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    useProgressPhotoStore.setState({ isLoaded: false });
+    await loadPhotos();
+    setIsRefreshing(false);
+  }, [loadPhotos]);
 
   const handleFilterChange = (category: FilterCategory) => {
     setFilter({ category });
@@ -151,7 +164,14 @@ export function ProgressPhotosScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => deletePhoto(photoId),
+          onPress: async () => {
+            try {
+              await deletePhoto(photoId);
+              showSuccess('Photo deleted');
+            } catch {
+              showError("Something went wrong. Let's try again.");
+            }
+          },
         },
       ]
     );
@@ -165,8 +185,13 @@ export function ProgressPhotosScreen() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Save',
-          onPress: (text: string | undefined) => {
-            updatePhoto(photo.id, { notes: text || undefined });
+          onPress: async (text: string | undefined) => {
+            try {
+              await updatePhoto(photo.id, { notes: text || undefined });
+              showSuccess('Notes updated');
+            } catch {
+              showError("Something went wrong. Let's try again.");
+            }
           },
         },
       ],
@@ -293,10 +318,22 @@ export function ProgressPhotosScreen() {
       )}
 
       {/* Content */}
+      {isLoading && !isRefreshing && !isLoaded ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
+      ) : (
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.accent}
+          />
+        }
       >
         {hasPhotos ? (
           <PhotoTimeline
@@ -324,6 +361,7 @@ export function ProgressPhotosScreen() {
           </View>
         )}
       </ScrollView>
+      )}
 
       {/* Full-screen image viewer */}
       <Modal
@@ -366,6 +404,8 @@ export function ProgressPhotosScreen() {
           )}
         </View>
       </Modal>
+
+      <Toast {...toastState} onDismiss={hideToast} />
     </SafeAreaView>
   );
 }
@@ -440,6 +480,11 @@ const styles = StyleSheet.create({
   filterChipText: {
     ...typography.body.small,
     fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,

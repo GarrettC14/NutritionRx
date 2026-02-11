@@ -16,6 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { ProgressPhoto, ComparisonType } from '@/types/progressPhotos';
+import { useSettingsStore } from '@/stores';
 
 interface PhotoComparisonProps {
   photo1: ProgressPhoto;
@@ -37,6 +38,8 @@ export function PhotoComparison({
   onClose,
 }: PhotoComparisonProps) {
   const { colors } = useTheme();
+  const weightUnit = useSettingsStore((s) => s.settings.weightUnit);
+  const isLbs = weightUnit === 'lbs';
   const sliderPosition = useSharedValue(0.5);
 
   const formatDate = (date: string): string => {
@@ -78,7 +81,7 @@ export function PhotoComparison({
           resizeMode="cover"
         />
         <View style={[styles.photoLabel, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-          <Text style={styles.labelText}>Before</Text>
+          <Text style={styles.labelText}>Earlier</Text>
           <Text style={styles.labelDate}>{formatDate(photo1.date)}</Text>
         </View>
       </View>
@@ -91,7 +94,7 @@ export function PhotoComparison({
           resizeMode="cover"
         />
         <View style={[styles.photoLabel, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-          <Text style={styles.labelText}>After</Text>
+          <Text style={styles.labelText}>Recent</Text>
           <Text style={styles.labelDate}>{formatDate(photo2.date)}</Text>
         </View>
       </View>
@@ -128,10 +131,10 @@ export function PhotoComparison({
 
         {/* Labels */}
         <View style={[styles.sliderLabel, styles.sliderLabelLeft]}>
-          <Text style={styles.sliderLabelText}>Before</Text>
+          <Text style={styles.sliderLabelText}>Earlier</Text>
         </View>
         <View style={[styles.sliderLabel, styles.sliderLabelRight]}>
-          <Text style={styles.sliderLabelText}>After</Text>
+          <Text style={styles.sliderLabelText}>Recent</Text>
         </View>
       </View>
     </GestureDetector>
@@ -147,8 +150,11 @@ export function PhotoComparison({
           </Text>
           {photo1.weight && photo2.weight && (
             <Text style={[styles.weightChange, { color: colors.textSecondary }]}>
-              {photo2.weight - photo1.weight > 0 ? '+' : ''}
-              {(photo2.weight - photo1.weight).toFixed(1)} kg
+              {(() => {
+                const diffKg = photo2.weight - photo1.weight;
+                const diff = isLbs ? diffKg * 2.20462 : diffKg;
+                return `${diff > 0 ? '+' : ''}${diff.toFixed(1)} ${isLbs ? 'lbs' : 'kg'}`;
+              })()}
             </Text>
           )}
         </View>

@@ -206,14 +206,14 @@ export function ProgressPhotosSummary({
           <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Front</Text>
         </View>
         <View style={styles.stat}>
-          <Ionicons name="person-outline" size={16} color={colors.textTertiary} />
+          <Ionicons name="walk-outline" size={16} color={colors.textTertiary} />
           <Text style={[styles.statValue, { color: colors.textPrimary }]}>
             {stats.photosByCategory.side}
           </Text>
           <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Side</Text>
         </View>
         <View style={styles.stat}>
-          <Ionicons name="person-outline" size={16} color={colors.textTertiary} />
+          <Ionicons name="accessibility-outline" size={16} color={colors.textTertiary} />
           <Text style={[styles.statValue, { color: colors.textPrimary }]}>
             {stats.photosByCategory.back}
           </Text>
