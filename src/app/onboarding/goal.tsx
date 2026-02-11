@@ -1,60 +1,71 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
-import { typography } from '@/constants/typography';
-import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { Button } from '@/components/ui/Button';
+import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { GoalPath } from '@/repositories/onboardingRepository';
+import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
 
-const goalTestIDs: Record<GoalPath, string> = {
-  lose: TestIDs.Onboarding.GoalOptionLose,
-  maintain: TestIDs.Onboarding.GoalOptionMaintain,
-  gain: TestIDs.Onboarding.GoalOptionBuild,
-  track: TestIDs.Onboarding.GoalOptionTrack,
-};
+// ─── Screen order logic ──────────────────────────────────────────
+
+function getScreenOrder(goalPath: string | null): string[] {
+  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
+  if (goalPath === 'lose' || goalPath === 'gain') {
+    return [...base, 'target', 'your-plan'];
+  }
+  return [...base, 'your-plan'];
+}
+
+// ─── Goal options ────────────────────────────────────────────────
 
 interface GoalOption {
   value: GoalPath;
   label: string;
   subtitle: string;
+  testID: string;
 }
 
 const goalOptions: GoalOption[] = [
   {
     value: 'lose',
     label: 'Lose weight',
-    subtitle: 'Track calories to reach goals',
+    subtitle: 'Track calories to reach your goal',
+    testID: TestIDs.Onboarding.GoalOptionLose,
   },
   {
     value: 'maintain',
     label: 'Maintain weight',
     subtitle: 'Keep your nutrition balanced',
+    testID: TestIDs.Onboarding.GoalOptionMaintain,
   },
   {
     value: 'gain',
     label: 'Build muscle',
     subtitle: 'Optimize protein and calories',
+    testID: TestIDs.Onboarding.GoalOptionBuild,
   },
   {
     value: 'track',
     label: 'Just track what I eat',
     subtitle: 'No specific goal in mind',
+    testID: TestIDs.Onboarding.GoalOptionTrack,
   },
 ];
 
-export default function GoalPathScreen() {
-  const { colors } = useTheme();
-  const router = useRouter();
-  const { setGoalPath } = useOnboardingStore();
+// Goals that use the target screen
+const GOALS_WITH_TARGET: GoalPath[] = ['lose', 'gain'];
 
-  // Default to 'track' (no pressure)
-  const [selected, setSelected] = useState<GoalPath>('track');
+// ─── Component ───────────────────────────────────────────────────
+
+export default function GoalPathScreen() {
+  const router = useRouter();
+  const { draft, updateDraft } = useOnboardingStore();
+
+  // Initialize from draft (supports resume)
+  const [selected, setSelected] = useState<GoalPath | null>(draft.goalPath);
 
   const handleSelect = (value: GoalPath) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -62,153 +73,62 @@ export default function GoalPathScreen() {
   };
 
   const handleContinue = () => {
-    setGoalPath(selected);
-    router.push('/onboarding/preferences');
+    if (!selected) return;
+
+    // If the goal changed FROM lose/gain TO maintain/track, clear target fields
+    const previousGoal = draft.goalPath;
+    const hadTarget = previousGoal !== null && GOALS_WITH_TARGET.includes(previousGoal);
+    const needsTarget = GOALS_WITH_TARGET.includes(selected);
+
+    if (hadTarget && !needsTarget) {
+      updateDraft({
+        goalPath: selected,
+        targetWeightKg: null,
+        targetRatePercent: 0,
+        lastCompletedScreen: 'goal',
+      });
+    } else {
+      updateDraft({
+        goalPath: selected,
+        lastCompletedScreen: 'goal',
+      });
+    }
+
+    router.push('/onboarding/about-you');
   };
 
-  const handleBack = () => {
-    router.back();
-  };
+  const totalSteps = getScreenOrder(selected).length;
 
   return (
-    <SafeAreaView testID={TestIDs.Onboarding.GoalScreen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top', 'bottom']}>
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <Pressable testID={TestIDs.Onboarding.GoalBackButton} onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
-        </Pressable>
+    <OnboardingScreen
+      title={"What brings you to\nNutritionRx?"}
+      step={1}
+      totalSteps={totalSteps}
+      onContinue={handleContinue}
+      continueDisabled={selected === null}
+      continueTestID={TestIDs.Onboarding.GoalContinueButton}
+      screenTestID={TestIDs.Onboarding.GoalScreen}
+    >
+      <View style={styles.options}>
+        {goalOptions.map((option) => (
+          <OnboardingRadioCard
+            key={option.value}
+            testID={option.testID}
+            label={option.label}
+            subtitle={option.subtitle}
+            selected={selected === option.value}
+            onPress={() => handleSelect(option.value)}
+          />
+        ))}
       </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Title */}
-        <Text style={[styles.title, { color: colors.textPrimary }]} accessibilityRole="header">
-          What brings you to{'\n'}NutritionRx?
-        </Text>
-
-        {/* Options */}
-        <View style={styles.options}>
-          {goalOptions.map((option) => (
-            <Pressable
-              key={option.value}
-              testID={goalTestIDs[option.value]}
-              style={[
-                styles.optionCard,
-                {
-                  backgroundColor: colors.bgSecondary,
-                  borderColor: selected === option.value ? colors.accent : colors.borderDefault,
-                  borderWidth: selected === option.value ? 2 : 1,
-                },
-              ]}
-              onPress={() => handleSelect(option.value)}
-            >
-              <View style={styles.radioContainer}>
-                <View
-                  style={[
-                    styles.radioOuter,
-                    {
-                      borderColor: selected === option.value ? colors.accent : colors.borderStrong,
-                    },
-                  ]}
-                >
-                  {selected === option.value && (
-                    <View style={[styles.radioInner, { backgroundColor: colors.accent }]} />
-                  )}
-                </View>
-              </View>
-              <View style={styles.optionText}>
-                <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>
-                  {option.label}
-                </Text>
-                <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]}>
-                  {option.subtitle}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          testID={TestIDs.Onboarding.GoalContinueButton}
-          label="Continue"
-          onPress={handleContinue}
-          fullWidth
-        />
-      </View>
-    </SafeAreaView>
+    </OnboardingScreen>
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingTop: spacing[4],
-  },
-  title: {
-    ...typography.display.medium,
-    marginBottom: spacing[6],
-  },
   options: {
     gap: spacing[3],
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing[4],
-    borderRadius: borderRadius.lg,
-  },
-  radioContainer: {
-    marginRight: spacing[3],
-  },
-  radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  optionText: {
-    flex: 1,
-  },
-  optionLabel: {
-    ...typography.body.large,
-    fontWeight: '600',
-    marginBottom: spacing[1],
-  },
-  optionSubtitle: {
-    ...typography.body.medium,
-  },
-  footer: {
-    paddingHorizontal: componentSpacing.screenEdgePadding,
-    paddingBottom: spacing[6],
-    paddingTop: spacing[4],
   },
 });

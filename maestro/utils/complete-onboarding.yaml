@@ -2,6 +2,7 @@ appId: com.nutritionrx.app
 name: Complete Onboarding Utility
 ---
 # Starts from fresh install, ends on Home screen
+# New 8-screen flow: goal → about-you → body-stats → activity → eating-style → protein → target → your-plan
 # Note: LogBox warnings are suppressed via LogBox.ignoreAllLogs() in _layout.tsx
 
 # Dismiss any stale system dialogs (e.g. "Open in NutritionRx?" from deep links)
@@ -41,7 +42,7 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "legal-proceed-button"
 
-# Goal Selection (app goes directly from legal to goal — no welcome screen)
+# Screen 1: Goal Selection
 - extendedWaitUntil:
     visible:
       id: "onboarding-goal-screen"
@@ -53,28 +54,98 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "onboarding-goal-continue-button"
 
-# Preferences
-- assertVisible:
-    id: "onboarding-preferences-screen"
+# Screen 2: About You
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-about-you-screen"
+    timeout: 5000
 
 - tapOn:
-    id: "onboarding-energy-calories"
+    id: "onboarding-sex-male"
 
 - tapOn:
-    id: "onboarding-weight-lbs"
+    id: "onboarding-dob"
+
+# Select a date of birth (will open date picker, confirm default)
+- tapOn:
+    text: "Done"
+    optional: true
 
 - tapOn:
-    id: "onboarding-preferences-continue-button"
+    id: "onboarding-about-you-continue-button"
 
-# Ready Screen
-- assertVisible:
-    id: "onboarding-ready-screen"
+# Screen 3: Body Stats
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-body-stats-screen"
+    timeout: 5000
 
 - tapOn:
-    id: "onboarding-ready-explore-app"
+    id: "onboarding-height"
+- inputText: "70"
+
+- tapOn:
+    id: "onboarding-weight"
+- inputText: "180"
+
+- tapOn:
+    id: "onboarding-body-stats-continue-button"
+
+# Screen 4: Activity Level
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-activity-screen"
+    timeout: 5000
+
+# moderately_active is pre-selected, just continue
+- tapOn:
+    id: "onboarding-activity-continue-button"
+
+# Screen 5: Eating Style
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-eating-style-screen"
+    timeout: 5000
+
+# flexible is pre-selected, just continue
+- tapOn:
+    id: "onboarding-eating-style-continue-button"
+
+# Screen 6: Protein Priority
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-protein-screen"
+    timeout: 5000
+
+# standard is pre-selected, just continue
+- tapOn:
+    id: "onboarding-protein-continue-button"
+
+# Screen 7: Target (shown for 'lose' goal)
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-target-screen"
+    timeout: 5000
+
+- tapOn:
+    id: "onboarding-target-weight"
+- inputText: "160"
+
+# moderate rate is pre-selected, just continue
+- tapOn:
+    id: "onboarding-target-continue-button"
+
+# Screen 8: Your Plan
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-your-plan-screen"
+    timeout: 5000
+
+- tapOn:
+    id: "onboarding-start-tracking"
 
 # Verify Home
 - extendedWaitUntil:
     visible:
       id: "home-screen"
-    timeout: 5000
+    timeout: 10000

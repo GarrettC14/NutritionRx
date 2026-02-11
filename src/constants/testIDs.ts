@@ -33,34 +33,72 @@ export const TestIDs = {
   // Onboarding
   // ===========================================================
   Onboarding: {
-    // Welcome
-    WelcomeScreen: 'onboarding-welcome-screen',
-    BeginButton: 'onboarding-begin-button',
-
-    // Goal
+    // Goal (Screen 1)
     GoalScreen: 'onboarding-goal-screen',
-    GoalBackButton: 'onboarding-goal-back-button',
     GoalOptionLose: 'onboarding-goal-option-lose',
     GoalOptionMaintain: 'onboarding-goal-option-maintain',
     GoalOptionBuild: 'onboarding-goal-option-build',
     GoalOptionTrack: 'onboarding-goal-option-track',
     GoalContinueButton: 'onboarding-goal-continue-button',
 
-    // Preferences
-    PreferencesScreen: 'onboarding-preferences-screen',
-    PreferencesBackButton: 'onboarding-preferences-back-button',
-    EnergyCalories: 'onboarding-energy-calories',
-    EnergyKilojoules: 'onboarding-energy-kilojoules',
-    WeightLbs: 'onboarding-weight-lbs',
-    WeightKg: 'onboarding-weight-kg',
-    PreferencesContinueButton: 'onboarding-preferences-continue-button',
+    // About You (Screen 2)
+    AboutYouScreen: 'onboarding-about-you-screen',
+    AboutYouBackButton: 'onboarding-about-you-back-button',
+    AboutYouContinueButton: 'onboarding-about-you-continue-button',
+    SexMale: 'onboarding-sex-male',
+    SexFemale: 'onboarding-sex-female',
+    DobInput: 'onboarding-dob',
 
-    // Ready
-    ReadyScreen: 'onboarding-ready-screen',
-    ReadyBackButton: 'onboarding-ready-back-button',
-    ReadyScanBarcode: 'onboarding-ready-scan-barcode',
-    ReadySearchFood: 'onboarding-ready-search-food',
-    ReadyExploreApp: 'onboarding-ready-explore-app',
+    // Body Stats (Screen 3)
+    BodyStatsScreen: 'onboarding-body-stats-screen',
+    BodyStatsBackButton: 'onboarding-body-stats-back-button',
+    BodyStatsContinueButton: 'onboarding-body-stats-continue-button',
+    HeightInput: 'onboarding-height',
+    HeightUnitToggle: 'onboarding-height-unit',
+    WeightInput: 'onboarding-weight',
+    WeightUnitToggle: 'onboarding-weight-unit',
+
+    // Activity (Screen 4)
+    ActivityScreen: 'onboarding-activity-screen',
+    ActivityBackButton: 'onboarding-activity-back-button',
+    ActivityContinueButton: 'onboarding-activity-continue-button',
+    ActivitySedentary: 'onboarding-activity-sedentary',
+    ActivityLightly: 'onboarding-activity-lightly',
+    ActivityModerately: 'onboarding-activity-moderately',
+    ActivityVery: 'onboarding-activity-very',
+    ActivityExtremely: 'onboarding-activity-extremely',
+
+    // Eating Style (Screen 5)
+    EatingStyleScreen: 'onboarding-eating-style-screen',
+    EatingStyleBackButton: 'onboarding-eating-style-back-button',
+    EatingStyleContinueButton: 'onboarding-eating-style-continue-button',
+    EatingFlexible: 'onboarding-eating-flexible',
+    EatingCarb: 'onboarding-eating-carb',
+    EatingFat: 'onboarding-eating-fat',
+    EatingLowcarb: 'onboarding-eating-lowcarb',
+
+    // Protein (Screen 6)
+    ProteinScreen: 'onboarding-protein-screen',
+    ProteinBackButton: 'onboarding-protein-back-button',
+    ProteinContinueButton: 'onboarding-protein-continue-button',
+    ProteinStandard: 'onboarding-protein-standard',
+    ProteinActive: 'onboarding-protein-active',
+    ProteinAthletic: 'onboarding-protein-athletic',
+    ProteinMaximum: 'onboarding-protein-maximum',
+
+    // Target (Screen 7, conditional)
+    TargetScreen: 'onboarding-target-screen',
+    TargetBackButton: 'onboarding-target-back-button',
+    TargetContinueButton: 'onboarding-target-continue-button',
+    TargetWeightInput: 'onboarding-target-weight',
+    RateSlow: 'onboarding-rate-slow',
+    RateModerate: 'onboarding-rate-moderate',
+    RateAggressive: 'onboarding-rate-aggressive',
+
+    // Your Plan (Screen 8)
+    YourPlanScreen: 'onboarding-your-plan-screen',
+    YourPlanBackButton: 'onboarding-your-plan-back-button',
+    StartTracking: 'onboarding-start-tracking',
   },
 
   // ===========================================================

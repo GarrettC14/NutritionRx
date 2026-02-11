@@ -15,8 +15,13 @@ export default function OnboardingLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="goal" />
-      <Stack.Screen name="preferences" />
-      <Stack.Screen name="ready" />
+      <Stack.Screen name="about-you" />
+      <Stack.Screen name="body-stats" />
+      <Stack.Screen name="activity" />
+      <Stack.Screen name="eating-style" />
+      <Stack.Screen name="protein" />
+      <Stack.Screen name="target" />
+      <Stack.Screen name="your-plan" />
     </Stack>
   );
 }
