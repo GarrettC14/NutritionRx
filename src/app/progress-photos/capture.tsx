@@ -16,7 +16,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { Paths, copyAsync, getInfoAsync, makeDirectoryAsync } from 'expo-file-system';
+import { Paths, File, Directory } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -28,7 +28,7 @@ import { PhotoCategory } from '@/types/progressPhotos';
 import { Button } from '@/components/ui/Button';
 import { Toast, useToast } from '@/components/ui/Toast';
 
-const PHOTO_DIR = Paths.document.uri + 'progress-photos/';
+const PHOTO_DIR = new Directory(Paths.document, 'progress-photos');
 
 type Step = 'capture' | 'preview' | 'form';
 
@@ -141,34 +141,31 @@ export default function CaptureScreen() {
       }
 
       // Ensure directory exists
-      const dirInfo = await getInfoAsync(PHOTO_DIR);
-      if (!dirInfo.exists) {
-        await makeDirectoryAsync(PHOTO_DIR, { intermediates: true });
+      if (!PHOTO_DIR.exists) {
+        PHOTO_DIR.create();
       }
 
       // Copy image to app directory
       const timestamp = Date.now();
-      const filename = `photo_${timestamp}.jpg`;
-      const destUri = PHOTO_DIR + filename;
-      await copyAsync({ from: capturedUri, to: destUri });
+      const destFile = new File(PHOTO_DIR, `photo_${timestamp}.jpg`);
+      new File(capturedUri).copy(destFile);
 
       // Generate thumbnail
-      const thumbnailFilename = `thumb_${timestamp}.jpg`;
-      const thumbnailUri = PHOTO_DIR + thumbnailFilename;
+      const thumbFile = new File(PHOTO_DIR, `thumb_${timestamp}.jpg`);
       const manipulated = await manipulateAsync(
-        destUri,
+        destFile.uri,
         [{ resize: { width: 200 } }],
         { compress: 0.7, format: SaveFormat.JPEG }
       );
-      await copyAsync({ from: manipulated.uri, to: thumbnailUri });
+      new File(manipulated.uri).copy(thumbFile);
 
       // Save to store — weight stored in kg (canonical unit)
       const today = new Date().toISOString().split('T')[0];
       const weightKg = weightNum && !isNaN(weightNum) ? toKg(weightNum) : undefined;
 
       await addPhoto({
-        localUri: destUri,
-        thumbnailUri,
+        localUri: destFile.uri,
+        thumbnailUri: thumbFile.uri,
         date: today,
         timestamp,
         category,

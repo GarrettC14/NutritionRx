@@ -1,11 +1,9 @@
 import { SQLiteDatabase } from 'expo-sqlite';
-import { Paths } from 'expo-file-system';
+import { Paths, File, Directory } from 'expo-file-system';
 import {
   generateId, daysAgo, nowISO,
   batchInsert,
 } from './helpers';
-
-const PHOTO_DIR = Paths.document.uri + 'progress-photos/';
 
 // ─── Picsum image IDs per category (800×1200 portrait) ─────────
 const SEED_IMAGES: Array<{
@@ -55,35 +53,34 @@ const PHOTO_SCHEDULE: Array<{
 const SEED_ID_PREFIX = 'seed-photo';
 
 /**
- * Downloads an image from picsum.photos and saves it to the app's
+ * Downloads an image via fetch and writes it to the app's
  * progress-photos directory, matching capture.tsx naming convention.
+ * Uses fetch (which follows redirects) instead of File.downloadFileAsync
+ * because picsum.photos uses 302 redirects.
  */
 async function downloadImage(
   picsumId: number,
   timestamp: number,
 ): Promise<{ localUri: string; thumbnailUri: string }> {
-  const { downloadAsync, getInfoAsync, makeDirectoryAsync } = await import('expo-file-system');
-
-  // Ensure directory exists
-  const dirInfo = await getInfoAsync(PHOTO_DIR);
-  if (!dirInfo.exists) {
-    await makeDirectoryAsync(PHOTO_DIR, { intermediates: true });
+  const dir = new Directory(Paths.document, 'progress-photos');
+  if (!dir.exists) {
+    dir.create();
   }
 
-  const filename = `photo_${timestamp}.jpg`;
-  const thumbFilename = `thumb_${timestamp}.jpg`;
-  const localUri = PHOTO_DIR + filename;
-  const thumbnailUri = PHOTO_DIR + thumbFilename;
+  const photoFile = new File(dir, `photo_${timestamp}.jpg`);
+  const thumbFile = new File(dir, `thumb_${timestamp}.jpg`);
 
   // Download full-size image (800×1200 portrait)
-  const fullUrl = `https://picsum.photos/id/${picsumId}/800/1200`;
-  await downloadAsync(fullUrl, localUri);
+  const fullRes = await fetch(`https://picsum.photos/id/${picsumId}/800/1200`);
+  if (!fullRes.ok) throw new Error(`Full image HTTP ${fullRes.status}`);
+  photoFile.write(new Uint8Array(await fullRes.arrayBuffer()));
 
   // Download smaller thumbnail (200×300)
-  const thumbUrl = `https://picsum.photos/id/${picsumId}/200/300`;
-  await downloadAsync(thumbUrl, thumbnailUri);
+  const thumbRes = await fetch(`https://picsum.photos/id/${picsumId}/200/300`);
+  if (!thumbRes.ok) throw new Error(`Thumb HTTP ${thumbRes.status}`);
+  thumbFile.write(new Uint8Array(await thumbRes.arrayBuffer()));
 
-  return { localUri, thumbnailUri };
+  return { localUri: photoFile.uri, thumbnailUri: thumbFile.uri };
 }
 
 export async function seedProgressPhotos(
@@ -182,8 +179,6 @@ export async function clearSeedProgressPhotos(
   db: SQLiteDatabase,
   verbose: boolean = false
 ): Promise<void> {
-  const { deleteAsync } = await import('expo-file-system');
-
   // Find all seeded photo records
   const photos = await db.getAllAsync<{ id: string; local_uri: string; thumbnail_uri: string | null }>(
     `SELECT id, local_uri, thumbnail_uri FROM progress_photos WHERE id LIKE '${SEED_ID_PREFIX}%'`
@@ -192,9 +187,11 @@ export async function clearSeedProgressPhotos(
   // Delete image files
   for (const photo of photos) {
     try {
-      await deleteAsync(photo.local_uri, { idempotent: true });
+      const file = new File(photo.local_uri);
+      if (file.exists) file.delete();
       if (photo.thumbnail_uri) {
-        await deleteAsync(photo.thumbnail_uri, { idempotent: true });
+        const thumb = new File(photo.thumbnail_uri);
+        if (thumb.exists) thumb.delete();
       }
     } catch {
       // File may already be gone

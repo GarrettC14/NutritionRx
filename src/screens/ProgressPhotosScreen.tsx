@@ -7,9 +7,7 @@ import {
   ScrollView,
   Modal,
   Image,
-  ActionSheetIOS,
-  Platform,
-  Alert,
+  TextInput,
   Dimensions,
   ActivityIndicator,
   RefreshControl,
@@ -26,6 +24,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { PhotoTimeline } from '@/components/progressPhotos';
 import { PhotoCategory, ProgressPhoto } from '@/types/progressPhotos';
 import { Toast, useToast } from '@/components/ui/Toast';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -43,6 +42,7 @@ export function ProgressPhotosScreen() {
   const router = useRouter();
 
   const { toastState, showError, showSuccess, hideToast } = useToast();
+  const { showConfirm } = useConfirmDialog();
 
   const {
     timeline,
@@ -79,6 +79,9 @@ export function ProgressPhotosScreen() {
   const [comparisonMode, setComparisonMode] = useState(false);
   const [viewerPhoto, setViewerPhoto] = useState<ProgressPhoto | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [optionsPhoto, setOptionsPhoto] = useState<ProgressPhoto | null>(null);
+  const [editNotesPhoto, setEditNotesPhoto] = useState<ProgressPhoto | null>(null);
+  const [editNotesText, setEditNotesText] = useState('');
 
   useEffect(() => {
     loadPhotos();
@@ -129,75 +132,51 @@ export function ProgressPhotosScreen() {
 
   const handlePhotoLongPress = (photoId: string) => {
     const photo = getPhotoById(photoId);
-    if (!photo) return;
+    if (photo) setOptionsPhoto(photo);
+  };
 
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Delete', 'Edit Notes', 'Cancel'],
-          destructiveButtonIndex: 0,
-          cancelButtonIndex: 2,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 0) {
-            confirmDelete(photoId);
-          } else if (buttonIndex === 1) {
-            promptEditNotes(photo);
-          }
+  const handleDeleteFromOptions = () => {
+    const photoId = optionsPhoto?.id;
+    setOptionsPhoto(null);
+    if (!photoId) return;
+
+    showConfirm({
+      title: 'Delete Photo',
+      message: 'This photo will be permanently deleted.',
+      icon: 'trash-outline',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmStyle: 'destructive',
+      onConfirm: async () => {
+        try {
+          await deletePhoto(photoId);
+          showSuccess('Photo deleted');
+        } catch {
+          showError("Something went wrong. Let's try again.");
         }
-      );
-    } else {
-      Alert.alert('Photo Options', undefined, [
-        { text: 'Delete', style: 'destructive', onPress: () => confirmDelete(photoId) },
-        { text: 'Edit Notes', onPress: () => promptEditNotes(photo) },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
+      },
+    });
+  };
+
+  const handleEditNotesFromOptions = () => {
+    const photo = optionsPhoto;
+    setOptionsPhoto(null);
+    if (!photo) return;
+    setEditNotesText(photo.notes || '');
+    setEditNotesPhoto(photo);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!editNotesPhoto) return;
+    const photoId = editNotesPhoto.id;
+    const text = editNotesText.trim();
+    setEditNotesPhoto(null);
+    try {
+      await updatePhoto(photoId, { notes: text || undefined });
+      showSuccess('Notes updated');
+    } catch {
+      showError("Something went wrong. Let's try again.");
     }
-  };
-
-  const confirmDelete = (photoId: string) => {
-    Alert.alert(
-      'Delete Photo',
-      'This photo will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePhoto(photoId);
-              showSuccess('Photo deleted');
-            } catch {
-              showError("Something went wrong. Let's try again.");
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const promptEditNotes = (photo: ProgressPhoto) => {
-    Alert.prompt(
-      'Edit Notes',
-      'Update the notes for this photo',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Save',
-          onPress: async (text: string | undefined) => {
-            try {
-              await updatePhoto(photo.id, { notes: text || undefined });
-              showSuccess('Notes updated');
-            } catch {
-              showError("Something went wrong. Let's try again.");
-            }
-          },
-        },
-      ],
-      'plain-text',
-      photo.notes || ''
-    );
   };
 
   const handleCompareToggle = () => {
@@ -405,6 +384,111 @@ export function ProgressPhotosScreen() {
         </View>
       </Modal>
 
+      {/* Photo options sheet */}
+      <Modal
+        visible={optionsPhoto !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOptionsPhoto(null)}
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={styles.dialogOverlayPress} onPress={() => setOptionsPhoto(null)}>
+            <View style={[styles.dialogCard, { backgroundColor: colors.bgElevated }]}>
+              <Pressable onPress={(e) => e.stopPropagation()}>
+                <View style={styles.dialogIconContainer}>
+                  <Ionicons name="ellipsis-horizontal-circle" size={40} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.dialogTitle, { color: colors.textPrimary }]}>
+                  Photo Options
+                </Text>
+
+                <View style={styles.dialogActions}>
+                  <Pressable
+                    style={[styles.dialogActionButton, { backgroundColor: colors.error }]}
+                    onPress={handleDeleteFromOptions}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                    <Text style={[styles.dialogActionText, { color: '#FFFFFF' }]}>Delete</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.dialogActionButton, { backgroundColor: colors.accent }]}
+                    onPress={handleEditNotesFromOptions}
+                  >
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Text style={[styles.dialogActionText, { color: '#FFFFFF' }]}>Edit Notes</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.dialogActionButton, { backgroundColor: colors.bgInteractive }]}
+                    onPress={() => setOptionsPhoto(null)}
+                  >
+                    <Text style={[styles.dialogActionText, { color: colors.textPrimary }]}>Cancel</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            </View>
+          </Pressable>
+        </View>
+      </Modal>
+
+      {/* Edit notes modal */}
+      <Modal
+        visible={editNotesPhoto !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditNotesPhoto(null)}
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={styles.dialogOverlayPress} onPress={() => setEditNotesPhoto(null)}>
+            <View style={[styles.dialogCard, { backgroundColor: colors.bgElevated }]}>
+              <Pressable onPress={(e) => e.stopPropagation()}>
+                <View style={styles.dialogIconContainer}>
+                  <Ionicons name="create-outline" size={40} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.dialogTitle, { color: colors.textPrimary }]}>
+                  Edit Notes
+                </Text>
+                <Text style={[styles.dialogMessage, { color: colors.textSecondary }]}>
+                  Update the notes for this photo
+                </Text>
+
+                <TextInput
+                  style={[
+                    styles.dialogInput,
+                    {
+                      backgroundColor: colors.bgSecondary,
+                      color: colors.textPrimary,
+                      borderColor: colors.borderDefault,
+                    },
+                  ]}
+                  value={editNotesText}
+                  onChangeText={setEditNotesText}
+                  placeholder="Add a note..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                  numberOfLines={3}
+                  autoFocus
+                />
+
+                <View style={styles.dialogButtonRow}>
+                  <Pressable
+                    style={[styles.dialogRowButton, { backgroundColor: colors.bgInteractive }]}
+                    onPress={() => setEditNotesPhoto(null)}
+                  >
+                    <Text style={[styles.dialogActionText, { color: colors.textPrimary }]}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.dialogRowButton, { backgroundColor: colors.accent }]}
+                    onPress={handleSaveNotes}
+                  >
+                    <Text style={[styles.dialogActionText, { color: '#FFFFFF' }]}>Save</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            </View>
+          </Pressable>
+        </View>
+      </Modal>
+
       <Toast {...toastState} onDismiss={hideToast} />
     </SafeAreaView>
   );
@@ -560,5 +644,73 @@ const styles = StyleSheet.create({
   viewerNotes: {
     color: 'rgba(255,255,255,0.7)',
     ...typography.body.small,
+  },
+  // Themed dialog styles (matches ConfirmDialog)
+  dialogOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  dialogOverlayPress: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dialogCard: {
+    width: '85%',
+    maxWidth: 340,
+    borderRadius: borderRadius.xl,
+    padding: spacing[6],
+  },
+  dialogIconContainer: {
+    alignItems: 'center',
+    marginBottom: spacing[4],
+  },
+  dialogTitle: {
+    ...typography.title.medium,
+    textAlign: 'center',
+    marginBottom: spacing[3],
+  },
+  dialogMessage: {
+    ...typography.body.medium,
+    textAlign: 'center',
+    marginBottom: spacing[5],
+    lineHeight: 22,
+  },
+  dialogActions: {
+    gap: spacing[2],
+  },
+  dialogActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+  },
+  dialogActionText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  dialogInput: {
+    ...typography.body.medium,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing[3],
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: spacing[5],
+  },
+  dialogButtonRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+  },
+  dialogRowButton: {
+    flex: 1,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
   },
 });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { getDatabase } from '@/db/database';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 import {
   ProgressPhoto,
   PhotoCategory,
@@ -342,9 +342,11 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
       if (photo) {
         // Delete the actual file
         try {
-          await FileSystem.deleteAsync(photo.localUri, { idempotent: true });
+          const file = new File(photo.localUri);
+          if (file.exists) file.delete();
           if (photo.thumbnailUri) {
-            await FileSystem.deleteAsync(photo.thumbnailUri, { idempotent: true });
+            const thumb = new File(photo.thumbnailUri);
+            if (thumb.exists) thumb.delete();
           }
         } catch {
           // File might not exist, continue anyway
@@ -378,9 +380,11 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
       // Delete all files
       for (const photo of photos) {
         try {
-          await FileSystem.deleteAsync(photo.localUri, { idempotent: true });
+          const file = new File(photo.localUri);
+          if (file.exists) file.delete();
           if (photo.thumbnailUri) {
-            await FileSystem.deleteAsync(photo.thumbnailUri, { idempotent: true });
+            const thumb = new File(photo.thumbnailUri);
+            if (thumb.exists) thumb.delete();
           }
         } catch {
           // Continue even if file deletion fails
