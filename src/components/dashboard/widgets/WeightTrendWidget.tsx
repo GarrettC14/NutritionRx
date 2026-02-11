@@ -1,19 +1,21 @@
 /**
  * Weight Trend Widget — Dashboard wrapper
  *
- * Thin wrapper around WeightTrendChart that handles:
+ * Thin wrapper around WeightTrendChartMinimal that handles:
  * - Header with navigation to /log-weight
  * - Data loading (loadEntries)
  * - Config migration & persistence (chartWindowDays)
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
-import { useWeightStore, useGoalStore, useDashboardStore } from '@/stores';
+import { useWeightStore, useGoalStore, useDashboardStore, useSettingsStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
-import { WeightTrendChart } from '@/components/charts';
+import { WeightTrendChartMinimal } from '@/components/charts';
+import { chartColors as allChartColors } from '@/constants/colors';
+import { WeightTrendChartPalette } from '@/types/weightTrend';
 
 const CHART_HEIGHT = 120;
 
@@ -33,16 +35,38 @@ function readChartWindowDays(config?: Record<string, any>): number {
 
 export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, colorScheme } = useTheme();
   const { entries, loadEntries } = useWeightStore();
   const { targetWeight } = useGoalStore();
   const updateWidgetConfig = useDashboardStore((s) => s.updateWidgetConfig);
+  const { settings } = useSettingsStore();
+  const unit = settings?.weightUnit === 'lbs' ? 'lbs' : 'kg';
+  const chartThemeColors = allChartColors[colorScheme];
 
   const widgetId = useDashboardStore((s) =>
     s.widgets.find((w) => w.type === 'weight_trend')?.id
   );
 
   const initialWindowDays = readChartWindowDays(config);
+
+  const palette = useMemo<Partial<WeightTrendChartPalette>>(() => ({
+    background: colors.bgSecondary,
+    text: colors.textPrimary,
+    mutedText: colors.textTertiary,
+    grid: colors.borderDefault,
+    rawWeight: chartThemeColors.rawWeight,
+    trendLine: chartThemeColors.trendLine,
+    pointFill: colors.bgElevated,
+    pointStroke: chartThemeColors.trendLine,
+    tooltipBg: colors.bgElevated,
+    tooltipBorder: colors.borderDefault,
+    positiveChange: colors.success,
+    neutralChange: colors.textSecondary,
+    presetActiveBg: colors.bgInteractive,
+    presetActiveText: colors.textPrimary,
+    presetInactiveText: colors.textTertiary,
+    presetDisabledText: colors.textDisabled,
+  }), [colors, chartThemeColors]);
 
   useEffect(() => {
     loadEntries(500);
@@ -74,13 +98,15 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
         </View>
       </TouchableOpacity>
 
-      <WeightTrendChart
+      <WeightTrendChartMinimal
         entries={entries}
+        unit={unit}
         chartHeight={CHART_HEIGHT}
         initialWindowDays={initialWindowDays}
         onWindowDaysChange={handleWindowDaysChange}
         targetWeightKg={targetWeight}
-        gesturesDisabled={isEditMode}
+        gesturesEnabled={!isEditMode}
+        palette={palette}
       />
     </View>
   );
@@ -89,7 +115,7 @@ export function WeightTrendWidget({ config, isEditMode }: WidgetProps) {
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 16,
       padding: 18,
       borderWidth: 1,

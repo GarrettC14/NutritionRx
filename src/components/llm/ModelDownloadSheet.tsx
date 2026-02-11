@@ -96,7 +96,7 @@ export function ModelDownloadSheet({ visible, onDismiss, onComplete }: ModelDown
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={sheetState === 'downloading' ? undefined : onDismiss}
     >
       <Pressable

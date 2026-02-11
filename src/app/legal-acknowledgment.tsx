@@ -26,6 +26,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { DisclaimerCard } from '@/features/legal/components/DisclaimerCard';
 import { NUTRITION_DISCLAIMER_CONTENT } from '@/features/legal/content/nutritionrx';
 import { useLegalAcknowledgment } from '@/features/legal/hooks/useLegalAcknowledgment';
+import { useOnboardingStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 
 export default function LegalAcknowledgmentScreen() {
@@ -97,14 +98,15 @@ export default function LegalAcknowledgmentScreen() {
   };
 
   const handleProceed = async () => {
-    console.log(`[Legal] Proceed pressed: canProceed=${canProceed} isSubmitting=${isSubmitting}`);
     if (!canProceed || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       await acknowledge();
-      // Navigation will update automatically via the app index redirect logic
-      router.replace('/');
+      // Navigate directly to the right destination instead of going through
+      // root index (which may not remount properly after Fresh Session).
+      const onboardingComplete = useOnboardingStore.getState().isComplete;
+      router.replace(onboardingComplete ? '/(tabs)' : '/onboarding');
     } catch (error) {
       console.error('Failed to acknowledge:', error);
       setIsSubmitting(false);

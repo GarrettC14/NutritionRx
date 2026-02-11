@@ -677,7 +677,7 @@ export default function AIPhotoScreen() {
         <Modal
           visible={editModalVisible}
           transparent
-          animationType="slide"
+          animationType="none"
           onRequestClose={() => setEditModalVisible(false)}
         >
           <Pressable

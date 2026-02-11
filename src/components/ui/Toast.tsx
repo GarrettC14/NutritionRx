@@ -13,7 +13,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Animated,
   Dimensions,
   AccessibilityInfo,
 } from 'react-native';
@@ -56,8 +55,6 @@ export function Toast({
   onDismiss,
 }: ToastProps) {
   const { colors } = useTheme();
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-20)).current;
   const dismissTimer = useRef<NodeJS.Timeout | null>(null);
 
   const getToastConfig = (toastType: ToastType): ToastConfig => {
@@ -82,24 +79,9 @@ export function Toast({
       // Announce toast title for screen readers
       AccessibilityInfo.announceForAccessibility(title);
 
-      // Animate in
-      Animated.parallel([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: ANIMATION_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.spring(translateY, {
-          toValue: 0,
-          friction: 8,
-          tension: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
       // Set dismiss timer
       dismissTimer.current = setTimeout(() => {
-        animateOut();
+        onDismiss?.();
       }, TOAST_DURATION);
     }
 
@@ -110,36 +92,17 @@ export function Toast({
     };
   }, [visible]);
 
-  const animateOut = () => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: -20,
-        duration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onDismiss?.();
-    });
-  };
-
   if (!visible) {
     return null;
   }
 
   return (
     <View style={styles.container} pointerEvents="none">
-      <Animated.View
+      <View
         style={[
           styles.toast,
           {
             backgroundColor: colors.bgSecondary,
-            opacity,
-            transform: [{ translateY }],
           },
         ]}
       >
@@ -154,7 +117,7 @@ export function Toast({
             </Text>
           )}
         </View>
-      </Animated.View>
+      </View>
     </View>
   );
 }

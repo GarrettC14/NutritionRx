@@ -1,60 +1,14 @@
 import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-  runOnJS,
-  useReducedMotion,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useTooltipContext, TooltipAction } from '@/contexts/TooltipContext';
 import { TestIDs } from '@/constants/testIDs';
 
-const SPRING_CONFIG = {
-  damping: 15,
-  stiffness: 150,
-};
-
 export function TooltipModal() {
   const { colors } = useTheme();
-  const reducedMotion = useReducedMotion();
   const { activeTooltip, hideTooltip } = useTooltipContext();
-
-  const translateY = useSharedValue(300);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (activeTooltip) {
-      if (reducedMotion) {
-        opacity.value = 1;
-        translateY.value = 0;
-      } else {
-        opacity.value = withTiming(1, { duration: 200 });
-        translateY.value = withSpring(0, SPRING_CONFIG);
-      }
-    } else {
-      if (reducedMotion) {
-        opacity.value = 0;
-        translateY.value = 300;
-      } else {
-        opacity.value = withTiming(0, { duration: 150 });
-        translateY.value = withTiming(300, { duration: 150 });
-      }
-    }
-  }, [activeTooltip]);
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
 
   const handleAction = (action: TooltipAction) => {
     hideTooltip();
@@ -84,12 +38,11 @@ export function TooltipModal() {
       animationType="none"
       onRequestClose={handleDefaultDismiss}
     >
-      <Animated.View style={[styles.overlay, overlayStyle]}>
+      <View style={styles.overlay}>
         <Pressable testID={TestIDs.UI.TooltipDismiss} style={styles.overlayPress} onPress={handleDefaultDismiss} accessibilityRole="button" accessibilityLabel="Dismiss tooltip">
-          <Animated.View
+          <View
             style={[
               styles.card,
-              cardStyle,
               {
                 backgroundColor: colors.bgElevated,
               },
@@ -138,9 +91,9 @@ export function TooltipModal() {
                 ))}
               </View>
             </Pressable>
-          </Animated.View>
+          </View>
         </Pressable>
-      </Animated.View>
+      </View>
     </Modal>
   );
 }

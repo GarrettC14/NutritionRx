@@ -103,6 +103,18 @@ export default function TargetScreen() {
     return formatEta(currentWeightKg, targetWeightKg, selectedRate);
   }, [currentWeightKg, targetWeightKg, selectedRate]);
 
+  // Directional validation: warn if target weight contradicts goal type
+  const directionalWarning = useMemo(() => {
+    if (!targetWeightKg) return null;
+    if (isLose && targetWeightKg >= currentWeightKg) {
+      return 'Your target weight is higher than your current weight. Did you mean to gain?';
+    }
+    if (!isLose && targetWeightKg <= currentWeightKg) {
+      return 'Your target weight is lower than your current weight. Did you mean to lose?';
+    }
+    return null;
+  }, [targetWeightKg, isLose, currentWeightKg]);
+
   // Validation
   const validate = (): boolean => {
     if (!targetWeightText) {
@@ -125,12 +137,11 @@ export default function TargetScreen() {
     }
 
     if (isLose && weightKg >= currentWeightKg) {
-      setValidationMessage('For a weight loss goal, target should be below your current weight.');
+      setValidationMessage('Your target weight is higher than your current weight. Did you mean to gain?');
       return false;
     }
-
     if (!isLose && weightKg <= currentWeightKg) {
-      setValidationMessage('For a weight gain goal, target should be above your current weight.');
+      setValidationMessage('Your target weight is lower than your current weight. Did you mean to lose?');
       return false;
     }
 
@@ -199,6 +210,11 @@ export default function TargetScreen() {
         {validationMessage && (
           <Text style={[styles.validationText, { color: colors.textSecondary }]}>
             {validationMessage}
+          </Text>
+        )}
+        {!validationMessage && directionalWarning && (
+          <Text style={[styles.validationText, { color: colors.warning }]}>
+            {directionalWarning}
           </Text>
         )}
       </View>

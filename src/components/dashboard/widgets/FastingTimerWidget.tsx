@@ -338,7 +338,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,

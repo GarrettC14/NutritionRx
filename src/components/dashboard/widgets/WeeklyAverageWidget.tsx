@@ -102,7 +102,7 @@ const createStyles = (colors: any) =>
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,

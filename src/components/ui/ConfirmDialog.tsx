@@ -56,7 +56,7 @@ export function ConfirmDialog({ visible, config, onDismiss }: ConfirmDialogProps
       testID={TestIDs.UI.ConfirmDialog}
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={handleCancel}
     >
       <View style={styles.overlay}>

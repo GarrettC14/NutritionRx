@@ -170,7 +170,7 @@ export function MealIdeasWidget({ config, isEditMode }: WidgetProps) {
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,
@@ -218,7 +218,7 @@ const createStyles = (colors: any) =>
       width: 44,
       height: 44,
       borderRadius: 12,
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 12,

@@ -438,7 +438,7 @@ export default function MealPlanningScreen() {
       <Modal
         visible={showDayMenu && selectedDate !== null}
         transparent
-        animationType="slide"
+        animationType="none"
         onRequestClose={() => setShowDayMenu(false)}
       >
         <Pressable

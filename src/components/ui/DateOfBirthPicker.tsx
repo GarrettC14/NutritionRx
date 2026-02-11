@@ -181,7 +181,7 @@ export function DateOfBirthPicker({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -417,7 +417,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   dayText: {
-    ...typography.body.small,
+    fontSize: 13,
     fontWeight: '500',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
 });

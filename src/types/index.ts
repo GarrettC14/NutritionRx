@@ -19,3 +19,4 @@ export * from './restaurant';
 export * from './ai-photo';
 export * from './micronutrients';
 export * from './progressPhotos';
+export * from './weightTrend';

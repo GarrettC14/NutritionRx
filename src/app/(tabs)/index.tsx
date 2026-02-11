@@ -10,7 +10,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
-import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useOnboardingStore, useReflectionStore } from '@/stores';
+import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useReflectionStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { useProgressiveTooltips } from '@/hooks/useProgressiveTooltips';
@@ -19,7 +19,7 @@ import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
 import { WidgetRenderer } from '@/components/dashboard/WidgetRenderer';
 import { WidgetPickerModal } from '@/components/dashboard/WidgetPickerModal';
-import { FirstFoodCelebration } from '@/components/onboarding/FirstFoodCelebration';
+
 import { ReflectionBanner } from '@/components/reflection/ReflectionBanner';
 import { ReflectionModal } from '@/components/reflection/ReflectionModal';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
@@ -71,7 +71,7 @@ export default function TodayScreen() {
     loadSettings: s.loadSettings,
     isLoaded: s.isLoaded,
   })));
-  const firstFoodLoggedAt = useOnboardingStore((s) => s.firstFoodLoggedAt);
+
   const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore(useShallow((s) => ({
     loadTodayWater: s.loadTodayWater,
     loadWaterSettings: s.loadWaterSettings,
@@ -130,7 +130,7 @@ export default function TodayScreen() {
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
   const [showWidgetPicker, setShowWidgetPicker] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
+
   const [showReflectionModal, setShowReflectionModal] = useState(false);
   const [listKey, setListKey] = useState(0);
 
@@ -156,15 +156,6 @@ export default function TodayScreen() {
     initializeReflection();
   }, []);
 
-  // Show first food celebration when firstFoodLoggedAt transitions to a recent value
-  useEffect(() => {
-    if (firstFoodLoggedAt) {
-      const ageMs = Date.now() - new Date(firstFoodLoggedAt).getTime();
-      if (ageMs < 5000) {
-        setShowCelebration(true);
-      }
-    }
-  }, [firstFoodLoggedAt]);
 
   // Date navigation
   const navigateDate = useCallback((direction: 'prev' | 'next') => {
@@ -556,7 +547,7 @@ export default function TodayScreen() {
         <Modal
           visible={showDayMenu}
           transparent
-          animationType="fade"
+          animationType="none"
           onRequestClose={() => setShowDayMenu(false)}
         >
           <Pressable
@@ -589,12 +580,6 @@ export default function TodayScreen() {
           </Pressable>
         </Modal>
 
-        {/* First Food Celebration */}
-        <FirstFoodCelebration
-          visible={showCelebration}
-          onDismiss={() => setShowCelebration(false)}
-          caloriesLogged={dailyTotals.calories}
-        />
 
         {/* Reflection Modal */}
         <ReflectionModal

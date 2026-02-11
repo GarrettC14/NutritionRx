@@ -57,9 +57,7 @@ export function PhotoThumbnail({
     <Pressable
       style={[
         styles.container,
-        { width: dimension },
-        isSelected && styles.selectedContainer,
-        isSelected && { borderColor: colors.accent },
+        { width: dimension, borderColor: isSelected ? colors.accent : 'transparent' },
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
@@ -76,23 +74,19 @@ export function PhotoThumbnail({
         resizeMode="cover"
       />
 
-      {/* Selection indicator */}
-      {isSelected && (
-        <View style={[styles.selectionBadge, { backgroundColor: colors.accent }]}>
-          {selectionNumber !== undefined ? (
-            <Text style={styles.selectionNumber}>{selectionNumber}</Text>
-          ) : (
-            <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-          )}
-        </View>
-      )}
-
-      {/* Private indicator */}
-      {photo.isPrivate && (
-        <View style={[styles.privateBadge, { backgroundColor: colors.bgPrimary }]}>
-          <Ionicons name="lock-closed" size={12} color={colors.textSecondary} />
-        </View>
-      )}
+      {/* Selection badge — always rendered, visibility toggled via opacity */}
+      <View
+        style={[
+          styles.selectionBadge,
+          { backgroundColor: colors.accent, opacity: isSelected ? 1 : 0 },
+        ]}
+      >
+        {selectionNumber !== undefined ? (
+          <Text style={styles.selectionNumber}>{selectionNumber}</Text>
+        ) : (
+          <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+        )}
+      </View>
 
       {/* Category label */}
       {showCategory && (
@@ -116,8 +110,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     overflow: 'hidden',
     position: 'relative',
-  },
-  selectedContainer: {
     borderWidth: 3,
   },
   image: {
@@ -137,17 +129,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-  },
-  privateBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    opacity: 0.9,
   },
   categoryBadge: {
     position: 'absolute',

@@ -12,7 +12,6 @@ import { NutrientStatus } from '@/types/micronutrients';
 import { NutrientDefinition } from '@/types/micronutrients';
 import { useStatusColors } from '@/hooks/useStatusColor';
 import { STATUS_DISPLAY_LABELS } from '@/constants/statusDisplay';
-import { contrastTextColor } from '@/utils/colorUtils';
 
 interface NutrientBarProps {
   nutrient: NutrientDefinition;
@@ -38,7 +37,6 @@ export function NutrientBar({
 
   const statusColor = getStatusColor(status);
   const barWidth = Math.min(percentOfTarget, 100);
-  const showOverflow = percentOfTarget > 100;
 
   const formatAmount = (value: number, unit: string): string => {
     if (unit === 'mcg') {
@@ -103,14 +101,6 @@ export function NutrientBar({
         {/* Target marker at 100% */}
         <View style={[styles.targetMarker, { backgroundColor: colors.textTertiary }]} />
 
-        {/* Overflow indicator */}
-        {showOverflow && (
-          <View style={[styles.overflowIndicator, { backgroundColor: statusColor }]}>
-            <Text style={[styles.overflowText, { color: contrastTextColor(statusColor) }]}>
-              {Math.round(percentOfTarget)}%
-            </Text>
-          </View>
-        )}
       </View>
 
       {/* Percentage and status */}
@@ -220,19 +210,6 @@ const styles = StyleSheet.create({
     width: 2,
     height: '100%',
     opacity: 0.5,
-  },
-  overflowIndicator: {
-    position: 'absolute',
-    right: 4,
-    top: -2,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-  },
-  overflowText: {
-    ...typography.caption,
-    fontSize: 9,
-    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',

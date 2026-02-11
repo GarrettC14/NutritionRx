@@ -140,7 +140,7 @@ export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 16,
       padding: 18,
       borderWidth: 1,

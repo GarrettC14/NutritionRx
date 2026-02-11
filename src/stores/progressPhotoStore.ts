@@ -38,6 +38,7 @@ interface ProgressPhotoState {
 
   // Actions
   loadPhotos: () => Promise<void>;
+  reloadPhotos: () => Promise<void>;
   addPhoto: (photo: Omit<ProgressPhoto, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
   updatePhoto: (id: string, updates: Partial<ProgressPhoto>) => Promise<void>;
   deletePhoto: (id: string) => Promise<void>;
@@ -234,6 +235,57 @@ export const useProgressPhotoStore = create<ProgressPhotoState>((set, get) => ({
         isLoading: false,
         isLoaded: true,
       });
+    }
+  },
+
+  reloadPhotos: async () => {
+    // Force reload without resetting isLoaded — keeps existing data visible
+    // while refreshing, preventing skeleton flash on back navigation.
+    try {
+      const db = getDatabase();
+
+      const rows = await db.getAllAsync<{
+        id: string;
+        local_uri: string;
+        thumbnail_uri: string | null;
+        date: string;
+        timestamp: number;
+        category: string;
+        notes: string | null;
+        weight_kg: number | null;
+        is_private: number;
+        created_at: string;
+        updated_at: string;
+      }>(`
+        SELECT id, local_uri, thumbnail_uri, date, timestamp, category,
+               notes, weight_kg, is_private, created_at, updated_at
+        FROM progress_photos
+        ORDER BY timestamp DESC
+      `);
+
+      const photos: ProgressPhoto[] = rows.map(row => ({
+        id: row.id,
+        localUri: row.local_uri,
+        thumbnailUri: row.thumbnail_uri ?? undefined,
+        date: row.date,
+        timestamp: row.timestamp,
+        category: row.category as PhotoCategory,
+        notes: row.notes ?? undefined,
+        weight: row.weight_kg ?? undefined,
+        isPrivate: row.is_private === 1,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      const { filter } = get();
+
+      set({
+        photos,
+        ...derivedState(photos, filter),
+        isLoaded: true,
+      });
+    } catch (error) {
+      if (__DEV__) console.warn('[ProgressPhotos] reloadPhotos failed:', error);
     }
   },
 

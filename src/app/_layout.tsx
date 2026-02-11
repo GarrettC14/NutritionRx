@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, LogBox } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, LogBox, useColorScheme } from 'react-native';
 
 // Suppress on-screen LogBox bars so they don't intercept Maestro E2E taps.
 // Warnings still appear in Metro console / logcat.
@@ -22,12 +22,17 @@ import { TooltipProvider } from '@/contexts/TooltipContext';
 import { TooltipModal } from '@/components/ui/TooltipModal';
 import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { useTheme } from '@/hooks/useTheme';
-import { colors as themeColors } from '@/constants/colors';
 import { REVENUECAT_CONFIG } from '@/config/revenuecat';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
-// Default background to prevent white flash (dark mode is default)
-const DEFAULT_BG = themeColors.dark.bgPrimary;
+function ThemedBackground({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
+      {children}
+    </View>
+  );
+}
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
@@ -161,6 +166,8 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
+  const systemScheme = useColorScheme();
+  const initBg = systemScheme === 'light' ? '#FFFFFF' : '#0D1117';
   const [dbReady, setDbReady] = useState(false);
   const [purchasesReady, setPurchasesReady] = useState(false);
   const initializeSubscription = useSubscriptionStore((state) => state.initialize);
@@ -200,26 +207,28 @@ export default function RootLayout() {
   // Wait for database and purchases before rendering routes
   if (!dbReady || !purchasesReady) {
     return (
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0D1117' }}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#58a6ff" />
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: initBg }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: initBg }}>
+          <ActivityIndicator size="large" color={systemScheme === 'light' ? '#0969DA' : '#58a6ff'} />
         </View>
       </GestureHandlerRootView>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: DEFAULT_BG }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <BottomSheetModalProvider>
-            <TooltipProvider>
-              <ConfirmDialogProvider>
-                <RootLayoutContent />
-                <TooltipModal />
-              </ConfirmDialogProvider>
-            </TooltipProvider>
-          </BottomSheetModalProvider>
+          <ThemedBackground>
+            <BottomSheetModalProvider>
+              <TooltipProvider>
+                <ConfirmDialogProvider>
+                  <RootLayoutContent />
+                  <TooltipModal />
+                </ConfirmDialogProvider>
+              </TooltipProvider>
+            </BottomSheetModalProvider>
+          </ThemedBackground>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

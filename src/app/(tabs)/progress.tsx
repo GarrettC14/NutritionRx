@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -11,7 +11,9 @@ import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPho
 import { useShallow } from 'zustand/react/shallow';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { logEntryRepository, weightRepository } from '@/repositories';
-import { WeightTrendChart, CalorieChart, MacroChart } from '@/components/charts';
+import { WeightTrendChartMinimal, CalorieChart, MacroChart } from '@/components/charts';
+import { chartColors as allChartColors } from '@/constants/colors';
+import { WeightTrendChartPalette } from '@/types/weightTrend';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
 import { MicronutrientSummary } from '@/components/micronutrients';
@@ -117,7 +119,7 @@ const fillMissingDates = (
 };
 
 export default function ProgressScreen() {
-  const { colors } = useTheme();
+  const { colors, colorScheme } = useTheme();
   const router = useRouter();
   const { entries: weightEntries, loadEntries: loadWeightEntries, loadEarliestDate } = useWeightStore(useShallow((s) => ({
     entries: s.entries,
@@ -131,6 +133,28 @@ export default function ProgressScreen() {
   })));
   const { calories: resolvedCalorieGoal } = useResolvedTargets();
   const { isPremium } = usePremium();
+
+  const chartThemeColors = allChartColors[colorScheme];
+  const weightUnit = settings?.weightUnit === 'lbs' ? 'lbs' : 'kg';
+
+  const weightChartPalette = useMemo<Partial<WeightTrendChartPalette>>(() => ({
+    background: colors.bgSecondary,
+    text: colors.textPrimary,
+    mutedText: colors.textTertiary,
+    grid: colors.borderDefault,
+    rawWeight: chartThemeColors.rawWeight,
+    trendLine: chartThemeColors.trendLine,
+    pointFill: colors.bgElevated,
+    pointStroke: chartThemeColors.trendLine,
+    tooltipBg: colors.bgElevated,
+    tooltipBorder: colors.borderDefault,
+    positiveChange: colors.success,
+    neutralChange: colors.textSecondary,
+    presetActiveBg: colors.bgInteractive,
+    presetActiveText: colors.textPrimary,
+    presetInactiveText: colors.textTertiary,
+    presetDisabledText: colors.textDisabled,
+  }), [colors, chartThemeColors]);
 
   // Micronutrient store
   const {
@@ -434,9 +458,11 @@ export default function ProgressScreen() {
           </View>
 
           <View testID={TestIDs.Progress.WeightChart}>
-            <WeightTrendChart
+            <WeightTrendChartMinimal
               entries={weightEntries}
+              unit={weightUnit}
               chartHeight={200}
+              palette={weightChartPalette}
             />
           </View>
         </View>

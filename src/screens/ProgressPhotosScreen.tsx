@@ -49,6 +49,7 @@ export function ProgressPhotosScreen() {
     photos,
     filter,
     loadPhotos,
+    reloadPhotos,
     setFilter,
     isLoading,
     isLoaded,
@@ -64,6 +65,7 @@ export function ProgressPhotosScreen() {
     photos: s.photos,
     filter: s.filter,
     loadPhotos: s.loadPhotos,
+    reloadPhotos: s.reloadPhotos,
     setFilter: s.setFilter,
     isLoading: s.isLoading,
     isLoaded: s.isLoaded,
@@ -88,20 +90,18 @@ export function ProgressPhotosScreen() {
   }, [loadPhotos]);
 
   // Reload when screen regains focus (e.g. after capture)
+  // Uses reloadPhotos to keep existing data visible (no isLoaded toggle)
   useFocusEffect(
     useCallback(() => {
-      // Reset loaded flag and reload to pick up new photos
-      useProgressPhotoStore.setState({ isLoaded: false });
-      loadPhotos();
-    }, [loadPhotos])
+      reloadPhotos();
+    }, [reloadPhotos])
   );
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    useProgressPhotoStore.setState({ isLoaded: false });
-    await loadPhotos();
+    await reloadPhotos();
     setIsRefreshing(false);
-  }, [loadPhotos]);
+  }, [reloadPhotos]);
 
   const handleFilterChange = (category: FilterCategory) => {
     setFilter({ category });
@@ -109,15 +109,22 @@ export function ProgressPhotosScreen() {
 
   const handlePhotoPress = (photoId: string) => {
     if (comparisonMode) {
-      // In comparison mode, select photos for comparison
+      // Deselect: tap photo 1 → promote photo 2 into slot 1
+      if (photoId === comparisonPhoto1Id) {
+        setComparisonPhoto1(comparisonPhoto2Id);
+        setComparisonPhoto2(null);
+        return;
+      }
+      // Deselect: tap photo 2 → clear slot 2
+      if (photoId === comparisonPhoto2Id) {
+        setComparisonPhoto2(null);
+        return;
+      }
+      // Select into next empty slot
       if (!comparisonPhoto1Id) {
         setComparisonPhoto1(photoId);
-      } else if (!comparisonPhoto2Id && photoId !== comparisonPhoto1Id) {
+      } else if (!comparisonPhoto2Id) {
         setComparisonPhoto2(photoId);
-      } else if (photoId === comparisonPhoto1Id) {
-        setComparisonPhoto1(null);
-      } else if (photoId === comparisonPhoto2Id) {
-        setComparisonPhoto2(null);
       }
       return;
     }
@@ -345,7 +352,7 @@ export function ProgressPhotosScreen() {
       <Modal
         visible={viewerPhoto !== null}
         transparent
-        animationType="fade"
+        animationType="none"
         onRequestClose={() => setViewerPhoto(null)}
       >
         <View style={styles.viewerContainer}>
@@ -387,7 +394,7 @@ export function ProgressPhotosScreen() {
       <Modal
         visible={optionsPhoto !== null}
         transparent
-        animationType="fade"
+        animationType="none"
         onRequestClose={() => setOptionsPhoto(null)}
       >
         <View style={styles.dialogOverlay}>
@@ -433,7 +440,7 @@ export function ProgressPhotosScreen() {
       <Modal
         visible={editNotesPhoto !== null}
         transparent
-        animationType="fade"
+        animationType="none"
         onRequestClose={() => setEditNotesPhoto(null)}
       >
         <View style={styles.dialogOverlay}>

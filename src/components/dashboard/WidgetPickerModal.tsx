@@ -126,7 +126,7 @@ export function WidgetPickerModal({ visible, onClose }: WidgetPickerModalProps) 
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >

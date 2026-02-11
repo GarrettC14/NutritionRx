@@ -31,23 +31,23 @@ export function computeEffectiveAlpha(dayGap: number): number {
  * Uses HALF_LIFE_DAYS, same formula as DB storage.
  */
 export function computeTrendSeries(
-  entries: Array<{ date: string; weight_kg: number }>,
-): Array<{ date: string; weight_kg: number; trend_kg: number }> {
+  entries: Array<{ date: string; weightKg: number }>,
+): Array<{ date: string; weightKg: number; trendWeightKg: number }> {
   if (entries.length === 0) return [];
 
-  const result: Array<{ date: string; weight_kg: number; trend_kg: number }> = [];
+  const result: Array<{ date: string; weightKg: number; trendWeightKg: number }> = [];
 
-  let prevTrend = entries[0].weight_kg;
+  let prevTrend = entries[0].weightKg;
   let prevDate = new Date(entries[0].date + 'T12:00:00').getTime();
-  result.push({ date: entries[0].date, weight_kg: entries[0].weight_kg, trend_kg: prevTrend });
+  result.push({ date: entries[0].date, weightKg: entries[0].weightKg, trendWeightKg: prevTrend });
 
   for (let i = 1; i < entries.length; i++) {
     const currDate = new Date(entries[i].date + 'T12:00:00').getTime();
     const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
     const effectiveAlpha = computeEffectiveAlpha(dayGap);
-    const trend = effectiveAlpha * entries[i].weight_kg + (1 - effectiveAlpha) * prevTrend;
+    const trend = effectiveAlpha * entries[i].weightKg + (1 - effectiveAlpha) * prevTrend;
 
-    result.push({ date: entries[i].date, weight_kg: entries[i].weight_kg, trend_kg: trend });
+    result.push({ date: entries[i].date, weightKg: entries[i].weightKg, trendWeightKg: trend });
     prevTrend = trend;
     prevDate = currDate;
   }

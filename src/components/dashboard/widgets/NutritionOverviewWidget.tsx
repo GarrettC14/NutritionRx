@@ -198,7 +198,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bgElevated,
+      backgroundColor: colors.bgSecondary,
       borderRadius: 20,
       padding: 20,
       borderWidth: 1,

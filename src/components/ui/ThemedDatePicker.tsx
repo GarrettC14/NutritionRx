@@ -235,7 +235,7 @@ export function ThemedDatePicker({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <Pressable style={styles.backdrop} onPress={onClose}>

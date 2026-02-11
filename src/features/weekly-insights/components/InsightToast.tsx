@@ -4,8 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useWeeklyInsightsStore } from '../stores/weeklyInsightsStore';
@@ -15,7 +14,6 @@ const TOAST_PADDING = 12;
 
 export function InsightToast() {
   const { colors } = useTheme();
-  const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
   const bottomOffset = insets.bottom + TAB_BAR_HEIGHT + TOAST_PADDING;
   const toast = useWeeklyInsightsStore((s) => s.toast);
@@ -34,9 +32,7 @@ export function InsightToast() {
 
   return (
     <Pressable onPress={hideToast}>
-      <Animated.View
-        entering={reducedMotion ? undefined : FadeIn.duration(200)}
-        exiting={reducedMotion ? undefined : FadeOut.duration(200)}
+      <View
         style={[
           styles.container,
           {
@@ -53,7 +49,7 @@ export function InsightToast() {
         <Text style={[styles.dismiss, { color: colors.bgPrimary }]}>
           Dismiss
         </Text>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }

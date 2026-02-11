@@ -190,7 +190,7 @@ export const MealSection = React.memo(function MealSection({
       <Modal
         visible={showMenu}
         transparent
-        animationType="fade"
+        animationType="none"
         onRequestClose={() => setShowMenu(false)}
       >
         <Pressable

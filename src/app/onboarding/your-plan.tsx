@@ -4,13 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
-import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import { spacing, borderRadius } from '@/constants/spacing';
 import { ACTIVITY_MULTIPLIERS, CALORIE_FLOORS, CALORIES_PER_KG } from '@/constants/defaults';
 import { macroCalculator } from '@/services/macroCalculator';
 import { useOnboardingStore, useGoalStore } from '@/stores';
 import { profileRepository, weightRepository, settingsRepository, GoalType } from '@/repositories';
 import { onboardingRepository, GoalPath } from '@/repositories/onboardingRepository';
-import { withTransaction } from '@/db/database';
 import { OnboardingScreen } from '@/components/onboarding';
 
 // ============================================================
@@ -177,56 +176,53 @@ export default function YourPlanScreen() {
       const age = calculateAge(draft.dateOfBirth);
       const mappedGoalType: GoalType = draft.goalPath === 'track' ? 'maintain' : (draft.goalPath as GoalType);
 
-      // All DB writes in a single transaction to prevent "database is locked" errors.
-      await withTransaction(async () => {
-        // 1. Profile (single merged write — includes hasCompletedOnboarding)
-        await profileRepository.update({
-          sex: draft.sex!,
-          dateOfBirth: draft.dateOfBirth!,
-          heightCm: draft.heightCm!,
-          activityLevel: draft.activityLevel!,
-          eatingStyle: draft.eatingStyle!,
-          proteinPriority: draft.proteinPriority!,
-          hasCompletedOnboarding: true,
-        });
-
-        // 2. Create goal (goalStore calculates TDEE/macros, re-throws on error)
-        await useGoalStore.getState().createGoal({
-          type: mappedGoalType,
-          currentWeightKg: draft.currentWeightKg!,
-          targetWeightKg:
-            (draft.goalPath === 'lose' || draft.goalPath === 'gain') && draft.targetWeightKg != null
-              ? draft.targetWeightKg
-              : undefined,
-          targetRatePercent: draft.targetRatePercent,
-          sex: draft.sex!,
-          heightCm: draft.heightCm!,
-          age,
-          activityLevel: draft.activityLevel!,
-          eatingStyle: draft.eatingStyle!,
-          proteinPriority: draft.proteinPriority!,
-        });
-
-        // 3. Seed weight entry
-        await weightRepository.create({
-          date: new Date().toISOString().split('T')[0],
-          weightKg: draft.currentWeightKg!,
-        });
-
-        // 4. Height unit setting
-        await settingsRepository.set('height_unit', draft.heightUnit);
-
-        // 5. Onboarding completion settings (writes: complete, completed_at,
-        //    goal_path, energy_unit, weight_unit — called directly so errors
-        //    propagate to the transaction instead of being swallowed by the store)
-        await onboardingRepository.completeOnboarding(
-          draft.goalPath as GoalPath,
-          draft.energyUnit,
-          draft.weightUnit,
-        );
+      // 1. Profile (single merged write — includes hasCompletedOnboarding)
+      await profileRepository.update({
+        sex: draft.sex!,
+        dateOfBirth: draft.dateOfBirth!,
+        heightCm: draft.heightCm!,
+        activityLevel: draft.activityLevel!,
+        eatingStyle: draft.eatingStyle!,
+        proteinPriority: draft.proteinPriority!,
+        hasCompletedOnboarding: true,
       });
 
-      // Transaction succeeded — sync in-memory stores (no additional DB writes)
+      // 2. Create goal (goalStore calculates TDEE/macros, re-throws on error)
+      await useGoalStore.getState().createGoal({
+        type: mappedGoalType,
+        currentWeightKg: draft.currentWeightKg!,
+        targetWeightKg:
+          (draft.goalPath === 'lose' || draft.goalPath === 'gain') && draft.targetWeightKg != null
+            ? draft.targetWeightKg
+            : undefined,
+        targetRatePercent: draft.targetRatePercent,
+        sex: draft.sex!,
+        heightCm: draft.heightCm!,
+        age,
+        activityLevel: draft.activityLevel!,
+        eatingStyle: draft.eatingStyle!,
+        proteinPriority: draft.proteinPriority!,
+      });
+
+      // 3. Seed weight entry
+      await weightRepository.create({
+        date: new Date().toISOString().split('T')[0],
+        weightKg: draft.currentWeightKg!,
+      });
+
+      // 4. Height unit setting
+      await settingsRepository.set('height_unit', draft.heightUnit);
+
+      // 5. Onboarding completion settings (writes: complete, completed_at,
+      //    goal_path, energy_unit, weight_unit — called directly so errors
+      //    propagate instead of being swallowed by the store)
+      await onboardingRepository.completeOnboarding(
+        draft.goalPath as GoalPath,
+        draft.energyUnit,
+        draft.weightUnit,
+      );
+
+      // Sync onboarding store in memory (no additional DB writes)
       useOnboardingStore.setState({
         isComplete: true,
         goalPath: draft.goalPath as GoalPath,

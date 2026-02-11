@@ -150,7 +150,7 @@ export function FloatingActionButton({
     <>
       {/* Backdrop overlay when expanded */}
       {isExpanded && (
-        <Modal visible={isExpanded} transparent animationType="fade">
+        <Modal visible={isExpanded} transparent animationType="none">
           <Pressable style={styles.backdrop} onPress={handleBackdropPress}>
             <View style={styles.fabContainer}>
               {/* Menu Items */}

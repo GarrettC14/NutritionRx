@@ -163,7 +163,7 @@ export function ReflectionModal({ visible, onClose }: ReflectionModalProps) {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
       presentationStyle="pageSheet"
       onRequestClose={handleCancel}
     >
