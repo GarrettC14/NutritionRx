@@ -23,7 +23,6 @@ import {
 } from '@/types/weightTrend';
 
 const MIN_DAYS = 3;
-const MAX_DAYS = 365;
 const MIN_POINTS_FOR_TREND = 3;
 const CHART_PADDING = { left: 36, right: 12, top: 8, bottom: 20 };
 const DEFAULT_CHART_HEIGHT = 180;
@@ -452,7 +451,7 @@ export function WeightTrendChartMinimal({
     .onUpdate((event) => {
       'worklet';
       const newDays = savedWindowDays.value / event.scale;
-      windowDays.value = clamp(newDays, MIN_DAYS, MAX_DAYS);
+      windowDays.value = clamp(newDays, MIN_DAYS, maxHistoryDays);
     })
     .onEnd(() => {
       'worklet';
@@ -605,7 +604,7 @@ export function WeightTrendChartMinimal({
     <View>
       <View style={styles.statsRow}>
         <View>
-          <Text style={styles.statLabel}>Current</Text>
+          <Text style={styles.statLabel}>Raw</Text>
           <Text style={styles.statValue}>
             {latestWeight != null ? `${latestWeight.toFixed(1)} ${unitLabel}` : '--'}
           </Text>
@@ -670,7 +669,7 @@ export function WeightTrendChartMinimal({
                 fill={colors.mutedText}
                 textAnchor="end"
               >
-                {label.value.toFixed(0)}
+                {(label.value ?? 0).toFixed(0)}
               </SvgText>
             ))}
 
@@ -782,16 +781,21 @@ export function WeightTrendChartMinimal({
       </GestureDetector>
 
       {showLegend && showTrendLine ? (
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendLine, { backgroundColor: colors.rawWeight }]} />
-            <Text style={styles.legendTextMuted}>Raw</Text>
+        <>
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendLine, { backgroundColor: colors.rawWeight }]} />
+              <Text style={styles.legendTextMuted}>Raw</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendLineBold, { backgroundColor: colors.trendLine }]} />
+              <Text style={styles.legendText}>Trend</Text>
+            </View>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendLineBold, { backgroundColor: colors.trendLine }]} />
-            <Text style={styles.legendText}>Trend</Text>
-          </View>
-        </View>
+          <Text style={styles.legendHelperText}>
+            Raw = scale entry, Trend = smoothed (7-day EWMA)
+          </Text>
+        </>
       ) : null}
 
       {showPresets ? (
@@ -914,6 +918,12 @@ const createStyles = (colors: WeightTrendChartPalette, chartHeight: number) =>
     },
     legendTextMuted: {
       fontSize: 11,
+      color: colors.mutedText,
+    },
+    legendHelperText: {
+      marginTop: 6,
+      textAlign: 'center',
+      fontSize: 10,
       color: colors.mutedText,
     },
     presetRow: {
