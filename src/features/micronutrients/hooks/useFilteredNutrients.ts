@@ -24,6 +24,7 @@ const STATUS_PRIORITY: Record<NutrientStatus, number> = {
   optimal: 3,
   high: 4,
   excessive: 5,
+  no_data: 99,
 };
 
 export interface NutrientWithDetails {
@@ -140,9 +141,12 @@ export function useFilteredNutrients({
       optimal: 0,
       high: 0,
       excessive: 0,
+      no_data: 0,
     };
     for (const intake of intakes) {
-      counts[intake.status]++;
+      if (intake.status !== 'no_data') {
+        counts[intake.status]++;
+      }
     }
     return counts;
   }, [intakes]);

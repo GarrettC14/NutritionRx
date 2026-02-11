@@ -8,12 +8,13 @@ import { NutrientStatus } from '@/types/micronutrients';
 import { StatusColorKey } from '@/theme/statusColors';
 
 export const STATUS_DISPLAY_LABELS: Record<NutrientStatus, string> = {
-  deficient: 'Needs nourishing',
-  low: 'Getting started',
-  adequate: 'Getting there',
-  optimal: 'Well nourished',
+  deficient: 'Below target',
+  low: 'Approaching target',
+  adequate: 'Near target',
+  optimal: 'On target',
   high: 'Above target',
   excessive: 'Well above target',
+  no_data: 'No data yet',
 };
 
 export const STATUS_ICONS: Record<NutrientStatus, string> = {
@@ -23,13 +24,15 @@ export const STATUS_ICONS: Record<NutrientStatus, string> = {
   optimal: 'flower-outline',
   high: 'cloud-outline',
   excessive: 'rainy-outline',
+  no_data: 'help-circle-outline',
 };
 
 export const STATUS_TO_COLOR_KEY: Record<NutrientStatus, StatusColorKey> = {
-  deficient: 'needsNourishing',
-  low: 'gettingStarted',
-  adequate: 'gettingThere',
-  optimal: 'wellNourished',
+  deficient: 'belowTarget',
+  low: 'approachingTarget',
+  adequate: 'nearTarget',
+  optimal: 'onTarget',
   high: 'aboveTarget',
   excessive: 'wellAboveTarget',
+  no_data: 'noData',
 };

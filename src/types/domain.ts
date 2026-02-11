@@ -4,7 +4,7 @@ import { MealType } from '@/constants/mealTypes';
 // Domain Models (camelCase, proper types)
 // ============================================================
 
-export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed';
+export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed' | 'ai_photo';
 export type GoalType = 'lose' | 'maintain' | 'gain';
 export type PlanningMode = 'rate' | 'timeline';
 export type DataQuality = 'good' | 'partial' | 'insufficient';

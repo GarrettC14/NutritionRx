@@ -17,7 +17,6 @@ import { DailyTotals } from '@/types/domain';
 import { MicronutrientSummary } from '@/components/micronutrients';
 import { ProgressPhotosSummary } from '@/components/progressPhotos';
 import { usePremium } from '@/hooks/usePremium';
-import { DailyInsightsSection } from '@/features/insights';
 import { TestIDs } from '@/constants/testIDs';
 import { NutrientIntake } from '@/types/micronutrients';
 
@@ -55,8 +54,6 @@ const MOCK_NUTRIENT_INTAKES: NutrientIntake[] = [
   { nutrientId: 'omega_6_la', amount: 14, percentOfTarget: 117, status: 'optimal' },
   // Other
   { nutrientId: 'fiber', amount: 18, percentOfTarget: 64, status: 'low' },
-  { nutrientId: 'sugar', amount: 52, percentOfTarget: 173, status: 'high' },
-  { nutrientId: 'water', amount: 2200, percentOfTarget: 73, status: 'low' },
 ];
 
 const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
@@ -637,8 +634,6 @@ export default function ProgressScreen() {
           }}
         />
 
-        {/* AI Analysis Section - Premium Feature */}
-        <DailyInsightsSection />
       </ScrollView>
     </SafeAreaView>
   );

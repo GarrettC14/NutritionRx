@@ -38,6 +38,10 @@ import {
 } from '@/types/ai-photo';
 import { Button } from '@/components/ui/Button';
 import { TestIDs } from '@/constants/testIDs';
+import { foodRepository, CreateFoodInput } from '@/repositories';
+import { micronutrientRepository } from '@/repositories/micronutrientRepository';
+import { withTransaction } from '@/db/database';
+import { DataSource } from '@/types/domain';
 
 const { width, height } = Dimensions.get('window');
 
@@ -267,10 +271,38 @@ export default function AIPhotoScreen() {
     setIsSaving(true);
 
     try {
-      // Log each selected food
       for (const food of screenState.selectedFoods) {
+        // Create food_items row + micronutrients atomically
+        const foodItem = await withTransaction(async () => {
+          const foodInput: CreateFoodInput = {
+            name: food.name,
+            calories: food.nutrition.calories,
+            protein: food.nutrition.protein,
+            carbs: food.nutrition.carbs,
+            fat: food.nutrition.fat,
+            servingSize: food.estimatedPortion.amount,
+            servingUnit: food.estimatedPortion.unit,
+            source: 'ai_photo' as DataSource,
+            isVerified: false,
+            isUserCreated: false,
+          };
+
+          const created = await foodRepository.create(foodInput);
+
+          if (food.micronutrients && food.micronutrients.length > 0) {
+            await micronutrientRepository.storeFoodNutrientsWithMeta(
+              created.id,
+              food.micronutrients,
+              'ai_photo'
+            );
+          }
+
+          return created;
+        });
+
+        // Create log entry referencing the real food_items row
         await addLogEntry({
-          foodItemId: `ai_${food.id}`,
+          foodItemId: foodItem.id,
           date,
           mealType,
           servings: 1,

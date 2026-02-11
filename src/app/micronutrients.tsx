@@ -421,7 +421,7 @@ const NutrientBarRow = React.memo(function NutrientBarRow({
       amount={item.intake?.amount ?? 0}
       target={target?.targetAmount ?? 0}
       percentOfTarget={item.intake?.percentOfTarget ?? 0}
-      status={item.intake?.status ?? 'adequate'}
+      status={item.intake?.status ?? 'no_data'}
       onPress={onPress}
     />
   );

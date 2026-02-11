@@ -750,13 +750,14 @@ export const DEFAULT_ADULT_RDAS: Record<string, { rda: number; ul?: number }> = 
   potassium: { rda: 3400 },
   sodium: { rda: 1500, ul: 2300 },
   selenium: { rda: 55, ul: 400 },
+  phosphorus: { rda: 700, ul: 4000 },
+  copper: { rda: 0.9, ul: 10 },
+  manganese: { rda: 2.3, ul: 11 },
   fiber: { rda: 38 },
   choline: { rda: 550, ul: 3500 },
   saturated_fat: { rda: 20 }, // ~10% of 2000 cal diet
-  added_sugar: { rda: 25, ul: 50 }, // WHO recommendation
   cholesterol: { rda: 300 },
   omega_3_ala: { rda: 1.6 },
   omega_3_epa: { rda: 0.25 },
   omega_3_dha: { rda: 0.25 },
-  caffeine: { rda: 400 }, // FDA safe limit
 };

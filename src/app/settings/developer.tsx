@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDatabase, resetDatabase } from '@/db/database';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import {
@@ -229,9 +230,8 @@ export default function DeveloperScreen() {
         setIsClearing(true);
         setSeedResult(null);
         try {
+          await AsyncStorage.clear();
           await resetDatabase();
-          // Navigate to root so the app re-evaluates the initialization flow
-          // (legal acknowledgment → onboarding → tabs)
           router.replace('/');
         } catch (error) {
           console.error('Failed to reset app:', error);
