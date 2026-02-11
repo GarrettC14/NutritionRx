@@ -3,11 +3,12 @@
  *
  * Thin wrapper around WeightTrendChartMinimal that handles:
  * - Header with navigation to /log-weight
- * - Data loading (loadEntries)
+ * - Data loading (loadEntries) on mount and focus
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useShallow } from 'zustand/react/shallow';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
@@ -51,9 +52,12 @@ export function WeightTrendWidget({ isEditMode }: WidgetProps) {
     presetDisabledText: colors.textDisabled,
   }), [colors, chartThemeColors]);
 
-  useEffect(() => {
-    loadEntries(500);
-  }, [loadEntries]);
+  // Reload data on mount and when the dashboard tab regains focus
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries(500);
+    }, [loadEntries])
+  );
 
   const handleHeaderPress = () => {
     if (!isEditMode) router.push('/log-weight');
