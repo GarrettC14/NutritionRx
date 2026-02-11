@@ -1,6 +1,6 @@
 import { SQLiteDatabase } from 'expo-sqlite';
 
-const EWMA_ALPHA_PER_DAY = 0.1;
+const HALF_LIFE_DAYS = 7;
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 export async function migration017TrendWeight(db: SQLiteDatabase): Promise<void> {
@@ -32,7 +32,7 @@ export async function migration017TrendWeight(db: SQLiteDatabase): Promise<void>
     for (let i = 1; i < rows.length; i++) {
       const currDate = new Date(rows[i].date + 'T12:00:00').getTime();
       const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
-      const effectiveAlpha = 1 - Math.pow(1 - EWMA_ALPHA_PER_DAY, dayGap);
+      const effectiveAlpha = 1 - Math.pow(2, -dayGap / HALF_LIFE_DAYS);
       const trend = effectiveAlpha * rows[i].weight_kg + (1 - effectiveAlpha) * prevTrend;
 
       await db.runAsync(

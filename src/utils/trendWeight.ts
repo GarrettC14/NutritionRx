@@ -1,69 +1,53 @@
-import { weightRepository } from '@/repositories';
+/**
+ * Canonical EWMA trend weight module.
+ *
+ * Single source of truth for all trend weight calculations.
+ * Uses a half-life formulation: after HALF_LIFE_DAYS days,
+ * old data has exactly half the influence.
+ *
+ * Pure math — zero database/repository imports.
+ */
 
-const BASE_ALPHA_PER_DAY = 0.2;
+export const HALF_LIFE_DAYS = 7;
+
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-export const EWMA_ALPHA_PER_DAY = 0.1;
-
 /**
- * Calculates a time-weighted exponential moving average of recent weight entries.
+ * Computes the effective smoothing alpha for a given day gap.
  *
- * Unlike a standard EMA that assumes uniform intervals, this adjusts the
- * smoothing factor based on the actual time gap between entries:
- *   effective_alpha = 1 - (1 - 0.2)^dayGap
+ * effectiveAlpha = 1 - 2^(-dayGap / HALF_LIFE_DAYS)
  *
- * This means:
- *   1-day gap  → alpha ≈ 0.20 (standard smoothing)
- *   2-day gap  → alpha ≈ 0.36 (more weight to new reading)
- *   7-day gap  → alpha ≈ 0.79 (nearly resets)
- *   14-day gap → alpha ≈ 0.96 (essentially starts fresh)
+ * Properties:
+ *   dayGap = 0  → alpha = 0       (same-day, no change)
+ *   dayGap = 7  → alpha = 0.5     (half-life definition)
+ *   dayGap = 14 → alpha = 0.75    (two half-lives)
  */
-export async function calculateTrendWeight(): Promise<number | null> {
-  const endDate = new Date().toISOString().split('T')[0];
-  const startDate = new Date(Date.now() - 14 * MS_PER_DAY).toISOString().split('T')[0];
-
-  const entries = await weightRepository.findByDateRange(startDate, endDate);
-
-  if (entries.length === 0) return null;
-  if (entries.length === 1) return entries[0].weightKg;
-
-  // entries are already sorted oldest-to-newest from findByDateRange
-  let ema = entries[0].weightKg;
-
-  for (let i = 1; i < entries.length; i++) {
-    const prevDate = new Date(entries[i - 1].date + 'T12:00:00').getTime();
-    const currDate = new Date(entries[i].date + 'T12:00:00').getTime();
-    const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
-    const effectiveAlpha = 1 - Math.pow(1 - BASE_ALPHA_PER_DAY, dayGap);
-    ema = effectiveAlpha * entries[i].weightKg + (1 - effectiveAlpha) * ema;
-  }
-
-  return Math.round(ema * 10) / 10;
+export function computeEffectiveAlpha(dayGap: number): number {
+  return 1 - Math.pow(2, -dayGap / HALF_LIFE_DAYS);
 }
 
 /**
- * Computes a full EWMA chain for a sorted-ASC array of entries.
- * Uses α = 0.1/day with time-gap adjustment.
- * Returns a Map of entry id → trend weight value.
+ * Computes a full EWMA trend series for a sorted-ASC array of entries.
+ * Uses HALF_LIFE_DAYS, same formula as DB storage.
  */
-export function computeEWMAChain(
-  entries: Array<{ id: string; date: string; weightKg: number }>
-): Map<string, number> {
-  const result = new Map<string, number>();
+export function computeTrendSeries(
+  entries: Array<{ date: string; weight_kg: number }>,
+): Array<{ date: string; weight_kg: number; trend_kg: number }> {
+  if (entries.length === 0) return [];
 
-  if (entries.length === 0) return result;
+  const result: Array<{ date: string; weight_kg: number; trend_kg: number }> = [];
 
-  let prevTrend = entries[0].weightKg;
+  let prevTrend = entries[0].weight_kg;
   let prevDate = new Date(entries[0].date + 'T12:00:00').getTime();
-  result.set(entries[0].id, prevTrend);
+  result.push({ date: entries[0].date, weight_kg: entries[0].weight_kg, trend_kg: prevTrend });
 
   for (let i = 1; i < entries.length; i++) {
     const currDate = new Date(entries[i].date + 'T12:00:00').getTime();
     const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
-    const effectiveAlpha = 1 - Math.pow(1 - EWMA_ALPHA_PER_DAY, dayGap);
-    const trend = effectiveAlpha * entries[i].weightKg + (1 - effectiveAlpha) * prevTrend;
+    const effectiveAlpha = computeEffectiveAlpha(dayGap);
+    const trend = effectiveAlpha * entries[i].weight_kg + (1 - effectiveAlpha) * prevTrend;
 
-    result.set(entries[i].id, trend);
+    result.push({ date: entries[i].date, weight_kg: entries[i].weight_kg, trend_kg: trend });
     prevTrend = trend;
     prevDate = currDate;
   }
@@ -107,7 +91,7 @@ export function recomputeEWMAFromDate(
     for (let i = 1; i < allEntries.length; i++) {
       const currDate = new Date(allEntries[i].date + 'T12:00:00').getTime();
       const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
-      const effectiveAlpha = 1 - Math.pow(1 - EWMA_ALPHA_PER_DAY, dayGap);
+      const effectiveAlpha = computeEffectiveAlpha(dayGap);
       const trend = effectiveAlpha * allEntries[i].weightKg + (1 - effectiveAlpha) * prevTrend;
 
       updates.push({ id: allEntries[i].id, trendWeightKg: trend });
@@ -124,7 +108,7 @@ export function recomputeEWMAFromDate(
   for (let i = startIdx; i < allEntries.length; i++) {
     const currDate = new Date(allEntries[i].date + 'T12:00:00').getTime();
     const dayGap = Math.max((currDate - prevDate) / MS_PER_DAY, 0.01);
-    const effectiveAlpha = 1 - Math.pow(1 - EWMA_ALPHA_PER_DAY, dayGap);
+    const effectiveAlpha = computeEffectiveAlpha(dayGap);
     const trend = effectiveAlpha * allEntries[i].weightKg + (1 - effectiveAlpha) * prevTrend;
 
     updates.push({ id: allEntries[i].id, trendWeightKg: trend });

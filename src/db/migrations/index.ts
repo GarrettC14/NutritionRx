@@ -17,8 +17,10 @@ import { migration015GoalTimeline } from './015_goal_timeline';
 import { migration016Reflections } from './016_reflections';
 import { migration017TrendWeight } from './017_trend_weight';
 import { migration018MicronutrientPipeline } from './018_micronutrient_pipeline';
+import { migration019SearchFts } from './019_search_fts';
+import { migration020UnifyTrendWeight } from './020_unify_trend_weight';
 
-export const CURRENT_SCHEMA_VERSION = 18;
+export const CURRENT_SCHEMA_VERSION = 20;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -39,6 +41,8 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration016Reflections,
   migration017TrendWeight,
   migration018MicronutrientPipeline,
+  migration019SearchFts,
+  migration020UnifyTrendWeight,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

@@ -71,31 +71,6 @@ export const weightRepository = {
     return row ? mapWeightEntryRowToDomain(row) : null;
   },
 
-  async getTrendWeight(date: string, smoothingDays: number = 7): Promise<number | null> {
-    const db = getDatabase();
-    // Get recent weights for exponential moving average calculation
-    const rows = await db.getAllAsync<{ weight_kg: number }>(
-      `SELECT weight_kg FROM weight_entries
-       WHERE date <= ?
-       ORDER BY date DESC
-       LIMIT ?`,
-      [date, smoothingDays]
-    );
-
-    if (rows.length === 0) return null;
-
-    // Calculate exponential moving average
-    // Weight recent entries more heavily
-    const alpha = 2 / (smoothingDays + 1);
-    let ema = rows[0].weight_kg;
-
-    for (let i = 1; i < rows.length; i++) {
-      ema = alpha * rows[i].weight_kg + (1 - alpha) * ema;
-    }
-
-    return Math.round(ema * 100) / 100;
-  },
-
   async getDaysWeighedInRange(startDate: string, endDate: string): Promise<number> {
     const db = getDatabase();
     const result = await db.getFirstAsync<{ days_weighed: number }>(
@@ -132,13 +107,27 @@ export const weightRepository = {
 
     const updates = recomputeEWMAFromDate(allEntries, fromDate);
 
-    // Batch update
-    for (const { id, trendWeightKg } of updates) {
-      await db.runAsync(
-        'UPDATE weight_entries SET trend_weight_kg = ? WHERE id = ?',
-        [trendWeightKg, id]
-      );
-    }
+    if (updates.length === 0) return;
+
+    // Batch update in a single transaction using CASE expression
+    const batchSize = 100;
+    await db.withTransactionAsync(async () => {
+      for (let i = 0; i < updates.length; i += batchSize) {
+        const batch = updates.slice(i, i + batchSize);
+        const ids = batch.map(u => u.id);
+        const placeholders = ids.map(() => '?').join(', ');
+        const whenClauses = batch.map(() => 'WHEN id = ? THEN ?').join(' ');
+        const whenValues: (string | number)[] = [];
+        for (const { id, trendWeightKg } of batch) {
+          whenValues.push(id, trendWeightKg);
+        }
+
+        await db.runAsync(
+          `UPDATE weight_entries SET trend_weight_kg = CASE ${whenClauses} END WHERE id IN (${placeholders})`,
+          [...whenValues, ...ids]
+        );
+      }
+    });
   },
 
   async create(input: CreateWeightInput): Promise<WeightEntry> {

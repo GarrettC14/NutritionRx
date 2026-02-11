@@ -207,26 +207,31 @@ describe('Quick Add Repository', () => {
 describe('Weight Repository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDb.getAllAsync.mockResolvedValue([]);
   });
 
-  describe('getTrendWeight', () => {
-    it('should calculate exponential moving average', async () => {
-      mockDb.getAllAsync.mockResolvedValue([
-        { weight_kg: 80.0 },
-        { weight_kg: 80.5 },
-        { weight_kg: 79.8 },
-      ]);
+  describe('getLatest', () => {
+    it('should return the most recent weight entry', async () => {
+      mockDb.getFirstAsync.mockResolvedValue({
+        id: 'w1',
+        date: '2024-01-15',
+        weight_kg: 80.0,
+        trend_weight_kg: 79.9,
+        notes: null,
+        created_at: '2024-01-15T08:00:00.000Z',
+        updated_at: '2024-01-15T08:00:00.000Z',
+      });
 
-      const result = await weightRepository.getTrendWeight('2024-01-15');
+      const result = await weightRepository.getLatest();
 
       expect(result).not.toBeNull();
-      expect(typeof result).toBe('number');
+      expect(result!.trendWeightKg).toBe(79.9);
     });
 
     it('should return null when no weights', async () => {
-      mockDb.getAllAsync.mockResolvedValue([]);
+      mockDb.getFirstAsync.mockResolvedValue(null);
 
-      const result = await weightRepository.getTrendWeight('2024-01-15');
+      const result = await weightRepository.getLatest();
 
       expect(result).toBeNull();
     });
@@ -246,6 +251,11 @@ describe('Weight Repository', () => {
       // First call for findByDate returns existing
       mockDb.getFirstAsync.mockResolvedValueOnce(existingRow);
       // Second call after update
+      mockDb.getFirstAsync.mockResolvedValueOnce({
+        ...existingRow,
+        weight_kg: 79.5,
+      });
+      // findById (post-update) and recompute query
       mockDb.getFirstAsync.mockResolvedValueOnce({
         ...existingRow,
         weight_kg: 79.5,
