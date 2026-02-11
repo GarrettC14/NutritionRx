@@ -11,20 +11,21 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import {
   NutrientDefinition,
-  NutrientIntake,
   NutrientStatus,
   NutrientTarget,
 } from '@/types/micronutrients';
-import { ALL_NUTRIENTS, FREE_NUTRIENTS, NUTRIENT_BY_ID } from '@/data/nutrients';
+import { ALL_NUTRIENTS } from '@/data/nutrients';
 import { useMicronutrientStore } from '@/stores/micronutrientStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { NutrientBar } from '@/components/micronutrients/NutrientBar';
@@ -73,14 +74,18 @@ export default function MicronutrientsScreen() {
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<NutrientStatus[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Detail sheet state
+  // Detail sheet state — persistent mount pattern
   const [selectedNutrient, setSelectedNutrient] = useState<NutrientDefinition | null>(null);
-  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Target editor state
   const [editingNutrient, setEditingNutrient] = useState<NutrientDefinition | null>(null);
   const [targetEditorVisible, setTargetEditorVisible] = useState(false);
+
+  // Date helpers
+  const isToday = selectedDate === getTodayString();
 
   // Load data on mount
   useEffect(() => {
@@ -88,17 +93,29 @@ export default function MicronutrientsScreen() {
     loadDailyIntake(selectedDate);
   }, []);
 
-  // Handle date change
+  // Reload on date change
+  useEffect(() => {
+    setIsRefreshing(true);
+    loadDailyIntake(selectedDate).finally(() => setIsRefreshing(false));
+  }, [selectedDate, loadDailyIntake]);
+
+  // Handle date picker selection
   const handleDateSelect = useCallback((date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     setSelectedDate(dateStr);
-    loadDailyIntake(dateStr);
-  }, [loadDailyIntake]);
+  }, []);
 
-  // Visible nutrients based on premium status
-  const visibleNutrients = useMemo(() => {
-    return isPremium ? ALL_NUTRIENTS : ALL_NUTRIENTS;
-  }, [isPremium]);
+  // Date navigation via chevrons
+  const navigateDate = useCallback((direction: -1 | 1) => {
+    const current = new Date(selectedDate + 'T12:00:00');
+    current.setDate(current.getDate() + direction);
+    const dateStr = current.toISOString().split('T')[0];
+    setSelectedDate(dateStr);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [selectedDate]);
+
+  // All nutrients are always displayed — premium gating at interaction layer
+  const visibleNutrients = ALL_NUTRIENTS;
 
   const intakes = dailyIntake?.nutrients ?? [];
 
@@ -139,12 +156,15 @@ export default function MicronutrientsScreen() {
     setSelectedStatuses(relatedStatuses);
   }, []);
 
-  // Nutrient bar press → open detail sheet
+  // Nutrient bar press → open detail sheet (with premium guard)
   const handleNutrientPress = useCallback((def: NutrientDefinition) => {
-    if (!isPremium && def.isPremium) return; // Let LockedContentArea handle
+    if (!isPremium && def.isPremium) {
+      router.push('/paywall?context=micronutrients');
+      return;
+    }
     setSelectedNutrient(def);
-    setSheetVisible(true);
-  }, [isPremium]);
+    setSheetOpen(true);
+  }, [isPremium, router]);
 
   // Detail sheet → edit target
   const handleEditTarget = useCallback(() => {
@@ -156,8 +176,7 @@ export default function MicronutrientsScreen() {
 
   // Close detail sheet
   const handleCloseSheet = useCallback(() => {
-    setSheetVisible(false);
-    setSelectedNutrient(null);
+    setSheetOpen(false);
   }, []);
 
   // Close target editor & refresh data
@@ -202,17 +221,42 @@ export default function MicronutrientsScreen() {
           Micronutrients
         </Text>
 
-        <Pressable
-          onPress={() => setShowDatePicker(true)}
-          style={[styles.dateButton, { backgroundColor: colors.bgSecondary }]}
-          accessibilityRole="button"
-          accessibilityLabel={`Date: ${formatDateDisplay(selectedDate)}`}
-        >
-          <Ionicons name="calendar-outline" size={16} color={colors.accent} />
-          <Text style={[styles.dateText, { color: colors.textPrimary }]}>
-            {formatDateDisplay(selectedDate)}
-          </Text>
-        </Pressable>
+        {/* Date navigation with chevrons */}
+        <View style={styles.dateNavigation}>
+          <TouchableOpacity
+            onPress={() => navigateDate(-1)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Previous day"
+            style={styles.dateChevron}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <Pressable
+            onPress={() => setShowDatePicker(true)}
+            style={[styles.dateButton, { backgroundColor: colors.bgSecondary }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Date: ${formatDateDisplay(selectedDate)}`}
+          >
+            <Ionicons name="calendar-outline" size={16} color={colors.accent} />
+            <Text style={[styles.dateText, { color: colors.textPrimary }]}>
+              {formatDateDisplay(selectedDate)}
+            </Text>
+          </Pressable>
+
+          <TouchableOpacity
+            onPress={() => navigateDate(1)}
+            disabled={isToday}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Next day"
+            accessibilityState={{ disabled: isToday }}
+            style={[styles.dateChevron, isToday && styles.dateChevronDisabled]}
+          >
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Date Picker */}
@@ -232,11 +276,19 @@ export default function MicronutrientsScreen() {
         <View style={styles.emptyContainer}>
           <Ionicons name="nutrition-outline" size={48} color={colors.textTertiary} />
           <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-            No nutrition data for this day
+            Start tracking what nourishes you
           </Text>
           <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            Log some food to see your micronutrients
+            Log your meals to discover how your food choices support your body's needs
           </Text>
+          <TouchableOpacity
+            onPress={() => router.push('/add-food')}
+            accessibilityRole="button"
+            accessibilityLabel="Log food to start tracking micronutrients"
+            style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+          >
+            <Text style={styles.emptyCtaText}>Log Food</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
@@ -244,19 +296,26 @@ export default function MicronutrientsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Status Overview */}
+          {/* Refreshing indicator */}
+          {isRefreshing && (
+            <View style={[styles.refreshBar, { backgroundColor: colors.accent }]} />
+          )}
+
+          {/* Summary Zone */}
           <StatusOverviewCard
             counts={statusCounts}
             onStatusPress={handleStatusPress}
           />
 
-          {/* Filter Chips */}
           <StatusFilterChips
             selectedStatuses={selectedStatuses}
             onToggle={handleFilterToggle}
           />
 
-          {/* Nutrient sections */}
+          {/* Visual separator between summary and detail zones */}
+          <View style={[styles.separator, { backgroundColor: colors.bgInteractive }]} />
+
+          {/* Detail Zone — nutrient sections */}
           {sections.map(section => {
             const isLowestSection = lowestSection?.subcategory === section.subcategory;
             const defaultExpanded = isLowestSection || selectedStatuses.length > 0;
@@ -321,17 +380,16 @@ export default function MicronutrientsScreen() {
         </ScrollView>
       )}
 
-      {/* Detail Bottom Sheet */}
-      {sheetVisible && selectedNutrient && (
-        <NutrientDetailSheet
-          nutrient={selectedNutrient}
-          intake={selectedNutrientIntake}
-          target={selectedNutrientTarget}
-          date={selectedDate}
-          onClose={handleCloseSheet}
-          onEditTarget={handleEditTarget}
-        />
-      )}
+      {/* Detail Bottom Sheet — persistent mount, controlled by index */}
+      <NutrientDetailSheet
+        nutrient={selectedNutrient}
+        intake={selectedNutrientIntake}
+        target={selectedNutrientTarget}
+        date={selectedDate}
+        index={sheetOpen && selectedNutrient ? 0 : -1}
+        onClose={handleCloseSheet}
+        onEditTarget={handleEditTarget}
+      />
 
       {/* Target Editor Modal */}
       <NutrientTargetEditor
@@ -387,6 +445,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.title.large,
   },
+  dateNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  dateChevron: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateChevronDisabled: {
+    opacity: 0.3,
+  },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -419,6 +491,17 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     textAlign: 'center',
   },
+  emptyCta: {
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.full,
+    marginTop: spacing[4],
+  },
+  emptyCtaText: {
+    ...typography.body.medium,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
   scrollView: {
     flex: 1,
   },
@@ -426,6 +509,16 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     paddingBottom: spacing[16],
     gap: spacing[3],
+  },
+  refreshBar: {
+    height: 2,
+    width: '100%',
+    opacity: 0.7,
+  },
+  separator: {
+    height: 1,
+    marginVertical: spacing[2],
+    marginHorizontal: spacing[2],
   },
   noResults: {
     paddingVertical: spacing[8],

@@ -10,6 +10,9 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { NutrientStatus } from '@/types/micronutrients';
 import { NutrientDefinition } from '@/types/micronutrients';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { STATUS_DISPLAY_LABELS } from '@/constants/statusDisplay';
+import { contrastTextColor } from '@/utils/colorUtils';
 
 interface NutrientBarProps {
   nutrient: NutrientDefinition;
@@ -31,16 +34,9 @@ export function NutrientBar({
   compact = false,
 }: NutrientBarProps) {
   const { colors } = useTheme();
+  const { getStatusColor } = useStatusColors();
 
-  const statusColorMap: Record<NutrientStatus, string> = {
-    deficient: colors.error,
-    low: colors.warning,
-    adequate: colors.accent,
-    optimal: colors.success,
-    high: colors.warning,
-    excessive: colors.error,
-  };
-  const statusColor = statusColorMap[status];
+  const statusColor = getStatusColor(status);
   const barWidth = Math.min(percentOfTarget, 100);
   const showOverflow = percentOfTarget > 100;
 
@@ -110,7 +106,7 @@ export function NutrientBar({
         {/* Overflow indicator */}
         {showOverflow && (
           <View style={[styles.overflowIndicator, { backgroundColor: statusColor }]}>
-            <Text style={styles.overflowText}>
+            <Text style={[styles.overflowText, { color: contrastTextColor(statusColor) }]}>
               {Math.round(percentOfTarget)}%
             </Text>
           </View>
@@ -124,7 +120,7 @@ export function NutrientBar({
             {Math.round(percentOfTarget)}%
           </Text>
           <Text style={[styles.status, { color: statusColor }]}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {STATUS_DISPLAY_LABELS[status]}
           </Text>
         </View>
       )}
@@ -141,7 +137,7 @@ export function NutrientBar({
         ]}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${nutrient.name}, ${Math.round(percentOfTarget)}% of target, ${status}`}
+        accessibilityLabel={`${nutrient.name}, ${Math.round(percentOfTarget)}% of target, ${STATUS_DISPLAY_LABELS[status]}`}
       >
         {Content}
       </Pressable>
@@ -236,7 +232,6 @@ const styles = StyleSheet.create({
   overflowText: {
     ...typography.caption,
     fontSize: 9,
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   footer: {

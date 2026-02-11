@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -14,32 +14,27 @@ import { NutrientDefinition, NutrientIntake, NutrientStatus, NutrientTarget } fr
 import { useMicronutrientStore } from '@/stores/micronutrientStore';
 import { ContributorsList } from './ContributorsList';
 import { Button } from '@/components/ui';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { STATUS_DISPLAY_LABELS, STATUS_ICONS } from '@/constants/statusDisplay';
+import { contrastTextColor } from '@/utils/colorUtils';
 
 interface NutrientDetailSheetProps {
   nutrient: NutrientDefinition | null;
   intake: NutrientIntake | null;
   target: NutrientTarget | null;
   date: string;
+  index?: number;
   onClose: () => void;
   onEditTarget: () => void;
 }
 
-const STATUS_LABELS: Record<NutrientStatus, string> = {
-  deficient: 'Needs attention',
-  low: 'Below target',
-  adequate: 'Getting there',
-  optimal: 'On track',
-  high: 'Above target',
-  excessive: 'Above recommended range',
-};
-
-const STATUS_ICONS: Record<NutrientStatus, keyof typeof Ionicons.glyphMap> = {
-  deficient: 'alert-circle-outline',
-  low: 'arrow-down-outline',
-  adequate: 'trending-up-outline',
-  optimal: 'checkmark-circle-outline',
-  high: 'arrow-up-outline',
-  excessive: 'alert-circle-outline',
+const CALM_SPRING = {
+  damping: 20,
+  stiffness: 150,
+  mass: 0.5,
+  overshootClamping: false,
+  restDisplacementThreshold: 0.01,
+  restSpeedThreshold: 0.01,
 };
 
 export function NutrientDetailSheet({
@@ -47,10 +42,12 @@ export function NutrientDetailSheet({
   intake,
   target,
   date,
+  index = 0,
   onClose,
   onEditTarget,
 }: NutrientDetailSheetProps) {
   const { colors } = useTheme();
+  const { getStatusColor } = useStatusColors();
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['50%', '90%'], []);
 
@@ -60,11 +57,11 @@ export function NutrientDetailSheet({
 
   // Load contributors when sheet opens
   useEffect(() => {
-    if (nutrient) {
+    if (nutrient && index >= 0) {
       setContributorsLoading(true);
       loadContributors(date, nutrient.id).finally(() => setContributorsLoading(false));
     }
-  }, [nutrient, date, loadContributors]);
+  }, [nutrient, date, loadContributors, index]);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -78,40 +75,36 @@ export function NutrientDetailSheet({
     []
   );
 
-  const getStatusColor = (status: NutrientStatus): string => {
-    switch (status) {
-      case 'deficient': return colors.error;
-      case 'low': return colors.warning;
-      case 'adequate': return colors.accent;
-      case 'optimal': return colors.success;
-      case 'high': return colors.warning;
-      case 'excessive': return colors.error;
-    }
-  };
+  const handleSheetChange = useCallback(
+    (sheetIndex: number) => {
+      if (sheetIndex === -1) onClose();
+    },
+    [onClose]
+  );
 
   if (!nutrient) return null;
 
   const status = intake?.status ?? 'adequate';
   const statusColor = getStatusColor(status);
+  const statusIcon = STATUS_ICONS[status] as keyof typeof Ionicons.glyphMap;
   const amount = intake?.amount ?? 0;
   const targetAmount = target?.targetAmount ?? 0;
   const percent = intake?.percentOfTarget ?? 0;
-  const barWidth = Math.min(percent, 200);
+  const barWidth = Math.min(percent, 100);
+  const showOverflow = percent > 100;
   const upperLimit = target?.upperLimit;
-
-  // Calculate marker positions for the bar
-  const targetMarkerPos = targetAmount > 0 ? Math.min((targetAmount / (targetAmount * 2)) * 100, 100) : 50;
 
   return (
     <BottomSheet
       ref={sheetRef}
-      index={0}
+      index={index}
       snapPoints={snapPoints}
-      onClose={onClose}
+      onChange={handleSheetChange}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       handleIndicatorStyle={{ backgroundColor: colors.textTertiary }}
       backgroundStyle={{ backgroundColor: colors.bgElevated }}
+      animationConfigs={CALM_SPRING}
     >
       <BottomSheetScrollView
         contentContainerStyle={[styles.content, { paddingBottom: spacing[8] }]}
@@ -130,38 +123,46 @@ export function NutrientDetailSheet({
               {Math.round(percent)}%
             </Text>
             <Text style={[styles.dot, { color: colors.textTertiary }]}> · </Text>
-            <Ionicons name={STATUS_ICONS[status]} size={14} color={statusColor} />
+            <Ionicons name={statusIcon} size={14} color={statusColor} />
             <Text style={[styles.statusLabel, { color: statusColor }]}>
-              {STATUS_LABELS[status]}
+              {STATUS_DISPLAY_LABELS[status]}
             </Text>
           </View>
         </View>
 
-        {/* Progress bar with markers */}
+        {/* Progress bar — unified 0–100% scale with overflow */}
         <View style={styles.barSection}>
           <View style={[styles.barTrack, { backgroundColor: colors.bgInteractive }]}>
             <View
               style={[
                 styles.barFill,
                 {
-                  width: `${Math.min(barWidth / 2, 100)}%`,
+                  width: `${barWidth}%`,
                   backgroundColor: statusColor,
                 },
               ]}
             />
-            {/* Target marker at 50% (represents 100% of target) */}
-            <View style={[styles.marker, { left: '50%', backgroundColor: colors.textTertiary }]} />
+            {/* Target marker at 100% (right edge) */}
+            <View style={[styles.marker, { right: 0, backgroundColor: colors.textTertiary }]} />
             {/* Upper limit marker if applicable */}
             {upperLimit && targetAmount > 0 && (
               <View
                 style={[
-                  styles.marker,
+                  styles.upperLimitMarker,
                   {
-                    left: `${Math.min((upperLimit / (targetAmount * 2)) * 100, 98)}%`,
+                    left: `${Math.min((upperLimit / targetAmount) * 100, 98)}%`,
                     backgroundColor: colors.error,
                   },
                 ]}
               />
+            )}
+            {/* Overflow badge */}
+            {showOverflow && (
+              <View style={[styles.overflowBadge, { backgroundColor: statusColor }]}>
+                <Text style={[styles.overflowText, { color: contrastTextColor(statusColor) }]}>
+                  {Math.round(percent)}%
+                </Text>
+              </View>
             )}
           </View>
           <View style={styles.barLabels}>
@@ -300,6 +301,26 @@ const styles = StyleSheet.create({
     width: 2,
     height: 14,
     borderRadius: 1,
+  },
+  upperLimitMarker: {
+    position: 'absolute',
+    top: -2,
+    width: 2,
+    height: 14,
+    borderRadius: 1,
+  },
+  overflowBadge: {
+    position: 'absolute',
+    right: 4,
+    top: -3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+  },
+  overflowText: {
+    ...typography.caption,
+    fontSize: 9,
+    fontWeight: '600',
   },
   barLabels: {
     flexDirection: 'row',

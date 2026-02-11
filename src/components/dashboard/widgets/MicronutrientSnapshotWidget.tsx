@@ -10,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { useMicronutrientStore, useSubscriptionStore } from '@/stores';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { contrastTextColor } from '@/utils/colorUtils';
 import { WidgetProps } from '@/types/dashboard';
 import { LockedContentArea } from '@/components/premium';
 import { NUTRIENT_BY_ID } from '@/data/nutrients';
@@ -128,13 +130,14 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
     }
   };
 
+  const { palette: statusPalette } = useStatusColors();
   const styles = createStyles(colors);
 
-  // Get color based on percentage
+  // Get color based on percentage — uses status color tokens
   const getProgressColor = (percent: number): string => {
-    if (percent < 50) return '#E07A5F'; // Terracotta - needs attention
-    if (percent < 80) return '#D4A574'; // Warning
-    return '#4CAF50'; // Sage green - on track
+    if (percent < 50) return statusPalette.needsNourishing;
+    if (percent < 80) return statusPalette.gettingStarted;
+    return statusPalette.wellNourished;
   };
 
   // Render a single nutrient row
@@ -191,7 +194,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       return (
         <View style={styles.onTrackContent}>
           <View style={styles.onTrackHeader}>
-            <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={18} color={statusPalette.wellNourished} />
             <Text style={styles.onTrackText}>
               You're hitting your targets today!
             </Text>
@@ -247,7 +250,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
           <Text style={styles.title}>{headerTitle}</Text>
         </View>
         {overallStatus === 'on_track' && (
-          <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+          <Ionicons name="checkmark-circle" size={20} color={statusPalette.wellNourished} />
         )}
       </View>
 

@@ -5,38 +5,45 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { NutrientStatus } from '@/types/micronutrients';
+import { withAlpha } from '@/utils/colorUtils';
+import { useStatusColors } from '@/hooks/useStatusColor';
 
 interface StatusFilterChipsProps {
   selectedStatuses: NutrientStatus[];
   onToggle: (status: NutrientStatus | 'all') => void;
 }
 
-const FILTER_OPTIONS: Array<{
-  key: NutrientStatus | 'all';
+interface FilterChip {
+  key: string;
   label: string;
-}> = [
-  { key: 'all', label: 'All' },
-  { key: 'deficient', label: 'Needs Attention' },
-  { key: 'low', label: 'Below Target' },
-  { key: 'optimal', label: 'On Track' },
-  { key: 'high', label: 'Above Target' },
+  matches: NutrientStatus[];
+}
+
+const FILTER_CHIPS: FilterChip[] = [
+  { key: 'all', label: 'All', matches: [] },
+  { key: 'low', label: 'Below target', matches: ['deficient', 'low'] },
+  { key: 'adequate', label: 'Getting there', matches: ['adequate'] },
+  { key: 'optimal', label: 'Well nourished', matches: ['optimal'] },
+  { key: 'high', label: 'Above target', matches: ['high', 'excessive'] },
 ];
 
 export function StatusFilterChips({ selectedStatuses, onToggle }: StatusFilterChipsProps) {
   const { colors } = useTheme();
+  const { palette } = useStatusColors();
 
   const isAllSelected = selectedStatuses.length === 0;
 
-  const getChipColor = (key: NutrientStatus | 'all'): string => {
+  const getChipColor = (key: string): string => {
     switch (key) {
-      case 'deficient': return colors.error;
-      case 'low': return colors.warning;
-      case 'optimal': return colors.success;
-      case 'high': return colors.warning;
+      case 'low': return palette.needsNourishing;
+      case 'adequate': return palette.gettingThere;
+      case 'optimal': return palette.wellNourished;
+      case 'high': return palette.aboveTarget;
       default: return colors.accent;
     }
   };
@@ -47,34 +54,46 @@ export function StatusFilterChips({ selectedStatuses, onToggle }: StatusFilterCh
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
-      {FILTER_OPTIONS.map(option => {
-        const isSelected = option.key === 'all'
+      {FILTER_CHIPS.map(chip => {
+        const isSelected = chip.key === 'all'
           ? isAllSelected
-          : selectedStatuses.includes(option.key as NutrientStatus);
-        const chipColor = getChipColor(option.key);
+          : chip.matches.some(s => selectedStatuses.includes(s));
+        const chipColor = getChipColor(chip.key);
 
         return (
           <Pressable
-            key={option.key}
+            key={chip.key}
             style={[
               styles.chip,
               {
-                backgroundColor: isSelected ? `${chipColor}20` : colors.bgSecondary,
+                backgroundColor: isSelected ? withAlpha(chipColor, 0.15) : colors.bgSecondary,
                 borderColor: isSelected ? chipColor : colors.borderDefault,
               },
             ]}
-            onPress={() => onToggle(option.key)}
+            onPress={() => {
+              if (chip.key === 'all') {
+                onToggle('all');
+              } else {
+                // Toggle the first match status — the handler in the parent
+                // will expand to include related statuses
+                onToggle(chip.matches[0]);
+              }
+            }}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`Filter: ${option.label}`}
+            accessibilityLabel={`Filter: ${chip.label}`}
+            accessibilityHint={`Filters nutrients to show those with ${chip.label} status`}
           >
+            {isSelected && (
+              <Ionicons name="checkmark" size={14} color={chipColor} style={styles.checkmark} />
+            )}
             <Text
               style={[
                 styles.chipText,
                 { color: isSelected ? chipColor : colors.textSecondary },
               ]}
             >
-              {option.label}
+              {chip.label}
             </Text>
           </Pressable>
         );
@@ -89,10 +108,15 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
     borderWidth: 1,
+  },
+  checkmark: {
+    marginRight: 4,
   },
   chipText: {
     ...typography.caption,

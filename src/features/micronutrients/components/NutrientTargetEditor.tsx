@@ -3,8 +3,8 @@
  * Modal for editing custom nutrient targets
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, Dimensions } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
@@ -28,6 +28,8 @@ export function NutrientTargetEditor({
   const { colors } = useTheme();
   const setCustomTarget = useMicronutrientStore(s => s.setCustomTarget);
   const removeCustomTarget = useMicronutrientStore(s => s.removeCustomTarget);
+
+  const upperLimitRef = useRef<TextInput>(null);
 
   const [targetValue, setTargetValue] = useState('');
   const [upperLimitValue, setUpperLimitValue] = useState('');
@@ -88,6 +90,9 @@ export function NutrientTargetEditor({
                 value={targetValue}
                 onChangeText={setTargetValue}
                 keyboardType="decimal-pad"
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => upperLimitRef.current?.focus()}
                 placeholder="0"
                 placeholderTextColor={colors.textTertiary}
               />
@@ -103,10 +108,13 @@ export function NutrientTargetEditor({
             </Text>
             <View style={styles.inputRow}>
               <TextInput
+                ref={upperLimitRef}
                 style={[styles.input, { color: colors.textPrimary, backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault }]}
                 value={upperLimitValue}
                 onChangeText={setUpperLimitValue}
                 keyboardType="decimal-pad"
+                returnKeyType="done"
+                onSubmitEditing={() => Keyboard.dismiss()}
                 placeholder="—"
                 placeholderTextColor={colors.textTertiary}
               />
@@ -162,7 +170,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: Math.min(Dimensions.get('window').width * 0.85, 480),
     borderRadius: borderRadius.xl,
     padding: spacing[5],
     gap: spacing[4],

@@ -10,36 +10,27 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { NutrientStatus } from '@/types/micronutrients';
+import { withAlpha } from '@/utils/colorUtils';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { STATUS_DISPLAY_LABELS, STATUS_ICONS } from '@/constants/statusDisplay';
 
 interface StatusOverviewCardProps {
   counts: Record<NutrientStatus, number>;
   onStatusPress?: (status: NutrientStatus) => void;
 }
 
-const STATUS_CONFIG: Array<{
-  status: NutrientStatus;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}> = [
-  { status: 'deficient', label: 'Needs attention', icon: 'alert-circle-outline' },
-  { status: 'low', label: 'Below target', icon: 'arrow-down-outline' },
-  { status: 'optimal', label: 'On track', icon: 'checkmark-circle-outline' },
-  { status: 'high', label: 'Above target', icon: 'arrow-up-outline' },
+const STATUS_CONFIG: Array<{ status: NutrientStatus }> = [
+  { status: 'deficient' },
+  { status: 'low' },
+  { status: 'adequate' },
+  { status: 'optimal' },
+  { status: 'high' },
+  { status: 'excessive' },
 ];
 
 export function StatusOverviewCard({ counts, onStatusPress }: StatusOverviewCardProps) {
   const { colors } = useTheme();
-
-  const getStatusColor = (status: NutrientStatus): string => {
-    switch (status) {
-      case 'deficient': return colors.error;
-      case 'low': return colors.warning;
-      case 'optimal': return colors.success;
-      case 'high': return colors.warning;
-      case 'excessive': return colors.error;
-      default: return colors.textTertiary;
-    }
-  };
+  const { getStatusColor } = useStatusColors();
 
   const visibleItems = STATUS_CONFIG.filter(
     item => counts[item.status] > 0 || item.status === 'optimal'
@@ -50,30 +41,23 @@ export function StatusOverviewCard({ counts, onStatusPress }: StatusOverviewCard
       <View style={styles.badges}>
         {visibleItems.map(item => {
           const color = getStatusColor(item.status);
-          const count = counts[item.status] + (
-            item.status === 'deficient' ? 0 :
-            item.status === 'low' ? counts.deficient : // Include deficient in low count display
-            item.status === 'high' ? counts.excessive : 0
-          );
-          const displayCount = item.status === 'low'
-            ? counts.low + counts.deficient
-            : item.status === 'high'
-            ? counts.high + counts.excessive
-            : counts[item.status];
+          const displayCount = counts[item.status];
+          const label = STATUS_DISPLAY_LABELS[item.status];
+          const icon = STATUS_ICONS[item.status] as keyof typeof Ionicons.glyphMap;
 
           if (displayCount === 0 && item.status !== 'optimal') return null;
 
           return (
             <Pressable
               key={item.status}
-              style={[styles.badge, { backgroundColor: `${color}15` }]}
+              style={[styles.badge, { backgroundColor: withAlpha(color, 0.08) }]}
               onPress={() => onStatusPress?.(item.status)}
               accessibilityRole="button"
-              accessibilityLabel={`${displayCount} ${item.label}`}
+              accessibilityLabel={`${displayCount} ${label}`}
             >
-              <Ionicons name={item.icon} size={14} color={color} />
+              <Ionicons name={icon} size={14} color={color} />
               <Text style={[styles.badgeCount, { color }]}>{displayCount}</Text>
-              <Text style={[styles.badgeLabel, { color }]}>{item.label}</Text>
+              <Text style={[styles.badgeLabel, { color }]}>{label}</Text>
             </Pressable>
           );
         })}
