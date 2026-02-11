@@ -609,22 +609,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Danger Zone Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
-            DANGER ZONE
-          </Text>
-          <View style={styles.sectionContent}>
-            <SettingsItem
-              testID={TestIDs.Settings.DeleteAllDataRow}
-              icon="trash-outline"
-              title="Delete All Data"
-              onPress={handleDeleteAllData}
-              danger
-            />
-          </View>
-        </View>
-
         {/* Developer Section - for testing */}
         {__DEV__ && (
           <View style={styles.section}>
@@ -704,6 +688,13 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </Pressable>
+              <SettingsItem
+                testID={TestIDs.Settings.DeleteAllDataRow}
+                icon="trash-outline"
+                title="Delete All Data"
+                onPress={handleDeleteAllData}
+                danger
+              />
             </View>
           </View>
         )}
