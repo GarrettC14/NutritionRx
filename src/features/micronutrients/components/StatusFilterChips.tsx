@@ -27,8 +27,8 @@ interface FilterChip {
 const FILTER_CHIPS: FilterChip[] = [
   { key: 'all', label: 'All', matches: [] },
   { key: 'low', label: 'Below target', matches: ['deficient', 'low'] },
-  { key: 'adequate', label: 'Getting there', matches: ['adequate'] },
-  { key: 'optimal', label: 'Well nourished', matches: ['optimal'] },
+  { key: 'adequate', label: 'Near target', matches: ['adequate'] },
+  { key: 'optimal', label: 'On target', matches: ['optimal'] },
   { key: 'high', label: 'Above target', matches: ['high', 'excessive'] },
 ];
 
@@ -40,9 +40,9 @@ export function StatusFilterChips({ selectedStatuses, onToggle }: StatusFilterCh
 
   const getChipColor = (key: string): string => {
     switch (key) {
-      case 'low': return palette.needsNourishing;
-      case 'adequate': return palette.gettingThere;
-      case 'optimal': return palette.wellNourished;
+      case 'low': return palette.belowTarget;
+      case 'adequate': return palette.nearTarget;
+      case 'optimal': return palette.onTarget;
       case 'high': return palette.aboveTarget;
       default: return colors.accent;
     }

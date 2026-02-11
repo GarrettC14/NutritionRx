@@ -16,8 +16,9 @@ import { migration014UsdaFdcId } from './014_usda_fdc_id';
 import { migration015GoalTimeline } from './015_goal_timeline';
 import { migration016Reflections } from './016_reflections';
 import { migration017TrendWeight } from './017_trend_weight';
+import { migration018MicronutrientPipeline } from './018_micronutrient_pipeline';
 
-export const CURRENT_SCHEMA_VERSION = 17;
+export const CURRENT_SCHEMA_VERSION = 18;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -37,6 +38,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration015GoalTimeline,
   migration016Reflections,
   migration017TrendWeight,
+  migration018MicronutrientPipeline,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

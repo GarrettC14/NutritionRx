@@ -1,6 +1,9 @@
 import { OPEN_FOOD_FACTS_API } from '@/constants/defaults';
 import { foodRepository, CreateFoodInput } from '@/repositories';
+import { micronutrientRepository, NutrientInsert } from '@/repositories/micronutrientRepository';
 import { FoodItem, DataSource } from '@/types/domain';
+import { withTransaction } from '@/db/database';
+import { TRACKED_NUTRIENT_IDS } from '@/constants/trackedNutrients';
 
 interface OpenFoodFactsProduct {
   code: string;
@@ -24,6 +27,7 @@ interface OpenFoodFactsProduct {
       sugars_serving?: number;
       sodium_100g?: number;
       sodium_serving?: number;
+      [key: string]: number | undefined;
     };
   };
   status: number;
@@ -64,6 +68,82 @@ function calculatePerServing(
 ): number {
   if (per100g === undefined || servingGrams === undefined) return 0;
   return Math.round((per100g * servingGrams) / 100);
+}
+
+// Map Open Food Facts nutriment field keys to tracked nutrient IDs.
+// OFF stores values per 100g ({key}_100g) and optionally per serving ({key}_serving).
+// factor converts from OFF's native unit to our app's unit.
+const OFF_MICRONUTRIENT_MAP: {
+  offKey: string;
+  nutrientId: string;
+  unit: string;
+  factor: number;
+}[] = [
+  // Vitamins
+  { offKey: 'vitamin-c', nutrientId: 'vitamin_c', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-a', nutrientId: 'vitamin_a', unit: 'mcg', factor: 1 },
+  { offKey: 'vitamin-d', nutrientId: 'vitamin_d', unit: 'mcg', factor: 1 },
+  { offKey: 'vitamin-e', nutrientId: 'vitamin_e', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-k', nutrientId: 'vitamin_k', unit: 'mcg', factor: 1 },
+  { offKey: 'vitamin-b1', nutrientId: 'thiamin', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-b2', nutrientId: 'riboflavin', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-pp', nutrientId: 'niacin', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-b6', nutrientId: 'vitamin_b6', unit: 'mg', factor: 1 },
+  { offKey: 'vitamin-b9', nutrientId: 'folate', unit: 'mcg', factor: 1 },
+  { offKey: 'vitamin-b12', nutrientId: 'vitamin_b12', unit: 'mcg', factor: 1 },
+  // Minerals
+  { offKey: 'calcium', nutrientId: 'calcium', unit: 'mg', factor: 1 },
+  { offKey: 'iron', nutrientId: 'iron', unit: 'mg', factor: 1 },
+  { offKey: 'magnesium', nutrientId: 'magnesium', unit: 'mg', factor: 1 },
+  { offKey: 'zinc', nutrientId: 'zinc', unit: 'mg', factor: 1 },
+  { offKey: 'potassium', nutrientId: 'potassium', unit: 'mg', factor: 1 },
+  { offKey: 'sodium', nutrientId: 'sodium', unit: 'mg', factor: 1000 }, // OFF stores in g
+  { offKey: 'selenium', nutrientId: 'selenium', unit: 'mcg', factor: 1 },
+  { offKey: 'phosphorus', nutrientId: 'phosphorus', unit: 'mg', factor: 1 },
+  { offKey: 'copper', nutrientId: 'copper', unit: 'mg', factor: 1 },
+  // Other
+  { offKey: 'fiber', nutrientId: 'fiber', unit: 'g', factor: 1 },
+  { offKey: 'choline', nutrientId: 'choline', unit: 'mg', factor: 1 },
+  // Fatty acids
+  { offKey: 'alpha-linolenic-acid', nutrientId: 'omega_3_ala', unit: 'g', factor: 1 },
+  { offKey: 'eicosapentaenoic-acid', nutrientId: 'omega_3_epa', unit: 'g', factor: 1 },
+  { offKey: 'docosahexaenoic-acid', nutrientId: 'omega_3_dha', unit: 'g', factor: 1 },
+];
+
+// Extract micronutrients from OFF nutriments object.
+// Prefers per-serving values, falls back to calculated from per-100g.
+// Only returns nutrients that are in TRACKED_NUTRIENT_IDS with amount > 0.
+function extractMicronutrientsFromOFF(
+  nutriments: Record<string, number | undefined>,
+  servingGrams: number
+): NutrientInsert[] {
+  const results: NutrientInsert[] = [];
+
+  for (const mapping of OFF_MICRONUTRIENT_MAP) {
+    if (!TRACKED_NUTRIENT_IDS.has(mapping.nutrientId)) continue;
+
+    const servingValue = nutriments[`${mapping.offKey}_serving`];
+    const per100gValue = nutriments[`${mapping.offKey}_100g`];
+
+    let amount: number;
+    if (servingValue !== undefined && servingValue > 0) {
+      amount = servingValue * mapping.factor;
+    } else if (per100gValue !== undefined && per100gValue > 0) {
+      amount = (per100gValue * servingGrams / 100) * mapping.factor;
+    } else {
+      continue;
+    }
+
+    if (amount > 0) {
+      results.push({
+        nutrientId: mapping.nutrientId,
+        amount,
+        unit: mapping.unit,
+      });
+    }
+  }
+
+  return results;
 }
 
 export const openFoodFactsApi = {
@@ -149,8 +229,23 @@ export const openFoodFactsApi = {
         isUserCreated: false,
       };
 
-      // Save to local database for offline access
-      const food = await foodRepository.create(foodInput);
+      // Extract micronutrients from OFF data
+      const micronutrients = extractMicronutrientsFromOFF(nutriments, servingGrams);
+
+      // Save food + micronutrients atomically
+      const food = await withTransaction(async () => {
+        const created = await foodRepository.create(foodInput);
+
+        if (micronutrients.length > 0) {
+          await micronutrientRepository.storeFoodNutrientsWithMeta(
+            created.id,
+            micronutrients,
+            'open_food_facts'
+          );
+        }
+
+        return created;
+      });
 
       return { success: true, food };
     } catch (error) {

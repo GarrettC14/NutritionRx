@@ -49,8 +49,6 @@ export const USDA_NUTRIENT_MAP: Record<number, string> = {
 
   // Other Nutrients
   291: 'fiber',                 // g
-  269: 'sugar',                 // g
-  262: 'caffeine',              // mg
   421: 'choline',               // mg
 };
 

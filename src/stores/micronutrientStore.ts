@@ -13,6 +13,7 @@ import {
 } from '@/types/micronutrients';
 import { ALL_NUTRIENTS, FREE_NUTRIENTS, NUTRIENT_BY_ID } from '@/data/nutrients';
 import { getRDA, DEFAULT_ADULT_RDAS } from '@/data/rdaTables';
+import { TRACKED_NUTRIENTS, TRACKED_NUTRIENT_IDS } from '@/constants/trackedNutrients';
 
 // ============================================================
 // Types
@@ -220,14 +221,16 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
         nutrientRows.map(r => [r.nutrient_id, r.total])
       );
 
-      // Build intake objects
+      // Build intake objects — only for the 25 tracked nutrients
       const intakeList: NutrientIntake[] = [];
 
-      for (const nutrient of ALL_NUTRIENTS) {
+      for (const nutrient of TRACKED_NUTRIENTS) {
         const amount = nutrientTotals.get(nutrient.id) || 0;
         const target = getTargetForNutrient(nutrient.id);
 
-        if (target) {
+        if (!target) continue;
+
+        if (amount > 0) {
           const percentOfTarget = target.targetAmount > 0
             ? (amount / target.targetAmount) * 100
             : 0;
@@ -237,6 +240,14 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
             amount,
             percentOfTarget,
             status: getStatusForIntake(nutrient.id, amount),
+          });
+        } else {
+          // No intake data — represent honestly as no_data
+          intakeList.push({
+            nutrientId: nutrient.id,
+            amount: 0,
+            percentOfTarget: 0,
+            status: 'no_data',
           });
         }
       }
@@ -393,7 +404,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
 
   getStatusForIntake: (nutrientId: string, amount: number): NutrientStatus => {
     const target = get().getTargetForNutrient(nutrientId);
-    if (!target) return 'adequate';
+    if (!target) return 'no_data';
 
     return calculateStatus(amount, target.targetAmount, target.upperLimit);
   },

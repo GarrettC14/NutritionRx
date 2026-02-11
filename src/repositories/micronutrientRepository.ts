@@ -14,7 +14,15 @@ export interface FoodNutrientRow {
   food_item_id: string;
   nutrient_id: string;
   amount: number;
+  unit: string;
+  source: string;
   created_at: string;
+}
+
+export interface NutrientInsert {
+  nutrientId: string;
+  amount: number;
+  unit: string;
 }
 
 export const micronutrientRepository = {
@@ -22,7 +30,7 @@ export const micronutrientRepository = {
    * Store micronutrient data for a food item.
    * Uses INSERT OR REPLACE to update existing entries.
    */
-  async storeFoodNutrients(foodItemId: string, nutrients: MicronutrientData): Promise<number> {
+  async storeFoodNutrients(foodItemId: string, nutrients: MicronutrientData, source: string = 'usda'): Promise<number> {
     const db = getDatabase();
     const now = new Date().toISOString();
     let count = 0;
@@ -33,15 +41,49 @@ export const micronutrientRepository = {
     const batchSize = 50;
     for (let i = 0; i < entries.length; i += batchSize) {
       const batch = entries.slice(i, i + batchSize);
-      const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
+      const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
       const values: (string | number)[] = [];
 
       for (const [nutrientId, amount] of batch) {
-        values.push(generateId(), foodItemId, nutrientId, amount, now);
+        values.push(generateId(), foodItemId, nutrientId, amount, 'mg', source, now);
       }
 
       await db.runAsync(
-        `INSERT OR REPLACE INTO food_item_nutrients (id, food_item_id, nutrient_id, amount, created_at)
+        `INSERT OR REPLACE INTO food_item_nutrients (id, food_item_id, nutrient_id, amount, unit, source, created_at)
+         VALUES ${placeholders}`,
+        values
+      );
+      count += batch.length;
+    }
+
+    return count;
+  },
+
+  /**
+   * Store micronutrients with explicit units and source.
+   * Used by barcode scanner and AI photo flows.
+   */
+  async storeFoodNutrientsWithMeta(
+    foodItemId: string,
+    nutrients: NutrientInsert[],
+    source: string
+  ): Promise<number> {
+    const db = getDatabase();
+    const now = new Date().toISOString();
+    let count = 0;
+
+    const batchSize = 50;
+    for (let i = 0; i < nutrients.length; i += batchSize) {
+      const batch = nutrients.slice(i, i + batchSize);
+      const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
+      const values: (string | number)[] = [];
+
+      for (const n of batch) {
+        values.push(generateId(), foodItemId, n.nutrientId, n.amount, n.unit, source, now);
+      }
+
+      await db.runAsync(
+        `INSERT OR REPLACE INTO food_item_nutrients (id, food_item_id, nutrient_id, amount, unit, source, created_at)
          VALUES ${placeholders}`,
         values
       );

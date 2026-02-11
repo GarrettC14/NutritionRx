@@ -135,9 +135,9 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
 
   // Get color based on percentage — uses status color tokens
   const getProgressColor = (percent: number): string => {
-    if (percent < 50) return statusPalette.needsNourishing;
-    if (percent < 80) return statusPalette.gettingStarted;
-    return statusPalette.wellNourished;
+    if (percent < 50) return statusPalette.belowTarget;
+    if (percent < 80) return statusPalette.approachingTarget;
+    return statusPalette.onTarget;
   };
 
   // Render a single nutrient row
@@ -194,7 +194,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       return (
         <View style={styles.onTrackContent}>
           <View style={styles.onTrackHeader}>
-            <Ionicons name="checkmark-circle" size={18} color={statusPalette.wellNourished} />
+            <Ionicons name="checkmark-circle" size={18} color={statusPalette.onTarget} />
             <Text style={styles.onTrackText}>
               You're hitting your targets today!
             </Text>
@@ -250,7 +250,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
           <Text style={styles.title}>{headerTitle}</Text>
         </View>
         {overallStatus === 'on_track' && (
-          <Ionicons name="checkmark-circle" size={20} color={statusPalette.wellNourished} />
+          <Ionicons name="checkmark-circle" size={20} color={statusPalette.onTarget} />
         )}
       </View>
 

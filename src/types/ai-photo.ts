@@ -13,6 +13,7 @@ export interface DetectedFood {
   confidence: number; // 0-1
   estimatedPortion: EstimatedPortion;
   nutrition: EstimatedNutrition;
+  micronutrients?: { nutrientId: string; amount: number; unit: string }[];
   matchedFoodId?: string; // If matched to existing food in database
 }
 
@@ -131,6 +132,7 @@ export interface ParsedFoodResponse {
     carbs: number;
     fat: number;
     confidence: 'high' | 'medium' | 'low';
+    micronutrients?: Record<string, number>;
   }[];
   notes?: string;
 }

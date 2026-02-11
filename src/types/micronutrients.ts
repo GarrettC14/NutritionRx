@@ -72,7 +72,8 @@ export type NutrientStatus =
   | 'adequate'
   | 'optimal'
   | 'high'
-  | 'excessive';
+  | 'excessive'
+  | 'no_data';
 
 export interface DailyNutrientIntake {
   date: string;

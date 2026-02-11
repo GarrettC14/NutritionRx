@@ -2,7 +2,7 @@
 // Database Row Types (match SQLite columns exactly)
 // ============================================================
 
-export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed';
+export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed' | 'ai_photo';
 export type MealTypeValue = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export type GoalType = 'lose' | 'maintain' | 'gain';
 export type DataQuality = 'good' | 'partial' | 'insufficient';

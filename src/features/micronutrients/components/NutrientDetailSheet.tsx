@@ -84,7 +84,7 @@ export function NutrientDetailSheet({
 
   if (!nutrient) return null;
 
-  const status = intake?.status ?? 'adequate';
+  const status = intake?.status ?? 'no_data';
   const statusColor = getStatusColor(status);
   const statusIcon = STATUS_ICONS[status] as keyof typeof Ionicons.glyphMap;
   const amount = intake?.amount ?? 0;

@@ -788,7 +788,7 @@ const otherFats: NutrientDefinition[] = [
 ];
 
 // ============================================================
-// Other Nutrients (16)
+// Other Nutrients (10)
 // ============================================================
 
 const otherNutrients: NutrientDefinition[] = [
@@ -802,39 +802,6 @@ const otherNutrients: NutrientDefinition[] = [
     description: 'Supports digestive health',
     foodSources: ['Whole grains', 'Fruits', 'Vegetables', 'Legumes'],
     isPremium: false,
-  },
-  {
-    id: 'sugar',
-    name: 'Sugar',
-    shortName: 'Sugar',
-    unit: 'g',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Simple carbohydrates - limit added sugars',
-    foodSources: ['Fruits', 'Sweets', 'Beverages', 'Baked goods'],
-    isPremium: false,
-  },
-  {
-    id: 'added_sugar',
-    name: 'Added Sugar',
-    shortName: 'Add Sugar',
-    unit: 'g',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Sugars added during processing',
-    foodSources: ['Soft drinks', 'Candy', 'Baked goods', 'Sweetened cereals'],
-    isPremium: false,
-  },
-  {
-    id: 'sugar_alcohol',
-    name: 'Sugar Alcohols',
-    shortName: 'Sug Alc',
-    unit: 'g',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Low-calorie sweeteners',
-    foodSources: ['Sugar-free products', 'Gum', 'Mints', 'Diet foods'],
-    isPremium: true,
   },
   {
     id: 'starch',
@@ -867,39 +834,6 @@ const otherNutrients: NutrientDefinition[] = [
     subcategory: 'other_nutrients',
     description: 'Supports digestive regularity',
     foodSources: ['Whole wheat', 'Vegetables', 'Nuts', 'Beans'],
-    isPremium: true,
-  },
-  {
-    id: 'water',
-    name: 'Water',
-    shortName: 'Water',
-    unit: 'g',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Essential for all body functions',
-    foodSources: ['Water', 'Fruits', 'Vegetables', 'Beverages'],
-    isPremium: true,
-  },
-  {
-    id: 'caffeine',
-    name: 'Caffeine',
-    shortName: 'Caffeine',
-    unit: 'mg',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Stimulant - moderate intake recommended',
-    foodSources: ['Coffee', 'Tea', 'Energy drinks', 'Chocolate'],
-    isPremium: false,
-  },
-  {
-    id: 'alcohol',
-    name: 'Alcohol',
-    shortName: 'Alcohol',
-    unit: 'g',
-    category: 'other',
-    subcategory: 'other_nutrients',
-    description: 'Provides 7 calories per gram',
-    foodSources: ['Beer', 'Wine', 'Spirits', 'Cocktails'],
     isPremium: true,
   },
   {

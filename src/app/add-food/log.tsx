@@ -71,23 +71,21 @@ export default function LogFoodScreen() {
       setFood(item);
       setIsLoading(false);
 
-      // Load micronutrient data if available
-      if (item && item.usdaFdcId) {
+      // Load micronutrient data if available (from any source)
+      if (item) {
         setIsLoadingNutrients(true);
         try {
-          // Check local cache first
+          // Check local cache first (covers USDA, OFF, AI photo sources)
           const cached = await micronutrientRepository.getFoodNutrients(item.id);
           if (Object.keys(cached).length > 0) {
             setMicronutrients(cached);
           } else if (item.usdaFdcId) {
-            // Fetch from USDA API
+            // Fallback: fetch from USDA API for USDA-sourced items
             const details = await USDAFoodService.getFoodDetails(item.usdaFdcId);
             if (details) {
               const mapped = USDAFoodService.mapNutrients(details.foodNutrients);
               setMicronutrients(mapped);
-              // Store for offline access
               await micronutrientRepository.storeFoodNutrients(item.id, mapped);
-              // Update nutrient count
               const count = Object.keys(mapped).length;
               await foodRepository.updateUsdaFields(item.id, item.usdaFdcId, count);
             }
@@ -396,8 +394,8 @@ export default function LogFoodScreen() {
           </View>
         </View>
 
-        {/* Micronutrient Preview (USDA foods only) */}
-        {food.usdaFdcId && micronutrients && Object.keys(micronutrients).length > 0 && (
+        {/* Micronutrient Preview */}
+        {micronutrients && Object.keys(micronutrients).length > 0 && (
           <View style={[styles.micronutrientCard, { backgroundColor: colors.bgSecondary }]}>
             <View style={styles.micronutrientHeader}>
               <Text style={[styles.micronutrientTitle, { color: colors.textPrimary }]} accessibilityRole="header">
@@ -410,7 +408,7 @@ export default function LogFoodScreen() {
               </View>
             </View>
             <Text style={[styles.micronutrientSource, { color: colors.textTertiary }]}>
-              Data from USDA FoodData Central
+              Nutrient data available
             </Text>
             {/* Show top 3 nutrients by amount relative to serving */}
             {Object.entries(micronutrients)
@@ -440,7 +438,7 @@ export default function LogFoodScreen() {
         )}
 
         {/* Loading micronutrients indicator */}
-        {food.usdaFdcId && isLoadingNutrients && (
+        {isLoadingNutrients && (
           <View style={[styles.micronutrientCard, { backgroundColor: colors.bgSecondary }]}>
             <Text style={[styles.micronutrientLoadingText, { color: colors.textTertiary }]}>
               Loading nutrient details...
@@ -449,7 +447,7 @@ export default function LogFoodScreen() {
         )}
 
         {/* No micronutrient data message */}
-        {!food.usdaFdcId && food.source !== 'usda' && (
+        {!isLoadingNutrients && !micronutrients && (
           <View style={[styles.noMicronutrientCard, { backgroundColor: colors.bgSecondary }]}>
             <Text style={[styles.noMicronutrientText, { color: colors.textTertiary }]}>
               Micronutrient data not available

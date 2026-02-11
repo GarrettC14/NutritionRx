@@ -12,11 +12,13 @@ import {
   AIPhotoAnalysis,
   ParsedFoodResponse,
 } from '@/types/ai-photo';
+import { TRACKED_NUTRIENT_MAP } from '@/constants/trackedNutrients';
+import { NutrientInsert } from '@/repositories/micronutrientRepository';
 
 // Constants
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = 'gpt-4o-mini';
-const MAX_TOKENS = 1000;
+const MAX_TOKENS = 1500;
 const IMAGE_MAX_SIZE = 1024;
 const IMAGE_QUALITY = 0.8;
 
@@ -26,6 +28,7 @@ const SYSTEM_PROMPT = `You are a food nutrition analyst. Analyze the image and i
 1. Identify the food name
 2. Estimate the portion size based on visual cues
 3. Estimate the nutrition values (calories, protein, carbs, fat)
+4. Estimate key micronutrient amounts for the given portion
 
 Respond ONLY with valid JSON in this exact format:
 {
@@ -37,7 +40,31 @@ Respond ONLY with valid JSON in this exact format:
       "protein": number (grams),
       "carbs": number (grams),
       "fat": number (grams),
-      "confidence": "high" | "medium" | "low"
+      "confidence": "high" | "medium" | "low",
+      "micronutrients": {
+        "vitamin_c": number (mg),
+        "vitamin_a": number (mcg RAE),
+        "vitamin_d": number (mcg),
+        "vitamin_e": number (mg),
+        "vitamin_k": number (mcg),
+        "thiamin": number (mg),
+        "riboflavin": number (mg),
+        "niacin": number (mg),
+        "vitamin_b6": number (mg),
+        "folate": number (mcg DFE),
+        "vitamin_b12": number (mcg),
+        "calcium": number (mg),
+        "iron": number (mg),
+        "magnesium": number (mg),
+        "zinc": number (mg),
+        "potassium": number (mg),
+        "sodium": number (mg),
+        "selenium": number (mcg),
+        "phosphorus": number (mg),
+        "copper": number (mg),
+        "fiber": number (g),
+        "choline": number (mg)
+      }
     }
   ],
   "notes": "optional notes about the analysis"
@@ -48,12 +75,37 @@ Important guidelines:
 - Estimate portions conservatively based on typical serving sizes
 - If confidence is low, mention it in the notes
 - If no food is detected, return {"foods": [], "notes": "No food items detected"}
-- Round all numbers to whole values`;
+- Round macro values to whole numbers
+- Only include micronutrients you can estimate with reasonable confidence; omit those you cannot
+- Use standard reference values (USDA SR) for micronutrient estimates`;
 
 // Generate unique ID
 const generateId = (): string => {
   return `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
+
+// Map GPT micronutrient keys to NutrientInsert[], filtering to tracked nutrients only.
+function parseMicronutrientsFromGPT(
+  micros: Record<string, number> | undefined
+): NutrientInsert[] {
+  if (!micros) return [];
+
+  const results: NutrientInsert[] = [];
+  for (const [key, amount] of Object.entries(micros)) {
+    if (typeof amount !== 'number' || amount <= 0) continue;
+
+    const tracked = TRACKED_NUTRIENT_MAP.get(key);
+    if (!tracked) continue;
+
+    results.push({
+      nutrientId: tracked.id,
+      amount,
+      unit: tracked.unit,
+    });
+  }
+
+  return results;
+}
 
 // Process image for API
 export async function processImageForAPI(
@@ -156,6 +208,7 @@ function convertToDetectedFoods(parsed: ParsedFoodResponse): DetectedFood[] {
       carbs: Math.round(food.carbs || 0),
       fat: Math.round(food.fat || 0),
     },
+    micronutrients: parseMicronutrientsFromGPT(food.micronutrients),
   }));
 }
 

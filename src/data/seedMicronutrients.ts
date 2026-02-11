@@ -47,7 +47,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     nutrient_id: "polyunsaturated_fat",
     amount: 0.77,
   },
-  { food_item_id: "seed-001", nutrient_id: "water", amount: 65.3 },
   { food_item_id: "seed-001", nutrient_id: "histidine", amount: 0.93 },
   { food_item_id: "seed-001", nutrient_id: "isoleucine", amount: 1.54 },
   { food_item_id: "seed-001", nutrient_id: "leucine", amount: 2.27 },
@@ -94,7 +93,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-002", nutrient_id: "saturated_fat", amount: 2.7 },
   { food_item_id: "seed-002", nutrient_id: "monounsaturated_fat", amount: 3.5 },
   { food_item_id: "seed-002", nutrient_id: "polyunsaturated_fat", amount: 2.1 },
-  { food_item_id: "seed-002", nutrient_id: "water", amount: 63.0 },
   { food_item_id: "seed-002", nutrient_id: "histidine", amount: 0.76 },
   { food_item_id: "seed-002", nutrient_id: "isoleucine", amount: 1.18 },
   { food_item_id: "seed-002", nutrient_id: "leucine", amount: 1.87 },
@@ -142,7 +140,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-003", nutrient_id: "saturated_fat", amount: 4.5 },
   { food_item_id: "seed-003", nutrient_id: "monounsaturated_fat", amount: 6.4 },
   { food_item_id: "seed-003", nutrient_id: "polyunsaturated_fat", amount: 3.2 },
-  { food_item_id: "seed-003", nutrient_id: "water", amount: 53.0 },
   { food_item_id: "seed-003", nutrient_id: "histidine", amount: 0.64 },
   { food_item_id: "seed-003", nutrient_id: "isoleucine", amount: 1.03 },
   { food_item_id: "seed-003", nutrient_id: "leucine", amount: 1.58 },
@@ -204,7 +201,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-004", nutrient_id: "omega_6_la", amount: 0.83 },
   { food_item_id: "seed-004", nutrient_id: "omega_3_ala", amount: 0.02 },
   { food_item_id: "seed-004", nutrient_id: "omega_3_dha", amount: 0.03 },
-  { food_item_id: "seed-004", nutrient_id: "water", amount: 37.6 },
   { food_item_id: "seed-004", nutrient_id: "lutein_zeaxanthin", amount: 252.0 },
   { food_item_id: "seed-004", nutrient_id: "histidine", amount: 0.15 },
   { food_item_id: "seed-004", nutrient_id: "isoleucine", amount: 0.34 },
@@ -239,7 +235,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-005", nutrient_id: "sodium", amount: 55.0 },
   { food_item_id: "seed-005", nutrient_id: "potassium", amount: 54.0 },
   { food_item_id: "seed-005", nutrient_id: "selenium", amount: 6.6 },
-  { food_item_id: "seed-005", nutrient_id: "water", amount: 29.3 },
   { food_item_id: "seed-005", nutrient_id: "histidine", amount: 0.08 },
   { food_item_id: "seed-005", nutrient_id: "isoleucine", amount: 0.2 },
   { food_item_id: "seed-005", nutrient_id: "leucine", amount: 0.3 },
@@ -295,7 +290,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   },
   { food_item_id: "seed-006", nutrient_id: "trans_fat", amount: 0.73 },
   { food_item_id: "seed-006", nutrient_id: "omega_6_la", amount: 0.39 },
-  { food_item_id: "seed-006", nutrient_id: "water", amount: 56.7 },
   { food_item_id: "seed-006", nutrient_id: "histidine", amount: 0.85 },
   { food_item_id: "seed-006", nutrient_id: "isoleucine", amount: 1.12 },
   { food_item_id: "seed-006", nutrient_id: "leucine", amount: 2.0 },
@@ -346,7 +340,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     amount: 0.32,
   },
   { food_item_id: "seed-007", nutrient_id: "trans_fat", amount: 0.5 },
-  { food_item_id: "seed-007", nutrient_id: "water", amount: 60.0 },
   { food_item_id: "seed-007", nutrient_id: "histidine", amount: 0.92 },
   { food_item_id: "seed-007", nutrient_id: "isoleucine", amount: 1.22 },
   { food_item_id: "seed-007", nutrient_id: "leucine", amount: 2.17 },
@@ -393,7 +386,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-008", nutrient_id: "monounsaturated_fat", amount: 3.7 },
   { food_item_id: "seed-008", nutrient_id: "polyunsaturated_fat", amount: 0.4 },
   { food_item_id: "seed-008", nutrient_id: "trans_fat", amount: 0.48 },
-  { food_item_id: "seed-008", nutrient_id: "water", amount: 60.0 },
   { food_item_id: "seed-008", nutrient_id: "histidine", amount: 1.0 },
   { food_item_id: "seed-008", nutrient_id: "isoleucine", amount: 1.32 },
   { food_item_id: "seed-008", nutrient_id: "leucine", amount: 2.34 },
@@ -439,7 +431,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-009", nutrient_id: "saturated_fat", amount: 2.7 },
   { food_item_id: "seed-009", nutrient_id: "monounsaturated_fat", amount: 3.2 },
   { food_item_id: "seed-009", nutrient_id: "polyunsaturated_fat", amount: 0.9 },
-  { food_item_id: "seed-009", nutrient_id: "water", amount: 59.0 },
   { food_item_id: "seed-009", nutrient_id: "histidine", amount: 1.06 },
   { food_item_id: "seed-009", nutrient_id: "isoleucine", amount: 1.26 },
   { food_item_id: "seed-009", nutrient_id: "leucine", amount: 2.15 },
@@ -489,7 +480,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     amount: 17.5,
   },
   { food_item_id: "seed-010", nutrient_id: "polyunsaturated_fat", amount: 6.1 },
-  { food_item_id: "seed-010", nutrient_id: "water", amount: 12.0 },
   { food_item_id: "seed-010", nutrient_id: "histidine", amount: 1.2 },
   { food_item_id: "seed-010", nutrient_id: "isoleucine", amount: 1.45 },
   { food_item_id: "seed-010", nutrient_id: "leucine", amount: 2.52 },
@@ -533,7 +523,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     nutrient_id: "polyunsaturated_fat",
     amount: 0.34,
   },
-  { food_item_id: "seed-011", nutrient_id: "water", amount: 67.0 },
   { food_item_id: "seed-011", nutrient_id: "histidine", amount: 0.87 },
   { food_item_id: "seed-011", nutrient_id: "isoleucine", amount: 1.38 },
   { food_item_id: "seed-011", nutrient_id: "leucine", amount: 2.25 },
@@ -578,7 +567,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-012", nutrient_id: "saturated_fat", amount: 2.4 },
   { food_item_id: "seed-012", nutrient_id: "monounsaturated_fat", amount: 2.8 },
   { food_item_id: "seed-012", nutrient_id: "polyunsaturated_fat", amount: 1.8 },
-  { food_item_id: "seed-012", nutrient_id: "water", amount: 62.0 },
   { food_item_id: "seed-012", nutrient_id: "histidine", amount: 0.72 },
   { food_item_id: "seed-012", nutrient_id: "isoleucine", amount: 1.14 },
   { food_item_id: "seed-012", nutrient_id: "leucine", amount: 1.86 },
@@ -626,7 +614,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-013", nutrient_id: "omega_3_epa", amount: 0.41 },
   { food_item_id: "seed-013", nutrient_id: "omega_3_dha", amount: 1.43 },
   { food_item_id: "seed-013", nutrient_id: "dpa", amount: 0.39 },
-  { food_item_id: "seed-013", nutrient_id: "water", amount: 64.9 },
   { food_item_id: "seed-013", nutrient_id: "histidine", amount: 0.63 },
   { food_item_id: "seed-013", nutrient_id: "isoleucine", amount: 0.98 },
   { food_item_id: "seed-013", nutrient_id: "leucine", amount: 1.73 },
@@ -679,7 +666,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-014", nutrient_id: "omega_3_epa", amount: 0.69 },
   { food_item_id: "seed-014", nutrient_id: "omega_3_dha", amount: 1.46 },
   { food_item_id: "seed-014", nutrient_id: "dpa", amount: 0.39 },
-  { food_item_id: "seed-014", nutrient_id: "water", amount: 59.6 },
 
   // ============================================================
   // seed-015: Tuna, Canned in Water, Drained (100g)
@@ -718,7 +704,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   },
   { food_item_id: "seed-015", nutrient_id: "omega_3_epa", amount: 0.04 },
   { food_item_id: "seed-015", nutrient_id: "omega_3_dha", amount: 0.22 },
-  { food_item_id: "seed-015", nutrient_id: "water", amount: 73.5 },
 
   // ============================================================
   // seed-016: Shrimp, Cooked (100g)
@@ -759,7 +744,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-016", nutrient_id: "omega_3_epa", amount: 0.12 },
   { food_item_id: "seed-016", nutrient_id: "omega_3_dha", amount: 0.12 },
   { food_item_id: "seed-016", nutrient_id: "omega_6_aa", amount: 0.04 },
-  { food_item_id: "seed-016", nutrient_id: "water", amount: 77.3 },
 
   // ============================================================
   // seed-017: Tilapia, Cooked (100g)
@@ -795,7 +779,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     nutrient_id: "polyunsaturated_fat",
     amount: 0.62,
   },
-  { food_item_id: "seed-017", nutrient_id: "water", amount: 71.4 },
 
   // ============================================================
   // seed-018: Cod, Cooked (100g)
@@ -835,7 +818,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   },
   { food_item_id: "seed-018", nutrient_id: "omega_3_epa", amount: 0.06 },
   { food_item_id: "seed-018", nutrient_id: "omega_3_dha", amount: 0.15 },
-  { food_item_id: "seed-018", nutrient_id: "water", amount: 78.2 },
 
   // ============================================================
   // seed-019: Tofu, Firm (100g)
@@ -862,7 +844,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-019", nutrient_id: "saturated_fat", amount: 0.7 },
   { food_item_id: "seed-019", nutrient_id: "monounsaturated_fat", amount: 1.0 },
   { food_item_id: "seed-019", nutrient_id: "polyunsaturated_fat", amount: 2.5 },
-  { food_item_id: "seed-019", nutrient_id: "water", amount: 82.5 },
   { food_item_id: "seed-019", nutrient_id: "histidine", amount: 0.22 },
   { food_item_id: "seed-019", nutrient_id: "isoleucine", amount: 0.39 },
   { food_item_id: "seed-019", nutrient_id: "leucine", amount: 0.63 },
@@ -900,7 +881,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-020", nutrient_id: "saturated_fat", amount: 1.58 },
   { food_item_id: "seed-020", nutrient_id: "monounsaturated_fat", amount: 2.4 },
   { food_item_id: "seed-020", nutrient_id: "polyunsaturated_fat", amount: 4.3 },
-  { food_item_id: "seed-020", nutrient_id: "water", amount: 55.0 },
   { food_item_id: "seed-020", nutrient_id: "histidine", amount: 0.42 },
   { food_item_id: "seed-020", nutrient_id: "isoleucine", amount: 0.82 },
   { food_item_id: "seed-020", nutrient_id: "leucine", amount: 1.3 },
@@ -934,7 +914,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-021", nutrient_id: "molybdenum", amount: 65.0 },
   { food_item_id: "seed-021", nutrient_id: "fiber", amount: 8.7 },
   { food_item_id: "seed-021", nutrient_id: "starch", amount: 13.5 },
-  { food_item_id: "seed-021", nutrient_id: "water", amount: 62.1 },
   { food_item_id: "seed-021", nutrient_id: "histidine", amount: 0.19 },
   { food_item_id: "seed-021", nutrient_id: "isoleucine", amount: 0.3 },
   { food_item_id: "seed-021", nutrient_id: "leucine", amount: 0.56 },
@@ -971,7 +950,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-022", nutrient_id: "choline", amount: 42.8 },
   { food_item_id: "seed-022", nutrient_id: "fiber", amount: 7.6 },
   { food_item_id: "seed-022", nutrient_id: "starch", amount: 16.0 },
-  { food_item_id: "seed-022", nutrient_id: "water", amount: 60.2 },
   { food_item_id: "seed-022", nutrient_id: "histidine", amount: 0.16 },
   { food_item_id: "seed-022", nutrient_id: "isoleucine", amount: 0.24 },
   { food_item_id: "seed-022", nutrient_id: "leucine", amount: 0.4 },
@@ -1007,7 +985,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-023", nutrient_id: "choline", amount: 32.7 },
   { food_item_id: "seed-023", nutrient_id: "fiber", amount: 7.9 },
   { food_item_id: "seed-023", nutrient_id: "starch", amount: 13.0 },
-  { food_item_id: "seed-023", nutrient_id: "water", amount: 69.6 },
   { food_item_id: "seed-023", nutrient_id: "histidine", amount: 0.17 },
   { food_item_id: "seed-023", nutrient_id: "isoleucine", amount: 0.25 },
   { food_item_id: "seed-023", nutrient_id: "leucine", amount: 0.42 },
@@ -1043,9 +1020,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-024", nutrient_id: "selenium", amount: 1.2 },
   { food_item_id: "seed-024", nutrient_id: "choline", amount: 11.6 },
   { food_item_id: "seed-024", nutrient_id: "fiber", amount: 3.1 },
-  { food_item_id: "seed-024", nutrient_id: "sugar", amount: 14.4 },
   { food_item_id: "seed-024", nutrient_id: "starch", amount: 6.3 },
-  { food_item_id: "seed-024", nutrient_id: "water", amount: 88.4 },
   { food_item_id: "seed-024", nutrient_id: "beta_carotene", amount: 31.0 },
   { food_item_id: "seed-024", nutrient_id: "lutein_zeaxanthin", amount: 27.0 },
 
@@ -1071,8 +1046,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-025", nutrient_id: "copper", amount: 0.05 },
   { food_item_id: "seed-025", nutrient_id: "manganese", amount: 0.06 },
   { food_item_id: "seed-025", nutrient_id: "fiber", amount: 4.4 },
-  { food_item_id: "seed-025", nutrient_id: "sugar", amount: 18.9 },
-  { food_item_id: "seed-025", nutrient_id: "water", amount: 156.0 },
   { food_item_id: "seed-025", nutrient_id: "beta_carotene", amount: 50.0 },
 
   // ============================================================
@@ -1098,8 +1071,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-026", nutrient_id: "selenium", amount: 0.7 },
   { food_item_id: "seed-026", nutrient_id: "choline", amount: 11.0 },
   { food_item_id: "seed-026", nutrient_id: "fiber", amount: 3.1 },
-  { food_item_id: "seed-026", nutrient_id: "sugar", amount: 12.2 },
-  { food_item_id: "seed-026", nutrient_id: "water", amount: 113.6 },
   { food_item_id: "seed-026", nutrient_id: "beta_carotene", amount: 93.0 },
   { food_item_id: "seed-026", nutrient_id: "lutein_zeaxanthin", amount: 162.0 },
 
@@ -1126,8 +1097,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-027", nutrient_id: "manganese", amount: 0.39 },
   { food_item_id: "seed-027", nutrient_id: "selenium", amount: 0.4 },
   { food_item_id: "seed-027", nutrient_id: "fiber", amount: 2.0 },
-  { food_item_id: "seed-027", nutrient_id: "sugar", amount: 4.89 },
-  { food_item_id: "seed-027", nutrient_id: "water", amount: 90.95 },
   { food_item_id: "seed-027", nutrient_id: "lutein_zeaxanthin", amount: 26.0 },
 
   // ============================================================
@@ -1152,8 +1121,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-028", nutrient_id: "copper", amount: 0.06 },
   { food_item_id: "seed-028", nutrient_id: "manganese", amount: 0.34 },
   { food_item_id: "seed-028", nutrient_id: "fiber", amount: 2.4 },
-  { food_item_id: "seed-028", nutrient_id: "sugar", amount: 9.96 },
-  { food_item_id: "seed-028", nutrient_id: "water", amount: 84.21 },
   { food_item_id: "seed-028", nutrient_id: "lutein_zeaxanthin", amount: 80.0 },
 
   // ============================================================
@@ -1179,8 +1146,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-029", nutrient_id: "manganese", amount: 0.67 },
   { food_item_id: "seed-029", nutrient_id: "selenium", amount: 0.2 },
   { food_item_id: "seed-029", nutrient_id: "fiber", amount: 6.5 },
-  { food_item_id: "seed-029", nutrient_id: "sugar", amount: 4.42 },
-  { food_item_id: "seed-029", nutrient_id: "water", amount: 85.75 },
   { food_item_id: "seed-029", nutrient_id: "lutein_zeaxanthin", amount: 136.0 },
 
   // ============================================================
@@ -1203,8 +1168,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-030", nutrient_id: "copper", amount: 0.13 },
   { food_item_id: "seed-030", nutrient_id: "manganese", amount: 0.07 },
   { food_item_id: "seed-030", nutrient_id: "fiber", amount: 0.9 },
-  { food_item_id: "seed-030", nutrient_id: "sugar", amount: 15.48 },
-  { food_item_id: "seed-030", nutrient_id: "water", amount: 80.54 },
   { food_item_id: "seed-030", nutrient_id: "lutein_zeaxanthin", amount: 72.0 },
 
   // ============================================================
@@ -1227,8 +1190,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-031", nutrient_id: "copper", amount: 0.04 },
   { food_item_id: "seed-031", nutrient_id: "manganese", amount: 0.04 },
   { food_item_id: "seed-031", nutrient_id: "fiber", amount: 0.4 },
-  { food_item_id: "seed-031", nutrient_id: "sugar", amount: 6.2 },
-  { food_item_id: "seed-031", nutrient_id: "water", amount: 91.45 },
   { food_item_id: "seed-031", nutrient_id: "lycopene", amount: 4.53 },
   { food_item_id: "seed-031", nutrient_id: "beta_carotene", amount: 303.0 },
   { food_item_id: "seed-031", nutrient_id: "choline", amount: 4.1 },
@@ -1255,8 +1216,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-032", nutrient_id: "zinc", amount: 0.09 },
   { food_item_id: "seed-032", nutrient_id: "copper", amount: 0.11 },
   { food_item_id: "seed-032", nutrient_id: "fiber", amount: 1.6 },
-  { food_item_id: "seed-032", nutrient_id: "sugar", amount: 13.66 },
-  { food_item_id: "seed-032", nutrient_id: "water", amount: 83.46 },
   { food_item_id: "seed-032", nutrient_id: "beta_carotene", amount: 640.0 },
 
   // ============================================================
@@ -1280,8 +1239,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-033", nutrient_id: "copper", amount: 0.11 },
   { food_item_id: "seed-033", nutrient_id: "manganese", amount: 0.93 },
   { food_item_id: "seed-033", nutrient_id: "fiber", amount: 1.4 },
-  { food_item_id: "seed-033", nutrient_id: "sugar", amount: 9.85 },
-  { food_item_id: "seed-033", nutrient_id: "water", amount: 86.0 },
   { food_item_id: "seed-033", nutrient_id: "beta_carotene", amount: 35.0 },
 
   // ============================================================
@@ -1309,7 +1266,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-034", nutrient_id: "selenium", amount: 0.4 },
   { food_item_id: "seed-034", nutrient_id: "choline", amount: 14.2 },
   { food_item_id: "seed-034", nutrient_id: "fiber", amount: 6.7 },
-  { food_item_id: "seed-034", nutrient_id: "sugar", amount: 0.66 },
   { food_item_id: "seed-034", nutrient_id: "saturated_fat", amount: 2.13 },
   { food_item_id: "seed-034", nutrient_id: "monounsaturated_fat", amount: 9.8 },
   {
@@ -1320,7 +1276,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-034", nutrient_id: "omega_9", amount: 9.07 },
   { food_item_id: "seed-034", nutrient_id: "omega_6_la", amount: 1.67 },
   { food_item_id: "seed-034", nutrient_id: "omega_3_ala", amount: 0.11 },
-  { food_item_id: "seed-034", nutrient_id: "water", amount: 73.23 },
   { food_item_id: "seed-034", nutrient_id: "lutein_zeaxanthin", amount: 271.0 },
   { food_item_id: "seed-034", nutrient_id: "beta_carotene", amount: 62.0 },
 
@@ -1346,8 +1301,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-035", nutrient_id: "copper", amount: 0.1 },
   { food_item_id: "seed-035", nutrient_id: "manganese", amount: 0.09 },
   { food_item_id: "seed-035", nutrient_id: "fiber", amount: 2.3 },
-  { food_item_id: "seed-035", nutrient_id: "sugar", amount: 12.6 },
-  { food_item_id: "seed-035", nutrient_id: "water", amount: 133.1 },
   { food_item_id: "seed-035", nutrient_id: "beta_carotene", amount: 247.0 },
   { food_item_id: "seed-035", nutrient_id: "lutein_zeaxanthin", amount: 133.0 },
 
@@ -1376,8 +1329,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-036", nutrient_id: "selenium", amount: 2.5 },
   { food_item_id: "seed-036", nutrient_id: "choline", amount: 18.7 },
   { food_item_id: "seed-036", nutrient_id: "fiber", amount: 2.6 },
-  { food_item_id: "seed-036", nutrient_id: "sugar", amount: 1.7 },
-  { food_item_id: "seed-036", nutrient_id: "water", amount: 89.3 },
   { food_item_id: "seed-036", nutrient_id: "beta_carotene", amount: 361.0 },
   {
     food_item_id: "seed-036",
@@ -1410,8 +1361,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-037", nutrient_id: "selenium", amount: 1.6 },
   { food_item_id: "seed-037", nutrient_id: "choline", amount: 40.1 },
   { food_item_id: "seed-037", nutrient_id: "fiber", amount: 3.3 },
-  { food_item_id: "seed-037", nutrient_id: "sugar", amount: 1.4 },
-  { food_item_id: "seed-037", nutrient_id: "water", amount: 89.2 },
   { food_item_id: "seed-037", nutrient_id: "beta_carotene", amount: 929.0 },
   {
     food_item_id: "seed-037",
@@ -1445,8 +1394,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-038", nutrient_id: "choline", amount: 19.3 },
   { food_item_id: "seed-038", nutrient_id: "betaine", amount: 102.6 },
   { food_item_id: "seed-038", nutrient_id: "fiber", amount: 2.2 },
-  { food_item_id: "seed-038", nutrient_id: "sugar", amount: 0.42 },
-  { food_item_id: "seed-038", nutrient_id: "water", amount: 91.4 },
   { food_item_id: "seed-038", nutrient_id: "beta_carotene", amount: 5626.0 },
   {
     food_item_id: "seed-038",
@@ -1479,8 +1426,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-039", nutrient_id: "selenium", amount: 0.9 },
   { food_item_id: "seed-039", nutrient_id: "choline", amount: 0.5 },
   { food_item_id: "seed-039", nutrient_id: "fiber", amount: 4.1 },
-  { food_item_id: "seed-039", nutrient_id: "sugar", amount: 0.8 },
-  { food_item_id: "seed-039", nutrient_id: "water", amount: 84.5 },
   { food_item_id: "seed-039", nutrient_id: "beta_carotene", amount: 2873.0 },
   {
     food_item_id: "seed-039",
@@ -1513,8 +1458,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-040", nutrient_id: "manganese", amount: 0.14 },
   { food_item_id: "seed-040", nutrient_id: "fluoride", amount: 0.003 },
   { food_item_id: "seed-040", nutrient_id: "fiber", amount: 2.8 },
-  { food_item_id: "seed-040", nutrient_id: "sugar", amount: 4.74 },
-  { food_item_id: "seed-040", nutrient_id: "water", amount: 88.29 },
   { food_item_id: "seed-040", nutrient_id: "beta_carotene", amount: 8285.0 },
   { food_item_id: "seed-040", nutrient_id: "lutein_zeaxanthin", amount: 256.0 },
   { food_item_id: "seed-040", nutrient_id: "lycopene", amount: 0.01 },
@@ -1542,8 +1485,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-041", nutrient_id: "copper", amount: 0.02 },
   { food_item_id: "seed-041", nutrient_id: "manganese", amount: 0.11 },
   { food_item_id: "seed-041", nutrient_id: "fiber", amount: 2.1 },
-  { food_item_id: "seed-041", nutrient_id: "sugar", amount: 4.2 },
-  { food_item_id: "seed-041", nutrient_id: "water", amount: 92.21 },
   { food_item_id: "seed-041", nutrient_id: "beta_carotene", amount: 1624.0 },
   { food_item_id: "seed-041", nutrient_id: "lutein_zeaxanthin", amount: 51.0 },
   { food_item_id: "seed-041", nutrient_id: "lycopene", amount: 0.0 },
@@ -1569,8 +1510,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-042", nutrient_id: "zinc", amount: 0.2 },
   { food_item_id: "seed-042", nutrient_id: "manganese", amount: 0.08 },
   { food_item_id: "seed-042", nutrient_id: "fiber", amount: 0.5 },
-  { food_item_id: "seed-042", nutrient_id: "sugar", amount: 1.67 },
-  { food_item_id: "seed-042", nutrient_id: "water", amount: 95.23 },
   { food_item_id: "seed-042", nutrient_id: "beta_carotene", amount: 45.0 },
   { food_item_id: "seed-042", nutrient_id: "lutein_zeaxanthin", amount: 23.0 },
 
@@ -1598,8 +1537,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-043", nutrient_id: "manganese", amount: 0.11 },
   { food_item_id: "seed-043", nutrient_id: "choline", amount: 6.7 },
   { food_item_id: "seed-043", nutrient_id: "fiber", amount: 1.2 },
-  { food_item_id: "seed-043", nutrient_id: "sugar", amount: 2.63 },
-  { food_item_id: "seed-043", nutrient_id: "water", amount: 94.52 },
   { food_item_id: "seed-043", nutrient_id: "lycopene", amount: 2.57 },
   { food_item_id: "seed-043", nutrient_id: "beta_carotene", amount: 449.0 },
   { food_item_id: "seed-043", nutrient_id: "lutein_zeaxanthin", amount: 123.0 },
@@ -1628,9 +1565,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-044", nutrient_id: "selenium", amount: 0.2 },
   { food_item_id: "seed-044", nutrient_id: "choline", amount: 13.5 },
   { food_item_id: "seed-044", nutrient_id: "fiber", amount: 3.8 },
-  { food_item_id: "seed-044", nutrient_id: "sugar", amount: 6.48 },
   { food_item_id: "seed-044", nutrient_id: "starch", amount: 7.0 },
-  { food_item_id: "seed-044", nutrient_id: "water", amount: 75.8 },
   { food_item_id: "seed-044", nutrient_id: "beta_carotene", amount: 11509.0 },
 
   // ============================================================
@@ -1656,9 +1591,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-045", nutrient_id: "selenium", amount: 0.3 },
   { food_item_id: "seed-045", nutrient_id: "choline", amount: 13.5 },
   { food_item_id: "seed-045", nutrient_id: "fiber", amount: 2.2 },
-  { food_item_id: "seed-045", nutrient_id: "sugar", amount: 1.18 },
   { food_item_id: "seed-045", nutrient_id: "starch", amount: 17.0 },
-  { food_item_id: "seed-045", nutrient_id: "water", amount: 74.89 },
   { food_item_id: "seed-045", nutrient_id: "lutein_zeaxanthin", amount: 10.0 },
 
   // ============================================================
@@ -1686,8 +1619,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-046", nutrient_id: "selenium", amount: 6.1 },
   { food_item_id: "seed-046", nutrient_id: "choline", amount: 26.1 },
   { food_item_id: "seed-046", nutrient_id: "fiber", amount: 2.0 },
-  { food_item_id: "seed-046", nutrient_id: "sugar", amount: 1.3 },
-  { food_item_id: "seed-046", nutrient_id: "water", amount: 92.6 },
   { food_item_id: "seed-046", nutrient_id: "beta_carotene", amount: 604.0 },
   { food_item_id: "seed-046", nutrient_id: "lutein_zeaxanthin", amount: 710.0 },
 
@@ -1713,8 +1644,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-047", nutrient_id: "copper", amount: 0.05 },
   { food_item_id: "seed-047", nutrient_id: "manganese", amount: 0.22 },
   { food_item_id: "seed-047", nutrient_id: "fiber", amount: 3.2 },
-  { food_item_id: "seed-047", nutrient_id: "sugar", amount: 1.6 },
-  { food_item_id: "seed-047", nutrient_id: "water", amount: 90.3 },
   { food_item_id: "seed-047", nutrient_id: "beta_carotene", amount: 379.0 },
   { food_item_id: "seed-047", nutrient_id: "lutein_zeaxanthin", amount: 640.0 },
 
@@ -1740,8 +1669,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-048", nutrient_id: "selenium", amount: 0.6 },
   { food_item_id: "seed-048", nutrient_id: "choline", amount: 44.3 },
   { food_item_id: "seed-048", nutrient_id: "fiber", amount: 2.0 },
-  { food_item_id: "seed-048", nutrient_id: "sugar", amount: 1.91 },
-  { food_item_id: "seed-048", nutrient_id: "water", amount: 92.07 },
 
   // ============================================================
   // seed-049: Zucchini, Raw (100g)
@@ -1764,8 +1691,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-049", nutrient_id: "zinc", amount: 0.32 },
   { food_item_id: "seed-049", nutrient_id: "manganese", amount: 0.18 },
   { food_item_id: "seed-049", nutrient_id: "fiber", amount: 1.0 },
-  { food_item_id: "seed-049", nutrient_id: "sugar", amount: 2.5 },
-  { food_item_id: "seed-049", nutrient_id: "water", amount: 94.79 },
   { food_item_id: "seed-049", nutrient_id: "beta_carotene", amount: 120.0 },
   {
     food_item_id: "seed-049",
@@ -1796,8 +1721,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-050", nutrient_id: "selenium", amount: 9.3 },
   { food_item_id: "seed-050", nutrient_id: "choline", amount: 17.3 },
   { food_item_id: "seed-050", nutrient_id: "fiber", amount: 1.0 },
-  { food_item_id: "seed-050", nutrient_id: "sugar", amount: 1.98 },
-  { food_item_id: "seed-050", nutrient_id: "water", amount: 92.45 },
 
   // ============================================================
   // seed-051: Onion, Raw (100g)
@@ -1818,8 +1741,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-051", nutrient_id: "zinc", amount: 0.17 },
   { food_item_id: "seed-051", nutrient_id: "manganese", amount: 0.13 },
   { food_item_id: "seed-051", nutrient_id: "fiber", amount: 1.7 },
-  { food_item_id: "seed-051", nutrient_id: "sugar", amount: 4.24 },
-  { food_item_id: "seed-051", nutrient_id: "water", amount: 89.11 },
 
   // ============================================================
   // seed-052: Celery, Raw (100g)
@@ -1842,8 +1763,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-052", nutrient_id: "zinc", amount: 0.13 },
   { food_item_id: "seed-052", nutrient_id: "manganese", amount: 0.1 },
   { food_item_id: "seed-052", nutrient_id: "fiber", amount: 1.6 },
-  { food_item_id: "seed-052", nutrient_id: "sugar", amount: 1.34 },
-  { food_item_id: "seed-052", nutrient_id: "water", amount: 95.43 },
   { food_item_id: "seed-052", nutrient_id: "beta_carotene", amount: 270.0 },
   { food_item_id: "seed-052", nutrient_id: "lutein_zeaxanthin", amount: 283.0 },
 
@@ -1868,7 +1787,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-053", nutrient_id: "selenium", amount: 7.5 },
   { food_item_id: "seed-053", nutrient_id: "fiber", amount: 0.4 },
   { food_item_id: "seed-053", nutrient_id: "starch", amount: 27.0 },
-  { food_item_id: "seed-053", nutrient_id: "water", amount: 68.44 },
   { food_item_id: "seed-053", nutrient_id: "histidine", amount: 0.06 },
   { food_item_id: "seed-053", nutrient_id: "isoleucine", amount: 0.11 },
   { food_item_id: "seed-053", nutrient_id: "leucine", amount: 0.21 },
@@ -1902,7 +1820,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-054", nutrient_id: "selenium", amount: 9.8 },
   { food_item_id: "seed-054", nutrient_id: "fiber", amount: 1.8 },
   { food_item_id: "seed-054", nutrient_id: "starch", amount: 22.0 },
-  { food_item_id: "seed-054", nutrient_id: "water", amount: 72.96 },
   { food_item_id: "seed-054", nutrient_id: "choline", amount: 9.2 },
   { food_item_id: "seed-054", nutrient_id: "histidine", amount: 0.07 },
   { food_item_id: "seed-054", nutrient_id: "isoleucine", amount: 0.1 },
@@ -1935,7 +1852,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-055", nutrient_id: "manganese", amount: 0.63 },
   { food_item_id: "seed-055", nutrient_id: "selenium", amount: 2.8 },
   { food_item_id: "seed-055", nutrient_id: "fiber", amount: 2.8 },
-  { food_item_id: "seed-055", nutrient_id: "water", amount: 71.61 },
   { food_item_id: "seed-055", nutrient_id: "choline", amount: 23.0 },
   { food_item_id: "seed-055", nutrient_id: "histidine", amount: 0.13 },
   { food_item_id: "seed-055", nutrient_id: "isoleucine", amount: 0.16 },
@@ -1987,9 +1903,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-056", nutrient_id: "fiber", amount: 1.7 },
   { food_item_id: "seed-056", nutrient_id: "soluble_fiber", amount: 0.8 },
   { food_item_id: "seed-056", nutrient_id: "insoluble_fiber", amount: 0.9 },
-  { food_item_id: "seed-056", nutrient_id: "sugar", amount: 0.27 },
   { food_item_id: "seed-056", nutrient_id: "starch", amount: 9.1 },
-  { food_item_id: "seed-056", nutrient_id: "water", amount: 83.61 },
   { food_item_id: "seed-056", nutrient_id: "betaine", amount: 1.6 },
   { food_item_id: "seed-056", nutrient_id: "saturated_fat", amount: 0.33 },
   { food_item_id: "seed-056", nutrient_id: "monounsaturated_fat", amount: 0.6 },
@@ -2022,9 +1936,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-057", nutrient_id: "fiber", amount: 10.6 },
   { food_item_id: "seed-057", nutrient_id: "soluble_fiber", amount: 4.0 },
   { food_item_id: "seed-057", nutrient_id: "insoluble_fiber", amount: 6.6 },
-  { food_item_id: "seed-057", nutrient_id: "sugar", amount: 0.99 },
   { food_item_id: "seed-057", nutrient_id: "starch", amount: 54.0 },
-  { food_item_id: "seed-057", nutrient_id: "water", amount: 8.22 },
   { food_item_id: "seed-057", nutrient_id: "choline", amount: 40.4 },
   { food_item_id: "seed-057", nutrient_id: "betaine", amount: 12.0 },
   { food_item_id: "seed-057", nutrient_id: "saturated_fat", amount: 1.22 },
@@ -2076,7 +1988,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-058", nutrient_id: "selenium", amount: 26.4 },
   { food_item_id: "seed-058", nutrient_id: "fiber", amount: 1.8 },
   { food_item_id: "seed-058", nutrient_id: "starch", amount: 25.0 },
-  { food_item_id: "seed-058", nutrient_id: "water", amount: 62.13 },
   { food_item_id: "seed-058", nutrient_id: "choline", amount: 6.2 },
   { food_item_id: "seed-058", nutrient_id: "histidine", amount: 0.08 },
   { food_item_id: "seed-058", nutrient_id: "isoleucine", amount: 0.15 },
@@ -2110,9 +2021,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-059", nutrient_id: "manganese", amount: 2.17 },
   { food_item_id: "seed-059", nutrient_id: "selenium", amount: 35.8 },
   { food_item_id: "seed-059", nutrient_id: "fiber", amount: 6.8 },
-  { food_item_id: "seed-059", nutrient_id: "sugar", amount: 5.57 },
   { food_item_id: "seed-059", nutrient_id: "starch", amount: 30.0 },
-  { food_item_id: "seed-059", nutrient_id: "water", amount: 38.33 },
   { food_item_id: "seed-059", nutrient_id: "choline", amount: 27.2 },
   { food_item_id: "seed-059", nutrient_id: "betaine", amount: 51.8 },
   { food_item_id: "seed-059", nutrient_id: "saturated_fat", amount: 0.73 },
@@ -2147,9 +2056,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-060", nutrient_id: "manganese", amount: 0.49 },
   { food_item_id: "seed-060", nutrient_id: "selenium", amount: 22.0 },
   { food_item_id: "seed-060", nutrient_id: "fiber", amount: 2.7 },
-  { food_item_id: "seed-060", nutrient_id: "sugar", amount: 5.34 },
   { food_item_id: "seed-060", nutrient_id: "starch", amount: 41.0 },
-  { food_item_id: "seed-060", nutrient_id: "water", amount: 35.76 },
   { food_item_id: "seed-060", nutrient_id: "choline", amount: 14.6 },
   { food_item_id: "seed-060", nutrient_id: "saturated_fat", amount: 0.68 },
   {
@@ -2177,9 +2084,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-061", nutrient_id: "zinc", amount: 0.24 },
   { food_item_id: "seed-061", nutrient_id: "selenium", amount: 10.7 },
   { food_item_id: "seed-061", nutrient_id: "fiber", amount: 1.2 },
-  { food_item_id: "seed-061", nutrient_id: "sugar", amount: 1.47 },
   { food_item_id: "seed-061", nutrient_id: "starch", amount: 20.0 },
-  { food_item_id: "seed-061", nutrient_id: "water", amount: 15.7 },
   { food_item_id: "seed-061", nutrient_id: "saturated_fat", amount: 1.08 },
   { food_item_id: "seed-061", nutrient_id: "monounsaturated_fat", amount: 1.6 },
   {
@@ -2202,8 +2107,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-062", nutrient_id: "zinc", amount: 0.2 },
   { food_item_id: "seed-062", nutrient_id: "selenium", amount: 1.7 },
   { food_item_id: "seed-062", nutrient_id: "fiber", amount: 1.1 },
-  { food_item_id: "seed-062", nutrient_id: "sugar", amount: 0.24 },
-  { food_item_id: "seed-062", nutrient_id: "water", amount: 10.8 },
   { food_item_id: "seed-062", nutrient_id: "saturated_fat", amount: 0.09 },
   {
     food_item_id: "seed-062",
@@ -2228,8 +2131,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-063", nutrient_id: "potassium", amount: 141.0 },
   { food_item_id: "seed-063", nutrient_id: "zinc", amount: 0.52 },
   { food_item_id: "seed-063", nutrient_id: "selenium", amount: 9.7 },
-  { food_item_id: "seed-063", nutrient_id: "sugar", amount: 3.6 },
-  { food_item_id: "seed-063", nutrient_id: "water", amount: 84.9 },
   { food_item_id: "seed-063", nutrient_id: "choline", amount: 15.1 },
   { food_item_id: "seed-063", nutrient_id: "histidine", amount: 0.27 },
   { food_item_id: "seed-063", nutrient_id: "isoleucine", amount: 0.47 },
@@ -2258,8 +2159,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-064", nutrient_id: "potassium", amount: 141.0 },
   { food_item_id: "seed-064", nutrient_id: "zinc", amount: 0.52 },
   { food_item_id: "seed-064", nutrient_id: "selenium", amount: 9.7 },
-  { food_item_id: "seed-064", nutrient_id: "sugar", amount: 3.56 },
-  { food_item_id: "seed-064", nutrient_id: "water", amount: 80.5 },
   { food_item_id: "seed-064", nutrient_id: "choline", amount: 15.1 },
   { food_item_id: "seed-064", nutrient_id: "cholesterol", amount: 13.0 },
   { food_item_id: "seed-064", nutrient_id: "saturated_fat", amount: 3.04 },
@@ -2297,8 +2196,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-065", nutrient_id: "potassium", amount: 86.0 },
   { food_item_id: "seed-065", nutrient_id: "zinc", amount: 0.4 },
   { food_item_id: "seed-065", nutrient_id: "selenium", amount: 9.4 },
-  { food_item_id: "seed-065", nutrient_id: "sugar", amount: 3.67 },
-  { food_item_id: "seed-065", nutrient_id: "water", amount: 81.24 },
   { food_item_id: "seed-065", nutrient_id: "cholesterol", amount: 9.0 },
   { food_item_id: "seed-065", nutrient_id: "saturated_fat", amount: 0.65 },
   {
@@ -2336,8 +2233,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-066", nutrient_id: "zinc", amount: 0.37 },
   { food_item_id: "seed-066", nutrient_id: "selenium", amount: 3.3 },
   { food_item_id: "seed-066", nutrient_id: "iodine", amount: 21.0 },
-  { food_item_id: "seed-066", nutrient_id: "sugar", amount: 5.05 },
-  { food_item_id: "seed-066", nutrient_id: "water", amount: 87.99 },
   { food_item_id: "seed-066", nutrient_id: "cholesterol", amount: 10.0 },
   { food_item_id: "seed-066", nutrient_id: "saturated_fat", amount: 1.87 },
   {
@@ -2365,8 +2260,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-067", nutrient_id: "potassium", amount: 140.0 },
   { food_item_id: "seed-067", nutrient_id: "zinc", amount: 0.42 },
   { food_item_id: "seed-067", nutrient_id: "selenium", amount: 3.3 },
-  { food_item_id: "seed-067", nutrient_id: "sugar", amount: 5.06 },
-  { food_item_id: "seed-067", nutrient_id: "water", amount: 89.21 },
   { food_item_id: "seed-067", nutrient_id: "cholesterol", amount: 8.0 },
   { food_item_id: "seed-067", nutrient_id: "saturated_fat", amount: 1.26 },
   {
@@ -2396,8 +2289,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-068", nutrient_id: "potassium", amount: 156.0 },
   { food_item_id: "seed-068", nutrient_id: "zinc", amount: 0.42 },
   { food_item_id: "seed-068", nutrient_id: "selenium", amount: 3.3 },
-  { food_item_id: "seed-068", nutrient_id: "sugar", amount: 5.09 },
-  { food_item_id: "seed-068", nutrient_id: "water", amount: 90.84 },
   { food_item_id: "seed-068", nutrient_id: "cholesterol", amount: 2.0 },
   { food_item_id: "seed-068", nutrient_id: "choline", amount: 16.0 },
 
@@ -2411,7 +2302,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-069", nutrient_id: "magnesium", amount: 7.0 },
   { food_item_id: "seed-069", nutrient_id: "phosphorus", amount: 9.0 },
   { food_item_id: "seed-069", nutrient_id: "iron", amount: 0.28 },
-  { food_item_id: "seed-069", nutrient_id: "water", amount: 96.5 },
   {
     food_item_id: "seed-069",
     nutrient_id: "monounsaturated_fat",
@@ -2434,8 +2324,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-070", nutrient_id: "phosphorus", amount: 42.0 },
   { food_item_id: "seed-070", nutrient_id: "iron", amount: 0.3 },
   { food_item_id: "seed-070", nutrient_id: "fiber", amount: 0.8 },
-  { food_item_id: "seed-070", nutrient_id: "sugar", amount: 3.5 },
-  { food_item_id: "seed-070", nutrient_id: "water", amount: 90.0 },
   { food_item_id: "seed-070", nutrient_id: "monounsaturated_fat", amount: 0.5 },
   { food_item_id: "seed-070", nutrient_id: "polyunsaturated_fat", amount: 0.3 },
   { food_item_id: "seed-070", nutrient_id: "saturated_fat", amount: 0.2 },
@@ -2457,8 +2345,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-071", nutrient_id: "potassium", amount: 98.0 },
   { food_item_id: "seed-071", nutrient_id: "zinc", amount: 3.11 },
   { food_item_id: "seed-071", nutrient_id: "selenium", amount: 13.9 },
-  { food_item_id: "seed-071", nutrient_id: "sugar", amount: 0.52 },
-  { food_item_id: "seed-071", nutrient_id: "water", amount: 36.75 },
   { food_item_id: "seed-071", nutrient_id: "cholesterol", amount: 105.0 },
   { food_item_id: "seed-071", nutrient_id: "saturated_fat", amount: 21.09 },
   {
@@ -2499,8 +2385,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-072", nutrient_id: "potassium", amount: 84.0 },
   { food_item_id: "seed-072", nutrient_id: "zinc", amount: 2.76 },
   { food_item_id: "seed-072", nutrient_id: "selenium", amount: 17.0 },
-  { food_item_id: "seed-072", nutrient_id: "sugar", amount: 1.13 },
-  { food_item_id: "seed-072", nutrient_id: "water", amount: 48.57 },
   { food_item_id: "seed-072", nutrient_id: "cholesterol", amount: 54.0 },
   { food_item_id: "seed-072", nutrient_id: "saturated_fat", amount: 10.87 },
   {
@@ -2533,7 +2417,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-073", nutrient_id: "selenium", amount: 22.5 },
   { food_item_id: "seed-073", nutrient_id: "iron", amount: 0.82 },
   { food_item_id: "seed-073", nutrient_id: "copper", amount: 0.03 },
-  { food_item_id: "seed-073", nutrient_id: "water", amount: 20.84 },
   { food_item_id: "seed-073", nutrient_id: "cholesterol", amount: 68.0 },
   { food_item_id: "seed-073", nutrient_id: "saturated_fat", amount: 17.34 },
   {
@@ -2569,8 +2452,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-074", nutrient_id: "potassium", amount: 138.0 },
   { food_item_id: "seed-074", nutrient_id: "zinc", amount: 0.51 },
   { food_item_id: "seed-074", nutrient_id: "selenium", amount: 2.4 },
-  { food_item_id: "seed-074", nutrient_id: "sugar", amount: 3.21 },
-  { food_item_id: "seed-074", nutrient_id: "water", amount: 55.5 },
   { food_item_id: "seed-074", nutrient_id: "cholesterol", amount: 110.0 },
   { food_item_id: "seed-074", nutrient_id: "saturated_fat", amount: 19.29 },
   {
@@ -2603,8 +2484,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-075", nutrient_id: "zinc", amount: 2.88 },
   { food_item_id: "seed-075", nutrient_id: "selenium", amount: 15.0 },
   { food_item_id: "seed-075", nutrient_id: "iron", amount: 0.65 },
-  { food_item_id: "seed-075", nutrient_id: "sugar", amount: 4.09 },
-  { food_item_id: "seed-075", nutrient_id: "water", amount: 55.22 },
   { food_item_id: "seed-075", nutrient_id: "cholesterol", amount: 89.0 },
   { food_item_id: "seed-075", nutrient_id: "saturated_fat", amount: 14.95 },
   {
@@ -2642,8 +2521,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-076", nutrient_id: "manganese", amount: 2.18 },
   { food_item_id: "seed-076", nutrient_id: "selenium", amount: 4.1 },
   { food_item_id: "seed-076", nutrient_id: "fiber", amount: 12.5 },
-  { food_item_id: "seed-076", nutrient_id: "sugar", amount: 4.35 },
-  { food_item_id: "seed-076", nutrient_id: "water", amount: 4.41 },
   { food_item_id: "seed-076", nutrient_id: "choline", amount: 52.1 },
   { food_item_id: "seed-076", nutrient_id: "saturated_fat", amount: 3.8 },
   {
@@ -2690,8 +2567,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-077", nutrient_id: "manganese", amount: 2.08 },
   { food_item_id: "seed-077", nutrient_id: "selenium", amount: 3.1 },
   { food_item_id: "seed-077", nutrient_id: "fiber", amount: 8.0 },
-  { food_item_id: "seed-077", nutrient_id: "sugar", amount: 4.18 },
-  { food_item_id: "seed-077", nutrient_id: "water", amount: 1.55 },
   { food_item_id: "seed-077", nutrient_id: "choline", amount: 55.2 },
   { food_item_id: "seed-077", nutrient_id: "betaine", amount: 0.4 },
   { food_item_id: "seed-077", nutrient_id: "saturated_fat", amount: 7.72 },
@@ -2739,8 +2614,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-078", nutrient_id: "manganese", amount: 3.41 },
   { food_item_id: "seed-078", nutrient_id: "selenium", amount: 4.9 },
   { food_item_id: "seed-078", nutrient_id: "fiber", amount: 6.7 },
-  { food_item_id: "seed-078", nutrient_id: "sugar", amount: 2.61 },
-  { food_item_id: "seed-078", nutrient_id: "water", amount: 4.07 },
   { food_item_id: "seed-078", nutrient_id: "choline", amount: 39.2 },
   { food_item_id: "seed-078", nutrient_id: "betaine", amount: 0.3 },
   { food_item_id: "seed-078", nutrient_id: "saturated_fat", amount: 6.13 },
@@ -2789,9 +2662,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-079", nutrient_id: "manganese", amount: 1.66 },
   { food_item_id: "seed-079", nutrient_id: "selenium", amount: 19.9 },
   { food_item_id: "seed-079", nutrient_id: "fiber", amount: 3.3 },
-  { food_item_id: "seed-079", nutrient_id: "sugar", amount: 5.91 },
   { food_item_id: "seed-079", nutrient_id: "starch", amount: 23.5 },
-  { food_item_id: "seed-079", nutrient_id: "water", amount: 5.2 },
   { food_item_id: "seed-079", nutrient_id: "choline", amount: 61.0 },
   { food_item_id: "seed-079", nutrient_id: "saturated_fat", amount: 7.78 },
   {
@@ -2837,9 +2708,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-080", nutrient_id: "manganese", amount: 1.47 },
   { food_item_id: "seed-080", nutrient_id: "selenium", amount: 4.1 },
   { food_item_id: "seed-080", nutrient_id: "fiber", amount: 6.0 },
-  { food_item_id: "seed-080", nutrient_id: "sugar", amount: 9.22 },
-  { food_item_id: "seed-080", nutrient_id: "added_sugar", amount: 7.0 },
-  { food_item_id: "seed-080", nutrient_id: "water", amount: 1.47 },
   { food_item_id: "seed-080", nutrient_id: "choline", amount: 63.0 },
   { food_item_id: "seed-080", nutrient_id: "saturated_fat", amount: 10.33 },
   {
@@ -2884,8 +2752,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-081", nutrient_id: "manganese", amount: 2.13 },
   { food_item_id: "seed-081", nutrient_id: "selenium", amount: 2.4 },
   { food_item_id: "seed-081", nutrient_id: "fiber", amount: 10.5 },
-  { food_item_id: "seed-081", nutrient_id: "sugar", amount: 6.27 },
-  { food_item_id: "seed-081", nutrient_id: "water", amount: 2.2 },
   { food_item_id: "seed-081", nutrient_id: "choline", amount: 52.1 },
   { food_item_id: "seed-081", nutrient_id: "saturated_fat", amount: 4.15 },
   {
@@ -2975,7 +2841,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   },
   { food_item_id: "seed-084", nutrient_id: "trans_fat", amount: 0.47 },
   { food_item_id: "seed-084", nutrient_id: "retinol", amount: 95.0 },
-  { food_item_id: "seed-084", nutrient_id: "water", amount: 2.36 },
 
   // seed-085: Honey (1 tbsp = 21g)
   { food_item_id: "seed-085", nutrient_id: "vitamin_c", amount: 0.1 },
@@ -2989,8 +2854,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-085", nutrient_id: "zinc", amount: 0.05 },
   { food_item_id: "seed-085", nutrient_id: "copper", amount: 0.01 },
   { food_item_id: "seed-085", nutrient_id: "manganese", amount: 0.02 },
-  { food_item_id: "seed-085", nutrient_id: "sugar", amount: 17.25 },
-  { food_item_id: "seed-085", nutrient_id: "water", amount: 3.59 },
 
   // seed-086: Maple Syrup (1 tbsp = 20g)
   { food_item_id: "seed-086", nutrient_id: "riboflavin", amount: 0.02 },
@@ -3003,8 +2866,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-086", nutrient_id: "iron", amount: 0.02 },
   { food_item_id: "seed-086", nutrient_id: "zinc", amount: 0.28 },
   { food_item_id: "seed-086", nutrient_id: "manganese", amount: 0.86 },
-  { food_item_id: "seed-086", nutrient_id: "sugar", amount: 12.01 },
-  { food_item_id: "seed-086", nutrient_id: "water", amount: 6.72 },
 
   // seed-087: Hummus (100g)
   { food_item_id: "seed-087", nutrient_id: "vitamin_c", amount: 7.9 },
@@ -3028,8 +2889,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-087", nutrient_id: "manganese", amount: 0.96 },
   { food_item_id: "seed-087", nutrient_id: "selenium", amount: 3.8 },
   { food_item_id: "seed-087", nutrient_id: "fiber", amount: 6.0 },
-  { food_item_id: "seed-087", nutrient_id: "sugar", amount: 0.27 },
-  { food_item_id: "seed-087", nutrient_id: "water", amount: 64.87 },
   { food_item_id: "seed-087", nutrient_id: "saturated_fat", amount: 1.44 },
   {
     food_item_id: "seed-087",
@@ -3061,8 +2920,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-088", nutrient_id: "zinc", amount: 0.46 },
   { food_item_id: "seed-088", nutrient_id: "copper", amount: 0.13 },
   { food_item_id: "seed-088", nutrient_id: "fiber", amount: 4.8 },
-  { food_item_id: "seed-088", nutrient_id: "sugar", amount: 1.2 },
-  { food_item_id: "seed-088", nutrient_id: "water", amount: 76.0 },
   { food_item_id: "seed-088", nutrient_id: "saturated_fat", amount: 1.52 },
   {
     food_item_id: "seed-088",
@@ -3088,8 +2945,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-089", nutrient_id: "potassium", amount: 175.0 },
   { food_item_id: "seed-089", nutrient_id: "iron", amount: 0.36 },
   { food_item_id: "seed-089", nutrient_id: "fiber", amount: 1.5 },
-  { food_item_id: "seed-089", nutrient_id: "sugar", amount: 3.56 },
-  { food_item_id: "seed-089", nutrient_id: "water", amount: 89.7 },
   { food_item_id: "seed-089", nutrient_id: "lycopene", amount: 5.3 },
   { food_item_id: "seed-089", nutrient_id: "beta_carotene", amount: 234.0 },
 
@@ -3115,8 +2970,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-090", nutrient_id: "zinc", amount: 1.44 },
   { food_item_id: "seed-090", nutrient_id: "selenium", amount: 20.0 },
   { food_item_id: "seed-090", nutrient_id: "fiber", amount: 1.6 },
-  { food_item_id: "seed-090", nutrient_id: "sugar", amount: 3.6 },
-  { food_item_id: "seed-090", nutrient_id: "water", amount: 43.9 },
   { food_item_id: "seed-090", nutrient_id: "cholesterol", amount: 19.0 },
   { food_item_id: "seed-090", nutrient_id: "saturated_fat", amount: 4.12 },
   {
@@ -3148,8 +3001,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-091", nutrient_id: "zinc", amount: 2.97 },
   { food_item_id: "seed-091", nutrient_id: "selenium", amount: 16.0 },
   { food_item_id: "seed-091", nutrient_id: "fiber", amount: 1.1 },
-  { food_item_id: "seed-091", nutrient_id: "sugar", amount: 4.4 },
-  { food_item_id: "seed-091", nutrient_id: "water", amount: 49.6 },
   { food_item_id: "seed-091", nutrient_id: "cholesterol", amount: 37.0 },
   { food_item_id: "seed-091", nutrient_id: "saturated_fat", amount: 4.26 },
   {
@@ -3181,8 +3032,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-092", nutrient_id: "zinc", amount: 1.78 },
   { food_item_id: "seed-092", nutrient_id: "selenium", amount: 15.3 },
   { food_item_id: "seed-092", nutrient_id: "fiber", amount: 0.9 },
-  { food_item_id: "seed-092", nutrient_id: "sugar", amount: 4.1 },
-  { food_item_id: "seed-092", nutrient_id: "water", amount: 48.5 },
   { food_item_id: "seed-092", nutrient_id: "cholesterol", amount: 35.0 },
   { food_item_id: "seed-092", nutrient_id: "saturated_fat", amount: 5.27 },
   { food_item_id: "seed-092", nutrient_id: "monounsaturated_fat", amount: 6.2 },
@@ -3210,8 +3059,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-093", nutrient_id: "zinc", amount: 1.54 },
   { food_item_id: "seed-093", nutrient_id: "selenium", amount: 10.8 },
   { food_item_id: "seed-093", nutrient_id: "fiber", amount: 3.4 },
-  { food_item_id: "seed-093", nutrient_id: "sugar", amount: 1.8 },
-  { food_item_id: "seed-093", nutrient_id: "water", amount: 54.2 },
   { food_item_id: "seed-093", nutrient_id: "cholesterol", amount: 18.0 },
   { food_item_id: "seed-093", nutrient_id: "saturated_fat", amount: 2.4 },
   {
@@ -3243,8 +3090,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-094", nutrient_id: "zinc", amount: 1.8 },
   { food_item_id: "seed-094", nutrient_id: "selenium", amount: 8.0 },
   { food_item_id: "seed-094", nutrient_id: "fiber", amount: 1.4 },
-  { food_item_id: "seed-094", nutrient_id: "sugar", amount: 1.1 },
-  { food_item_id: "seed-094", nutrient_id: "water", amount: 43.2 },
   { food_item_id: "seed-094", nutrient_id: "cholesterol", amount: 24.0 },
   { food_item_id: "seed-094", nutrient_id: "saturated_fat", amount: 3.1 },
   { food_item_id: "seed-094", nutrient_id: "monounsaturated_fat", amount: 3.4 },
@@ -3269,8 +3114,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-095", nutrient_id: "zinc", amount: 0.72 },
   { food_item_id: "seed-095", nutrient_id: "selenium", amount: 12.0 },
   { food_item_id: "seed-095", nutrient_id: "fiber", amount: 2.2 },
-  { food_item_id: "seed-095", nutrient_id: "sugar", amount: 4.7 },
-  { food_item_id: "seed-095", nutrient_id: "water", amount: 115.0 },
   { food_item_id: "seed-095", nutrient_id: "cholesterol", amount: 20.0 },
   { food_item_id: "seed-095", nutrient_id: "saturated_fat", amount: 0.72 },
   {
@@ -3300,9 +3143,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-096", nutrient_id: "manganese", amount: 0.14 },
   { food_item_id: "seed-096", nutrient_id: "selenium", amount: 0.5 },
   { food_item_id: "seed-096", nutrient_id: "fiber", amount: 3.8 },
-  { food_item_id: "seed-096", nutrient_id: "sugar", amount: 0.3 },
   { food_item_id: "seed-096", nutrient_id: "starch", amount: 30.0 },
-  { food_item_id: "seed-096", nutrient_id: "water", amount: 38.5 },
   { food_item_id: "seed-096", nutrient_id: "saturated_fat", amount: 2.28 },
   {
     food_item_id: "seed-096",
@@ -3333,8 +3174,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-097", nutrient_id: "zinc", amount: 0.98 },
   { food_item_id: "seed-097", nutrient_id: "selenium", amount: 16.5 },
   { food_item_id: "seed-097", nutrient_id: "fiber", amount: 1.1 },
-  { food_item_id: "seed-097", nutrient_id: "sugar", amount: 0.8 },
-  { food_item_id: "seed-097", nutrient_id: "water", amount: 45.0 },
   { food_item_id: "seed-097", nutrient_id: "cholesterol", amount: 44.0 },
   { food_item_id: "seed-097", nutrient_id: "saturated_fat", amount: 3.15 },
   {
@@ -3365,9 +3204,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-098", nutrient_id: "zinc", amount: 0.6 },
   { food_item_id: "seed-098", nutrient_id: "selenium", amount: 8.0 },
   { food_item_id: "seed-098", nutrient_id: "fiber", amount: 0.6 },
-  { food_item_id: "seed-098", nutrient_id: "sugar", amount: 1.2 },
   { food_item_id: "seed-098", nutrient_id: "starch", amount: 22.0 },
-  { food_item_id: "seed-098", nutrient_id: "water", amount: 61.0 },
   { food_item_id: "seed-098", nutrient_id: "cholesterol", amount: 48.0 },
   { food_item_id: "seed-098", nutrient_id: "saturated_fat", amount: 1.2 },
   { food_item_id: "seed-098", nutrient_id: "monounsaturated_fat", amount: 1.8 },
@@ -3390,8 +3227,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-099", nutrient_id: "iron", amount: 1.0 },
   { food_item_id: "seed-099", nutrient_id: "zinc", amount: 0.8 },
   { food_item_id: "seed-099", nutrient_id: "fiber", amount: 0.8 },
-  { food_item_id: "seed-099", nutrient_id: "sugar", amount: 5.5 },
-  { food_item_id: "seed-099", nutrient_id: "water", amount: 55.0 },
   { food_item_id: "seed-099", nutrient_id: "cholesterol", amount: 32.0 },
   { food_item_id: "seed-099", nutrient_id: "saturated_fat", amount: 1.5 },
   { food_item_id: "seed-099", nutrient_id: "monounsaturated_fat", amount: 2.0 },
@@ -3414,8 +3249,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-100", nutrient_id: "zinc", amount: 0.9 },
   { food_item_id: "seed-100", nutrient_id: "selenium", amount: 12.0 },
   { food_item_id: "seed-100", nutrient_id: "fiber", amount: 0.9 },
-  { food_item_id: "seed-100", nutrient_id: "sugar", amount: 3.5 },
-  { food_item_id: "seed-100", nutrient_id: "water", amount: 55.0 },
   { food_item_id: "seed-100", nutrient_id: "cholesterol", amount: 18.0 },
   { food_item_id: "seed-100", nutrient_id: "saturated_fat", amount: 4.01 },
   {
@@ -3447,8 +3280,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-101", nutrient_id: "zinc", amount: 1.4 },
   { food_item_id: "seed-101", nutrient_id: "selenium", amount: 12.0 },
   { food_item_id: "seed-101", nutrient_id: "fiber", amount: 1.2 },
-  { food_item_id: "seed-101", nutrient_id: "sugar", amount: 3.2 },
-  { food_item_id: "seed-101", nutrient_id: "water", amount: 62.0 },
   { food_item_id: "seed-101", nutrient_id: "cholesterol", amount: 22.0 },
   { food_item_id: "seed-101", nutrient_id: "saturated_fat", amount: 2.8 },
   { food_item_id: "seed-101", nutrient_id: "monounsaturated_fat", amount: 2.2 },
@@ -3471,8 +3302,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-102", nutrient_id: "iron", amount: 0.5 },
   { food_item_id: "seed-102", nutrient_id: "zinc", amount: 0.6 },
   { food_item_id: "seed-102", nutrient_id: "selenium", amount: 14.0 },
-  { food_item_id: "seed-102", nutrient_id: "sugar", amount: 1.5 },
-  { food_item_id: "seed-102", nutrient_id: "water", amount: 65.0 },
   { food_item_id: "seed-102", nutrient_id: "cholesterol", amount: 42.0 },
   { food_item_id: "seed-102", nutrient_id: "saturated_fat", amount: 1.8 },
   { food_item_id: "seed-102", nutrient_id: "monounsaturated_fat", amount: 3.6 },
@@ -3498,8 +3327,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-103", nutrient_id: "zinc", amount: 0.5 },
   { food_item_id: "seed-103", nutrient_id: "selenium", amount: 12.0 },
   { food_item_id: "seed-103", nutrient_id: "fiber", amount: 1.0 },
-  { food_item_id: "seed-103", nutrient_id: "sugar", amount: 1.2 },
-  { food_item_id: "seed-103", nutrient_id: "water", amount: 72.0 },
   { food_item_id: "seed-103", nutrient_id: "cholesterol", amount: 25.0 },
   { food_item_id: "seed-103", nutrient_id: "saturated_fat", amount: 1.6 },
   { food_item_id: "seed-103", nutrient_id: "monounsaturated_fat", amount: 2.8 },
@@ -3522,7 +3349,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-104", nutrient_id: "magnesium", amount: 20 },
   { food_item_id: "seed-104", nutrient_id: "cholesterol", amount: 35 },
   { food_item_id: "seed-104", nutrient_id: "saturated_fat", amount: 0.5 },
-  { food_item_id: "seed-104", nutrient_id: "sugar", amount: 1 },
   { food_item_id: "seed-104", nutrient_id: "histidine", amount: 0.45 },
   { food_item_id: "seed-104", nutrient_id: "isoleucine", amount: 1.56 },
   { food_item_id: "seed-104", nutrient_id: "leucine", amount: 2.64 },
@@ -3552,8 +3378,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-105", nutrient_id: "folate", amount: 60 },
   { food_item_id: "seed-105", nutrient_id: "vitamin_b12", amount: 1.0 },
   { food_item_id: "seed-105", nutrient_id: "fiber", amount: 5 },
-  { food_item_id: "seed-105", nutrient_id: "sugar", amount: 6 },
-  { food_item_id: "seed-105", nutrient_id: "sugar_alcohol", amount: 5 },
   { food_item_id: "seed-105", nutrient_id: "saturated_fat", amount: 3.5 },
   { food_item_id: "seed-105", nutrient_id: "cholesterol", amount: 15 },
 
@@ -3578,8 +3402,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-106", nutrient_id: "vitamin_e", amount: 5.0 },
   { food_item_id: "seed-106", nutrient_id: "pantothenic_acid", amount: 0.5 },
   { food_item_id: "seed-106", nutrient_id: "fiber", amount: 5.3 },
-  { food_item_id: "seed-106", nutrient_id: "sugar", amount: 24 },
-  { food_item_id: "seed-106", nutrient_id: "added_sugar", amount: 18 },
   { food_item_id: "seed-106", nutrient_id: "saturated_fat", amount: 4.3 },
   { food_item_id: "seed-106", nutrient_id: "monounsaturated_fat", amount: 7.6 },
   { food_item_id: "seed-106", nutrient_id: "polyunsaturated_fat", amount: 5.5 },
@@ -3604,7 +3426,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-107", nutrient_id: "thiamin", amount: 0.2 },
   { food_item_id: "seed-107", nutrient_id: "riboflavin", amount: 0.2 },
   { food_item_id: "seed-107", nutrient_id: "fiber", amount: 4.0 },
-  { food_item_id: "seed-107", nutrient_id: "sugar", amount: 25 },
   { food_item_id: "seed-107", nutrient_id: "saturated_fat", amount: 4.7 },
   {
     food_item_id: "seed-107",
@@ -3631,9 +3452,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-108", nutrient_id: "riboflavin", amount: 0.08 },
   { food_item_id: "seed-108", nutrient_id: "vitamin_e", amount: 0.59 },
   { food_item_id: "seed-108", nutrient_id: "vitamin_b12", amount: 0.28 },
-  { food_item_id: "seed-108", nutrient_id: "caffeine", amount: 80 },
   { food_item_id: "seed-108", nutrient_id: "fiber", amount: 10.9 },
-  { food_item_id: "seed-108", nutrient_id: "sugar", amount: 24 },
   { food_item_id: "seed-108", nutrient_id: "saturated_fat", amount: 24.5 },
   {
     food_item_id: "seed-108",
@@ -3664,8 +3483,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-109", nutrient_id: "pantothenic_acid", amount: 0.58 },
   { food_item_id: "seed-109", nutrient_id: "vitamin_d", amount: 0.2 },
   { food_item_id: "seed-109", nutrient_id: "choline", amount: 27 },
-  { food_item_id: "seed-109", nutrient_id: "sugar", amount: 21 },
-  { food_item_id: "seed-109", nutrient_id: "added_sugar", amount: 14 },
   { food_item_id: "seed-109", nutrient_id: "saturated_fat", amount: 6.8 },
   { food_item_id: "seed-109", nutrient_id: "monounsaturated_fat", amount: 3.0 },
   {
@@ -3674,7 +3491,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     amount: 0.45,
   },
   { food_item_id: "seed-109", nutrient_id: "cholesterol", amount: 44 },
-  { food_item_id: "seed-109", nutrient_id: "water", amount: 61 },
 
   // ============================================================
   // seed-110: Banana Bread (1 slice, 60g)
@@ -3692,8 +3508,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-110", nutrient_id: "folate", amount: 20 },
   { food_item_id: "seed-110", nutrient_id: "cholesterol", amount: 26 },
   { food_item_id: "seed-110", nutrient_id: "saturated_fat", amount: 2.0 },
-  { food_item_id: "seed-110", nutrient_id: "sugar", amount: 14 },
-  { food_item_id: "seed-110", nutrient_id: "added_sugar", amount: 10 },
   { food_item_id: "seed-110", nutrient_id: "fiber", amount: 0.7 },
 
   // ============================================================
@@ -3716,10 +3530,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-111", nutrient_id: "saturated_fat", amount: 5.3 },
   { food_item_id: "seed-111", nutrient_id: "monounsaturated_fat", amount: 5.8 },
   { food_item_id: "seed-111", nutrient_id: "polyunsaturated_fat", amount: 1.8 },
-  { food_item_id: "seed-111", nutrient_id: "sugar", amount: 40 },
-  { food_item_id: "seed-111", nutrient_id: "added_sugar", amount: 38 },
   { food_item_id: "seed-111", nutrient_id: "fiber", amount: 1.5 },
-  { food_item_id: "seed-111", nutrient_id: "caffeine", amount: 18 },
 
   // ============================================================
   // seed-112: Chocolate Chip Cookie (100g)
@@ -3740,8 +3551,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-112", nutrient_id: "saturated_fat", amount: 8.8 },
   { food_item_id: "seed-112", nutrient_id: "monounsaturated_fat", amount: 7.6 },
   { food_item_id: "seed-112", nutrient_id: "polyunsaturated_fat", amount: 3.1 },
-  { food_item_id: "seed-112", nutrient_id: "sugar", amount: 31 },
-  { food_item_id: "seed-112", nutrient_id: "added_sugar", amount: 29 },
   { food_item_id: "seed-112", nutrient_id: "fiber", amount: 1.5 },
 
   // ============================================================
@@ -3764,7 +3573,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-113", nutrient_id: "saturated_fat", amount: 1.8 },
   { food_item_id: "seed-113", nutrient_id: "monounsaturated_fat", amount: 2.0 },
   { food_item_id: "seed-113", nutrient_id: "polyunsaturated_fat", amount: 1.0 },
-  { food_item_id: "seed-113", nutrient_id: "sugar", amount: 7.8 },
   { food_item_id: "seed-113", nutrient_id: "fiber", amount: 0.9 },
   { food_item_id: "seed-113", nutrient_id: "starch", amount: 22.0 },
 
@@ -3788,7 +3596,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-114", nutrient_id: "saturated_fat", amount: 3.1 },
   { food_item_id: "seed-114", nutrient_id: "monounsaturated_fat", amount: 3.5 },
   { food_item_id: "seed-114", nutrient_id: "polyunsaturated_fat", amount: 2.4 },
-  { food_item_id: "seed-114", nutrient_id: "sugar", amount: 6.5 },
   { food_item_id: "seed-114", nutrient_id: "fiber", amount: 0.8 },
 
   // ============================================================
@@ -3807,7 +3614,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-115", nutrient_id: "magnesium", amount: 20 },
   { food_item_id: "seed-115", nutrient_id: "calcium", amount: 54 },
   { food_item_id: "seed-115", nutrient_id: "zinc", amount: 0.7 },
-  { food_item_id: "seed-115", nutrient_id: "sugar", amount: 5 },
   { food_item_id: "seed-115", nutrient_id: "fiber", amount: 1.6 },
   { food_item_id: "seed-115", nutrient_id: "starch", amount: 44 },
 
@@ -3832,7 +3638,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-116", nutrient_id: "saturated_fat", amount: 11.5 },
   { food_item_id: "seed-116", nutrient_id: "monounsaturated_fat", amount: 5.5 },
   { food_item_id: "seed-116", nutrient_id: "polyunsaturated_fat", amount: 1.2 },
-  { food_item_id: "seed-116", nutrient_id: "sugar", amount: 6.0 },
   { food_item_id: "seed-116", nutrient_id: "fiber", amount: 1.5 },
 
   // ============================================================
@@ -3854,8 +3659,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-117", nutrient_id: "saturated_fat", amount: 2.4 },
   { food_item_id: "seed-117", nutrient_id: "monounsaturated_fat", amount: 3.8 },
   { food_item_id: "seed-117", nutrient_id: "polyunsaturated_fat", amount: 2.5 },
-  { food_item_id: "seed-117", nutrient_id: "sugar", amount: 27 },
-  { food_item_id: "seed-117", nutrient_id: "added_sugar", amount: 22 },
   { food_item_id: "seed-117", nutrient_id: "fiber", amount: 1.5 },
 
   // ============================================================
@@ -3871,8 +3674,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-118", nutrient_id: "phosphorus", amount: 17 },
   { food_item_id: "seed-118", nutrient_id: "calcium", amount: 11 },
   { food_item_id: "seed-118", nutrient_id: "sodium", amount: 1 },
-  { food_item_id: "seed-118", nutrient_id: "sugar", amount: 8.4 },
-  { food_item_id: "seed-118", nutrient_id: "water", amount: 88 },
 
   // ============================================================
   // seed-119: Apple Juice (100ml)
@@ -3885,13 +3686,10 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-119", nutrient_id: "calcium", amount: 8 },
   { food_item_id: "seed-119", nutrient_id: "sodium", amount: 4 },
   { food_item_id: "seed-119", nutrient_id: "iron", amount: 0.12 },
-  { food_item_id: "seed-119", nutrient_id: "sugar", amount: 9.6 },
-  { food_item_id: "seed-119", nutrient_id: "water", amount: 88 },
 
   // ============================================================
   // seed-120: Coffee, Black (1 cup, 240ml)
   // ============================================================
-  { food_item_id: "seed-120", nutrient_id: "caffeine", amount: 95 },
   { food_item_id: "seed-120", nutrient_id: "potassium", amount: 116 },
   { food_item_id: "seed-120", nutrient_id: "magnesium", amount: 7 },
   { food_item_id: "seed-120", nutrient_id: "niacin", amount: 0.45 },
@@ -3900,7 +3698,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-120", nutrient_id: "phosphorus", amount: 7 },
   { food_item_id: "seed-120", nutrient_id: "sodium", amount: 5 },
   { food_item_id: "seed-120", nutrient_id: "choline", amount: 6.2 },
-  { food_item_id: "seed-120", nutrient_id: "water", amount: 236 },
 
   // ============================================================
   // seed-121: Latte, Whole Milk (1 grande, 473ml)
@@ -3914,11 +3711,8 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-121", nutrient_id: "vitamin_d", amount: 3.0 },
   { food_item_id: "seed-121", nutrient_id: "vitamin_b12", amount: 1.3 },
   { food_item_id: "seed-121", nutrient_id: "riboflavin", amount: 0.5 },
-  { food_item_id: "seed-121", nutrient_id: "caffeine", amount: 150 },
   { food_item_id: "seed-121", nutrient_id: "cholesterol", amount: 35 },
   { food_item_id: "seed-121", nutrient_id: "saturated_fat", amount: 5.5 },
-  { food_item_id: "seed-121", nutrient_id: "sugar", amount: 17 },
-  { food_item_id: "seed-121", nutrient_id: "water", amount: 420 },
 
   // ============================================================
   // seed-122: Cappuccino, Whole Milk (1 grande, 473ml)
@@ -3932,21 +3726,16 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-122", nutrient_id: "vitamin_d", amount: 2.0 },
   { food_item_id: "seed-122", nutrient_id: "vitamin_b12", amount: 0.8 },
   { food_item_id: "seed-122", nutrient_id: "riboflavin", amount: 0.32 },
-  { food_item_id: "seed-122", nutrient_id: "caffeine", amount: 150 },
   { food_item_id: "seed-122", nutrient_id: "cholesterol", amount: 22 },
   { food_item_id: "seed-122", nutrient_id: "saturated_fat", amount: 3.5 },
-  { food_item_id: "seed-122", nutrient_id: "sugar", amount: 10 },
-  { food_item_id: "seed-122", nutrient_id: "water", amount: 430 },
 
   // ============================================================
   // seed-123: Tea, Green, Unsweetened (1 cup, 245ml)
   // ============================================================
-  { food_item_id: "seed-123", nutrient_id: "caffeine", amount: 29 },
   { food_item_id: "seed-123", nutrient_id: "manganese", amount: 0.45 },
   { food_item_id: "seed-123", nutrient_id: "potassium", amount: 20 },
   { food_item_id: "seed-123", nutrient_id: "magnesium", amount: 2 },
   { food_item_id: "seed-123", nutrient_id: "sodium", amount: 2 },
-  { food_item_id: "seed-123", nutrient_id: "water", amount: 245 },
 
   // ============================================================
   // seed-124: Smoothie, Fruit (100ml)
@@ -3959,8 +3748,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-124", nutrient_id: "sodium", amount: 5 },
   { food_item_id: "seed-124", nutrient_id: "manganese", amount: 0.2 },
   { food_item_id: "seed-124", nutrient_id: "fiber", amount: 0.8 },
-  { food_item_id: "seed-124", nutrient_id: "sugar", amount: 10 },
-  { food_item_id: "seed-124", nutrient_id: "water", amount: 85 },
 
   // ============================================================
   // seed-125: Coconut Water (100ml)
@@ -3974,22 +3761,16 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-125", nutrient_id: "vitamin_c", amount: 2.4 },
   { food_item_id: "seed-125", nutrient_id: "riboflavin", amount: 0.06 },
   { food_item_id: "seed-125", nutrient_id: "niacin", amount: 0.08 },
-  { food_item_id: "seed-125", nutrient_id: "sugar", amount: 2.6 },
-  { food_item_id: "seed-125", nutrient_id: "water", amount: 95 },
 
   // ============================================================
   // seed-126: Sports Drink, Gatorade-type (100ml)
   // ============================================================
   { food_item_id: "seed-126", nutrient_id: "sodium", amount: 41 },
   { food_item_id: "seed-126", nutrient_id: "potassium", amount: 12 },
-  { food_item_id: "seed-126", nutrient_id: "sugar", amount: 5.8 },
-  { food_item_id: "seed-126", nutrient_id: "added_sugar", amount: 5.8 },
-  { food_item_id: "seed-126", nutrient_id: "water", amount: 94 },
 
   // ============================================================
   // seed-127: Beer, Regular (100ml)
   // ============================================================
-  { food_item_id: "seed-127", nutrient_id: "alcohol", amount: 3.9 },
   { food_item_id: "seed-127", nutrient_id: "potassium", amount: 27 },
   { food_item_id: "seed-127", nutrient_id: "magnesium", amount: 6 },
   { food_item_id: "seed-127", nutrient_id: "phosphorus", amount: 14 },
@@ -3999,12 +3780,10 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-127", nutrient_id: "riboflavin", amount: 0.03 },
   { food_item_id: "seed-127", nutrient_id: "folate", amount: 6 },
   { food_item_id: "seed-127", nutrient_id: "silicon", amount: 1.9 },
-  { food_item_id: "seed-127", nutrient_id: "water", amount: 92 },
 
   // ============================================================
   // seed-128: Wine, Red (100ml)
   // ============================================================
-  { food_item_id: "seed-128", nutrient_id: "alcohol", amount: 10.6 },
   { food_item_id: "seed-128", nutrient_id: "potassium", amount: 127 },
   { food_item_id: "seed-128", nutrient_id: "magnesium", amount: 12 },
   { food_item_id: "seed-128", nutrient_id: "phosphorus", amount: 23 },
@@ -4015,12 +3794,10 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-128", nutrient_id: "riboflavin", amount: 0.03 },
   { food_item_id: "seed-128", nutrient_id: "niacin", amount: 0.22 },
   { food_item_id: "seed-128", nutrient_id: "vitamin_k", amount: 0.4 },
-  { food_item_id: "seed-128", nutrient_id: "water", amount: 86 },
 
   // ============================================================
   // seed-129: Wine, White (100ml)
   // ============================================================
-  { food_item_id: "seed-129", nutrient_id: "alcohol", amount: 10.0 },
   { food_item_id: "seed-129", nutrient_id: "potassium", amount: 71 },
   { food_item_id: "seed-129", nutrient_id: "magnesium", amount: 10 },
   { food_item_id: "seed-129", nutrient_id: "phosphorus", amount: 18 },
@@ -4030,13 +3807,10 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-129", nutrient_id: "manganese", amount: 0.07 },
   { food_item_id: "seed-129", nutrient_id: "riboflavin", amount: 0.02 },
   { food_item_id: "seed-129", nutrient_id: "niacin", amount: 0.11 },
-  { food_item_id: "seed-129", nutrient_id: "water", amount: 87 },
 
   // ============================================================
   // seed-130: Vodka (1 shot, 42ml)
   // ============================================================
-  { food_item_id: "seed-130", nutrient_id: "alcohol", amount: 14 },
-  { food_item_id: "seed-130", nutrient_id: "water", amount: 27 },
 
   // ============================================================
   // seed-131: Soy Sauce (1 tbsp, 16ml)
@@ -4049,19 +3823,15 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-131", nutrient_id: "magnesium", amount: 6 },
   { food_item_id: "seed-131", nutrient_id: "niacin", amount: 0.6 },
   { food_item_id: "seed-131", nutrient_id: "riboflavin", amount: 0.04 },
-  { food_item_id: "seed-131", nutrient_id: "water", amount: 11 },
 
   // ============================================================
   // seed-132: Ketchup (1 tbsp, 17g)
   // ============================================================
   { food_item_id: "seed-132", nutrient_id: "sodium", amount: 154 },
   { food_item_id: "seed-132", nutrient_id: "potassium", amount: 57 },
-  { food_item_id: "seed-132", nutrient_id: "sugar", amount: 3.4 },
-  { food_item_id: "seed-132", nutrient_id: "added_sugar", amount: 2.6 },
   { food_item_id: "seed-132", nutrient_id: "lycopene", amount: 2.5 },
   { food_item_id: "seed-132", nutrient_id: "vitamin_a", amount: 4 },
   { food_item_id: "seed-132", nutrient_id: "vitamin_c", amount: 0.4 },
-  { food_item_id: "seed-132", nutrient_id: "water", amount: 11 },
 
   // ============================================================
   // seed-133: Mayonnaise (1 tbsp, 15g)
@@ -4076,7 +3846,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-133", nutrient_id: "polyunsaturated_fat", amount: 5.8 },
   { food_item_id: "seed-133", nutrient_id: "omega_6_la", amount: 5.2 },
   { food_item_id: "seed-133", nutrient_id: "omega_3_ala", amount: 0.5 },
-  { food_item_id: "seed-133", nutrient_id: "water", amount: 3.3 },
 
   // ============================================================
   // seed-134: Mustard, Yellow (1 tbsp, 16g)
@@ -4089,7 +3858,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-134", nutrient_id: "calcium", amount: 9 },
   { food_item_id: "seed-134", nutrient_id: "magnesium", amount: 5 },
   { food_item_id: "seed-134", nutrient_id: "phosphorus", amount: 14 },
-  { food_item_id: "seed-134", nutrient_id: "water", amount: 13 },
 
   // ============================================================
   // seed-135: Ranch Dressing (2 tbsp, 30g)
@@ -4102,8 +3870,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-135", nutrient_id: "saturated_fat", amount: 1.8 },
   { food_item_id: "seed-135", nutrient_id: "monounsaturated_fat", amount: 3.7 },
   { food_item_id: "seed-135", nutrient_id: "polyunsaturated_fat", amount: 7.0 },
-  { food_item_id: "seed-135", nutrient_id: "sugar", amount: 1.5 },
-  { food_item_id: "seed-135", nutrient_id: "added_sugar", amount: 1.2 },
 
   // ============================================================
   // seed-136: Italian Dressing (2 tbsp, 30g)
@@ -4114,8 +3880,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-136", nutrient_id: "saturated_fat", amount: 0.5 },
   { food_item_id: "seed-136", nutrient_id: "monounsaturated_fat", amount: 1.5 },
   { food_item_id: "seed-136", nutrient_id: "polyunsaturated_fat", amount: 1.3 },
-  { food_item_id: "seed-136", nutrient_id: "sugar", amount: 2.5 },
-  { food_item_id: "seed-136", nutrient_id: "added_sugar", amount: 2.0 },
 
   // ============================================================
   // seed-137: Balsamic Vinaigrette (2 tbsp, 30g)
@@ -4127,8 +3891,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-137", nutrient_id: "saturated_fat", amount: 0.5 },
   { food_item_id: "seed-137", nutrient_id: "monounsaturated_fat", amount: 2.5 },
   { food_item_id: "seed-137", nutrient_id: "polyunsaturated_fat", amount: 0.8 },
-  { food_item_id: "seed-137", nutrient_id: "sugar", amount: 5.0 },
-  { food_item_id: "seed-137", nutrient_id: "added_sugar", amount: 4.0 },
 
   // ============================================================
   // seed-138: Sour Cream (100g)
@@ -4150,7 +3912,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-138", nutrient_id: "saturated_fat", amount: 11.5 },
   { food_item_id: "seed-138", nutrient_id: "monounsaturated_fat", amount: 5.1 },
   { food_item_id: "seed-138", nutrient_id: "polyunsaturated_fat", amount: 0.7 },
-  { food_item_id: "seed-138", nutrient_id: "water", amount: 72 },
 
   // ============================================================
   // seed-139: Edamame, Shelled (100g)
@@ -4174,7 +3935,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-139", nutrient_id: "sodium", amount: 6 },
   { food_item_id: "seed-139", nutrient_id: "choline", amount: 56 },
   { food_item_id: "seed-139", nutrient_id: "fiber", amount: 5.2 },
-  { food_item_id: "seed-139", nutrient_id: "water", amount: 73 },
   { food_item_id: "seed-139", nutrient_id: "saturated_fat", amount: 0.79 },
   {
     food_item_id: "seed-139",
@@ -4214,7 +3974,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-140", nutrient_id: "riboflavin", amount: 0.06 },
   { food_item_id: "seed-140", nutrient_id: "vitamin_b6", amount: 0.04 },
   { food_item_id: "seed-140", nutrient_id: "fiber", amount: 0.6 },
-  { food_item_id: "seed-140", nutrient_id: "water", amount: 55 },
   { food_item_id: "seed-140", nutrient_id: "histidine", amount: 0.52 },
   { food_item_id: "seed-140", nutrient_id: "isoleucine", amount: 0.89 },
   { food_item_id: "seed-140", nutrient_id: "leucine", amount: 1.67 },
@@ -4357,10 +4116,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-145", nutrient_id: "sodium", amount: 3 },
   { food_item_id: "seed-145", nutrient_id: "copper", amount: 0.06 },
   { food_item_id: "seed-145", nutrient_id: "manganese", amount: 0.15 },
-  { food_item_id: "seed-145", nutrient_id: "sugar", amount: 72 },
-  { food_item_id: "seed-145", nutrient_id: "added_sugar", amount: 65 },
   { food_item_id: "seed-145", nutrient_id: "fiber", amount: 5.7 },
-  { food_item_id: "seed-145", nutrient_id: "water", amount: 16 },
 
   // ============================================================
   // seed-146: Raisins (100g)
@@ -4380,9 +4136,7 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-146", nutrient_id: "riboflavin", amount: 0.13 },
   { food_item_id: "seed-146", nutrient_id: "niacin", amount: 0.77 },
   { food_item_id: "seed-146", nutrient_id: "vitamin_k", amount: 3.5 },
-  { food_item_id: "seed-146", nutrient_id: "sugar", amount: 59 },
   { food_item_id: "seed-146", nutrient_id: "fiber", amount: 3.7 },
-  { food_item_id: "seed-146", nutrient_id: "water", amount: 15 },
 
   // ============================================================
   // seed-147: Dates, Medjool (1 date, 24g)
@@ -4399,8 +4153,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-147", nutrient_id: "niacin", amount: 0.38 },
   { food_item_id: "seed-147", nutrient_id: "folate", amount: 4 },
   { food_item_id: "seed-147", nutrient_id: "fiber", amount: 1.6 },
-  { food_item_id: "seed-147", nutrient_id: "sugar", amount: 16 },
-  { food_item_id: "seed-147", nutrient_id: "water", amount: 5 },
 
   // ============================================================
   // seed-148: Beef Jerky (100g)
@@ -4426,9 +4178,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-148", nutrient_id: "saturated_fat", amount: 3.0 },
   { food_item_id: "seed-148", nutrient_id: "monounsaturated_fat", amount: 3.0 },
   { food_item_id: "seed-148", nutrient_id: "polyunsaturated_fat", amount: 0.3 },
-  { food_item_id: "seed-148", nutrient_id: "sugar", amount: 9.0 },
-  { food_item_id: "seed-148", nutrient_id: "added_sugar", amount: 7.0 },
-  { food_item_id: "seed-148", nutrient_id: "water", amount: 23 },
 
   // ============================================================
   // seed-149: Popcorn, Air-popped (100g)
@@ -4451,7 +4200,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-149", nutrient_id: "calcium", amount: 7 },
   { food_item_id: "seed-149", nutrient_id: "vitamin_e", amount: 0.29 },
   { food_item_id: "seed-149", nutrient_id: "starch", amount: 54.0 },
-  { food_item_id: "seed-149", nutrient_id: "water", amount: 4 },
 
   // ============================================================
   // seed-150: Potato Chips (100g)
@@ -4477,7 +4225,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
   { food_item_id: "seed-150", nutrient_id: "vitamin_k", amount: 18.5 },
   { food_item_id: "seed-150", nutrient_id: "choline", amount: 30 },
   { food_item_id: "seed-150", nutrient_id: "fiber", amount: 4.4 },
-  { food_item_id: "seed-150", nutrient_id: "sugar", amount: 0.3 },
   { food_item_id: "seed-150", nutrient_id: "starch", amount: 40 },
   { food_item_id: "seed-150", nutrient_id: "saturated_fat", amount: 9.5 },
   { food_item_id: "seed-150", nutrient_id: "monounsaturated_fat", amount: 8.6 },
@@ -4487,7 +4234,6 @@ export const SEED_MICRONUTRIENTS: SeedNutrientRow[] = [
     amount: 11.2,
   },
   { food_item_id: "seed-150", nutrient_id: "omega_6_la", amount: 10.8 },
-  { food_item_id: "seed-150", nutrient_id: "water", amount: 2 },
 ];
 
 /**

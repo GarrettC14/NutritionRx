@@ -85,14 +85,14 @@ export function MicronutrientSummary({
   const overallStats = React.useMemo(() => {
     const stats = {
       total: nutrients.length,
-      needsNourishing: 0,
-      wellNourished: 0,
+      belowTarget: 0,
+      onTarget: 0,
       aboveTarget: 0,
     };
 
     for (const nutrient of nutrients) {
-      if (nutrient.status === 'deficient' || nutrient.status === 'low') stats.needsNourishing++;
-      else if (nutrient.status === 'optimal') stats.wellNourished++;
+      if (nutrient.status === 'deficient' || nutrient.status === 'low') stats.belowTarget++;
+      else if (nutrient.status === 'optimal') stats.onTarget++;
       else if (nutrient.status === 'excessive' || nutrient.status === 'high') stats.aboveTarget++;
     }
 
@@ -111,9 +111,9 @@ export function MicronutrientSummary({
 
   // Get mini bar color based on average percent
   const getMiniBarColor = (averagePercent: number): string => {
-    if (averagePercent >= 75) return statusPalette.wellNourished;
-    if (averagePercent >= 50) return statusPalette.gettingStarted;
-    return statusPalette.needsNourishing;
+    if (averagePercent >= 75) return statusPalette.onTarget;
+    if (averagePercent >= 50) return statusPalette.approachingTarget;
+    return statusPalette.belowTarget;
   };
 
   // Content to show (either directly or blurred)
@@ -121,19 +121,19 @@ export function MicronutrientSummary({
     <>
       {/* Quick stats */}
       <View style={styles.quickStats}>
-        {overallStats.needsNourishing > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.needsNourishing, 0.12) }]}>
-            <View style={[styles.statDot, { backgroundColor: statusPalette.needsNourishing }]} />
-            <Text style={[styles.statText, { color: statusPalette.needsNourishing }]}>
-              {overallStats.needsNourishing} {STATUS_DISPLAY_LABELS.low.toLowerCase()}
+        {overallStats.belowTarget > 0 && (
+          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.belowTarget, 0.12) }]}>
+            <View style={[styles.statDot, { backgroundColor: statusPalette.belowTarget }]} />
+            <Text style={[styles.statText, { color: statusPalette.belowTarget }]}>
+              {overallStats.belowTarget} {STATUS_DISPLAY_LABELS.deficient.toLowerCase()}
             </Text>
           </View>
         )}
-        {overallStats.wellNourished > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.wellNourished, 0.12) }]}>
-            <View style={[styles.statDot, { backgroundColor: statusPalette.wellNourished }]} />
-            <Text style={[styles.statText, { color: statusPalette.wellNourished }]}>
-              {overallStats.wellNourished} {STATUS_DISPLAY_LABELS.optimal.toLowerCase()}
+        {overallStats.onTarget > 0 && (
+          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.onTarget, 0.12) }]}>
+            <View style={[styles.statDot, { backgroundColor: statusPalette.onTarget }]} />
+            <Text style={[styles.statText, { color: statusPalette.onTarget }]}>
+              {overallStats.onTarget} {STATUS_DISPLAY_LABELS.optimal.toLowerCase()}
             </Text>
           </View>
         )}
