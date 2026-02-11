@@ -13,6 +13,9 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { NutrientIntake, NutrientCategory } from '@/types/micronutrients';
 import { NUTRIENTS_BY_CATEGORY, CATEGORY_DISPLAY_NAMES } from '@/data/nutrients';
 import { LockedContentArea } from '@/components/premium';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { withAlpha } from '@/utils/colorUtils';
+import { STATUS_DISPLAY_LABELS } from '@/constants/statusDisplay';
 
 interface MicronutrientSummaryProps {
   nutrients: NutrientIntake[];
@@ -38,6 +41,7 @@ export function MicronutrientSummary({
 }: MicronutrientSummaryProps) {
   const { colors } = useTheme();
   const router = useRouter();
+  const { getStatusColor, palette: statusPalette } = useStatusColors();
 
   // Calculate category summaries
   const categorySummaries: CategorySummary[] = React.useMemo(() => {
@@ -81,31 +85,19 @@ export function MicronutrientSummary({
   const overallStats = React.useMemo(() => {
     const stats = {
       total: nutrients.length,
-      deficient: 0,
-      low: 0,
-      optimal: 0,
-      excessive: 0,
+      needsNourishing: 0,
+      wellNourished: 0,
+      aboveTarget: 0,
     };
 
     for (const nutrient of nutrients) {
-      if (nutrient.status === 'deficient') stats.deficient++;
-      else if (nutrient.status === 'low') stats.low++;
-      else if (nutrient.status === 'optimal') stats.optimal++;
-      else if (nutrient.status === 'excessive' || nutrient.status === 'high') stats.excessive++;
+      if (nutrient.status === 'deficient' || nutrient.status === 'low') stats.needsNourishing++;
+      else if (nutrient.status === 'optimal') stats.wellNourished++;
+      else if (nutrient.status === 'excessive' || nutrient.status === 'high') stats.aboveTarget++;
     }
 
     return stats;
   }, [nutrients]);
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'deficient': return colors.error;
-      case 'low': return colors.warning;
-      case 'optimal': return colors.success;
-      case 'excessive': return colors.error;
-      default: return colors.textTertiary;
-    }
-  };
 
   const getCategoryIcon = (category: NutrientCategory): keyof typeof Ionicons.glyphMap => {
     switch (category) {
@@ -117,32 +109,39 @@ export function MicronutrientSummary({
     }
   };
 
+  // Get mini bar color based on average percent
+  const getMiniBarColor = (averagePercent: number): string => {
+    if (averagePercent >= 75) return statusPalette.wellNourished;
+    if (averagePercent >= 50) return statusPalette.gettingStarted;
+    return statusPalette.needsNourishing;
+  };
+
   // Content to show (either directly or blurred)
   const contentArea = (
     <>
       {/* Quick stats */}
       <View style={styles.quickStats}>
-        {overallStats.deficient > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: colors.errorBg }]}>
-            <View style={[styles.statDot, { backgroundColor: colors.error }]} />
-            <Text style={[styles.statText, { color: colors.error }]}>
-              {overallStats.deficient} low
+        {overallStats.needsNourishing > 0 && (
+          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.needsNourishing, 0.12) }]}>
+            <View style={[styles.statDot, { backgroundColor: statusPalette.needsNourishing }]} />
+            <Text style={[styles.statText, { color: statusPalette.needsNourishing }]}>
+              {overallStats.needsNourishing} {STATUS_DISPLAY_LABELS.low.toLowerCase()}
             </Text>
           </View>
         )}
-        {overallStats.optimal > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: colors.successBg }]}>
-            <View style={[styles.statDot, { backgroundColor: colors.success }]} />
-            <Text style={[styles.statText, { color: colors.success }]}>
-              {overallStats.optimal} optimal
+        {overallStats.wellNourished > 0 && (
+          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.wellNourished, 0.12) }]}>
+            <View style={[styles.statDot, { backgroundColor: statusPalette.wellNourished }]} />
+            <Text style={[styles.statText, { color: statusPalette.wellNourished }]}>
+              {overallStats.wellNourished} {STATUS_DISPLAY_LABELS.optimal.toLowerCase()}
             </Text>
           </View>
         )}
-        {overallStats.excessive > 0 && (
-          <View style={[styles.statBadge, { backgroundColor: colors.warningBg }]}>
-            <View style={[styles.statDot, { backgroundColor: colors.warning }]} />
-            <Text style={[styles.statText, { color: colors.warning }]}>
-              {overallStats.excessive} high
+        {overallStats.aboveTarget > 0 && (
+          <View style={[styles.statBadge, { backgroundColor: withAlpha(statusPalette.aboveTarget, 0.12) }]}>
+            <View style={[styles.statDot, { backgroundColor: statusPalette.aboveTarget }]} />
+            <Text style={[styles.statText, { color: statusPalette.aboveTarget }]}>
+              {overallStats.aboveTarget} {STATUS_DISPLAY_LABELS.high.toLowerCase()}
             </Text>
           </View>
         )}
@@ -176,12 +175,7 @@ export function MicronutrientSummary({
                   styles.miniBarFill,
                   {
                     width: `${Math.min(summary.averagePercent, 100)}%`,
-                    backgroundColor:
-                      summary.averagePercent >= 75
-                        ? colors.success
-                        : summary.averagePercent >= 50
-                        ? colors.warning
-                        : colors.error,
+                    backgroundColor: getMiniBarColor(summary.averagePercent),
                   },
                 ]}
               />
