@@ -20,7 +20,8 @@ interface WeightState {
   loadEntries: (limit?: number) => Promise<void>;
   loadEntriesForRange: (startDate: string, endDate: string) => Promise<void>;
   loadLatest: () => Promise<void>;
-  loadTrendWeight: (date?: string) => Promise<void>;
+  loadTrendWeight: () => Promise<void>;
+  getLatestTrendWeight: () => number | null;
   loadEarliestDate: () => Promise<void>;
   addEntry: (input: CreateWeightInput) => Promise<WeightEntry>;
   updateEntry: (id: string, weightKg: number, notes?: string) => Promise<WeightEntry>;
@@ -84,23 +85,18 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     }
   },
 
-  loadTrendWeight: async (date) => {
+  loadTrendWeight: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Use stored trend from latest entry if available
       const latestEntry = get().latestEntry ?? await weightRepository.getLatest();
       if (latestEntry?.trendWeightKg != null) {
         set({ trendWeight: Math.round(latestEntry.trendWeightKg * 10) / 10, isLoading: false });
-        return;
+      } else {
+        set({ trendWeight: null, isLoading: false });
       }
-
-      // Fallback to old calculation method
-      const targetDate = date || new Date().toISOString().split('T')[0];
-      const trendWeight = await weightRepository.getTrendWeight(targetDate);
-      set({ trendWeight, isLoading: false });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'Failed to calculate trend weight',
+        error: error instanceof Error ? error.message : 'Failed to load trend weight',
         isLoading: false,
       });
     }
@@ -113,6 +109,10 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     } catch (error) {
       // Non-critical, silently ignore
     }
+  },
+
+  getLatestTrendWeight: () => {
+    return get().trendWeight;
   },
 
   addEntry: async (input) => {

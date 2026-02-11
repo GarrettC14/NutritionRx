@@ -18,6 +18,7 @@ jest.mock('@/repositories', () => ({
   logEntryRepository: {
     findByDate: jest.fn(),
     getDailyTotals: jest.fn(),
+    getDatesWithLogs: jest.fn(() => Promise.resolve([])),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -31,7 +32,7 @@ jest.mock('@/repositories', () => ({
   weightRepository: {
     getRecent: jest.fn(),
     getLatest: jest.fn(),
-    getTrendWeight: jest.fn(),
+    getEarliestDate: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -211,8 +212,11 @@ describe('Weight Store', () => {
     expect(useWeightStore.getState().entries).toEqual(mockEntries);
   });
 
-  it('should load trend weight', async () => {
-    (weightRepository.getTrendWeight as jest.Mock).mockResolvedValue(79.8);
+  it('should load trend weight from stored entry', async () => {
+    (weightRepository.getLatest as jest.Mock).mockResolvedValue({
+      id: '1', date: '2024-01-15', weightKg: 80, trendWeightKg: 79.8,
+      createdAt: new Date(), updatedAt: new Date(),
+    });
 
     await useWeightStore.getState().loadTrendWeight();
 

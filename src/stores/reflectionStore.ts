@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { reflectionRepository, Reflection, Sentiment } from '@/repositories/reflectionRepository';
 import { settingsRepository, weightRepository } from '@/repositories';
 import { withTransaction } from '@/db/database';
-import { calculateTrendWeight } from '@/utils/trendWeight';
+import { recomputeEWMAFromDate } from '@/utils/trendWeight';
 import { useGoalStore } from './goalStore';
 import { useProfileStore } from './profileStore';
 import { useWeightStore } from './weightStore';
@@ -229,8 +229,30 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
           );
         }
 
-        // 3b. Calculate trend weight
-        const trendWeightKg = await calculateTrendWeight();
+        // 3b. Recompute trend weights using same db handle
+        const allRows = await db.getAllAsync<{ id: string; date: string; weight_kg: number; trend_weight_kg: number | null }>(
+          'SELECT id, date, weight_kg, trend_weight_kg FROM weight_entries ORDER BY date ASC'
+        );
+        const allEntries = allRows.map(r => ({
+          id: r.id,
+          date: r.date,
+          weightKg: r.weight_kg,
+          trendWeightKg: r.trend_weight_kg ?? undefined,
+        }));
+        const trendUpdates = recomputeEWMAFromDate(allEntries, today);
+        for (const { id: entryId, trendWeightKg: trendVal } of trendUpdates) {
+          await db.runAsync(
+            'UPDATE weight_entries SET trend_weight_kg = ? WHERE id = ?',
+            [trendVal, entryId]
+          );
+        }
+
+        // Read today's computed trend weight
+        const todayRow = await db.getFirstAsync<{ trend_weight_kg: number | null }>(
+          'SELECT trend_weight_kg FROM weight_entries WHERE date = ?',
+          [today]
+        );
+        const trendWeightKg = todayRow?.trend_weight_kg ?? null;
 
         // 3c. Calculate new targets
         const age = Math.floor(

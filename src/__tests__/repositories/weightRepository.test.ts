@@ -30,6 +30,7 @@ describe('weightRepository', () => {
     mockGetFirstAsync.mockReset();
     mockGetAllAsync.mockReset();
     mockRunAsync.mockReset();
+    mockGetAllAsync.mockResolvedValue([]);
   });
 
   const mockWeightRow = {
@@ -158,25 +159,19 @@ describe('weightRepository', () => {
     });
   });
 
-  describe('getTrendWeight', () => {
-    it('calculates exponential moving average', async () => {
-      mockGetAllAsync.mockResolvedValue([
-        { weight_kg: 80.0 },
-        { weight_kg: 80.5 },
-        { weight_kg: 81.0 },
-        { weight_kg: 80.2 },
-      ]);
+  describe('getEarliestDate', () => {
+    it('returns the earliest entry date', async () => {
+      mockGetFirstAsync.mockResolvedValue({ date: '2024-01-01' });
 
-      const result = await weightRepository.getTrendWeight('2024-01-15', 7);
+      const result = await weightRepository.getEarliestDate();
 
-      expect(result).not.toBeNull();
-      expect(typeof result).toBe('number');
+      expect(result).toBe('2024-01-01');
     });
 
     it('returns null when no weight entries', async () => {
-      mockGetAllAsync.mockResolvedValue([]);
+      mockGetFirstAsync.mockResolvedValue(null);
 
-      const result = await weightRepository.getTrendWeight('2024-01-15');
+      const result = await weightRepository.getEarliestDate();
 
       expect(result).toBeNull();
     });

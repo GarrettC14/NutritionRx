@@ -40,7 +40,6 @@ import { WeightEntry } from '@/types/domain';
 // ─── Constants ────────────────────────────────────────────────────
 const MIN_DAYS = 3;
 const MAX_DAYS = 365;
-const HALF_LIFE_DAYS = 7;
 const MIN_POINTS_FOR_TREND = 3;
 const CHART_PADDING = { left: 36, right: 12, top: 8, bottom: 20 };
 const DEFAULT_CHART_HEIGHT = 120;
@@ -113,19 +112,6 @@ interface WeightPoint {
   date: Date;
   dateMs: number;
   trendWeight?: number;
-}
-
-// ─── Trend line (time-delta-adjusted EMA) ─────────────────────────
-function calculateTrendWeights(data: WeightPoint[]): WeightPoint[] {
-  if (data.length === 0) return [];
-  const trend: WeightPoint[] = [{ ...data[0], trendWeight: data[0].weight }];
-  for (let i = 1; i < data.length; i++) {
-    const dtDays = Math.max(1, calendarDaysBetween(data[i - 1].date, data[i].date));
-    const alpha = 1 - Math.pow(2, -dtDays / HALF_LIFE_DAYS);
-    const tw = alpha * data[i].weight + (1 - alpha) * trend[i - 1].trendWeight!;
-    trend.push({ ...data[i], trendWeight: tw });
-  }
-  return trend;
 }
 
 // ─── Preset pill highlight ────────────────────────────────────────
@@ -235,23 +221,25 @@ export function WeightTrendChart({
     setChartWidth(e.nativeEvent.layout.width);
   }, []);
 
-  // ─── Prepare all weight data (sorted ASC) ───────────────────────
+  // ─── Prepare all weight data (sorted ASC) with stored trend ─────
   const allWeightData = useMemo<WeightPoint[]>(() => {
     return [...entries]
       .filter((e) => typeof e.weightKg === 'number')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map((e) => {
         const d = new Date(e.date + 'T12:00:00');
+        const storedTrend = e.trendWeightKg != null ? e.trendWeightKg : e.weightKg;
         return {
           weight: e.weightKg * weightMultiplier,
           date: d,
           dateMs: d.getTime(),
+          trendWeight: storedTrend * weightMultiplier,
         };
       });
   }, [entries, weightMultiplier]);
 
-  // Pre-compute trend for all data
-  const allDataWithTrend = useMemo(() => calculateTrendWeights(allWeightData), [allWeightData]);
+  // allDataWithTrend is the same as allWeightData — trend is pre-computed from DB
+  const allDataWithTrend = allWeightData;
 
   // Sorted timestamp array for binary search
   const timestamps = useMemo(() => allWeightData.map((p) => p.dateMs), [allWeightData]);

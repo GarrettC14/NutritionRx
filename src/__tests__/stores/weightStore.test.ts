@@ -9,7 +9,7 @@ jest.mock('@/repositories', () => ({
     getRecent: jest.fn(),
     findByDateRange: jest.fn(),
     getLatest: jest.fn(),
-    getTrendWeight: jest.fn(),
+    getEarliestDate: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -85,7 +85,7 @@ const mockEntries: WeightEntry[] = [
 
 describe('useWeightStore', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     useWeightStore.setState({
       entries: [],
       latestEntry: null,
@@ -99,6 +99,7 @@ describe('useWeightStore', () => {
       readWeight: false,
       writeWeight: false,
     });
+    mockSyncWeight.mockResolvedValue({ success: true } as any);
   });
 
   describe('initial state', () => {
@@ -189,28 +190,36 @@ describe('useWeightStore', () => {
   });
 
   describe('loadTrendWeight', () => {
-    it('calls getTrendWeight with the provided date', async () => {
-      mockWeightRepo.getTrendWeight.mockResolvedValue(80.6);
-
-      await useWeightStore.getState().loadTrendWeight('2024-01-15');
-
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalledWith('2024-01-15');
-      expect(useWeightStore.getState().trendWeight).toBe(80.6);
-    });
-
-    it('uses current date when no date is provided', async () => {
-      mockWeightRepo.getTrendWeight.mockResolvedValue(80.6);
-      const todayStr = new Date().toISOString().split('T')[0];
+    it('uses stored trendWeightKg from latest entry', async () => {
+      const entryWithTrend = { ...mockWeightEntry, trendWeightKg: 80.6 };
+      useWeightStore.setState({ latestEntry: entryWithTrend });
 
       await useWeightStore.getState().loadTrendWeight();
 
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalledWith(todayStr);
+      expect(useWeightStore.getState().trendWeight).toBe(80.6);
+    });
+
+    it('falls back to getLatest when latestEntry is null', async () => {
+      const entryWithTrend = { ...mockWeightEntry, trendWeightKg: 80.3 };
+      mockWeightRepo.getLatest.mockResolvedValue(entryWithTrend);
+
+      await useWeightStore.getState().loadTrendWeight();
+
+      expect(useWeightStore.getState().trendWeight).toBe(80.3);
+    });
+
+    it('sets trendWeight to null when no stored trend available', async () => {
+      mockWeightRepo.getLatest.mockResolvedValue(null);
+
+      await useWeightStore.getState().loadTrendWeight();
+
+      expect(useWeightStore.getState().trendWeight).toBeNull();
     });
 
     it('sets error on failure', async () => {
-      mockWeightRepo.getTrendWeight.mockRejectedValue(new Error('Trend failed'));
+      mockWeightRepo.getLatest.mockRejectedValue(new Error('Trend failed'));
 
-      await useWeightStore.getState().loadTrendWeight('2024-01-15');
+      await useWeightStore.getState().loadTrendWeight();
 
       expect(useWeightStore.getState().error).toBe('Trend failed');
     });
@@ -226,8 +235,8 @@ describe('useWeightStore', () => {
     beforeEach(() => {
       // Set up default resolved values for the cascading refresh calls
       mockWeightRepo.getRecent.mockResolvedValue(mockEntries);
-      mockWeightRepo.getLatest.mockResolvedValue(mockWeightEntry);
-      mockWeightRepo.getTrendWeight.mockResolvedValue(80.6);
+      mockWeightRepo.getLatest.mockResolvedValue({ ...mockWeightEntry, trendWeightKg: 80.6 });
+      mockWeightRepo.getEarliestDate.mockResolvedValue('2024-01-13');
     });
 
     it('creates entry and cascades refresh to loadEntries, loadLatest, loadTrendWeight', async () => {
@@ -239,8 +248,7 @@ describe('useWeightStore', () => {
       expect(mockWeightRepo.create).toHaveBeenCalledWith(createInput);
       expect(result).toEqual(newEntry);
       expect(mockWeightRepo.getRecent).toHaveBeenCalledWith(30);
-      expect(mockWeightRepo.getLatest).toHaveBeenCalledTimes(1);
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalledTimes(1);
+      expect(mockWeightRepo.getLatest).toHaveBeenCalled();
     });
 
     it('syncs to HealthKit when writeWeight and isConnected are true', async () => {
@@ -300,7 +308,6 @@ describe('useWeightStore', () => {
   describe('updateEntry', () => {
     beforeEach(() => {
       useWeightStore.setState({ entries: [mockWeightEntry], latestEntry: mockWeightEntry });
-      mockWeightRepo.getTrendWeight.mockResolvedValue(80.0);
     });
 
     it('updates entry in repository and in state', async () => {
@@ -327,14 +334,15 @@ describe('useWeightStore', () => {
     });
 
     it('refreshes trend weight after update', async () => {
-      const updatedEntry = { ...mockWeightEntry, weightKg: 79.5 };
+      const updatedEntry = { ...mockWeightEntry, weightKg: 79.5, trendWeightKg: 79.8 };
       mockWeightRepo.update.mockResolvedValue(updatedEntry);
+      mockWeightRepo.getLatest.mockResolvedValue(updatedEntry);
 
       await useWeightStore.getState().updateEntry('weight-1', 79.5);
 
       // loadTrendWeight is called non-blocking, give it a tick
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalled();
+      expect(mockWeightRepo.getLatest).toHaveBeenCalled();
     });
 
     it('sets error and throws on failure', async () => {
@@ -352,7 +360,7 @@ describe('useWeightStore', () => {
     beforeEach(() => {
       mockWeightRepo.getRecent.mockResolvedValue([]);
       mockWeightRepo.getLatest.mockResolvedValue(null);
-      mockWeightRepo.getTrendWeight.mockResolvedValue(null);
+      mockWeightRepo.getEarliestDate.mockResolvedValue(null);
     });
 
     it('deletes entry and refreshes all data', async () => {
@@ -363,7 +371,6 @@ describe('useWeightStore', () => {
       expect(mockWeightRepo.delete).toHaveBeenCalledWith('weight-1');
       expect(mockWeightRepo.getRecent).toHaveBeenCalled();
       expect(mockWeightRepo.getLatest).toHaveBeenCalled();
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalled();
     });
 
     it('sets error and throws on failure', async () => {
@@ -408,7 +415,7 @@ describe('useWeightStore', () => {
     beforeEach(() => {
       mockWeightRepo.getRecent.mockResolvedValue([]);
       mockWeightRepo.getLatest.mockResolvedValue(null);
-      mockWeightRepo.getTrendWeight.mockResolvedValue(null);
+      mockWeightRepo.getEarliestDate.mockResolvedValue(null);
     });
 
     it('returns imported false when not connected', async () => {
@@ -581,8 +588,6 @@ describe('useWeightStore', () => {
       expect(mockWeightRepo.getRecent).toHaveBeenCalled();
       // getLatest is called once during import check plus once during refresh
       expect(mockWeightRepo.getLatest).toHaveBeenCalled();
-      // getTrendWeight is called during refresh
-      expect(mockWeightRepo.getTrendWeight).toHaveBeenCalled();
     });
   });
 });
