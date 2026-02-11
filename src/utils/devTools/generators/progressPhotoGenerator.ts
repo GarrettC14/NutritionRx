@@ -1,14 +1,94 @@
 import { SQLiteDatabase } from 'expo-sqlite';
+import { Paths } from 'expo-file-system';
 import {
   generateId, daysAgo, nowISO,
-  randomPick, randomBetween, round, batchInsert,
+  batchInsert,
 } from './helpers';
 
-const PHOTO_CATEGORIES = ['front', 'side', 'back'] as const;
+const PHOTO_DIR = Paths.document.uri + 'progress-photos/';
+
+// ─── Picsum image IDs per category (800×1200 portrait) ─────────
+const SEED_IMAGES: Array<{
+  picsumId: number;
+  category: 'front' | 'side' | 'back';
+}> = [
+  // Front (4)
+  { picsumId: 237,  category: 'front' },
+  { picsumId: 1025, category: 'front' },
+  { picsumId: 169,  category: 'front' },
+  { picsumId: 1015, category: 'front' },
+  // Side (4)
+  { picsumId: 10,   category: 'side' },
+  { picsumId: 1003, category: 'side' },
+  { picsumId: 1074, category: 'side' },
+  { picsumId: 200,  category: 'side' },
+  // Back (4)
+  { picsumId: 20,   category: 'back' },
+  { picsumId: 1024, category: 'back' },
+  { picsumId: 152,  category: 'back' },
+  { picsumId: 118,  category: 'back' },
+];
+
+// Distribute 12 photos over ~90 days, cycling front/side/back
+const PHOTO_SCHEDULE: Array<{
+  daysAgoValue: number;
+  imageIndex: number;
+  weightKg: number;
+  isPrivate: boolean;
+  notes: string | null;
+}> = [
+  { daysAgoValue: 90, imageIndex: 0,  weightKg: 82.0, isPrivate: true,  notes: 'Starting photo — day one' },
+  { daysAgoValue: 82, imageIndex: 4,  weightKg: 81.8, isPrivate: true,  notes: null },
+  { daysAgoValue: 75, imageIndex: 8,  weightKg: 81.5, isPrivate: true,  notes: 'Feeling good about consistency' },
+  { daysAgoValue: 67, imageIndex: 1,  weightKg: 81.2, isPrivate: true,  notes: null },
+  { daysAgoValue: 59, imageIndex: 5,  weightKg: 81.0, isPrivate: true,  notes: 'Tough week but staying on track' },
+  { daysAgoValue: 52, imageIndex: 9,  weightKg: 80.7, isPrivate: false, notes: null },
+  { daysAgoValue: 44, imageIndex: 2,  weightKg: 80.4, isPrivate: true,  notes: 'Noticed some changes today' },
+  { daysAgoValue: 37, imageIndex: 6,  weightKg: 80.2, isPrivate: true,  notes: null },
+  { daysAgoValue: 29, imageIndex: 10, weightKg: 80.0, isPrivate: true,  notes: 'One month in — proud of the progress' },
+  { daysAgoValue: 21, imageIndex: 3,  weightKg: 79.8, isPrivate: true,  notes: null },
+  { daysAgoValue: 14, imageIndex: 7,  weightKg: 79.7, isPrivate: false, notes: 'Two weeks to go' },
+  { daysAgoValue: 7,  imageIndex: 11, weightKg: 79.5, isPrivate: true,  notes: 'Really happy with how things are going' },
+];
+
+// ID prefix used to identify seeded photos for cleanup
+const SEED_ID_PREFIX = 'seed-photo';
+
+/**
+ * Downloads an image from picsum.photos and saves it to the app's
+ * progress-photos directory, matching capture.tsx naming convention.
+ */
+async function downloadImage(
+  picsumId: number,
+  timestamp: number,
+): Promise<{ localUri: string; thumbnailUri: string }> {
+  const { downloadAsync, getInfoAsync, makeDirectoryAsync } = await import('expo-file-system');
+
+  // Ensure directory exists
+  const dirInfo = await getInfoAsync(PHOTO_DIR);
+  if (!dirInfo.exists) {
+    await makeDirectoryAsync(PHOTO_DIR, { intermediates: true });
+  }
+
+  const filename = `photo_${timestamp}.jpg`;
+  const thumbFilename = `thumb_${timestamp}.jpg`;
+  const localUri = PHOTO_DIR + filename;
+  const thumbnailUri = PHOTO_DIR + thumbFilename;
+
+  // Download full-size image (800×1200 portrait)
+  const fullUrl = `https://picsum.photos/id/${picsumId}/800/1200`;
+  await downloadAsync(fullUrl, localUri);
+
+  // Download smaller thumbnail (200×300)
+  const thumbUrl = `https://picsum.photos/id/${picsumId}/200/300`;
+  await downloadAsync(thumbUrl, thumbnailUri);
+
+  return { localUri, thumbnailUri };
+}
 
 export async function seedProgressPhotos(
   db: SQLiteDatabase,
-  monthsOfHistory: number,
+  _monthsOfHistory: number,
   verbose: boolean
 ): Promise<number> {
   const now = nowISO();
@@ -19,56 +99,42 @@ export async function seedProgressPhotos(
   ];
   const rows: unknown[][] = [];
 
-  // ~2 photos per month
-  const totalMonths = monthsOfHistory;
-  for (let month = 0; month < totalMonths; month++) {
-    const daysInMonth = 30;
-    const monthStart = totalMonths * 30 - month * daysInMonth;
+  if (verbose) console.log(`[seed] Downloading ${PHOTO_SCHEDULE.length} progress photos from picsum.photos…`);
 
-    // Photo 1: around day 1 of the month
-    const day1 = monthStart - Math.floor(Math.random() * 5);
-    const date1 = daysAgo(Math.max(0, day1));
-    const category1 = randomPick(PHOTO_CATEGORIES);
-    const weight1 = round(88 - month * 0.8 + randomBetween(-0.5, 0.5), 1);
+  for (let i = 0; i < PHOTO_SCHEDULE.length; i++) {
+    const entry = PHOTO_SCHEDULE[i];
+    const image = SEED_IMAGES[entry.imageIndex];
+    const date = daysAgo(entry.daysAgoValue);
+    const timestamp = new Date(date + 'T12:00:00').getTime() + i; // +i to ensure unique timestamps
 
-    rows.push([
-      generateId('photo'),
-      `file:///placeholder/progress_${date1}_${category1}.jpg`,
-      `file:///placeholder/thumb_${date1}_${category1}.jpg`,
-      date1,
-      new Date(date1).getTime(),
-      category1,
-      month === 0 ? 'Starting photo' : null,
-      weight1,
-      1,
-      now,
-      now,
-    ]);
+    try {
+      const { localUri, thumbnailUri } = await downloadImage(image.picsumId, timestamp);
 
-    // Photo 2: around day 15
-    const day2 = monthStart - 15 - Math.floor(Math.random() * 5);
-    if (day2 < 0) continue;
-    const date2 = daysAgo(day2);
-    const category2 = randomPick(PHOTO_CATEGORIES);
-    const weight2 = round(88 - month * 0.8 - 0.4 + randomBetween(-0.5, 0.5), 1);
+      rows.push([
+        `${SEED_ID_PREFIX}-${i}`,
+        localUri,
+        thumbnailUri,
+        date,
+        timestamp,
+        image.category,
+        entry.notes,
+        entry.weightKg,
+        entry.isPrivate ? 1 : 0,
+        now,
+        now,
+      ]);
 
-    rows.push([
-      generateId('photo'),
-      `file:///placeholder/progress_${date2}_${category2}.jpg`,
-      `file:///placeholder/thumb_${date2}_${category2}.jpg`,
-      date2,
-      new Date(date2).getTime(),
-      category2,
-      null,
-      weight2,
-      1,
-      now,
-      now,
-    ]);
+      if (verbose) console.log(`[seed]   ${i + 1}/${PHOTO_SCHEDULE.length} — ${image.category} (${date})`);
+    } catch (error) {
+      console.warn(`[seed] Failed to download photo ${i + 1} (picsum id ${image.picsumId}):`, error);
+    }
   }
 
-  await batchInsert(db, 'progress_photos', columns, rows);
-  if (verbose) console.log(`[seed] Inserted ${rows.length} progress photos`);
+  if (rows.length > 0) {
+    await batchInsert(db, 'progress_photos', columns, rows);
+  }
+
+  if (verbose) console.log(`[seed] Inserted ${rows.length} progress photos with real images`);
   return rows.length;
 }
 
@@ -107,4 +173,37 @@ export async function seedPhotoComparisons(
   await batchInsert(db, 'photo_comparisons', columns, rows);
   if (verbose) console.log(`[seed] Inserted ${rows.length} photo comparisons`);
   return rows.length;
+}
+
+/**
+ * Cleanup: deletes all seeded progress photos (both DB records and image files).
+ */
+export async function clearSeedProgressPhotos(
+  db: SQLiteDatabase,
+  verbose: boolean = false
+): Promise<void> {
+  const { deleteAsync } = await import('expo-file-system');
+
+  // Find all seeded photo records
+  const photos = await db.getAllAsync<{ id: string; local_uri: string; thumbnail_uri: string | null }>(
+    `SELECT id, local_uri, thumbnail_uri FROM progress_photos WHERE id LIKE '${SEED_ID_PREFIX}%'`
+  );
+
+  // Delete image files
+  for (const photo of photos) {
+    try {
+      await deleteAsync(photo.local_uri, { idempotent: true });
+      if (photo.thumbnail_uri) {
+        await deleteAsync(photo.thumbnail_uri, { idempotent: true });
+      }
+    } catch {
+      // File may already be gone
+    }
+  }
+
+  // Delete DB records
+  await db.runAsync(`DELETE FROM photo_comparisons WHERE photo1_id LIKE '${SEED_ID_PREFIX}%' OR photo2_id LIKE '${SEED_ID_PREFIX}%'`);
+  await db.runAsync(`DELETE FROM progress_photos WHERE id LIKE '${SEED_ID_PREFIX}%'`);
+
+  if (verbose) console.log(`[seed] Cleared ${photos.length} seeded progress photos + files`);
 }

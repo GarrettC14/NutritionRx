@@ -1,4 +1,5 @@
 import { SQLiteDatabase } from 'expo-sqlite';
+import { clearSeedProgressPhotos } from './generators/progressPhotoGenerator';
 
 /**
  * Clears all user data from all tables in reverse FK dependency order.
@@ -13,6 +14,13 @@ export async function clearAllData(
   db: SQLiteDatabase,
   verbose: boolean = false
 ): Promise<void> {
+  // Clean up seeded photo files from disk before wiping DB records
+  try {
+    await clearSeedProgressPhotos(db, verbose);
+  } catch {
+    if (verbose) console.warn('[clear] Could not clean up seeded photo files');
+  }
+
   // Delete in reverse FK dependency order to avoid constraint violations
   const deleteStatements: Array<{ table: string; sql: string }> = [
     // Micronutrient-dependent tables first
