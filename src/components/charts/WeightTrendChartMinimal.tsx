@@ -214,12 +214,13 @@ export function WeightTrendChartMinimal({
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map((entry) => {
         const date = new Date(entry.date + 'T12:00:00');
-        const storedTrend = entry.trendWeightKg != null ? entry.trendWeightKg : entry.weightKg;
         return {
           weight: entry.weightKg * unitMultiplier,
           date,
           dateMs: date.getTime(),
-          trendWeight: storedTrend * unitMultiplier,
+          trendWeight: entry.trendWeightKg != null
+            ? entry.trendWeightKg * unitMultiplier
+            : undefined,
         };
       });
   }, [entries, unitMultiplier]);
