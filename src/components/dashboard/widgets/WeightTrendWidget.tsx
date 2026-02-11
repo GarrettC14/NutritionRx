@@ -8,6 +8,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { useWeightStore, useSettingsStore } from '@/stores';
@@ -21,8 +22,13 @@ const CHART_HEIGHT = 200;
 export function WeightTrendWidget({ isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors, colorScheme } = useTheme();
-  const { entries, loadEntries } = useWeightStore();
-  const { settings } = useSettingsStore();
+  const { entries, loadEntries } = useWeightStore(useShallow((s) => ({
+    entries: s.entries,
+    loadEntries: s.loadEntries,
+  })));
+  const { settings } = useSettingsStore(useShallow((s) => ({
+    settings: s.settings,
+  })));
   const unit = settings?.weightUnit === 'lbs' ? 'lbs' : 'kg';
   const chartThemeColors = allChartColors[colorScheme];
 

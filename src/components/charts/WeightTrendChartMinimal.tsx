@@ -12,7 +12,6 @@ import Animated, {
   useSharedValue,
   useAnimatedReaction,
   runOnJS,
-  withTiming,
 } from 'react-native-reanimated';
 import Svg, { Path, Line, Circle, Text as SvgText, Rect } from 'react-native-svg';
 import {
@@ -224,8 +223,6 @@ export function WeightTrendChartMinimal({
   }, [entries, unitMultiplier]);
 
   const timestamps = useMemo(() => allWeightData.map((p) => p.dateMs), [allWeightData]);
-  const timestampsRef = useRef(timestamps);
-  timestampsRef.current = timestamps;
 
   const dataSpanDays = useMemo(() => {
     if (allWeightData.length < 2) return 0;
@@ -387,25 +384,29 @@ export function WeightTrendChartMinimal({
     }
   );
 
-  useAnimatedReaction(
-    () => {
-      const ts = timestampsRef.current;
-      return {
-        startIdx: lowerBound(ts, windowStartMs.value),
-        endIdx: upperBound(ts, windowEndMs.value),
-        startMs: windowStartMs.value,
-        endMs: windowEndMs.value,
-      };
+  // Compute data slice on the JS thread so timestamps is always current
+  // (worklets capture a stale copy of timestampsRef when entries load after mount).
+  const handleWindowBoundsChange = useCallback(
+    (startMs: number, endMs: number) => {
+      const startIdx = lowerBound(timestamps, startMs);
+      const endIdx = upperBound(timestamps, endMs);
+      updateVisibleDataAndPath(startIdx, endIdx, startMs, endMs);
     },
+    [timestamps, updateVisibleDataAndPath]
+  );
+
+  useAnimatedReaction(
+    () => ({
+      startMs: windowStartMs.value,
+      endMs: windowEndMs.value,
+    }),
     (curr, prev) => {
       if (
         !prev ||
-        curr.startIdx !== prev.startIdx ||
-        curr.endIdx !== prev.endIdx ||
         curr.startMs !== prev.startMs ||
         curr.endMs !== prev.endMs
       ) {
-        runOnJS(updateVisibleDataAndPath)(curr.startIdx, curr.endIdx, curr.startMs, curr.endMs);
+        runOnJS(handleWindowBoundsChange)(curr.startMs, curr.endMs);
       }
     }
   );
@@ -536,8 +537,8 @@ export function WeightTrendChartMinimal({
 
   const handlePresetPress = useCallback(
     (days: number) => {
-      windowDays.value = withTiming(days, { duration: 250 });
-      anchorDayOffset.value = withTiming(0, { duration: 250 });
+      windowDays.value = days;
+      anchorDayOffset.value = 0;
       setJsWindowDays(days);
       onWindowDaysChange?.(days);
     },
