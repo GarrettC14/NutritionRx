@@ -26,6 +26,7 @@ import {
   NutrientTarget,
 } from '@/types/micronutrients';
 import { ALL_NUTRIENTS } from '@/data/nutrients';
+import { TRACKED_NUTRIENT_IDS } from '@/constants/trackedNutrients';
 import { useMicronutrientStore } from '@/stores/micronutrientStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { NutrientBar } from '@/components/micronutrients/NutrientBar';
@@ -114,8 +115,8 @@ export default function MicronutrientsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, [selectedDate]);
 
-  // All nutrients are always displayed — premium gating at interaction layer
-  const visibleNutrients = ALL_NUTRIENTS;
+  // Only show the 25 tracked nutrients
+  const visibleNutrients = ALL_NUTRIENTS.filter(n => TRACKED_NUTRIENT_IDS.has(n.id));
 
   const intakes = dailyIntake?.nutrients ?? [];
 

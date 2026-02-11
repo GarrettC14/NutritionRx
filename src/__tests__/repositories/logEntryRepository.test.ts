@@ -668,7 +668,8 @@ describe('logEntryRepository', () => {
       await logEntryRepository.getDatesWithLogs();
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
-        expect.stringContaining('ORDER BY date DESC')
+        expect.stringContaining('ORDER BY date DESC'),
+        expect.any(Array)
       );
     });
   });

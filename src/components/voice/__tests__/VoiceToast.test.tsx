@@ -51,7 +51,6 @@ describe('VoiceToast', () => {
       />
     );
 
-    expect(getByText('💧')).toBeTruthy();
     expect(getByText('+1 Water')).toBeTruthy();
     expect(getByText('5 of 8')).toBeTruthy();
   });
@@ -102,7 +101,6 @@ describe('VoiceToast', () => {
       />
     );
 
-    expect(getByText('💧')).toBeTruthy();
     expect(getByText('+1 Water')).toBeTruthy();
     expect(getByText('5 of 8')).toBeTruthy();
   });
@@ -117,7 +115,6 @@ describe('VoiceToast', () => {
       />
     );
 
-    expect(getByText('✓')).toBeTruthy();
     expect(getByText('+400 cal')).toBeTruthy();
     expect(getByText('Lunch')).toBeTruthy();
   });
@@ -132,7 +129,6 @@ describe('VoiceToast', () => {
       />
     );
 
-    expect(getByText('⚖️')).toBeTruthy();
     expect(getByText('175 lbs')).toBeTruthy();
     expect(getByText('Weight logged')).toBeTruthy();
   });

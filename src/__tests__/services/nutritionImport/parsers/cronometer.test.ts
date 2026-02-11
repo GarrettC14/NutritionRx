@@ -61,16 +61,17 @@ describe('CronometerParser', () => {
       ];
 
       const result = parser.parse(data, 'daily_totals');
+      const { days } = result;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].meals).toHaveLength(2); // Breakfast and Lunch
+      expect(days).toHaveLength(1);
+      expect(days[0].meals).toHaveLength(2); // Breakfast and Lunch
 
-      const breakfast = result[0].meals.find((m) => m.name === MealType.Breakfast);
+      const breakfast = days[0].meals.find((m) => m.name === MealType.Breakfast);
       expect(breakfast).toBeDefined();
       expect(breakfast!.calories).toBe(263); // 158 + 105
       expect(breakfast!.foods).toBeUndefined(); // No individual foods in daily_totals mode
 
-      expect(result[0].totals.calories).toBe(544); // 263 + 281
+      expect(days[0].totals.calories).toBe(544); // 263 + 281
     });
   });
 
@@ -100,9 +101,10 @@ describe('CronometerParser', () => {
       ];
 
       const result = parser.parse(data, 'individual_foods');
+      const { days } = result;
 
-      expect(result).toHaveLength(1);
-      const breakfast = result[0].meals.find((m) => m.name === MealType.Breakfast);
+      expect(days).toHaveLength(1);
+      const breakfast = days[0].meals.find((m) => m.name === MealType.Breakfast);
       expect(breakfast!.foods).toBeDefined();
       expect(breakfast!.foods).toHaveLength(2);
 

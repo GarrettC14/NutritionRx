@@ -1317,9 +1317,9 @@ describe('ChatScreen (Feature 5)', () => {
       expect(screenSource).toContain('dailyTotals');
     });
 
-    it('should use useSettingsStore for goals', () => {
-      expect(screenSource).toContain('useSettingsStore');
-      expect(screenSource).toContain('settings');
+    it('should use resolved targets hook for goals', () => {
+      expect(screenSource).toContain('useResolvedTargets');
+      expect(screenSource).toContain('calorieTarget');
     });
 
     it('should use useGoalStore for active goal', () => {
@@ -1339,19 +1339,19 @@ describe('ChatScreen (Feature 5)', () => {
       expect(screenSource).toContain('ChatContext');
     });
 
-    it('should prefer activeGoal targets over settings', () => {
-      expect(screenSource).toContain('activeGoal?.currentTargetCalories');
-      expect(screenSource).toContain('settings.dailyCalorieGoal');
+    it('should read calorie target from resolved targets', () => {
+      expect(screenSource).toContain('calorieTarget');
+      expect(screenSource).toContain('useResolvedTargets');
     });
 
     it('should include protein targets', () => {
-      expect(screenSource).toContain('activeGoal?.currentProteinG');
-      expect(screenSource).toContain('settings.dailyProteinGoal');
+      expect(screenSource).toContain('proteinTarget');
+      expect(screenSource).toContain('useResolvedTargets');
     });
 
     it('should include carb and fat targets', () => {
-      expect(screenSource).toContain('activeGoal?.currentCarbsG');
-      expect(screenSource).toContain('activeGoal?.currentFatG');
+      expect(screenSource).toContain('carbTarget');
+      expect(screenSource).toContain('fatTarget');
     });
 
     it('should map goal type to readable label', () => {
@@ -1466,7 +1466,8 @@ describe('Chat Route (Feature 5)', () => {
     });
 
     it('should render ChatScreen for premium users', () => {
-      expect(routeSource).toContain('isPremium ? <ChatScreen />');
+      expect(routeSource).toContain('if (!isPremium) return <ChatPreview />');
+      expect(routeSource).toContain('return <ChatScreen />');
     });
 
     it('should render ChatPreview for non-premium users', () => {
@@ -1691,9 +1692,9 @@ describe('Cross-Component Consistency (Feature 5)', () => {
 
     it('should use @/ imports for shared app code', () => {
       expect(screenSource).toContain("@/stores/foodLogStore");
-      expect(screenSource).toContain("@/stores/settingsStore");
       expect(screenSource).toContain("@/stores/goalStore");
       expect(screenSource).toContain("@/stores/profileStore");
+      expect(screenSource).toContain("@/hooks/useResolvedTargets");
     });
   });
 

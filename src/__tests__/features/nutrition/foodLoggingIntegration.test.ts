@@ -153,6 +153,14 @@ describe('Food Logging Integration', () => {
         reminderTime: null,
       },
     });
+
+    // Reset goal store (getDailySummary reads goals from goalStore)
+    useGoalStore.setState({
+      calorieGoal: 2000,
+      proteinGoal: 150,
+      carbGoal: 250,
+      fatGoal: 65,
+    } as any);
   });
 
   // ================================================================
@@ -178,19 +186,13 @@ describe('Food Logging Integration', () => {
     });
 
     it('getDailySummary reflects updated settingsStore values', () => {
-      // Update settings goals
-      useSettingsStore.setState({
-        settings: {
-          dailyCalorieGoal: 1800,
-          dailyProteinGoal: 130,
-          dailyCarbsGoal: 200,
-          dailyFatGoal: 55,
-          weightUnit: 'lbs' as const,
-          theme: 'dark' as const,
-          notificationsEnabled: false,
-          reminderTime: null,
-        },
-      });
+      // Update goalStore goals (source of truth for summary goals)
+      useGoalStore.setState({
+        calorieGoal: 1800,
+        proteinGoal: 130,
+        carbGoal: 200,
+        fatGoal: 55,
+      } as any);
 
       useFoodLogStore.setState({
         selectedDate: '2024-06-15',
@@ -437,19 +439,13 @@ describe('Food Logging Integration', () => {
   // ================================================================
   describe('Goal store targets and daily nutrition totals interaction', () => {
     it('daily summary shows totals vs goal targets from settings', async () => {
-      // Simulate that settings reflect a goal's targets
-      useSettingsStore.setState({
-        settings: {
-          dailyCalorieGoal: 1950,
-          dailyProteinGoal: 153,
-          dailyCarbsGoal: 200,
-          dailyFatGoal: 60,
-          weightUnit: 'lbs' as const,
-          theme: 'dark' as const,
-          notificationsEnabled: false,
-          reminderTime: null,
-        },
-      });
+      // Goal targets come from goalStore
+      useGoalStore.setState({
+        calorieGoal: 1950,
+        proteinGoal: 153,
+        carbGoal: 200,
+        fatGoal: 60,
+      } as any);
 
       // Add some food entries
       await useFoodLogStore.getState().addLogEntry({

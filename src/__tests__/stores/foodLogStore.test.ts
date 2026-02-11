@@ -12,6 +12,7 @@ jest.mock('@/repositories', () => ({
   logEntryRepository: {
     findByDate: jest.fn(),
     getDailyTotals: jest.fn(),
+    getDatesWithLogs: jest.fn(() => Promise.resolve([])),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),

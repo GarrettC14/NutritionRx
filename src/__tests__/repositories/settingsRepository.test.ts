@@ -20,6 +20,7 @@ jest.mock('@/db/database', () => ({
 describe('settingsRepository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDb.getAllAsync.mockResolvedValue([]);
   });
 
   describe('get', () => {
@@ -191,7 +192,7 @@ describe('settingsRepository', () => {
 
   describe('getAll', () => {
     it('returns all default settings when no rows exist', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       const result = await settingsRepository.getAll();
 
@@ -207,25 +208,25 @@ describe('settingsRepository', () => {
       });
     });
 
-    it('queries for each setting key individually', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
+    it('queries settings in one batch query', async () => {
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.getAll();
 
-      // Should make 8 queries (one per setting key)
-      expect(mockDb.getFirstAsync).toHaveBeenCalledTimes(8);
+      expect(mockDb.getAllAsync).toHaveBeenCalledTimes(1);
     });
 
     it('returns stored values when rows exist', async () => {
-      mockDb.getFirstAsync
-        .mockResolvedValueOnce({ value: '2500' })   // dailyCalorieGoal
-        .mockResolvedValueOnce({ value: '180' })     // dailyProteinGoal
-        .mockResolvedValueOnce({ value: '250' })     // dailyCarbsGoal
-        .mockResolvedValueOnce({ value: '70' })      // dailyFatGoal
-        .mockResolvedValueOnce({ value: 'kg' })      // weightUnit
-        .mockResolvedValueOnce({ value: 'light' })   // theme
-        .mockResolvedValueOnce({ value: '1' })       // notificationsEnabled
-        .mockResolvedValueOnce({ value: '08:00' });  // reminderTime
+      mockDb.getAllAsync.mockResolvedValue([
+        { key: 'daily_calorie_goal', value: '2500' },
+        { key: 'daily_protein_goal', value: '180' },
+        { key: 'daily_carbs_goal', value: '250' },
+        { key: 'daily_fat_goal', value: '70' },
+        { key: 'weight_unit', value: 'kg' },
+        { key: 'theme', value: 'light' },
+        { key: 'notifications_enabled', value: '1' },
+        { key: 'reminder_time', value: '08:00' },
+      ]);
 
       const result = await settingsRepository.getAll();
 
@@ -245,7 +246,7 @@ describe('settingsRepository', () => {
   describe('updateSettings', () => {
     it('only sets provided fields', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.updateSettings({
         dailyCalorieGoal: 1800,
@@ -266,7 +267,7 @@ describe('settingsRepository', () => {
 
     it('does not set fields that are undefined', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.updateSettings({
         weightUnit: 'kg',
@@ -278,21 +279,19 @@ describe('settingsRepository', () => {
 
     it('returns updated settings after applying changes', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       const result = await settingsRepository.updateSettings({
         dailyCalorieGoal: 1800,
       });
 
-      // getAll is called which makes 8 getFirstAsync calls
-      // 1 from set + 8 from getAll = 9 total getFirstAsync calls
       expect(result).toHaveProperty('dailyCalorieGoal');
       expect(result).toHaveProperty('theme');
     });
 
     it('handles all fields being updated', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.updateSettings({
         dailyCalorieGoal: 1800,
@@ -310,7 +309,7 @@ describe('settingsRepository', () => {
     });
 
     it('makes no set calls when empty object is passed', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.updateSettings({});
 
@@ -321,7 +320,7 @@ describe('settingsRepository', () => {
 
   describe('getDailyGoals', () => {
     it('returns default daily goals when no rows exist', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       const result = await settingsRepository.getDailyGoals();
 
@@ -334,11 +333,12 @@ describe('settingsRepository', () => {
     });
 
     it('returns stored daily goals', async () => {
-      mockDb.getFirstAsync
-        .mockResolvedValueOnce({ value: '2200' })  // calories
-        .mockResolvedValueOnce({ value: '160' })   // protein
-        .mockResolvedValueOnce({ value: '220' })   // carbs
-        .mockResolvedValueOnce({ value: '75' });   // fat
+      mockDb.getAllAsync.mockResolvedValue([
+        { key: 'daily_calorie_goal', value: '2200' },
+        { key: 'daily_protein_goal', value: '160' },
+        { key: 'daily_carbs_goal', value: '220' },
+        { key: 'daily_fat_goal', value: '75' },
+      ]);
 
       const result = await settingsRepository.getDailyGoals();
 
@@ -350,12 +350,12 @@ describe('settingsRepository', () => {
       });
     });
 
-    it('makes exactly 4 database queries', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
+    it('uses one database query for daily goal keys', async () => {
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.getDailyGoals();
 
-      expect(mockDb.getFirstAsync).toHaveBeenCalledTimes(4);
+      expect(mockDb.getAllAsync).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -505,7 +505,7 @@ describe('settingsRepository', () => {
   describe('resetToDefaults', () => {
     it('deletes all rows from user_settings', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       await settingsRepository.resetToDefaults();
 
@@ -514,7 +514,7 @@ describe('settingsRepository', () => {
 
     it('returns default settings after deletion', async () => {
       mockDb.runAsync.mockResolvedValue(undefined);
-      mockDb.getFirstAsync.mockResolvedValue(null);
+      mockDb.getAllAsync.mockResolvedValue([]);
 
       const result = await settingsRepository.resetToDefaults();
 
@@ -537,16 +537,16 @@ describe('settingsRepository', () => {
         callOrder.push('runAsync');
         return Promise.resolve(undefined);
       });
-      mockDb.getFirstAsync.mockImplementation(() => {
-        callOrder.push('getFirstAsync');
-        return Promise.resolve(null);
+      mockDb.getAllAsync.mockImplementation(() => {
+        callOrder.push('getAllAsync');
+        return Promise.resolve([]);
       });
 
       await settingsRepository.resetToDefaults();
 
-      // The first call should be runAsync (DELETE), then getFirstAsync calls (getAll)
+      // The first call should be runAsync (DELETE), then getAllAsync (getAll)
       expect(callOrder[0]).toBe('runAsync');
-      expect(callOrder[1]).toBe('getFirstAsync');
+      expect(callOrder[1]).toBe('getAllAsync');
     });
   });
 });

@@ -353,8 +353,6 @@ describe('USDA Nutrient ID Mapping', () => {
   describe('Other Nutrient Mappings', () => {
     it('should map other nutrients', () => {
       expect(mapSource).toContain("291: 'fiber'");
-      expect(mapSource).toContain("269: 'sugar'");
-      expect(mapSource).toContain("262: 'caffeine'");
       expect(mapSource).toContain("421: 'choline'");
     });
   });
@@ -491,22 +489,22 @@ describe('Migration Index', () => {
     expect(indexSource).toContain("import { migration014UsdaFdcId } from './014_usda_fdc_id'");
   });
 
-  it('should set CURRENT_SCHEMA_VERSION to 14', () => {
-    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 14');
+  it('should set CURRENT_SCHEMA_VERSION to 17', () => {
+    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 17');
   });
 
   it('should include migration014 in migrations array', () => {
     expect(indexSource).toContain('migration014UsdaFdcId');
   });
 
-  it('should have 14 migrations in the array', () => {
+  it('should have 17 migrations in the array', () => {
     const migrationsArray = indexSource.match(
       /export const migrations[\s\S]*?\];/
     );
     expect(migrationsArray).toBeTruthy();
     const migrationEntries = migrationsArray![0].match(/migration\d+/g);
     expect(migrationEntries).toBeTruthy();
-    expect(migrationEntries!.length).toBe(14);
+    expect(migrationEntries!.length).toBe(17);
   });
 });
 
@@ -815,10 +813,10 @@ describe('Food Search Store USDA Integration', () => {
 
   it('should extract macros from search result nutrients', () => {
     // USDA nutrient IDs: 1008=Energy, 1003=Protein, 1005=Carbs, 1004=Fat
-    expect(storeSource).toContain('n.nutrientId === 1008');
-    expect(storeSource).toContain('n.nutrientId === 1003');
-    expect(storeSource).toContain('n.nutrientId === 1005');
-    expect(storeSource).toContain('n.nutrientId === 1004');
+    expect(storeSource).toContain('findNutrient(r.foodNutrients, 1008, 2048, 2047)');
+    expect(storeSource).toContain('findNutrient(r.foodNutrients, 1003)');
+    expect(storeSource).toContain('findNutrient(r.foodNutrients, 1005)');
+    expect(storeSource).toContain('findNutrient(r.foodNutrients, 1004)');
   });
 });
 

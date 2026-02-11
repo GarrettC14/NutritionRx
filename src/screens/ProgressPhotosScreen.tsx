@@ -115,8 +115,7 @@ export function ProgressPhotosScreen() {
       } else if (!comparisonPhoto2Id && photoId !== comparisonPhoto1Id) {
         setComparisonPhoto2(photoId);
       } else if (photoId === comparisonPhoto1Id) {
-        setComparisonPhoto1(comparisonPhoto2Id);
-        setComparisonPhoto2(null);
+        setComparisonPhoto1(null);
       } else if (photoId === comparisonPhoto2Id) {
         setComparisonPhoto2(null);
       }
@@ -297,7 +296,7 @@ export function ProgressPhotosScreen() {
       )}
 
       {/* Content */}
-      {isLoading && !isRefreshing && !isLoaded ? (
+      {isLoading && !hasPhotos ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>

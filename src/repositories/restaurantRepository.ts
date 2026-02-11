@@ -262,19 +262,21 @@ export const restaurantRepository = {
     const db = getDatabase();
     const searchPattern = `%${query}%`;
 
-    // Search using LIKE for better compatibility
+    // Use FTS5 for efficient full-text search
+    const ftsQuery = query.trim().split(/\s+/).map(t => `"${t}"`).join(' ');
+
     const rows = await db.getAllAsync<RestaurantFoodRow>(
       `SELECT f.*, r.name as restaurant_name, c.name as category_name
        FROM restaurant_foods f
        INNER JOIN restaurants r ON f.restaurant_id = r.id
        LEFT JOIN menu_categories c ON f.category_id = c.id
-       WHERE f.name LIKE ? COLLATE NOCASE
-          OR r.name LIKE ? COLLATE NOCASE
+       INNER JOIN restaurant_foods_fts fts ON f.rowid = fts.rowid
+       WHERE restaurant_foods_fts MATCH ?
        ORDER BY
          CASE WHEN f.name LIKE ? COLLATE NOCASE THEN 0 ELSE 1 END,
          f.popularity_score DESC
        LIMIT ?`,
-      [searchPattern, searchPattern, `${query}%`, limit]
+      [ftsQuery, `${query}%`, limit]
     );
 
     return rows.map(mapFoodRowToDomain);
@@ -288,18 +290,19 @@ export const restaurantRepository = {
     if (query.length < 2) return [];
 
     const db = getDatabase();
-    const searchPattern = `%${query}%`;
+    const ftsQuery = query.trim().split(/\s+/).map(t => `"${t}"`).join(' ');
 
     const rows = await db.getAllAsync<RestaurantFoodRow>(
       `SELECT f.*, r.name as restaurant_name, c.name as category_name
        FROM restaurant_foods f
        INNER JOIN restaurants r ON f.restaurant_id = r.id
        LEFT JOIN menu_categories c ON f.category_id = c.id
+       INNER JOIN restaurant_foods_fts fts ON f.rowid = fts.rowid
        WHERE f.restaurant_id = ?
-         AND f.name LIKE ? COLLATE NOCASE
+         AND restaurant_foods_fts MATCH ?
        ORDER BY f.popularity_score DESC
        LIMIT ?`,
-      [restaurantId, searchPattern, limit]
+      [restaurantId, ftsQuery, limit]
     );
 
     return rows.map(mapFoodRowToDomain);

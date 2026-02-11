@@ -58,7 +58,7 @@ describe('useVoiceToast', () => {
     });
 
     expect(result.current.toastState.visible).toBe(true);
-    expect(result.current.toastState.icon).toBe('💧');
+    expect(result.current.toastState.icon).toBe('water-outline');
     expect(result.current.toastState.title).toBe('+1 Water');
     expect(result.current.toastState.subtitle).toBe('5 of 8');
   });
@@ -82,7 +82,7 @@ describe('useVoiceToast', () => {
     });
 
     expect(result.current.toastState.visible).toBe(true);
-    expect(result.current.toastState.icon).toBe('✓');
+    expect(result.current.toastState.icon).toBe('checkmark-outline');
     expect(result.current.toastState.title).toBe('+400 cal');
     expect(result.current.toastState.subtitle).toBe('Lunch');
   });
@@ -105,7 +105,7 @@ describe('useVoiceToast', () => {
     });
 
     expect(result.current.toastState.visible).toBe(true);
-    expect(result.current.toastState.icon).toBe('⚖️');
+    expect(result.current.toastState.icon).toBe('scale-outline');
     expect(result.current.toastState.title).toBe('175 lbs');
     expect(result.current.toastState.subtitle).toBe('Weight logged');
   });

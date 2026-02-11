@@ -77,13 +77,14 @@ describe('MyFitnessPalParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].meals).toHaveLength(4);
-      expect(result[0].totals.calories).toBe(2230);
-      expect(result[0].totals.protein).toBe(136);
-      expect(result[0].totals.carbs).toBe(230);
-      expect(result[0].totals.fat).toBe(70);
+      expect(days).toHaveLength(1);
+      expect(days[0].meals).toHaveLength(4);
+      expect(days[0].totals.calories).toBe(2230);
+      expect(days[0].totals.protein).toBe(136);
+      expect(days[0].totals.carbs).toBe(230);
+      expect(days[0].totals.fat).toBe(70);
     });
 
     it('should handle multiple days', () => {
@@ -107,10 +108,11 @@ describe('MyFitnessPalParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result).toHaveLength(2);
-      expect(result[0].date.getDate()).toBe(15);
-      expect(result[1].date.getDate()).toBe(16);
+      expect(days).toHaveLength(2);
+      expect(days[0].date.getDate()).toBe(15);
+      expect(days[1].date.getDate()).toBe(16);
     });
 
     it('should normalize meal names correctly', () => {
@@ -142,10 +144,11 @@ describe('MyFitnessPalParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result[0].meals[0].name).toBe(MealType.Breakfast);
-      expect(result[0].meals[1].name).toBe(MealType.Dinner);
-      expect(result[0].meals[2].name).toBe(MealType.Snack); // Unknown defaults to snack
+      expect(days[0].meals[0].name).toBe(MealType.Breakfast);
+      expect(days[0].meals[1].name).toBe(MealType.Dinner);
+      expect(days[0].meals[2].name).toBe(MealType.Snack); // Unknown defaults to snack
     });
 
     it('should handle missing values as 0', () => {
@@ -161,11 +164,12 @@ describe('MyFitnessPalParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result[0].meals[0].calories).toBe(0);
-      expect(result[0].meals[0].protein).toBe(0);
-      expect(result[0].meals[0].carbs).toBe(0);
-      expect(result[0].meals[0].fat).toBe(0);
+      expect(days[0].meals[0].calories).toBe(0);
+      expect(days[0].meals[0].protein).toBe(0);
+      expect(days[0].meals[0].carbs).toBe(0);
+      expect(days[0].meals[0].fat).toBe(0);
     });
 
     it('should sort results by date', () => {
@@ -189,14 +193,15 @@ describe('MyFitnessPalParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result[0].date.getDate()).toBe(15);
-      expect(result[1].date.getDate()).toBe(20);
+      expect(days[0].date.getDate()).toBe(15);
+      expect(days[1].date.getDate()).toBe(20);
     });
 
     it('should return empty array for empty data', () => {
       const result = parser.parse([]);
-      expect(result).toHaveLength(0);
+      expect(result.days).toHaveLength(0);
     });
   });
 });

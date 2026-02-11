@@ -275,51 +275,57 @@ export const mealPlanRepository = {
     const sourceMeals = await this.getMealsForDate(sourceDate);
     const slotMeals = sourceMeals.filter(m => m.mealSlot === mealSlot);
 
-    const copiedMeals: PlannedMeal[] = [];
-    for (const meal of slotMeals) {
-      const copied = await this.createMeal({
-        date: targetDate,
-        mealSlot: meal.mealSlot,
-        foodId: meal.foodId,
-        foodName: meal.foodName,
-        servings: meal.servings,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fat: meal.fat,
-      });
-      copiedMeals.push(copied);
-    }
-
-    return copiedMeals;
+    return this._bulkCopyMeals(slotMeals, targetDate);
   },
 
   async copyDayToDate(sourceDate: string, targetDate: string): Promise<PlannedMeal[]> {
     const sourceMeals = await this.getMealsForDate(sourceDate);
 
-    const copiedMeals: PlannedMeal[] = [];
-    for (const meal of sourceMeals) {
-      const copied = await this.createMeal({
-        date: targetDate,
-        mealSlot: meal.mealSlot,
-        foodId: meal.foodId,
-        foodName: meal.foodName,
-        servings: meal.servings,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fat: meal.fat,
-      });
-      copiedMeals.push(copied);
-    }
-
-    return copiedMeals;
+    return this._bulkCopyMeals(sourceMeals, targetDate);
   },
 
   async copyDayToMultipleDates(sourceDate: string, targetDates: string[]): Promise<void> {
+    const sourceMeals = await this.getMealsForDate(sourceDate);
+
     for (const targetDate of targetDates) {
-      await this.copyDayToDate(sourceDate, targetDate);
+      await this._bulkCopyMeals(sourceMeals, targetDate);
     }
+  },
+
+  async _bulkCopyMeals(meals: PlannedMeal[], targetDate: string): Promise<PlannedMeal[]> {
+    if (meals.length === 0) return [];
+
+    const db = getDatabase();
+    const now = new Date().toISOString();
+    const ids: string[] = [];
+
+    await db.withTransactionAsync(async () => {
+      const placeholders = meals.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+      const values: (string | number | null)[] = [];
+
+      for (const meal of meals) {
+        const id = generateId();
+        ids.push(id);
+        values.push(
+          id, targetDate, meal.mealSlot, meal.foodId, meal.foodName, meal.servings ?? 1,
+          meal.calories, meal.protein, meal.carbs, meal.fat, 'planned', now
+        );
+      }
+
+      await db.runAsync(
+        `INSERT INTO planned_meals (id, date, meal_slot, food_id, food_name, servings, calories, protein, carbs, fat, status, created_at)
+         VALUES ${placeholders}`,
+        values
+      );
+    });
+
+    // Fetch the created meals
+    const idPlaceholders = ids.map(() => '?').join(', ');
+    const rows = await db.getAllAsync<PlannedMealRow>(
+      `SELECT * FROM planned_meals WHERE id IN (${idPlaceholders})`,
+      ids
+    );
+    return rows.map(mapMealRowToMeal);
   },
 
   // ============================================================

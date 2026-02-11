@@ -32,7 +32,8 @@ export interface WidgetConfig {
   dailyGoal?: number;
 
   // For weight_trend
-  chartRange?: '7d' | '30d' | '90d';
+  chartRange?: '7d' | '30d' | '90d'; // Legacy — migrated to chartWindowDays on next write
+  chartWindowDays?: number; // Continuous zoom level (3–365)
 
   // For macro_bars
   showFiber?: boolean;

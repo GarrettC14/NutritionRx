@@ -134,6 +134,13 @@ const resetFoodLogStore = () => {
   });
 };
 
+const toLocalDateKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 describe('Meal Planning Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -189,7 +196,7 @@ describe('Meal Planning Integration', () => {
     });
 
     it('addPlannedMeal reloads today meals if the meal is for today', async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = toLocalDateKey(new Date());
       const todayMeal = makePlannedMeal({ date: today });
 
       mockMealRepo.createMeal.mockResolvedValueOnce(todayMeal);
@@ -343,10 +350,11 @@ describe('Meal Planning Integration', () => {
         makePlannedMeal({ id: 'm1', mealSlot: 'breakfast' }),
         makePlannedMeal({ id: 'm2', mealSlot: 'lunch' }),
       ];
-      mockMealRepo.getPlannedMealsForToday.mockResolvedValueOnce(todayMeals);
+      mockMealRepo.getPlannedMealsForToday.mockResolvedValue(todayMeals);
 
       await useMealPlanStore.getState().loadTodayMeals();
 
+      expect(mockMealRepo.getPlannedMealsForToday).toHaveBeenCalled();
       expect(useMealPlanStore.getState().todayMeals).toEqual(todayMeals);
     });
 

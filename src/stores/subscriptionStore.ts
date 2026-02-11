@@ -8,6 +8,9 @@ import Purchases, {
 } from 'react-native-purchases';
 import { REVENUECAT_CONFIG, APP_ENTITLEMENT } from '@/config/revenuecat';
 
+const isDevBuild =
+  (globalThis as { __DEV__?: boolean }).__DEV__ ?? process.env.NODE_ENV !== 'production';
+
 interface SubscriptionState {
   // Core state
   isPremium: boolean;
@@ -39,7 +42,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
     (set, get) => ({
       // Initial state — in dev builds, default to premium for testing
-      isPremium: __DEV__,
+      isPremium: isDevBuild,
       isLoading: true,
       customerInfo: null,
       currentOffering: null,
@@ -69,7 +72,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const activeEntitlement = bundleEntitlement || appEntitlement;
 
           set({
-            isPremium: __DEV__ || isPremium,
+            isPremium: isDevBuild || isPremium,
             customerInfo,
             currentOffering,
             expirationDate: activeEntitlement?.expirationDate || null,
@@ -97,9 +100,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         } catch (error) {
           console.error('Failed to initialize purchases:', error);
           set({
-            isPremium: __DEV__,
+            isPremium: isDevBuild,
             isLoading: false,
-            error: __DEV__ ? null : 'Failed to load subscription status',
+            error: isDevBuild ? null : 'Failed to load subscription status',
           });
         }
       },

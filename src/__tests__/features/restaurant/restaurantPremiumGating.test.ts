@@ -250,7 +250,7 @@ describe('Premium Badge Component', () => {
   });
 
   it('should use accent color', () => {
-    expect(badgeSource).toContain('colors.accent');
+    expect(badgeSource).toContain('colors.premiumGold');
   });
 });
 

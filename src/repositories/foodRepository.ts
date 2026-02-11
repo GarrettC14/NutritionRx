@@ -55,15 +55,18 @@ export const foodRepository = {
     }
 
     const db = getDatabase();
-    const searchPattern = `%${query}%`;
+
+    // Use FTS5 for efficient substring search
+    // Quote the query for FTS: wrap each token in double quotes for literal matching
+    const ftsQuery = query.trim().split(/\s+/).map(t => `"${t}"`).join(' ');
 
     const rows = await db.getAllAsync<FoodItemRow>(
-      `SELECT * FROM food_items
-       WHERE name LIKE ? COLLATE NOCASE
-          OR brand LIKE ? COLLATE NOCASE
-       ORDER BY usage_count DESC, name ASC
+      `SELECT fi.* FROM food_items fi
+       INNER JOIN food_items_fts fts ON fi.rowid = fts.rowid
+       WHERE food_items_fts MATCH ?
+       ORDER BY fi.usage_count DESC, fi.name ASC
        LIMIT ?`,
-      [searchPattern, searchPattern, limit]
+      [ftsQuery, limit]
     );
 
     return rows.map(mapFoodItemRowToDomain);

@@ -8,7 +8,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingSegmentedToggle } from '@/components/onboarding';
-import { ThemedDatePicker } from '@/components/ui/ThemedDatePicker';
+import { DateOfBirthPicker } from '@/components/ui/DateOfBirthPicker';
 
 // ─── Screen order logic ──────────────────────────────────────────
 
@@ -76,9 +76,6 @@ export default function AboutYouScreen() {
     draft.dateOfBirth ? parseDateString(draft.dateOfBirth) : null,
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Default date for picker when no date is selected
-  const defaultPickerDate = useMemo(() => new Date(1990, 0, 1), []);
 
   // Maximum date: today (cannot be born in the future)
   const maximumDate = useMemo(() => new Date(), []);
@@ -169,10 +166,10 @@ export default function AboutYouScreen() {
         </View>
       )}
 
-      {/* Date picker modal */}
-      <ThemedDatePicker
+      {/* Date of birth picker modal */}
+      <DateOfBirthPicker
         visible={showDatePicker}
-        value={dateOfBirth ?? defaultPickerDate}
+        value={dateOfBirth}
         onSelect={handleDateSelect}
         onClose={() => setShowDatePicker(false)}
         maximumDate={maximumDate}

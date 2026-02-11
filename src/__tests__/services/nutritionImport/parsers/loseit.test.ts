@@ -66,9 +66,10 @@ describe('LoseItParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result).toHaveLength(1);
-      expect(result[0].totals.calories).toBe(386); // Only food entries: 105 + 281
+      expect(days).toHaveLength(1);
+      expect(days[0].totals.calories).toBe(386); // Only food entries: 105 + 281
     });
 
     it('should convert MM/DD/YYYY date format', () => {
@@ -85,10 +86,11 @@ describe('LoseItParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result[0].date.getFullYear()).toBe(2024);
-      expect(result[0].date.getMonth()).toBe(0); // January (0-indexed)
-      expect(result[0].date.getDate()).toBe(15);
+      expect(days[0].date.getFullYear()).toBe(2024);
+      expect(days[0].date.getMonth()).toBe(0); // January (0-indexed)
+      expect(days[0].date.getDate()).toBe(15);
     });
 
     it('should aggregate all foods into a single meal (Snack)', () => {
@@ -115,10 +117,11 @@ describe('LoseItParser', () => {
       ];
 
       const result = parser.parse(data);
+      const { days } = result;
 
-      expect(result[0].meals).toHaveLength(1);
-      expect(result[0].meals[0].name).toBe(MealType.Snack);
-      expect(result[0].meals[0].calories).toBe(300);
+      expect(days[0].meals).toHaveLength(1);
+      expect(days[0].meals[0].name).toBe(MealType.Snack);
+      expect(days[0].meals[0].calories).toBe(300);
     });
 
     it('should return empty array for data with only exercise', () => {
@@ -136,7 +139,7 @@ describe('LoseItParser', () => {
 
       const result = parser.parse(data);
 
-      expect(result).toHaveLength(0);
+      expect(result.days).toHaveLength(0);
     });
   });
 });

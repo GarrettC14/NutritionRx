@@ -30,6 +30,7 @@ jest.mock('react-native-reanimated', () => {
       try { return fn(); } catch { return {}; }
     }),
     withTiming: jest.fn((val: number) => val),
+    useReducedMotion: jest.fn(() => false),
   };
 });
 

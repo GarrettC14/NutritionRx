@@ -79,9 +79,9 @@ describe('LLM Widget Integration (Feature 3)', () => {
   });
 
   describe('AIDailyInsightWidget - Navigation', () => {
-    it('should import useRouter from expo-router', () => {
+    it('should import useRouter from app hook wrapper', () => {
       expect(dailyWidgetSource).toContain('useRouter');
-      expect(dailyWidgetSource).toContain('expo-router');
+      expect(dailyWidgetSource).toContain('@/hooks/useRouter');
     });
 
     it('should navigate to /daily-insights on press', () => {
@@ -148,9 +148,9 @@ describe('LLM Widget Integration (Feature 3)', () => {
   // ========================================
 
   describe('WeeklyRecapWidget - Data Layer', () => {
-    it('should import food log and goal stores', () => {
+    it('should import food log and subscription stores', () => {
       expect(weeklyWidgetSource).toContain('useFoodLogStore');
-      expect(weeklyWidgetSource).toContain('useGoalStore');
+      expect(weeklyWidgetSource).toContain('useSubscriptionStore');
     });
 
     it('should import QuestionScorer for headline generation', () => {
@@ -183,13 +183,13 @@ describe('LLM Widget Integration (Feature 3)', () => {
   });
 
   describe('WeeklyRecapWidget - Week Data Computation', () => {
-    it('should build week data with useMemo', () => {
-      expect(weeklyWidgetSource).toContain('useMemo');
+    it('should build week data via WeeklyDataCollector in useEffect', () => {
+      expect(weeklyWidgetSource).toContain('useEffect');
+      expect(weeklyWidgetSource).toContain('WeeklyDataCollector.collect');
     });
 
-    it('should compute days from store entries', () => {
-      expect(weeklyWidgetSource).toContain('entries.forEach');
-      expect(weeklyWidgetSource).toContain('dayMap');
+    it('should set days from collected weekly data', () => {
+      expect(weeklyWidgetSource).toContain('setDays(collected.days)');
     });
 
     it('should track calories and protein per day', () => {
@@ -197,9 +197,9 @@ describe('LLM Widget Integration (Feature 3)', () => {
       expect(weeklyWidgetSource).toContain('protein');
     });
 
-    it('should use calorie and protein goals from store', () => {
-      expect(weeklyWidgetSource).toContain('calorieGoal');
-      expect(weeklyWidgetSource).toContain('proteinGoal');
+    it('should use resolved calorie target for weekly context', () => {
+      expect(weeklyWidgetSource).toContain('useResolvedTargets');
+      expect(weeklyWidgetSource).toContain('resolvedCalorieTarget');
     });
 
     it('should score questions for headline generation', () => {
@@ -209,18 +209,18 @@ describe('LLM Widget Integration (Feature 3)', () => {
 
     it('should generate headline from top question', () => {
       expect(weeklyWidgetSource).toContain('generateHeadline');
-      expect(weeklyWidgetSource).toContain('DEFAULT_HEADLINE');
+      expect(weeklyWidgetSource).toContain('headlineQ.questionId');
     });
 
     it('should require at least 2 logged days for question scoring', () => {
-      expect(weeklyWidgetSource).toContain('loggedCount >= 2');
+      expect(weeklyWidgetSource).toContain('collected.loggedDayCount >= 2');
     });
   });
 
   describe('WeeklyRecapWidget - Navigation', () => {
-    it('should import useRouter from expo-router', () => {
+    it('should import useRouter from app hook wrapper', () => {
       expect(weeklyWidgetSource).toContain('useRouter');
-      expect(weeklyWidgetSource).toContain('expo-router');
+      expect(weeklyWidgetSource).toContain('@/hooks/useRouter');
     });
 
     it('should navigate to /weekly-insights on CTA press', () => {
@@ -254,7 +254,7 @@ describe('LLM Widget Integration (Feature 3)', () => {
 
     it('should display headline text', () => {
       expect(weeklyWidgetSource).toContain('{headline}');
-      expect(weeklyWidgetSource).toContain('headlineText');
+      expect(weeklyWidgetSource).toContain('styles.headline');
     });
 
     it('should show streak badge when streak >= 3', () => {
@@ -312,9 +312,9 @@ describe('LLM Service Structure', () => {
     expect(llmServiceSource).toContain("'unsupported'");
   });
 
-  it('should support temperature and top_p configuration', () => {
-    expect(llmServiceSource).toContain('temperature: 0.7');
-    expect(llmServiceSource).toContain('top_p: 0.9');
+  it('should delegate generation to providerManager', () => {
+    expect(llmServiceSource).toContain('providerManager.generate');
+    expect(llmServiceSource).toContain('generateWithSystem');
   });
 });
 

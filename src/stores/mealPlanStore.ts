@@ -51,18 +51,25 @@ interface MealPlanState {
   };
 }
 
+function toLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getWeekStart(date: Date = new Date()): string {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
   d.setDate(diff);
-  return d.toISOString().split('T')[0];
+  return toLocalDateKey(d);
 }
 
 function getWeekEnd(weekStart: string): string {
   const d = new Date(weekStart + 'T12:00:00');
   d.setDate(d.getDate() + 6);
-  return d.toISOString().split('T')[0];
+  return toLocalDateKey(d);
 }
 
 export const useMealPlanStore = create<MealPlanState>((set, get) => ({
@@ -146,7 +153,7 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
     const { selectedWeekStart } = get();
     const current = new Date(selectedWeekStart + 'T12:00:00');
     current.setDate(current.getDate() + (direction === 'next' ? 7 : -7));
-    const newWeekStart = current.toISOString().split('T')[0];
+    const newWeekStart = toLocalDateKey(current);
     get().setSelectedWeek(newWeekStart);
   },
 
@@ -159,7 +166,7 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
       const meal = await mealPlanRepository.createMeal(input);
 
       // Reload relevant data
-      const today = new Date().toISOString().split('T')[0];
+      const today = toLocalDateKey(new Date());
       if (input.date === today) {
         await get().loadTodayMeals();
       }

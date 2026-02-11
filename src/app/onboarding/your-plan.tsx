@@ -7,9 +7,10 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { ACTIVITY_MULTIPLIERS, CALORIE_FLOORS, CALORIES_PER_KG } from '@/constants/defaults';
 import { macroCalculator } from '@/services/macroCalculator';
-import { useOnboardingStore, useGoalStore, useSettingsStore } from '@/stores';
+import { useOnboardingStore, useGoalStore } from '@/stores';
 import { profileRepository, weightRepository, settingsRepository, GoalType } from '@/repositories';
-import { GoalPath } from '@/repositories/onboardingRepository';
+import { onboardingRepository, GoalPath } from '@/repositories/onboardingRepository';
+import { withTransaction } from '@/db/database';
 import { OnboardingScreen } from '@/components/onboarding';
 
 // ============================================================
@@ -176,74 +177,69 @@ export default function YourPlanScreen() {
       const age = calculateAge(draft.dateOfBirth);
       const mappedGoalType: GoalType = draft.goalPath === 'track' ? 'maintain' : (draft.goalPath as GoalType);
 
-      // 1. Write profile — WITHOUT hasCompletedOnboarding (set last)
-      await profileRepository.update({
-        sex: draft.sex,
-        dateOfBirth: draft.dateOfBirth,
-        heightCm: draft.heightCm,
-        activityLevel: draft.activityLevel,
-        eatingStyle: draft.eatingStyle,
-        proteinPriority: draft.proteinPriority,
-        // hasCompletedOnboarding intentionally OMITTED — set in step 6
+      // All DB writes in a single transaction to prevent "database is locked" errors.
+      await withTransaction(async () => {
+        // 1. Profile (single merged write — includes hasCompletedOnboarding)
+        await profileRepository.update({
+          sex: draft.sex!,
+          dateOfBirth: draft.dateOfBirth!,
+          heightCm: draft.heightCm!,
+          activityLevel: draft.activityLevel!,
+          eatingStyle: draft.eatingStyle!,
+          proteinPriority: draft.proteinPriority!,
+          hasCompletedOnboarding: true,
+        });
+
+        // 2. Create goal (goalStore calculates TDEE/macros, re-throws on error)
+        await useGoalStore.getState().createGoal({
+          type: mappedGoalType,
+          currentWeightKg: draft.currentWeightKg!,
+          targetWeightKg:
+            (draft.goalPath === 'lose' || draft.goalPath === 'gain') && draft.targetWeightKg != null
+              ? draft.targetWeightKg
+              : undefined,
+          targetRatePercent: draft.targetRatePercent,
+          sex: draft.sex!,
+          heightCm: draft.heightCm!,
+          age,
+          activityLevel: draft.activityLevel!,
+          eatingStyle: draft.eatingStyle!,
+          proteinPriority: draft.proteinPriority!,
+        });
+
+        // 3. Seed weight entry
+        await weightRepository.create({
+          date: new Date().toISOString().split('T')[0],
+          weightKg: draft.currentWeightKg!,
+        });
+
+        // 4. Height unit setting
+        await settingsRepository.set('height_unit', draft.heightUnit);
+
+        // 5. Onboarding completion settings (writes: complete, completed_at,
+        //    goal_path, energy_unit, weight_unit — called directly so errors
+        //    propagate to the transaction instead of being swallowed by the store)
+        await onboardingRepository.completeOnboarding(
+          draft.goalPath as GoalPath,
+          draft.energyUnit,
+          draft.weightUnit,
+        );
       });
 
-      // 2. Create goal via goalStore.createGoal() — profile-level params
-      //    goalStore calculates TDEE/calories/macros internally
-      await useGoalStore.getState().createGoal({
-        type: mappedGoalType,
-        currentWeightKg: draft.currentWeightKg,
-        targetWeightKg:
-          (draft.goalPath === 'lose' || draft.goalPath === 'gain') && draft.targetWeightKg != null
-            ? draft.targetWeightKg
-            : undefined,
-        targetRatePercent: draft.targetRatePercent,
-        sex: draft.sex,
-        heightCm: draft.heightCm,
-        age,
-        activityLevel: draft.activityLevel,
-        eatingStyle: draft.eatingStyle,
-        proteinPriority: draft.proteinPriority,
+      // Transaction succeeded — sync in-memory stores (no additional DB writes)
+      useOnboardingStore.setState({
+        isComplete: true,
+        goalPath: draft.goalPath as GoalPath,
+        energyUnit: draft.energyUnit,
+        weightUnit: draft.weightUnit,
+        isLoading: false,
+        error: null,
       });
 
-      // 3. Seed weight entry
-      await weightRepository.create({
-        date: new Date().toISOString().split('T')[0],
-        weightKg: draft.currentWeightKg,
-      });
-
-      // 4. Write unit settings
-      await settingsRepository.set('weight_unit', draft.weightUnit);
-      await settingsRepository.set('height_unit', draft.heightUnit);
-      // Also sync settings store weight unit
-      await useSettingsStore.getState().setWeightUnit(draft.weightUnit);
-
-      // 5. Mark onboarding complete in store/repo
-      //    completeOnboarding() does NOT throw — catches errors internally
-      await useOnboardingStore.getState().completeOnboarding(
-        draft.goalPath as GoalPath, // RAW value — 'track' preserved here
-        draft.energyUnit,
-        draft.weightUnit,
-      );
-
-      // Check if completeOnboarding silently failed
-      const storeError = useOnboardingStore.getState().error;
-      if (storeError) {
-        throw new Error(`Onboarding store completion failed: ${storeError}`);
-      }
-
-      // 6. FINAL STEP: Set hasCompletedOnboarding on profile
-      //    Only after everything above succeeded
-      await profileRepository.update({
-        hasCompletedOnboarding: true,
-      });
-
-      // 7. Clear draft
       clearDraft();
-
-      // 8. Navigate to dashboard
       router.replace('/(tabs)');
     } catch (error) {
-      console.error('Onboarding completion failed:', error);
+      console.error('[Onboarding] Completion failed:', error);
       Alert.alert(
         'Something went wrong',
         'We couldn\'t save your information. Please try again.',

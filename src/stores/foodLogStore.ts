@@ -13,6 +13,8 @@ import { MealType, MEAL_ORDER } from '@/constants/mealTypes';
 import { useSettingsStore } from './settingsStore';
 import { useGoalStore } from './goalStore';
 import { useOnboardingStore } from './onboardingStore';
+import { getDatabase } from '@/db/database';
+import { generateId } from '@/utils/generateId';
 
 interface FoodLogState {
   // State
@@ -327,34 +329,44 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       const quickEntries = get().quickAddEntries.filter((e) => e.mealType === sourceMealType);
 
       const finalMealType = targetMealType || sourceMealType;
+      const db = getDatabase();
+      const now = new Date().toISOString();
 
-      // Copy log entries
-      for (const entry of entries) {
-        await logEntryRepository.create({
-          foodItemId: entry.foodItemId,
-          date: targetDate,
-          mealType: finalMealType,
-          servings: entry.servings,
-          calories: entry.calories,
-          protein: entry.protein,
-          carbs: entry.carbs,
-          fat: entry.fat,
-          notes: entry.notes,
-        });
-      }
+      await db.withTransactionAsync(async () => {
+        // Batch insert log entries
+        if (entries.length > 0) {
+          const placeholders = entries.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+          const values: (string | number | null)[] = [];
+          for (const entry of entries) {
+            values.push(
+              generateId(), entry.foodItemId, targetDate, finalMealType, entry.servings,
+              entry.calories, entry.protein, entry.carbs, entry.fat, entry.notes ?? null, now, now
+            );
+          }
+          await db.runAsync(
+            `INSERT INTO log_entries (id, food_item_id, date, meal_type, servings, calories, protein, carbs, fat, notes, created_at, updated_at)
+             VALUES ${placeholders}`,
+            values
+          );
+        }
 
-      // Copy quick add entries
-      for (const entry of quickEntries) {
-        await quickAddRepository.create({
-          date: targetDate,
-          mealType: finalMealType,
-          calories: entry.calories,
-          protein: entry.protein,
-          carbs: entry.carbs,
-          fat: entry.fat,
-          description: entry.description,
-        });
-      }
+        // Batch insert quick add entries
+        if (quickEntries.length > 0) {
+          const placeholders = quickEntries.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+          const values: (string | number | null)[] = [];
+          for (const entry of quickEntries) {
+            values.push(
+              generateId(), targetDate, finalMealType, entry.calories,
+              entry.protein, entry.carbs, entry.fat, entry.description ?? null, now, now
+            );
+          }
+          await db.runAsync(
+            `INSERT INTO quick_add_entries (id, date, meal_type, calories, protein, carbs, fat, description, created_at, updated_at)
+             VALUES ${placeholders}`,
+            values
+          );
+        }
+      });
 
       // Reload if we copied to current date
       if (targetDate === get().selectedDate) {
@@ -380,33 +392,44 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         quickAddRepository.findByDate(sourceDate),
       ]);
 
-      // Copy log entries
-      for (const entry of sourceEntries) {
-        await logEntryRepository.create({
-          foodItemId: entry.foodItemId,
-          date: targetDate,
-          mealType: entry.mealType,
-          servings: entry.servings,
-          calories: entry.calories,
-          protein: entry.protein,
-          carbs: entry.carbs,
-          fat: entry.fat,
-          notes: entry.notes,
-        });
-      }
+      const db = getDatabase();
+      const now = new Date().toISOString();
 
-      // Copy quick add entries
-      for (const entry of sourceQuickEntries) {
-        await quickAddRepository.create({
-          date: targetDate,
-          mealType: entry.mealType,
-          calories: entry.calories,
-          protein: entry.protein,
-          carbs: entry.carbs,
-          fat: entry.fat,
-          description: entry.description,
-        });
-      }
+      await db.withTransactionAsync(async () => {
+        // Batch insert log entries
+        if (sourceEntries.length > 0) {
+          const placeholders = sourceEntries.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+          const values: (string | number | null)[] = [];
+          for (const entry of sourceEntries) {
+            values.push(
+              generateId(), entry.foodItemId, targetDate, entry.mealType, entry.servings,
+              entry.calories, entry.protein, entry.carbs, entry.fat, entry.notes ?? null, now, now
+            );
+          }
+          await db.runAsync(
+            `INSERT INTO log_entries (id, food_item_id, date, meal_type, servings, calories, protein, carbs, fat, notes, created_at, updated_at)
+             VALUES ${placeholders}`,
+            values
+          );
+        }
+
+        // Batch insert quick add entries
+        if (sourceQuickEntries.length > 0) {
+          const placeholders = sourceQuickEntries.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+          const values: (string | number | null)[] = [];
+          for (const entry of sourceQuickEntries) {
+            values.push(
+              generateId(), targetDate, entry.mealType, entry.calories,
+              entry.protein, entry.carbs, entry.fat, entry.description ?? null, now, now
+            );
+          }
+          await db.runAsync(
+            `INSERT INTO quick_add_entries (id, date, meal_type, calories, protein, carbs, fat, description, created_at, updated_at)
+             VALUES ${placeholders}`,
+            values
+          );
+        }
+      });
 
       // Reload if we copied to current date
       if (targetDate === get().selectedDate) {

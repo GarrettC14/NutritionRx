@@ -6,6 +6,8 @@ jest.mock('@/services/nutritionImport', () => ({
   analyzeNutritionCSV: jest.fn(),
   reparseSession: jest.fn(),
   executeNutritionImport: jest.fn(),
+  findExistingImportDates: jest.fn(),
+  cleanupCachedFile: jest.fn(),
 }));
 
 import {
@@ -13,12 +15,16 @@ import {
   analyzeNutritionCSV,
   reparseSession,
   executeNutritionImport,
+  findExistingImportDates,
+  cleanupCachedFile,
 } from '@/services/nutritionImport';
 
 const mockPickCSVFile = pickCSVFile as jest.MockedFunction<typeof pickCSVFile>;
 const mockAnalyzeNutritionCSV = analyzeNutritionCSV as jest.MockedFunction<typeof analyzeNutritionCSV>;
 const mockReparseSession = reparseSession as jest.MockedFunction<typeof reparseSession>;
 const mockExecuteNutritionImport = executeNutritionImport as jest.MockedFunction<typeof executeNutritionImport>;
+const mockFindExistingImportDates = findExistingImportDates as jest.MockedFunction<typeof findExistingImportDates>;
+const mockCleanupCachedFile = cleanupCachedFile as jest.MockedFunction<typeof cleanupCachedFile>;
 
 describe('useNutritionImportStore', () => {
   beforeEach(() => {
@@ -33,6 +39,8 @@ describe('useNutritionImportStore', () => {
 
     // Clear all mocks
     jest.clearAllMocks();
+    mockFindExistingImportDates.mockResolvedValue([]);
+    mockCleanupCachedFile.mockResolvedValue();
   });
 
   describe('initial state', () => {

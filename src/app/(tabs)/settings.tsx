@@ -268,8 +268,9 @@ export default function SettingsScreen() {
         ]);
         resetDashboard();
 
-        // Navigate to onboarding
-        router.replace('/onboarding');
+        // Navigate directly to legal screen (root index won't remount properly)
+        // After legal is completed, it goes to / which redirects to onboarding
+        router.replace('/legal-acknowledgment');
       },
     });
   };

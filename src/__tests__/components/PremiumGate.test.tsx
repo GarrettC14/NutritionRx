@@ -10,7 +10,7 @@
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 
-jest.mock('expo-router', () => ({
+jest.mock('@/hooks/useRouter', () => ({
   useRouter: jest.fn(() => ({ push: mockPush, back: mockBack })),
 }));
 

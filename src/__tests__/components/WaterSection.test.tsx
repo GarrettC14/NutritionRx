@@ -39,6 +39,7 @@ jest.mock('react-native-reanimated', () => {
       try { return fn(); } catch { return {}; }
     }),
     withTiming: jest.fn((val: number) => val),
+    useReducedMotion: jest.fn(() => false),
   };
 });
 
@@ -131,6 +132,9 @@ jest.mock('react-native', () => {
     },
     UIManager: {
       setLayoutAnimationEnabledExperimental: jest.fn(),
+    },
+    AccessibilityInfo: {
+      announceForAccessibility: jest.fn(),
     },
   };
 });
