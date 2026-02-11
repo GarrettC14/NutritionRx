@@ -98,6 +98,10 @@ const calculateStreakFromDates = (dates: string[]): number => {
   return streak;
 };
 
+// Debounce streak loading — prevents redundant 90-day queries on rapid add/delete
+let streakTimer: ReturnType<typeof setTimeout> | null = null;
+const STREAK_DEBOUNCE_MS = 1000;
+
 export const useFoodLogStore = create<FoodLogState>((set, get) => ({
   selectedDate: getFormattedDate(),
   entries: [],
@@ -171,8 +175,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         isLoading: false,
       }));
 
-      // Update streak
-      get().loadStreak();
+      // Debounced streak update
+      if (streakTimer) clearTimeout(streakTimer);
+      streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
 
       // Track first food and increment count for onboarding celebrations
       useOnboardingStore.getState().markFirstFoodLogged();
@@ -222,8 +227,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         isLoading: false,
       }));
 
-      // Update streak
-      get().loadStreak();
+      // Debounced streak update
+      if (streakTimer) clearTimeout(streakTimer);
+      streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete entry',
@@ -249,8 +255,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         isLoading: false,
       }));
 
-      // Update streak
-      get().loadStreak();
+      // Debounced streak update
+      if (streakTimer) clearTimeout(streakTimer);
+      streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
 
       // Track first food and increment count for onboarding celebrations
       useOnboardingStore.getState().markFirstFoodLogged();
@@ -300,8 +307,9 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         isLoading: false,
       }));
 
-      // Update streak
-      get().loadStreak();
+      // Debounced streak update
+      if (streakTimer) clearTimeout(streakTimer);
+      streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete quick entry',

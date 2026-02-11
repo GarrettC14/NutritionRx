@@ -37,7 +37,7 @@ const MEAL_SECTION_TEST_IDS: Record<MealType, string> = {
   [MealType.Snack]: TestIDs.Meal.SnackSection,
 };
 
-export function MealSection({
+export const MealSection = React.memo(function MealSection({
   mealType,
   entries,
   quickAddEntries,
@@ -230,7 +230,7 @@ export function MealSection({
       </Modal>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

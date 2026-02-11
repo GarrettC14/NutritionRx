@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Line, Circle, G, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,6 +15,8 @@ const PADDING = { top: 20, bottom: 30, left: 40, right: 10 };
 interface WeightChartProps {
   entries: WeightEntry[];
   showTrend?: boolean;
+  startDate?: string;
+  endDate?: string;
 }
 
 // Convert kg to lbs
@@ -26,85 +28,100 @@ const formatDateLabel = (dateStr: string): string => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export function WeightChart({ entries, showTrend = true }: WeightChartProps) {
+export const WeightChart = React.memo(function WeightChart({ entries, showTrend = true, startDate, endDate }: WeightChartProps) {
   const { colors } = useTheme();
   const { settings } = useSettingsStore();
   const isLbs = settings.weightUnit === 'lbs';
+
+  // Memoize sorted entries and chart data
+  const { chartData, sortedEntries } = useMemo(() => {
+    const sorted = [...entries].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const data = sorted.map((entry) => ({
+      value: isLbs ? kgToLbs(entry.weightKg) : entry.weightKg,
+      date: entry.date,
+    }));
+    return { chartData: data, sortedEntries: sorted };
+  }, [entries, isLbs]);
+
+  // Memoize all computed chart geometry
+  const { linePath, areaPath, trendPath, latestWeight, firstWeight, weightChange, yAxisLabels, getX, getY } = useMemo(() => {
+    if (chartData.length === 0) {
+      return { linePath: '', areaPath: '', trendPath: null, latestWeight: 0, firstWeight: 0, weightChange: 0, yAxisLabels: [], getX: () => 0, getY: () => 0 };
+    }
+
+    const values = chartData.map(d => d.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const range = maxValue - minValue;
+    const pad = Math.max(range * 0.15, 2);
+    const yMin = minValue - pad;
+    const yMax = maxValue + pad;
+
+    const chartWidth = CHART_WIDTH - PADDING.left - PADDING.right;
+    const chartHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
+
+    const rangeStartMs = startDate ? new Date(startDate + 'T12:00:00').getTime() : null;
+    const rangeEndMs = endDate ? new Date(endDate + 'T12:00:00').getTime() : null;
+    const useDatePositioning = rangeStartMs != null && rangeEndMs != null && rangeEndMs > rangeStartMs;
+
+    const _getX = (index: number) => {
+      if (useDatePositioning) {
+        const dateMs = new Date(chartData[index].date + 'T12:00:00').getTime();
+        return PADDING.left + ((dateMs - rangeStartMs!) / (rangeEndMs! - rangeStartMs!)) * chartWidth;
+      }
+      return PADDING.left + (index / Math.max(chartData.length - 1, 1)) * chartWidth;
+    };
+    const _getY = (value: number) =>
+      PADDING.top + chartHeight - ((value - yMin) / (yMax - yMin)) * chartHeight;
+
+    const _linePath = chartData.map((point, i) => {
+      const x = _getX(i);
+      const y = _getY(point.value);
+      return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+    }).join(' ');
+
+    const _areaPath = _linePath +
+      ` L ${_getX(chartData.length - 1)} ${PADDING.top + chartHeight}` +
+      ` L ${_getX(0)} ${PADDING.top + chartHeight} Z`;
+
+    let _trendPath: string | null = null;
+    if (showTrend && chartData.length >= 2) {
+      const n = chartData.length;
+      const sumX = (n * (n - 1)) / 2;
+      const sumY = chartData.reduce((sum, d) => sum + d.value, 0);
+      const sumXY = chartData.reduce((sum, d, i) => sum + i * d.value, 0);
+      const sumXX = (n * (n - 1) * (2 * n - 1)) / 6;
+      const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+      const intercept = (sumY - slope * sumX) / n;
+      _trendPath = `M ${_getX(0)} ${_getY(intercept)} L ${_getX(n - 1)} ${_getY(intercept + slope * (n - 1))}`;
+    }
+
+    const _latestWeight = chartData[chartData.length - 1]?.value ?? 0;
+    const _firstWeight = chartData[0]?.value ?? 0;
+    const _yAxisLabels = [yMin, yMin + (yMax - yMin) / 2, yMax].map(v => v.toFixed(1));
+
+    return {
+      linePath: _linePath,
+      areaPath: _areaPath,
+      trendPath: _trendPath,
+      latestWeight: _latestWeight,
+      firstWeight: _firstWeight,
+      weightChange: _latestWeight - _firstWeight,
+      yAxisLabels: _yAxisLabels,
+      getX: _getX,
+      getY: _getY,
+    };
+  }, [chartData, startDate, endDate, showTrend]);
 
   if (entries.length === 0) {
     return null;
   }
 
-  // Sort entries by date ascending
-  const sortedEntries = [...entries].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
-  // Convert to display values
-  const chartData = sortedEntries.map((entry) => ({
-    value: isLbs ? kgToLbs(entry.weightKg) : entry.weightKg,
-    date: entry.date,
-  }));
-
-  // Find min/max for better axis
-  const values = chartData.map(d => d.value);
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  const range = maxValue - minValue;
-  const padding = Math.max(range * 0.15, 2);
-  const yMin = minValue - padding;
-  const yMax = maxValue + padding;
-
-  // Chart dimensions
   const chartWidth = CHART_WIDTH - PADDING.left - PADDING.right;
   const chartHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-
-  // Calculate points
-  const getX = (index: number) =>
-    PADDING.left + (index / Math.max(chartData.length - 1, 1)) * chartWidth;
-  const getY = (value: number) =>
-    PADDING.top + chartHeight - ((value - yMin) / (yMax - yMin)) * chartHeight;
-
-  // Create path for line
-  const linePath = chartData.map((point, i) => {
-    const x = getX(i);
-    const y = getY(point.value);
-    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
-  }).join(' ');
-
-  // Create path for area fill
-  const areaPath = linePath +
-    ` L ${getX(chartData.length - 1)} ${PADDING.top + chartHeight}` +
-    ` L ${getX(0)} ${PADDING.top + chartHeight} Z`;
-
-  // Calculate trend line using simple linear regression
-  const calculateTrendLine = () => {
-    if (chartData.length < 2) return null;
-
-    const n = chartData.length;
-    const sumX = (n * (n - 1)) / 2;
-    const sumY = chartData.reduce((sum, d) => sum + d.value, 0);
-    const sumXY = chartData.reduce((sum, d, i) => sum + i * d.value, 0);
-    const sumXX = (n * (n - 1) * (2 * n - 1)) / 6;
-
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    const intercept = (sumY - slope * sumX) / n;
-
-    const startY = getY(intercept);
-    const endY = getY(intercept + slope * (n - 1));
-
-    return `M ${getX(0)} ${startY} L ${getX(n - 1)} ${endY}`;
-  };
-
-  const trendPath = showTrend ? calculateTrendLine() : null;
-
-  // Calculate statistics
-  const latestWeight = chartData[chartData.length - 1]?.value;
-  const firstWeight = chartData[0]?.value;
-  const weightChange = latestWeight - firstWeight;
-
-  // Y-axis labels
-  const yAxisLabels = [yMin, yMin + (yMax - yMin) / 2, yMax].map(v => v.toFixed(1));
+  const useDatePositioning = startDate != null && endDate != null;
 
   return (
     <View style={styles.container}>
@@ -196,36 +213,34 @@ export function WeightChart({ entries, showTrend = true }: WeightChartProps) {
             />
           ))}
 
-          {/* X-axis labels (first and last) */}
+          {/* X-axis labels (range boundaries or first/last data) */}
           {chartData.length > 0 && (
             <>
               <SvgText
-                x={getX(0)}
+                x={PADDING.left}
                 y={PADDING.top + chartHeight + 15}
                 fill={colors.textTertiary}
                 fontSize={10}
                 textAnchor="start"
               >
-                {formatDateLabel(chartData[0].date)}
+                {formatDateLabel(useDatePositioning ? startDate! : chartData[0].date)}
               </SvgText>
-              {chartData.length > 1 && (
-                <SvgText
-                  x={getX(chartData.length - 1)}
-                  y={PADDING.top + chartHeight + 15}
-                  fill={colors.textTertiary}
-                  fontSize={10}
-                  textAnchor="end"
-                >
-                  {formatDateLabel(chartData[chartData.length - 1].date)}
-                </SvgText>
-              )}
+              <SvgText
+                x={PADDING.left + chartWidth}
+                y={PADDING.top + chartHeight + 15}
+                fill={colors.textTertiary}
+                fontSize={10}
+                textAnchor="end"
+              >
+                {formatDateLabel(useDatePositioning ? endDate! : chartData[chartData.length - 1].date)}
+              </SvgText>
             </>
           )}
         </Svg>
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

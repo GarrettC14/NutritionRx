@@ -1,9 +1,9 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
@@ -11,6 +11,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
 import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useOnboardingStore, useReflectionStore } from '@/stores';
+import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { useProgressiveTooltips } from '@/hooks/useProgressiveTooltips';
 import { MealSection } from '@/components/food/MealSection';
@@ -30,7 +31,7 @@ export default function TodayScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
-  // Stores
+  // Stores — useShallow prevents re-renders from unrelated state changes
   const {
     selectedDate,
     setSelectedDate,
@@ -47,17 +48,46 @@ export default function TodayScreen() {
     getQuickEntriesByMeal,
     copyMealToDate,
     copyDayToDate,
-  } = useFoodLogStore();
+  } = useFoodLogStore(useShallow((s) => ({
+    selectedDate: s.selectedDate,
+    setSelectedDate: s.setSelectedDate,
+    entries: s.entries,
+    quickAddEntries: s.quickAddEntries,
+    dailyTotals: s.dailyTotals,
+    streak: s.streak,
+    isLoaded: s.isLoaded,
+    loadEntriesForDate: s.loadEntriesForDate,
+    loadStreak: s.loadStreak,
+    deleteLogEntry: s.deleteLogEntry,
+    deleteQuickEntry: s.deleteQuickEntry,
+    getEntriesByMeal: s.getEntriesByMeal,
+    getQuickEntriesByMeal: s.getQuickEntriesByMeal,
+    copyMealToDate: s.copyMealToDate,
+    copyDayToDate: s.copyDayToDate,
+  })));
 
-  const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
-  const { firstFoodLoggedAt } = useOnboardingStore();
-  const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore();
+  const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore(useShallow((s) => ({
+    settings: s.settings,
+    loadSettings: s.loadSettings,
+    isLoaded: s.isLoaded,
+  })));
+  const firstFoodLoggedAt = useOnboardingStore((s) => s.firstFoodLoggedAt);
+  const { loadTodayWater, loadWaterSettings, isLoaded: waterLoaded } = useWaterStore(useShallow((s) => ({
+    loadTodayWater: s.loadTodayWater,
+    loadWaterSettings: s.loadWaterSettings,
+    isLoaded: s.isLoaded,
+  })));
   const {
     config: macroCycleConfig,
     loadConfig: loadMacroCycleConfig,
     getDayType,
     isLoaded: macroCycleLoaded,
-  } = useMacroCycleStore();
+  } = useMacroCycleStore(useShallow((s) => ({
+    config: s.config,
+    loadConfig: s.loadConfig,
+    getDayType: s.getDayType,
+    isLoaded: s.isLoaded,
+  })));
 
   const {
     widgets,
@@ -65,7 +95,13 @@ export default function TodayScreen() {
     setEditMode,
     reorderWidgets,
     resetToDefaults,
-  } = useDashboardStore();
+  } = useDashboardStore(useShallow((s) => ({
+    widgets: s.widgets,
+    isEditMode: s.isEditMode,
+    setEditMode: s.setEditMode,
+    reorderWidgets: s.reorderWidgets,
+    resetToDefaults: s.resetToDefaults,
+  })));
   const { showConfirm } = useConfirmDialog();
 
   // Reflection store
@@ -79,7 +115,17 @@ export default function TodayScreen() {
     dismissBanner,
     startReflection,
     cancelReflection,
-  } = useReflectionStore();
+  } = useReflectionStore(useShallow((s) => ({
+    shouldShowBanner: s.shouldShowBanner,
+    daysSinceLastReflection: s.daysSinceLastReflection,
+    bannerDismissCount: s.bannerDismissCount,
+    isReflecting: s.isReflecting,
+    isInitialized: s.isInitialized,
+    initialize: s.initialize,
+    dismissBanner: s.dismissBanner,
+    startReflection: s.startReflection,
+    cancelReflection: s.cancelReflection,
+  })));
 
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
@@ -166,9 +212,9 @@ export default function TodayScreen() {
 
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
-  // Get entries by meal
-  const entriesByMeal = getEntriesByMeal();
-  const quickEntriesByMeal = getQuickEntriesByMeal();
+  // Memoize entries by meal — only recompute when entries actually change
+  const entriesByMeal = useMemo(() => getEntriesByMeal(), [entries]);
+  const quickEntriesByMeal = useMemo(() => getQuickEntriesByMeal(), [quickAddEntries]);
 
   // Get day type for macro cycling badge
   const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
@@ -476,7 +522,7 @@ export default function TodayScreen() {
         <DraggableFlatList
           key={listKey}
           data={visibleWidgets}
-          extraData={[isEditMode, widgets]}
+          extraData={isEditMode}
           keyExtractor={(item) => item.id}
           renderItem={renderWidget}
           onDragBegin={handleDragBegin}

@@ -86,6 +86,7 @@ export interface WeightEntry {
   id: string;
   date: string;
   weightKg: number;
+  trendWeightKg?: number;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

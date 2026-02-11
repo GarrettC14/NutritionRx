@@ -94,6 +94,7 @@ export function mapWeightEntryRowToDomain(row: WeightEntryRow): WeightEntry {
     id: row.id,
     date: row.date,
     weightKg: row.weight_kg,
+    trendWeightKg: row.trend_weight_kg ?? undefined,
     notes: row.notes ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),

@@ -62,8 +62,6 @@
           }
         }
       ],
-      "./plugins/withIOSWidget",
-      "./plugins/withAndroidWidget",
       "./plugins/withHealthConnect"
     ],
     "experiments": {

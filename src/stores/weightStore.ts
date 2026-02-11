@@ -12,6 +12,7 @@ interface WeightState {
   entries: WeightEntry[];
   latestEntry: WeightEntry | null;
   trendWeight: number | null;
+  earliestDate: string | null;
   isLoading: boolean;
   error: string | null;
 
@@ -20,6 +21,7 @@ interface WeightState {
   loadEntriesForRange: (startDate: string, endDate: string) => Promise<void>;
   loadLatest: () => Promise<void>;
   loadTrendWeight: (date?: string) => Promise<void>;
+  loadEarliestDate: () => Promise<void>;
   addEntry: (input: CreateWeightInput) => Promise<WeightEntry>;
   updateEntry: (id: string, weightKg: number, notes?: string) => Promise<WeightEntry>;
   deleteEntry: (id: string) => Promise<void>;
@@ -33,8 +35,10 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   entries: [],
   latestEntry: null,
   trendWeight: null,
+  earliestDate: null,
   isLoading: false,
   error: null,
+  _cachedRangeKey: null as string | null,
 
   loadEntries: async (limit = 30) => {
     set({ isLoading: true, error: null });
@@ -50,10 +54,15 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   },
 
   loadEntriesForRange: async (startDate, endDate) => {
+    const rangeKey = `${startDate}_${endDate}`;
+    const state = get() as any;
+    if (state._cachedRangeKey === rangeKey && state.entries.length > 0) {
+      return; // Already loaded this range
+    }
     set({ isLoading: true, error: null });
     try {
       const entries = await weightRepository.findByDateRange(startDate, endDate);
-      set({ entries, isLoading: false });
+      set({ entries, isLoading: false, _cachedRangeKey: rangeKey } as any);
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load weight entries',
@@ -78,6 +87,14 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   loadTrendWeight: async (date) => {
     set({ isLoading: true, error: null });
     try {
+      // Use stored trend from latest entry if available
+      const latestEntry = get().latestEntry ?? await weightRepository.getLatest();
+      if (latestEntry?.trendWeightKg != null) {
+        set({ trendWeight: Math.round(latestEntry.trendWeightKg * 10) / 10, isLoading: false });
+        return;
+      }
+
+      // Fallback to old calculation method
       const targetDate = date || new Date().toISOString().split('T')[0];
       const trendWeight = await weightRepository.getTrendWeight(targetDate);
       set({ trendWeight, isLoading: false });
@@ -89,8 +106,17 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     }
   },
 
+  loadEarliestDate: async () => {
+    try {
+      const earliestDate = await weightRepository.getEarliestDate();
+      set({ earliestDate });
+    } catch (error) {
+      // Non-critical, silently ignore
+    }
+  },
+
   addEntry: async (input) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, _cachedRangeKey: null } as any);
     try {
       const entry = await weightRepository.create(input);
 
@@ -99,6 +125,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         get().loadEntries(),
         get().loadLatest(),
         get().loadTrendWeight(),
+        get().loadEarliestDate(),
       ]);
 
       set({ isLoading: false });
@@ -122,7 +149,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   },
 
   updateEntry: async (id, weightKg, notes) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, _cachedRangeKey: null } as any);
     try {
       const entry = await weightRepository.update(id, { weightKg, notes });
 
@@ -155,7 +182,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   },
 
   deleteEntry: async (id) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, _cachedRangeKey: null } as any);
     try {
       await weightRepository.delete(id);
 
@@ -164,6 +191,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         get().loadEntries(),
         get().loadLatest(),
         get().loadTrendWeight(),
+        get().loadEarliestDate(),
       ]);
 
       set({ isLoading: false });
@@ -235,6 +263,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
           get().loadEntries(),
           get().loadLatest(),
           get().loadTrendWeight(),
+          get().loadEarliestDate(),
         ]);
 
         return { imported: true, weight: healthWeight.kg };

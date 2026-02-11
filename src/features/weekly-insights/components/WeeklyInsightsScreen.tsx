@@ -14,7 +14,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { LLMService } from '@/features/insights/services/LLMService';
@@ -236,7 +236,6 @@ export function WeeklyInsightsScreen() {
   // Empty state
   if (!data || data.loggedDayCount < 2) {
     const daysLogged = data?.loggedDayCount ?? 0;
-    const daysRemaining = 2 - daysLogged;
     const emptyMessage =
       daysLogged === 0
         ? 'Log your meals for 2 days this week to unlock your weekly insights.'

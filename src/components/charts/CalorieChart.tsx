@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Rect, Line, Text as SvgText, G } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -26,24 +26,31 @@ const formatDateLabel = (dateStr: string, useDate: boolean): string => {
   return date.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
 };
 
-export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
+export const CalorieChart = React.memo(function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
   const { colors } = useTheme();
   const { calories: calorieGoal } = useResolvedTargets();
+
+  // Memoize sorted data and statistics
+  const { sortedData, avgCalories, maxCalories } = useMemo(() => {
+    if (data.length === 0) {
+      return { sortedData: [], avgCalories: 0, maxCalories: 0 };
+    }
+
+    const sorted = [...data].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    const daysWithData = sorted.filter(d => d.totals.calories > 0);
+    const totalCalories = daysWithData.reduce((sum, d) => sum + d.totals.calories, 0);
+    const avg = daysWithData.length > 0 ? Math.round(totalCalories / daysWithData.length) : 0;
+    const max = Math.max(...sorted.map(d => d.totals.calories));
+
+    return { sortedData: sorted, avgCalories: avg, maxCalories: max };
+  }, [data]);
 
   if (data.length === 0) {
     return null;
   }
-
-  // Sort by date ascending
-  const sortedData = [...data].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
-  // Calculate statistics (only average over days with actual data)
-  const daysWithData = sortedData.filter(d => d.totals.calories > 0);
-  const totalCalories = daysWithData.reduce((sum, d) => sum + d.totals.calories, 0);
-  const avgCalories = daysWithData.length > 0 ? Math.round(totalCalories / daysWithData.length) : 0;
-  const maxCalories = Math.max(...sortedData.map(d => d.totals.calories));
 
   // Determine y-axis max
   const yMax = Math.max(maxCalories, calorieGoal) * 1.15;
@@ -165,7 +172,7 @@ export function CalorieChart({ data, showGoalLine = true }: CalorieChartProps) {
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

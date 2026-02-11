@@ -3,6 +3,7 @@ import { getDatabase } from '@/db/database';
 import { WeightEntryRow } from '@/types/database';
 import { WeightEntry } from '@/types/domain';
 import { mapWeightEntryRowToDomain } from '@/types/mappers';
+import { recomputeEWMAFromDate } from '@/utils/trendWeight';
 
 export interface CreateWeightInput {
   date: string;
@@ -106,6 +107,40 @@ export const weightRepository = {
     return result?.days_weighed ?? 0;
   },
 
+  async getEarliestDate(): Promise<string | null> {
+    const db = getDatabase();
+    const row = await db.getFirstAsync<{ date: string }>(
+      'SELECT date FROM weight_entries ORDER BY date ASC LIMIT 1'
+    );
+    return row?.date ?? null;
+  },
+
+  async recomputeTrendWeights(fromDate: string): Promise<void> {
+    const db = getDatabase();
+
+    // Fetch all entries sorted ASC
+    const rows = await db.getAllAsync<WeightEntryRow>(
+      'SELECT * FROM weight_entries ORDER BY date ASC'
+    );
+
+    const allEntries = rows.map((r) => ({
+      id: r.id,
+      date: r.date,
+      weightKg: r.weight_kg,
+      trendWeightKg: r.trend_weight_kg ?? undefined,
+    }));
+
+    const updates = recomputeEWMAFromDate(allEntries, fromDate);
+
+    // Batch update
+    for (const { id, trendWeightKg } of updates) {
+      await db.runAsync(
+        'UPDATE weight_entries SET trend_weight_kg = ? WHERE id = ?',
+        [trendWeightKg, id]
+      );
+    }
+  },
+
   async create(input: CreateWeightInput): Promise<WeightEntry> {
     const db = getDatabase();
     const id = generateId();
@@ -127,6 +162,9 @@ export const weightRepository = {
       ) VALUES (?, ?, ?, ?, ?, ?)`,
       [id, input.date, input.weightKg, input.notes ?? null, now, now]
     );
+
+    // Recompute trend weights from this date forward
+    await this.recomputeTrendWeights(input.date);
 
     const created = await this.findById(id);
     if (!created) throw new Error('Failed to create weight entry');
@@ -156,6 +194,14 @@ export const weightRepository = {
       values
     );
 
+    // Get the entry's date for trend recompute
+    const entry = await this.findById(id);
+    if (!entry) throw new Error('Weight entry not found');
+
+    // Recompute trend weights from this entry's date forward
+    await this.recomputeTrendWeights(entry.date);
+
+    // Re-fetch with updated trend
     const updated = await this.findById(id);
     if (!updated) throw new Error('Weight entry not found');
     return updated;
@@ -163,12 +209,25 @@ export const weightRepository = {
 
   async delete(id: string): Promise<void> {
     const db = getDatabase();
+
+    // Capture date before deleting
+    const entry = await this.findById(id);
+    const date = entry?.date;
+
     await db.runAsync('DELETE FROM weight_entries WHERE id = ?', [id]);
+
+    // Recompute trend weights from the deleted entry's date forward
+    if (date) {
+      await this.recomputeTrendWeights(date);
+    }
   },
 
   async deleteByDate(date: string): Promise<void> {
     const db = getDatabase();
     await db.runAsync('DELETE FROM weight_entries WHERE date = ?', [date]);
+
+    // Recompute trend weights from the deleted date forward
+    await this.recomputeTrendWeights(date);
   },
 
   async exists(id: string): Promise<boolean> {

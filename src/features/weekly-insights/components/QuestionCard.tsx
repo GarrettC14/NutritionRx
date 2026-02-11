@@ -101,13 +101,20 @@ export function QuestionCard({
             backgroundColor: colors.bgElevated,
             borderColor: isExpanded ? getLeftBorderColor() + '30' : colors.borderDefault,
             borderWidth: 1,
-            borderLeftWidth: isExpanded ? 3 : 1,
-            borderLeftColor: getLeftBorderColor(),
           },
         ]}
         accessibilityRole="button"
         accessibilityLabel={`${question.definition.displayText}, ${isExpanded ? 'collapse' : 'expand'}`}
       >
+        {/* Left accent bar */}
+        {isExpanded && (
+          <View
+            style={[
+              styles.accentBar,
+              { backgroundColor: getLeftBorderColor() },
+            ]}
+          />
+        )}
         {/* Collapsed Header */}
         <View style={styles.header}>
           <View style={[styles.iconContainer, { backgroundColor: catColor + '18' }]}>
@@ -288,6 +295,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     overflow: 'hidden',
+  },
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
   header: {
     flexDirection: 'row',

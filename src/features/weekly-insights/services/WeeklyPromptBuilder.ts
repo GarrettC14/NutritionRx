@@ -219,7 +219,7 @@ export class WeeklyPromptBuilder {
   static build(questionId: string, analysisResult: QuestionAnalysisResult): string {
     const builder = promptBuilders[questionId];
     if (!builder) {
-      console.error(`[LLM:WeeklyPromptBuilder] No prompt builder for question: ${questionId}`);
+      if (__DEV__) console.error(`[LLM:WeeklyPromptBuilder] No prompt builder for question: ${questionId}`);
       throw new Error(`No prompt builder for question: ${questionId}`);
     }
     const prompt = builder(analysisResult);

@@ -5,7 +5,7 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 import { Linking, AppState, AppStateStatus } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { processVoiceDeepLink, getHapticTypeForCommand } from '@/services/voiceAssistant';
 import { useVoiceToast } from '@/components/voice';
 import { triggerHaptic } from '@/utils/haptics';

@@ -82,6 +82,7 @@ export interface WeightEntryRow {
   id: string;
   date: string;
   weight_kg: number;
+  trend_weight_kg: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

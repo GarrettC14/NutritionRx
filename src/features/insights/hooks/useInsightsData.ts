@@ -53,9 +53,7 @@ export function useInsightsData(): UseInsightsDataResult {
   const { goalGlasses, glassSizeMl, todayLog } = useWaterStore();
 
   const refresh = useCallback(async () => {
-    console.log(`[LLM:InsightsData] refresh() called — hasActiveGoal=${!!activeGoal}`);
     if (!activeGoal) {
-      console.log('[LLM:InsightsData] refresh → skipped (no active goal)');
       setData(null);
       setIsLoading(false);
       return;
@@ -67,25 +65,24 @@ export function useInsightsData(): UseInsightsDataResult {
     try {
       const today = getDateString(0);
       const sevenDaysAgo = getDateString(6);
-      console.log(`[LLM:InsightsData] Fetching data — today=${today}, sevenDaysAgo=${sevenDaysAgo}`);
 
       // Fetch data in parallel
-      const [todayTotals, weeklyTotals, todayEntries, datesWithLogs] = await Promise.all([
+      const [todayTotals, weeklyTotals, todayEntries, logDateRange] = await Promise.all([
         logEntryRepository.getDailyTotals(today),
         logEntryRepository.getDailyTotalsForRange(sevenDaysAgo, today),
         logEntryRepository.findByDate(today),
-        logEntryRepository.getDatesWithLogs(),
+        logEntryRepository.getLogDateRange(),
       ]);
 
-      // Calculate days using app
-      const firstLogDate = datesWithLogs.length > 0 ? datesWithLogs[datesWithLogs.length - 1] : today;
+      // Calculate days using app from date range (O(1) instead of full table scan)
+      const firstLogDate = logDateRange.firstDate ?? today;
       const daysSinceFirstLog = Math.floor(
         (new Date(today).getTime() - new Date(firstLogDate).getTime()) / (1000 * 60 * 60 * 24)
       );
       setDaysUsingApp(Math.max(1, daysSinceFirstLog + 1));
 
       // Calculate days since last log
-      const lastLogDate = datesWithLogs.length > 0 ? datesWithLogs[0] : null;
+      const lastLogDate = logDateRange.lastDate;
       const daysSinceLast = lastLogDate
         ? Math.floor((new Date(today).getTime() - new Date(lastLogDate).getTime()) / (1000 * 60 * 60 * 24))
         : 999;
@@ -107,11 +104,14 @@ export function useInsightsData(): UseInsightsDataResult {
           ? Math.round(daysWithData.reduce((sum, d) => sum + d.totals.protein, 0) / daysWithData.length)
           : 0;
 
+      // Build a Map for O(1) lookups instead of O(n) .find() per iteration
+      const weeklyTotalsMap = new Map(weeklyTotals.map(d => [d.date, d]));
+
       // Calculate logging streak
       const loggingData = [];
       for (let i = 0; i < 7; i++) {
         const date = getDateString(i);
-        const dayData = weeklyTotals.find((d) => d.date === date);
+        const dayData = weeklyTotalsMap.get(date);
         loggingData.push({
           date,
           met: dayData ? dayData.totals.calories > 0 : false,
@@ -123,7 +123,7 @@ export function useInsightsData(): UseInsightsDataResult {
       const calorieData = [];
       for (let i = 0; i < 7; i++) {
         const date = getDateString(i);
-        const dayData = weeklyTotals.find((d) => d.date === date);
+        const dayData = weeklyTotalsMap.get(date);
         if (dayData && dayData.totals.calories > 0) {
           const withinTarget = Math.abs(dayData.totals.calories - calorieTarget) / calorieTarget <= 0.1;
           calorieData.push({ date, met: withinTarget });
@@ -172,12 +172,10 @@ export function useInsightsData(): UseInsightsDataResult {
         userGoal,
       };
 
-      console.log(`[LLM:InsightsData] Built insight data — cal=${insightData.todayCalories}/${insightData.calorieTarget}, protein=${insightData.todayProtein}/${insightData.proteinTarget}, meals=${insightData.todayMealCount}, streak=${insightData.loggingStreak}, avg7dCal=${insightData.avgCalories7d}, daysUsing=${insightData.daysUsingApp}`);
       setData(insightData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load insights data';
       setError(errorMessage);
-      console.error('[LLM:InsightsData] Error:', errorMessage);
     } finally {
       setIsLoading(false);
     }

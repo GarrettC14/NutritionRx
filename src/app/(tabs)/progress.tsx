@@ -1,15 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPhotoStore } from '@/stores';
+import { useShallow } from 'zustand/react/shallow';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { logEntryRepository, weightRepository } from '@/repositories';
-import { WeightChart, CalorieChart, MacroChart } from '@/components/charts';
+import { WeightChartInteractive, CalorieChart, MacroChart } from '@/components/charts';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
 import { MicronutrientSummary } from '@/components/micronutrients';
@@ -17,8 +19,45 @@ import { ProgressPhotosSummary } from '@/components/progressPhotos';
 import { usePremium } from '@/hooks/usePremium';
 import { DailyInsightsSection } from '@/features/insights';
 import { TestIDs } from '@/constants/testIDs';
+import { NutrientIntake } from '@/types/micronutrients';
 
 type TimeRange = '7d' | '14d' | '30d' | '90d' | 'all';
+
+// Mock micronutrient data for development preview
+const MOCK_NUTRIENT_INTAKES: NutrientIntake[] = [
+  // Vitamins - mix of statuses
+  { nutrientId: 'vitamin_c', amount: 95, percentOfTarget: 106, status: 'optimal' },
+  { nutrientId: 'thiamin', amount: 1.0, percentOfTarget: 83, status: 'adequate' },
+  { nutrientId: 'riboflavin', amount: 1.1, percentOfTarget: 85, status: 'adequate' },
+  { nutrientId: 'niacin', amount: 14, percentOfTarget: 88, status: 'adequate' },
+  { nutrientId: 'vitamin_b6', amount: 1.5, percentOfTarget: 115, status: 'optimal' },
+  { nutrientId: 'vitamin_b12', amount: 2.8, percentOfTarget: 117, status: 'optimal' },
+  { nutrientId: 'folate', amount: 280, percentOfTarget: 70, status: 'low' },
+  { nutrientId: 'vitamin_a', amount: 650, percentOfTarget: 72, status: 'low' },
+  { nutrientId: 'vitamin_d', amount: 5, percentOfTarget: 33, status: 'deficient' },
+  { nutrientId: 'vitamin_e', amount: 12, percentOfTarget: 80, status: 'adequate' },
+  { nutrientId: 'vitamin_k', amount: 95, percentOfTarget: 79, status: 'adequate' },
+  // Minerals
+  { nutrientId: 'calcium', amount: 850, percentOfTarget: 85, status: 'adequate' },
+  { nutrientId: 'iron', amount: 14, percentOfTarget: 175, status: 'high' },
+  { nutrientId: 'magnesium', amount: 280, percentOfTarget: 67, status: 'low' },
+  { nutrientId: 'zinc', amount: 9, percentOfTarget: 82, status: 'adequate' },
+  { nutrientId: 'phosphorus', amount: 1100, percentOfTarget: 157, status: 'high' },
+  { nutrientId: 'potassium', amount: 2800, percentOfTarget: 60, status: 'low' },
+  { nutrientId: 'sodium', amount: 2600, percentOfTarget: 173, status: 'high' },
+  { nutrientId: 'selenium', amount: 58, percentOfTarget: 105, status: 'optimal' },
+  { nutrientId: 'copper', amount: 0.9, percentOfTarget: 100, status: 'optimal' },
+  { nutrientId: 'manganese', amount: 2.0, percentOfTarget: 87, status: 'adequate' },
+  // Fatty acids
+  { nutrientId: 'omega_3_ala', amount: 1.0, percentOfTarget: 63, status: 'low' },
+  { nutrientId: 'omega_3_epa', amount: 0.15, percentOfTarget: 60, status: 'low' },
+  { nutrientId: 'omega_3_dha', amount: 0.12, percentOfTarget: 48, status: 'deficient' },
+  { nutrientId: 'omega_6_la', amount: 14, percentOfTarget: 117, status: 'optimal' },
+  // Other
+  { nutrientId: 'fiber', amount: 18, percentOfTarget: 64, status: 'low' },
+  { nutrientId: 'sugar', amount: 52, percentOfTarget: 173, status: 'high' },
+  { nutrientId: 'water', amount: 2200, percentOfTarget: 73, status: 'low' },
+];
 
 const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
   '7d': TestIDs.Progress.TimeRange7d,
@@ -28,7 +67,7 @@ const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
   all: TestIDs.Progress.TimeRangeAll,
 };
 
-const getDateRange = (range: TimeRange): { start: string; end: string } => {
+const getDateRange = (range: TimeRange, earliestDate?: string | null): { start: string; end: string } => {
   const end = new Date();
   const endStr = end.toISOString().split('T')[0];
 
@@ -47,7 +86,11 @@ const getDateRange = (range: TimeRange): { start: string; end: string } => {
       start.setDate(start.getDate() - 90);
       break;
     case 'all':
-      start = new Date('2020-01-01');
+      if (earliestDate) {
+        start = new Date(earliestDate + 'T12:00:00');
+      } else {
+        start.setFullYear(start.getFullYear() - 1);
+      }
       break;
   }
 
@@ -79,8 +122,17 @@ const fillMissingDates = (
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { entries: weightEntries, loadEntriesForRange } = useWeightStore();
-  const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { entries: weightEntries, loadEntriesForRange, earliestDate, loadEarliestDate } = useWeightStore(useShallow((s) => ({
+    entries: s.entries,
+    loadEntriesForRange: s.loadEntriesForRange,
+    earliestDate: s.earliestDate,
+    loadEarliestDate: s.loadEarliestDate,
+  })));
+  const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore(useShallow((s) => ({
+    settings: s.settings,
+    loadSettings: s.loadSettings,
+    isLoaded: s.isLoaded,
+  })));
   const { calories: resolvedCalorieGoal } = useResolvedTargets();
   const { isPremium } = usePremium();
 
@@ -90,7 +142,12 @@ export default function ProgressScreen() {
     loadDailyIntake,
     dailyIntake,
     isLoaded: nutrientsLoaded,
-  } = useMicronutrientStore();
+  } = useMicronutrientStore(useShallow((s) => ({
+    loadProfile: s.loadProfile,
+    loadDailyIntake: s.loadDailyIntake,
+    dailyIntake: s.dailyIntake,
+    isLoaded: s.isLoaded,
+  })));
 
   // Progress photos store
   const {
@@ -100,13 +157,26 @@ export default function ProgressScreen() {
     getFirstPhoto,
     getLatestPhoto,
     isLoaded: photosLoaded,
-  } = useProgressPhotoStore();
+    setComparisonPhoto1,
+    setComparisonPhoto2,
+  } = useProgressPhotoStore(useShallow((s) => ({
+    loadPhotos: s.loadPhotos,
+    photos: s.photos,
+    stats: s.stats,
+    getFirstPhoto: s.getFirstPhoto,
+    getLatestPhoto: s.getLatestPhoto,
+    isLoaded: s.isLoaded,
+    setComparisonPhoto1: s.setComparisonPhoto1,
+    setComparisonPhoto2: s.setComparisonPhoto2,
+  })));
 
-  // Track mount/unmount for tab switch debugging
+  // Track mount/unmount only in dev
   useEffect(() => {
-    const mountTime = Date.now();
-    console.log(`[Progress] component MOUNTED at ${new Date().toISOString()}`);
-    return () => console.log(`[Progress] component UNMOUNTED (was alive ${Date.now() - mountTime}ms)`);
+    if (__DEV__) {
+      const mountTime = Date.now();
+      console.log(`[Progress] component MOUNTED at ${new Date().toISOString()}`);
+      return () => console.log(`[Progress] component UNMOUNTED (was alive ${Date.now() - mountTime}ms)`);
+    }
   }, []);
 
   // Independent time range states for each section
@@ -126,30 +196,26 @@ export default function ProgressScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [daysLogged, setDaysLogged] = useState(0);
+  const [lastLoadedAt, setLastLoadedAt] = useState(0);
 
   // Load weight data based on weight time range
   const loadWeightData = useCallback(async () => {
-    const t0 = Date.now();
-    const { start, end } = getDateRange(weightTimeRange);
+    const { start, end } = getDateRange(weightTimeRange, earliestDate);
     await loadEntriesForRange(start, end);
-    console.log(`[Progress] loadWeightData (${weightTimeRange}): ${Date.now() - t0}ms`);
-  }, [weightTimeRange, loadEntriesForRange]);
+  }, [weightTimeRange, loadEntriesForRange, earliestDate]);
 
   // Load calorie data based on calorie time range
-  const loadCalorieData = useCallback(async () => {
-    const t0 = Date.now();
+  const loadCalorieData = useCallback(async (sharedData?: Array<{ date: string; totals: DailyTotals }>) => {
     const { start, end } = getDateRange(calorieTimeRange);
-    const calorieHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
+    const calorieHistory = sharedData ?? await logEntryRepository.getDailyTotalsForRange(start, end);
     setCalorieData(fillMissingDates(calorieHistory, start, end));
     setDaysLogged(calorieHistory.length);
-    console.log(`[Progress] loadCalorieData (${calorieTimeRange}): ${Date.now() - t0}ms`);
   }, [calorieTimeRange]);
 
   // Load average macros based on macro time range
-  const loadMacroData = useCallback(async () => {
-    const t0 = Date.now();
+  const loadMacroData = useCallback(async (sharedData?: Array<{ date: string; totals: DailyTotals }>) => {
     const { start, end } = getDateRange(macroTimeRange);
-    const macroHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
+    const macroHistory = sharedData ?? await logEntryRepository.getDailyTotalsForRange(start, end);
 
     if (macroHistory.length > 0) {
       const totals = macroHistory.reduce(
@@ -171,21 +237,15 @@ export default function ProgressScreen() {
     } else {
       setAvgMacros({ calories: 0, protein: 0, carbs: 0, fat: 0 });
     }
-    console.log(`[Progress] loadMacroData (${macroTimeRange}): ${Date.now() - t0}ms`);
   }, [macroTimeRange]);
 
   // Load insights data based on insights time range
-  const loadInsightsData = useCallback(async () => {
-    const t0 = Date.now();
+  const loadInsightsData = useCallback(async (sharedData?: Array<{ date: string; totals: DailyTotals }>) => {
     const { start, end } = getDateRange(insightsTimeRange);
-    const t1 = Date.now();
-    const insightsHistory = await logEntryRepository.getDailyTotalsForRange(start, end);
-    console.log(`[Progress] loadInsightsData - getDailyTotals: ${Date.now() - t1}ms`);
+    const insightsHistory = sharedData ?? await logEntryRepository.getDailyTotalsForRange(start, end);
 
     // Get weight entries count for the insights range (without affecting the weight store)
-    const t2 = Date.now();
     const insightsWeightEntries = await weightRepository.findByDateRange(start, end);
-    console.log(`[Progress] loadInsightsData - findByDateRange: ${Date.now() - t2}ms`);
 
     const avgCals = insightsHistory.length > 0
       ? Math.round(insightsHistory.reduce((sum, day) => sum + day.totals.calories, 0) / insightsHistory.length)
@@ -196,48 +256,72 @@ export default function ProgressScreen() {
       weightEntries: insightsWeightEntries.length,
       avgCalories: avgCals,
     });
-    console.log(`[Progress] loadInsightsData total (${insightsTimeRange}): ${Date.now() - t0}ms`);
   }, [insightsTimeRange]);
 
-  // Combined load for initial load and refresh
+  // Combined load — deduplicates queries when time ranges match
   const loadAllData = useCallback(async () => {
-    const t0 = Date.now();
-    console.log('[Progress] loadAllData started');
+    // Group ranges to deduplicate DB queries
+    const calorieRange = getDateRange(calorieTimeRange);
+    const macroRange = getDateRange(macroTimeRange);
+    const insightsRange = getDateRange(insightsTimeRange);
+
+    // Fetch unique ranges
+    const rangeKey = (r: { start: string; end: string }) => `${r.start}_${r.end}`;
+    const uniqueRanges = new Map<string, { start: string; end: string }>();
+    uniqueRanges.set(rangeKey(calorieRange), calorieRange);
+    uniqueRanges.set(rangeKey(macroRange), macroRange);
+    uniqueRanges.set(rangeKey(insightsRange), insightsRange);
+
+    // Fetch all unique ranges in parallel
+    const fetchResults = new Map<string, Array<{ date: string; totals: DailyTotals }>>();
+    await Promise.all(
+      Array.from(uniqueRanges.entries()).map(async ([key, range]) => {
+        const data = await logEntryRepository.getDailyTotalsForRange(range.start, range.end);
+        fetchResults.set(key, data);
+      })
+    );
+
+    // Distribute shared data to each section
     await Promise.all([
       loadWeightData(),
-      loadCalorieData(),
-      loadMacroData(),
-      loadInsightsData(),
+      loadCalorieData(fetchResults.get(rangeKey(calorieRange))!),
+      loadMacroData(fetchResults.get(rangeKey(macroRange))!),
+      loadInsightsData(fetchResults.get(rangeKey(insightsRange))!),
     ]);
-    console.log(`[Progress] loadAllData total: ${Date.now() - t0}ms`);
-  }, [loadWeightData, loadCalorieData, loadMacroData, loadInsightsData]);
+  }, [loadWeightData, loadCalorieData, loadMacroData, loadInsightsData, calorieTimeRange, macroTimeRange, insightsTimeRange]);
 
   useEffect(() => {
-    const t0 = Date.now();
-    console.log('[Progress] side-effect loads started (settings, nutrients, photos)');
     Promise.all([
-      (async () => { const t = Date.now(); await loadSettings(); console.log(`[Progress] loadSettings: ${Date.now() - t}ms`); })(),
-      (async () => { const t = Date.now(); await loadNutrientProfile(); console.log(`[Progress] loadNutrientProfile: ${Date.now() - t}ms`); })(),
-      (async () => { const t = Date.now(); await loadPhotos(); console.log(`[Progress] loadPhotos: ${Date.now() - t}ms`); })(),
-    ]).then(() => console.log(`[Progress] side-effect loads total: ${Date.now() - t0}ms`));
-  }, [loadSettings, loadNutrientProfile, loadPhotos]);
+      loadSettings(),
+      loadNutrientProfile(),
+      loadPhotos(),
+      loadEarliestDate(),
+    ]);
+  }, [loadSettings, loadNutrientProfile, loadPhotos, loadEarliestDate]);
 
-  // Initial load
+  // Initial load — skip if data is still fresh (e.g. quick tab switch)
   useEffect(() => {
+    const STALE_MS = 30_000;
+    if (dataLoaded && Date.now() - lastLoadedAt < STALE_MS) return;
+
     const initialLoad = async () => {
-      const t0 = Date.now();
-      console.log('[Progress] initialLoad started');
       await loadAllData();
-      console.log(`[Progress] initialLoad - after loadAllData: ${Date.now() - t0}ms`);
-      const t1 = Date.now();
       const today = new Date().toISOString().split('T')[0];
       await loadDailyIntake(today);
-      console.log(`[Progress] loadDailyIntake: ${Date.now() - t1}ms`);
       setDataLoaded(true);
-      console.log(`[Progress] initialLoad total: ${Date.now() - t0}ms`);
+      setLastLoadedAt(Date.now());
     };
     initialLoad();
   }, []);
+
+  // Reload micronutrient data when screen regains focus (e.g. after seeding in dev tools)
+  useFocusEffect(
+    useCallback(() => {
+      if (!dataLoaded) return;
+      const today = new Date().toISOString().split('T')[0];
+      loadDailyIntake(today);
+    }, [dataLoaded, loadDailyIntake])
+  );
 
   // Reload weight data when weight time range changes
   useEffect(() => {
@@ -276,8 +360,7 @@ export default function ProgressScreen() {
   };
 
   const hasEnoughData = daysLogged >= 3 || weightEntries.length >= 3;
-  const hasCalorieData = calorieData.length > 0;
-  const hasWeightData = weightEntries.length > 0;
+  const hasCalorieData = daysLogged > 0;
 
   const timeRanges: TimeRange[] = ['7d', '30d', '90d', 'all'];
   const calorieMacroTimeRanges: TimeRange[] = ['7d', '14d', '30d'];
@@ -285,7 +368,6 @@ export default function ProgressScreen() {
   // Show skeleton on initial load to prevent flash
   const isReady = dataLoaded && settingsLoaded && nutrientsLoaded && photosLoaded;
   if (!isReady) {
-    console.log(`[Progress] not ready — dataLoaded=${dataLoaded} settingsLoaded=${settingsLoaded} nutrientsLoaded=${nutrientsLoaded} photosLoaded=${photosLoaded}`);
     return (
       <SafeAreaView testID={TestIDs.Progress.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
         <ProgressScreenSkeleton />
@@ -396,26 +478,13 @@ export default function ProgressScreen() {
             </View>
           </View>
 
-          {hasWeightData ? (
-            <View testID={TestIDs.Progress.WeightChart}>
-              <WeightChart entries={weightEntries} showTrend />
-            </View>
-          ) : (
-            <View style={styles.chartPlaceholder}>
-              <Ionicons name="trending-up" size={48} color={colors.textTertiary} />
-              <Text style={[styles.chartPlaceholderText, { color: colors.textTertiary }]}>
-                No weight data yet
-              </Text>
-              <Pressable
-                style={[styles.addButton, { borderColor: colors.accent }]}
-                onPress={() => router.push('/log-weight')}
-              >
-                <Text style={[styles.addButtonText, { color: colors.accent }]}>
-                  Log your first weight
-                </Text>
-              </Pressable>
-            </View>
-          )}
+          <View testID={TestIDs.Progress.WeightChart}>
+            <WeightChartInteractive
+              entries={weightEntries}
+              startDate={getDateRange(weightTimeRange, earliestDate).start}
+              endDate={getDateRange(weightTimeRange, earliestDate).end}
+            />
+          </View>
         </View>
 
         {/* Calories Section */}
@@ -582,12 +651,14 @@ export default function ProgressScreen() {
         )}
 
         {/* Micronutrients Section - Premium Feature */}
-        {dailyIntake && dailyIntake.nutrients.length > 0 && (
-          <MicronutrientSummary
-            nutrients={dailyIntake.nutrients}
-            isPremium={isPremium}
-          />
-        )}
+        <MicronutrientSummary
+          nutrients={
+            dailyIntake?.totalFoodsLogged && dailyIntake.nutrients.some(n => n.amount > 0)
+              ? dailyIntake.nutrients
+              : MOCK_NUTRIENT_INTAKES
+          }
+          isPremium={isPremium}
+        />
 
         {/* Progress Photos Section - Premium Feature */}
         <ProgressPhotosSummary
@@ -596,9 +667,17 @@ export default function ProgressScreen() {
           firstPhoto={getFirstPhoto()}
           latestPhoto={getLatestPhoto()}
           isPremium={isPremium}
-          onPress={() => console.log('Navigate to progress photos')}
-          onAddPress={() => console.log('Navigate to photo capture')}
-          onComparePress={() => console.log('Navigate to photo compare')}
+          onPress={() => router.push('/progress-photos')}
+          onAddPress={() => router.push('/progress-photos/capture')}
+          onComparePress={() => {
+            const first = getFirstPhoto();
+            const latest = getLatestPhoto();
+            if (first && latest) {
+              setComparisonPhoto1(first.id);
+              setComparisonPhoto2(latest.id);
+            }
+            router.push('/progress-photos/compare');
+          }}
         />
 
         {/* AI Analysis Section - Premium Feature */}

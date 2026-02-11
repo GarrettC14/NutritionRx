@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -23,7 +23,7 @@ interface DonutSegment {
   color: string;
 }
 
-function DonutChart({
+const DonutChart = React.memo(function DonutChart({
   segments,
   size = 120,
   strokeWidth = 20,
@@ -107,38 +107,47 @@ function DonutChart({
       )}
     </Svg>
   );
-}
+});
 
-export function MacroChart({ totals, showGoalComparison = true }: MacroChartProps) {
+export const MacroChart = React.memo(function MacroChart({ totals, showGoalComparison = true }: MacroChartProps) {
   const { colors } = useTheme();
   const { protein: proteinGoal, carbs: carbsGoal, fat: fatGoal } = useResolvedTargets();
 
-  // Calculate calories from macros
-  const proteinCals = totals.protein * PROTEIN_CAL;
-  const carbsCals = totals.carbs * CARBS_CAL;
-  const fatCals = totals.fat * FAT_CAL;
-  const totalMacroCals = proteinCals + carbsCals + fatCals;
+  // Memoize macro calculations and segment data
+  const { proteinPct, carbsPct, fatPct, totalMacroCals, segments, goalProteinPct, goalCarbsPct, goalFatPct } = useMemo(() => {
+    const proteinCals = totals.protein * PROTEIN_CAL;
+    const carbsCals = totals.carbs * CARBS_CAL;
+    const fatCals = totals.fat * FAT_CAL;
+    const total = proteinCals + carbsCals + fatCals;
 
-  // Calculate percentages
-  const proteinPct = totalMacroCals > 0 ? Math.round((proteinCals / totalMacroCals) * 100) : 0;
-  const carbsPct = totalMacroCals > 0 ? Math.round((carbsCals / totalMacroCals) * 100) : 0;
-  const fatPct = 100 - proteinPct - carbsPct; // Ensure they sum to 100
+    const pPct = total > 0 ? Math.round((proteinCals / total) * 100) : 0;
+    const cPct = total > 0 ? Math.round((carbsCals / total) * 100) : 0;
+    const fPct = 100 - pPct - cPct;
 
-  const segments: DonutSegment[] = [
-    { percentage: proteinPct, color: colors.protein },
-    { percentage: carbsPct, color: colors.carbs },
-    { percentage: fatPct, color: colors.fat },
-  ].filter(d => d.percentage > 0);
+    const goalProteinCals = proteinGoal * PROTEIN_CAL;
+    const goalCarbsCals = carbsGoal * CARBS_CAL;
+    const goalFatCals = fatGoal * FAT_CAL;
+    const goalTotal = goalProteinCals + goalCarbsCals + goalFatCals;
 
-  // Goal calculations
-  const goalProteinCals = proteinGoal * PROTEIN_CAL;
-  const goalCarbsCals = carbsGoal * CARBS_CAL;
-  const goalFatCals = fatGoal * FAT_CAL;
-  const goalTotalCals = goalProteinCals + goalCarbsCals + goalFatCals;
+    const gPPct = goalTotal > 0 ? Math.round((goalProteinCals / goalTotal) * 100) : 0;
+    const gCPct = goalTotal > 0 ? Math.round((goalCarbsCals / goalTotal) * 100) : 0;
+    const gFPct = 100 - gPPct - gCPct;
 
-  const goalProteinPct = goalTotalCals > 0 ? Math.round((goalProteinCals / goalTotalCals) * 100) : 0;
-  const goalCarbsPct = goalTotalCals > 0 ? Math.round((goalCarbsCals / goalTotalCals) * 100) : 0;
-  const goalFatPct = 100 - goalProteinPct - goalCarbsPct;
+    return {
+      proteinPct: pPct,
+      carbsPct: cPct,
+      fatPct: fPct,
+      totalMacroCals: total,
+      segments: [
+        { percentage: pPct, color: colors.protein },
+        { percentage: cPct, color: colors.carbs },
+        { percentage: fPct, color: colors.fat },
+      ].filter(d => d.percentage > 0) as DonutSegment[],
+      goalProteinPct: gPPct,
+      goalCarbsPct: gCPct,
+      goalFatPct: gFPct,
+    };
+  }, [totals, proteinGoal, carbsGoal, fatGoal, colors.protein, colors.carbs, colors.fat]);
 
   if (totalMacroCals === 0) {
     return null;
@@ -196,7 +205,7 @@ export function MacroChart({ totals, showGoalComparison = true }: MacroChartProp
       )}
     </View>
   );
-}
+});
 
 interface MacroItemProps {
   label: string;

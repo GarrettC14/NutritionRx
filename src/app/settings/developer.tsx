@@ -9,7 +9,8 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
+import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -45,6 +46,7 @@ interface DatabaseStats {
   macroCycleOverrides: number;
   restaurantFoodLogs: number;
   progressPhotos: number;
+  foodItemNutrients: number;
   dailyNutrientIntake: number;
   nutrientContributors: number;
   healthSyncLog: number;
@@ -65,6 +67,7 @@ const STAT_QUERIES: Array<{ key: keyof DatabaseStats; label: string; sql: string
   { key: 'macroCycleOverrides', label: 'Macro overrides', sql: 'SELECT COUNT(*) as count FROM macro_cycle_overrides' },
   { key: 'restaurantFoodLogs', label: 'Restaurant logs', sql: 'SELECT COUNT(*) as count FROM restaurant_food_logs' },
   { key: 'progressPhotos', label: 'Progress photos', sql: 'SELECT COUNT(*) as count FROM progress_photos' },
+  { key: 'foodItemNutrients', label: 'Food item nutrients', sql: 'SELECT COUNT(*) as count FROM food_item_nutrients' },
   { key: 'dailyNutrientIntake', label: 'Nutrient intake', sql: 'SELECT COUNT(*) as count FROM daily_nutrient_intake' },
   { key: 'nutrientContributors', label: 'Nutrient contributors', sql: 'SELECT COUNT(*) as count FROM nutrient_contributors' },
   { key: 'healthSyncLog', label: 'Health sync log', sql: 'SELECT COUNT(*) as count FROM health_sync_log' },
@@ -217,7 +220,7 @@ export default function DeveloperScreen() {
     showConfirm({
       title: 'Reset to Fresh Install',
       message:
-        'This will delete the ENTIRE database and recreate it from scratch. The app will return to the onboarding screen. This cannot be undone.',
+        'This will delete the ENTIRE database and recreate it from scratch. The app will return to the legal acknowledgment screen. This cannot be undone.',
       icon: 'warning-outline',
       confirmLabel: 'Reset Everything',
       cancelLabel: 'Cancel',
@@ -227,10 +230,11 @@ export default function DeveloperScreen() {
         setSeedResult(null);
         try {
           await resetDatabase();
-          await loadStats();
+          // Navigate to root so the app re-evaluates the initialization flow
+          // (legal acknowledgment → onboarding → tabs)
+          router.replace('/');
         } catch (error) {
           console.error('Failed to reset app:', error);
-        } finally {
           setIsClearing(false);
         }
       },

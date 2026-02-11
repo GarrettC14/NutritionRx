@@ -95,28 +95,28 @@ describe('component module exports', () => {
     expect(typeof mod.SnapshotCards).toBe('function');
   });
 
-  it('QuestionCard exports', () => {
-    const mod = require('../components/QuestionCard');
-    expect(mod.QuestionCard).toBeDefined();
-    expect(typeof mod.QuestionCard).toBe('function');
+  it('DailyQuestionCard exports', () => {
+    const mod = require('../components/DailyQuestionCard');
+    expect(mod.DailyQuestionCard).toBeDefined();
+    expect(typeof mod.DailyQuestionCard).toBe('function');
   });
 
-  it('SuggestedQuestions exports', () => {
-    const mod = require('../components/SuggestedQuestions');
-    expect(mod.SuggestedQuestions).toBeDefined();
-    expect(typeof mod.SuggestedQuestions).toBe('function');
+  it('DailyCategoryChips exports', () => {
+    const mod = require('../components/DailyCategoryChips');
+    expect(mod.DailyCategoryChips).toBeDefined();
+    expect(typeof mod.DailyCategoryChips).toBe('function');
   });
 
-  it('QuestionCategoryList exports', () => {
-    const mod = require('../components/QuestionCategoryList');
-    expect(mod.QuestionCategoryList).toBeDefined();
-    expect(typeof mod.QuestionCategoryList).toBe('function');
+  it('DailyHeadlineCard exports', () => {
+    const mod = require('../components/DailyHeadlineCard');
+    expect(mod.DailyHeadlineCard).toBeDefined();
+    expect(typeof mod.DailyHeadlineCard).toBe('function');
   });
 
-  it('InsightDetailSheet exports', () => {
-    const mod = require('../components/InsightDetailSheet');
-    expect(mod.InsightDetailSheet).toBeDefined();
-    expect(typeof mod.InsightDetailSheet).toBe('function');
+  it('DailyNeedsMoreDataSection exports', () => {
+    const mod = require('../components/DailyNeedsMoreDataSection');
+    expect(mod.DailyNeedsMoreDataSection).toBeDefined();
+    expect(typeof mod.DailyNeedsMoreDataSection).toBe('function');
   });
 });
 

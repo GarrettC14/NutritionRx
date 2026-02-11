@@ -24,12 +24,12 @@ export function HeadlineInsightCard({ headline, onPress }: HeadlineInsightCardPr
         styles.container,
         {
           backgroundColor: colors.bgElevated,
-          borderLeftColor: colors.premiumGold,
         },
       ]}
       accessibilityRole="button"
       accessibilityLabel={`Headline insight: ${headline}`}
     >
+      <View style={[styles.accentBar, { backgroundColor: colors.premiumGold }]} />
       <View style={styles.content}>
         <Ionicons name="sparkles" size={18} color={colors.premiumGold} />
         <Text style={[styles.text, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -46,10 +46,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderLeftWidth: 3,
     borderRadius: 12,
     padding: 14,
+    paddingLeft: 17,
     marginBottom: 16,
+    overflow: 'hidden',
+  },
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
   content: {
     flexDirection: 'row',

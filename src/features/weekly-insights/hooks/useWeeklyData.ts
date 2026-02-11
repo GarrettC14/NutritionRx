@@ -30,7 +30,7 @@ export function useWeeklyData(): UseWeeklyDataResult {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load weekly data';
       setError(message);
-      console.error('[LLM:WeeklyHook] Error:', message);
+      if (__DEV__) console.error('[LLM:WeeklyHook] Error:', message);
     } finally {
       setIsLoading(false);
     }

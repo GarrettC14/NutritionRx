@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';

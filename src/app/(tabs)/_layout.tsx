@@ -17,11 +17,11 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'none', // Instant tab switching (platform standard)
-          lazy: false, // Pre-render all tab screens to avoid flash
+          lazy: true, // Only render tabs when visited
           // @ts-ignore - sceneContainerStyle exists on BottomTabNavigator
           sceneContainerStyle: { backgroundColor: bgColor },
         }}
-        tabBar={() => <CustomTabBar />}
+        tabBar={(props) => <CustomTabBar {...props} />}
       >
         <Tabs.Screen
           name="index"

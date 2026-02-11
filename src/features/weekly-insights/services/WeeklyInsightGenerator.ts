@@ -39,7 +39,7 @@ export class WeeklyInsightGenerator {
           const ctx = await buildUnifiedNutritionContext();
           systemPrompt = buildSystemPrompt(ctx);
         } catch (ctxErr) {
-          console.error(`[LLM:WeeklyGenerator] Context pipeline failed, using question prompt only:`, ctxErr);
+          if (__DEV__) console.error(`[LLM:WeeklyGenerator] Context pipeline failed, using question prompt only:`, ctxErr);
         }
 
         const questionPrompt = WeeklyPromptBuilder.build(questionId, analysisResult);
@@ -67,7 +67,7 @@ export class WeeklyInsightGenerator {
         }
       }
     } catch (error) {
-      console.error(`[LLM:WeeklyGenerator] LLM generation failed for ${questionId}:`, error);
+      if (__DEV__) console.error(`[LLM:WeeklyGenerator] LLM generation failed for ${questionId}:`, error);
     }
 
     // Fallback to template-based response

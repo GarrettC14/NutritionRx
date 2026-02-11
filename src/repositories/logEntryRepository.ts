@@ -274,17 +274,38 @@ export const logEntryRepository = {
     return result?.days_logged ?? 0;
   },
 
-  async getDatesWithLogs(): Promise<string[]> {
+  async getDatesWithLogs(limitDays: number = 90): Promise<string[]> {
     const db = getDatabase();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - limitDays);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+
     const results = await db.getAllAsync<{ date: string }>(
       `SELECT DISTINCT date
+       FROM (
+         SELECT date FROM log_entries WHERE date >= ?
+         UNION ALL
+         SELECT date FROM quick_add_entries WHERE date >= ?
+       )
+       ORDER BY date DESC`,
+      [cutoffStr, cutoffStr]
+    );
+    return results.map((r) => r.date);
+  },
+
+  async getLogDateRange(): Promise<{ firstDate: string | null; lastDate: string | null }> {
+    const db = getDatabase();
+    const result = await db.getFirstAsync<{ first_date: string | null; last_date: string | null }>(
+      `SELECT MIN(date) as first_date, MAX(date) as last_date
        FROM (
          SELECT date FROM log_entries
          UNION ALL
          SELECT date FROM quick_add_entries
-       )
-       ORDER BY date DESC`
+       )`
     );
-    return results.map((r) => r.date);
+    return {
+      firstDate: result?.first_date ?? null,
+      lastDate: result?.last_date ?? null,
+    };
   },
 };

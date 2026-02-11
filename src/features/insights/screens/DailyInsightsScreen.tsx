@@ -1,9 +1,10 @@
 /**
  * DailyInsightsScreen
- * Full screen with snapshot cards, suggested questions, category browser, and detail sheet.
+ * Full screen with inline expand/collapse questions, category chips,
+ * headline card, and pull-to-refresh.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,8 +12,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
@@ -21,49 +23,189 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
 import { useDailyInsightData } from '../hooks/useDailyInsightData';
 import { useDailyInsightStore } from '../stores/dailyInsightStore';
-import { SnapshotCards } from '../components/SnapshotCards';
-import { SuggestedQuestions } from '../components/SuggestedQuestions';
-import { QuestionCategoryList } from '../components/QuestionCategoryList';
-import { InsightDetailSheet } from '../components/InsightDetailSheet';
-import type { DailyQuestionId } from '../types/dailyInsights.types';
+import { questionAnalyzers } from '../services/daily/analyzers';
+import { DailyHeadlineCard } from '../components/DailyHeadlineCard';
+import { DailyCategoryChips } from '../components/DailyCategoryChips';
+import { DailyQuestionCard } from '../components/DailyQuestionCard';
+import { DailyNeedsMoreDataSection } from '../components/DailyNeedsMoreDataSection';
+import type {
+  DailyQuestionId,
+  DailyQuestionCategory,
+  DailyInsightResponse,
+  QuestionAnalysis,
+  ScoredQuestion,
+} from '../types/dailyInsights.types';
 
 export function DailyInsightsScreen() {
-  console.log('[LLM:DailyScreen] Render');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
-  const { data, headline, suggestedQuestions, isLoaded } = useDailyInsightData();
+  const { data, headline, isLoaded } = useDailyInsightData();
   const { cache } = useDailyInsightStore();
   const refreshData = useDailyInsightStore((s) => s.refreshData);
-  const getAvailableQuestions = useDailyInsightStore((s) => s.getAvailableQuestions);
+  const generateInsight = useDailyInsightStore((s) => s.generateInsight);
   const { status: llmStatus, isDownloading, downloadProgress, startDownload } = useLLMStatus();
 
-  const [selectedQuestion, setSelectedQuestion] = useState<DailyQuestionId | null>(null);
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Local state
+  const [selectedQuestionId, setSelectedQuestionId] = useState<DailyQuestionId | null>(null);
+  const [responses, setResponses] = useState<Record<string, DailyInsightResponse>>({});
+  const [analyses, setAnalyses] = useState<Record<string, QuestionAnalysis>>({});
+  const [generatingId, setGeneratingId] = useState<DailyQuestionId | null>(null);
+  const [generationErrors, setGenerationErrors] = useState<Record<string, string>>({});
+  const [selectedCategory, setSelectedCategory] = useState<DailyQuestionCategory | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const groupedQuestions = getAvailableQuestions();
+  // Refs for scroll-to-target behavior
+  const scrollViewRef = useRef<ScrollView>(null);
+  const questionCardRefs = useRef<Record<string, View | null>>({});
 
-  const handleQuestionPress = useCallback((questionId: DailyQuestionId) => {
-    setSelectedQuestion(questionId);
-    setSheetVisible(true);
+  // Computed values
+  const availableQuestions = useMemo(
+    () =>
+      (cache?.scores ?? [])
+        .filter((q) => q.available)
+        .sort((a, b) => b.relevanceScore - a.relevanceScore),
+    [cache?.scores],
+  );
+
+  const unavailableQuestions = useMemo(
+    () => (cache?.scores ?? []).filter((q) => !q.available),
+    [cache?.scores],
+  );
+
+  const activeCategories = useMemo(() => {
+    const cats = new Set<DailyQuestionCategory>();
+    for (const q of availableQuestions) {
+      cats.add(q.definition.category);
+    }
+    return Array.from(cats);
+  }, [availableQuestions]);
+
+  const filteredQuestions = useMemo(() => {
+    if (!selectedCategory) return availableQuestions;
+    return availableQuestions.filter((q) => q.definition.category === selectedCategory);
+  }, [availableQuestions, selectedCategory]);
+
+  const headlineQuestion = availableQuestions[0] ?? null;
+
+  // Get response for a question — check local cache, then store cache
+  const getResponse = useCallback(
+    (qId: DailyQuestionId): DailyInsightResponse | null => {
+      return responses[qId] ?? cache?.responses[qId] ?? null;
+    },
+    [responses, cache?.responses],
+  );
+
+  // Handlers
+  const handleQuestionPress = useCallback(
+    (question: ScoredQuestion) => {
+      const qId = question.definition.id;
+
+      if (selectedQuestionId === qId) {
+        // Toggle collapse
+        setSelectedQuestionId(null);
+        return;
+      }
+
+      // Expand this card
+      setSelectedQuestionId(qId);
+
+      // Run analyzer synchronously for data cards
+      if (!analyses[qId] && cache?.data) {
+        const analyzer = questionAnalyzers[qId];
+        if (analyzer) {
+          const analysis = analyzer(cache.data);
+          setAnalyses((prev) => ({ ...prev, [qId]: analysis }));
+        }
+      }
+
+      // Check for cached response
+      const cachedResponse = responses[qId] ?? cache?.responses[qId];
+      if (cachedResponse) return;
+
+      // Generate insight
+      setGeneratingId(qId);
+      setGenerationErrors((prev) => {
+        const next = { ...prev };
+        delete next[qId];
+        return next;
+      });
+
+      generateInsight(qId)
+        .then((result) => {
+          setResponses((prev) => ({ ...prev, [qId]: result }));
+          setGeneratingId((current) => (current === qId ? null : current));
+        })
+        .catch((err) => {
+          const errMsg = err instanceof Error ? err.message : 'Generation failed';
+          setGenerationErrors((prev) => ({ ...prev, [qId]: errMsg }));
+          setGeneratingId((current) => (current === qId ? null : current));
+        });
+    },
+    [selectedQuestionId, analyses, cache?.data, cache?.responses, responses, generateInsight],
+  );
+
+  const handleRetry = useCallback(
+    (question: ScoredQuestion) => {
+      const qId = question.definition.id;
+      setGenerationErrors((prev) => {
+        const next = { ...prev };
+        delete next[qId];
+        return next;
+      });
+      setGeneratingId(qId);
+
+      generateInsight(qId)
+        .then((result) => {
+          setResponses((prev) => ({ ...prev, [qId]: result }));
+          setGeneratingId((current) => (current === qId ? null : current));
+        })
+        .catch((err) => {
+          const errMsg = err instanceof Error ? err.message : 'Generation failed';
+          setGenerationErrors((prev) => ({ ...prev, [qId]: errMsg }));
+          setGeneratingId((current) => (current === qId ? null : current));
+        });
+    },
+    [generateInsight],
+  );
+
+  const scrollToQuestion = useCallback((questionId: string) => {
+    setTimeout(() => {
+      const ref = questionCardRefs.current[questionId];
+      if (ref && scrollViewRef.current) {
+        ref.measureLayout(
+          scrollViewRef.current.getInnerViewNode(),
+          (_x: number, y: number) => {
+            scrollViewRef.current?.scrollTo({ y: y - 20, animated: true });
+          },
+          () => {},
+        );
+      }
+    }, 150);
   }, []);
 
-  const handleCloseSheet = useCallback(() => {
-    setSheetVisible(false);
-    setSelectedQuestion(null);
-  }, []);
+  const handleHeadlinePress = useCallback(() => {
+    if (headlineQuestion) {
+      handleQuestionPress(headlineQuestion);
+      scrollToQuestion(headlineQuestion.definition.id);
+    }
+  }, [headlineQuestion, handleQuestionPress, scrollToQuestion]);
 
   const handleRefresh = useCallback(async () => {
-    console.log('[LLM:DailyScreen] handleRefresh()');
-    setIsRefreshing(true);
+    setRefreshing(true);
+    // Clear local state
+    setSelectedQuestionId(null);
+    setResponses({});
+    setAnalyses({});
+    setGeneratingId(null);
+    setGenerationErrors({});
+    setSelectedCategory(null);
     await refreshData();
-    setIsRefreshing(false);
+    setRefreshing(false);
   }, [refreshData]);
 
   const handleDownloadModel = useCallback(async () => {
-    console.log('[LLM:DailyScreen] handleDownloadModel() started');
     await startDownload();
   }, [startDownload]);
 
@@ -79,19 +221,21 @@ export function DailyInsightsScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Today's Insights
         </Text>
-        <TouchableOpacity onPress={handleRefresh} disabled={isRefreshing} hitSlop={12} accessibilityRole="button" accessibilityLabel="Refresh insights">
-          {isRefreshing ? (
-            <ActivityIndicator size="small" color={colors.textSecondary} />
-          ) : (
-            <Ionicons name="refresh-outline" size={20} color={colors.textSecondary} />
-          )}
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.accent}
+          />
+        }
       >
         {!isLoaded ? (
           <View style={styles.loadingContainer}>
@@ -109,35 +253,47 @@ export function DailyInsightsScreen() {
           </View>
         ) : (
           <>
-            {/* Headline */}
-            <View
-              style={[
-                styles.headlineCard,
-                { backgroundColor: colors.bgElevated, borderColor: colors.borderDefault },
-              ]}
-            >
-              <Ionicons name={headline.icon as any} size={28} color={colors.accent} />
-              <Text style={[styles.headlineText, { color: colors.textPrimary }]}>
-                {headline.text}
-              </Text>
+            {/* Headline card */}
+            <View style={{ marginBottom: 16 }}>
+              <DailyHeadlineCard headline={headline} onPress={handleHeadlinePress} />
             </View>
 
-            {/* Snapshot cards */}
-            <SnapshotCards data={data} />
+            {/* Category chips */}
+            {activeCategories.length > 1 && (
+              <DailyCategoryChips
+                categories={activeCategories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
+            )}
 
-            {/* Suggested questions */}
-            <SuggestedQuestions
-              questions={suggestedQuestions}
-              onQuestionPress={handleQuestionPress}
-              responses={cache?.responses}
-            />
+            {/* Questions section */}
+            <View style={styles.questionsSection}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                Questions for today
+              </Text>
 
-            {/* All questions by category */}
-            <QuestionCategoryList
-              groupedQuestions={groupedQuestions}
-              onQuestionPress={handleQuestionPress}
-              responses={cache?.responses}
-            />
+              {filteredQuestions.map((question) => {
+                const qId = question.definition.id;
+                return (
+                  <View
+                    key={qId}
+                    ref={(ref) => { questionCardRefs.current[qId] = ref; }}
+                  >
+                    <DailyQuestionCard
+                      question={question}
+                      onPress={() => handleQuestionPress(question)}
+                      isExpanded={selectedQuestionId === qId}
+                      analysis={analyses[qId] ?? null}
+                      response={getResponse(qId)}
+                      isGenerating={generatingId === qId}
+                      generationError={generationErrors[qId] ?? null}
+                      onRetry={() => handleRetry(question)}
+                    />
+                  </View>
+                );
+              })}
+            </View>
 
             {/* LLM status banner */}
             {llmStatus !== 'ready' && llmStatus !== 'unsupported' && (
@@ -185,16 +341,12 @@ export function DailyInsightsScreen() {
                 )}
               </View>
             )}
+
+            {/* Needs more data section */}
+            <DailyNeedsMoreDataSection questions={unavailableQuestions} />
           </>
         )}
       </ScrollView>
-
-      {/* Insight detail sheet */}
-      <InsightDetailSheet
-        questionId={selectedQuestion}
-        visible={sheetVisible}
-        onClose={handleCloseSheet}
-      />
     </View>
   );
 }
@@ -219,9 +371,8 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     scrollContent: {
-      paddingHorizontal: spacing[4],
-      paddingBottom: spacing[8],
-      gap: spacing[5],
+      padding: 16,
+      paddingBottom: 40,
     },
     loadingContainer: {
       flex: 1,
@@ -234,9 +385,6 @@ const createStyles = (colors: any) =>
       paddingTop: 80,
       gap: spacing[3],
     },
-    emptyIcon: {
-      marginBottom: spacing[1],
-    },
     emptyTitle: {
       ...typography.title.medium,
       fontWeight: '600',
@@ -246,21 +394,15 @@ const createStyles = (colors: any) =>
       textAlign: 'center',
       maxWidth: 260,
     },
-    headlineCard: {
-      padding: spacing[4],
-      borderRadius: borderRadius.lg,
-      borderWidth: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing[3],
+    questionsSection: {
+      marginTop: 4,
     },
-    headlineIcon: {
-      marginTop: 2,
-    },
-    headlineText: {
-      flex: 1,
-      ...typography.body.medium,
-      lineHeight: 22,
+    sectionTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: 12,
     },
     llmBanner: {
       padding: spacing[4],
@@ -270,6 +412,7 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       flexWrap: 'wrap',
+      marginBottom: 16,
     },
     llmBannerTextContainer: {
       flex: 1,

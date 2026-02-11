@@ -65,39 +65,34 @@ export const settingsRepository = {
   },
 
   async getAll(): Promise<UserSettings> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<SettingRow>(
+      'SELECT key, value FROM user_settings'
+    );
+    const map = new Map(rows.map(r => [r.key, r.value]));
+
+    const parseNum = (key: string, def: number): number => {
+      const v = map.get(key);
+      return v != null ? parseFloat(v) : def;
+    };
+    const parseBool = (key: string, def: boolean): boolean => {
+      const v = map.get(key);
+      return v != null ? (v === '1' || v === 'true') : def;
+    };
+    const parseStr = <T extends string>(key: string, def: T): T => {
+      const v = map.get(key);
+      return (v != null ? v : def) as T;
+    };
+
     return {
-      dailyCalorieGoal: await this.get(
-        SETTING_KEYS.DAILY_CALORIE_GOAL,
-        DEFAULT_SETTINGS.dailyCalorieGoal
-      ),
-      dailyProteinGoal: await this.get(
-        SETTING_KEYS.DAILY_PROTEIN_GOAL,
-        DEFAULT_SETTINGS.dailyProteinGoal
-      ),
-      dailyCarbsGoal: await this.get(
-        SETTING_KEYS.DAILY_CARBS_GOAL,
-        DEFAULT_SETTINGS.dailyCarbsGoal
-      ),
-      dailyFatGoal: await this.get(
-        SETTING_KEYS.DAILY_FAT_GOAL,
-        DEFAULT_SETTINGS.dailyFatGoal
-      ),
-      weightUnit: await this.get(
-        SETTING_KEYS.WEIGHT_UNIT,
-        DEFAULT_SETTINGS.weightUnit
-      ) as WeightUnit,
-      theme: await this.get(
-        SETTING_KEYS.THEME,
-        DEFAULT_SETTINGS.theme
-      ) as Theme,
-      notificationsEnabled: await this.get(
-        SETTING_KEYS.NOTIFICATIONS_ENABLED,
-        DEFAULT_SETTINGS.notificationsEnabled
-      ),
-      reminderTime: await this.get(
-        SETTING_KEYS.REMINDER_TIME,
-        DEFAULT_SETTINGS.reminderTime
-      ),
+      dailyCalorieGoal: parseNum(SETTING_KEYS.DAILY_CALORIE_GOAL, DEFAULT_SETTINGS.dailyCalorieGoal),
+      dailyProteinGoal: parseNum(SETTING_KEYS.DAILY_PROTEIN_GOAL, DEFAULT_SETTINGS.dailyProteinGoal),
+      dailyCarbsGoal: parseNum(SETTING_KEYS.DAILY_CARBS_GOAL, DEFAULT_SETTINGS.dailyCarbsGoal),
+      dailyFatGoal: parseNum(SETTING_KEYS.DAILY_FAT_GOAL, DEFAULT_SETTINGS.dailyFatGoal),
+      weightUnit: parseStr(SETTING_KEYS.WEIGHT_UNIT, DEFAULT_SETTINGS.weightUnit) as WeightUnit,
+      theme: parseStr(SETTING_KEYS.THEME, DEFAULT_SETTINGS.theme) as Theme,
+      notificationsEnabled: parseBool(SETTING_KEYS.NOTIFICATIONS_ENABLED, DEFAULT_SETTINGS.notificationsEnabled),
+      reminderTime: parseStr(SETTING_KEYS.REMINDER_TIME, DEFAULT_SETTINGS.reminderTime as string) as string | null,
     };
   },
 
@@ -137,23 +132,28 @@ export const settingsRepository = {
     carbs: number;
     fat: number;
   }> {
-    return {
-      calories: await this.get(
+    const db = getDatabase();
+    const rows = await db.getAllAsync<SettingRow>(
+      `SELECT key, value FROM user_settings WHERE key IN (?, ?, ?, ?)`,
+      [
         SETTING_KEYS.DAILY_CALORIE_GOAL,
-        DEFAULT_SETTINGS.dailyCalorieGoal
-      ),
-      protein: await this.get(
         SETTING_KEYS.DAILY_PROTEIN_GOAL,
-        DEFAULT_SETTINGS.dailyProteinGoal
-      ),
-      carbs: await this.get(
         SETTING_KEYS.DAILY_CARBS_GOAL,
-        DEFAULT_SETTINGS.dailyCarbsGoal
-      ),
-      fat: await this.get(
         SETTING_KEYS.DAILY_FAT_GOAL,
-        DEFAULT_SETTINGS.dailyFatGoal
-      ),
+      ]
+    );
+    const map = new Map(rows.map(r => [r.key, r.value]));
+
+    const parseNum = (key: string, def: number): number => {
+      const v = map.get(key);
+      return v != null ? parseFloat(v) : def;
+    };
+
+    return {
+      calories: parseNum(SETTING_KEYS.DAILY_CALORIE_GOAL, DEFAULT_SETTINGS.dailyCalorieGoal),
+      protein: parseNum(SETTING_KEYS.DAILY_PROTEIN_GOAL, DEFAULT_SETTINGS.dailyProteinGoal),
+      carbs: parseNum(SETTING_KEYS.DAILY_CARBS_GOAL, DEFAULT_SETTINGS.dailyCarbsGoal),
+      fat: parseNum(SETTING_KEYS.DAILY_FAT_GOAL, DEFAULT_SETTINGS.dailyFatGoal),
     };
   },
 

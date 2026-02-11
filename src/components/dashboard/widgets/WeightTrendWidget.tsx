@@ -5,7 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
 import Svg, { Path, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { useWeightStore, useGoalStore } from '@/stores';

@@ -78,7 +78,7 @@ export function useWeeklyInsightGeneration(): UseWeeklyInsightGenerationResult {
         return enriched;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Generation failed';
-        console.error(`[LLM:useWeeklyInsightGen] Generation failed for ${question.questionId}: ${message}`, err);
+        if (__DEV__) console.error(`[LLM:useWeeklyInsightGen] Generation failed for ${question.questionId}: ${message}`, err);
         setGenerationError(message);
         setQuestionError(question.questionId, message);
 

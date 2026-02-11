@@ -1,19 +1,20 @@
 import { View, Pressable, Text, StyleSheet, Platform, Keyboard } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter } from '@/hooks/useRouter';
+import { usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { componentSpacing } from '@/constants/spacing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { TestIDs } from '@/constants/testIDs';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 interface TabItem {
   name: string;
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   iconActive: keyof typeof Ionicons.glyphMap;
-  href: string;
-  matchPaths?: string[];
+  routeName: string;
 }
 
 const TAB_TEST_IDS: Record<string, string> = {
@@ -29,35 +30,56 @@ const TABS: TabItem[] = [
     title: 'Today',
     icon: 'today-outline',
     iconActive: 'today',
-    href: '/(tabs)',
+    routeName: 'index',
   },
   {
     name: 'food',
     title: 'Food',
     icon: 'restaurant-outline',
     iconActive: 'restaurant',
-    href: '/add-food',
-    matchPaths: ['/add-food', '/restaurant'],
+    routeName: 'food',
   },
   {
     name: 'progress',
     title: 'Progress',
     icon: 'bar-chart-outline',
     iconActive: 'bar-chart',
-    href: '/(tabs)/progress',
-    matchPaths: ['/progress'],
+    routeName: 'progress',
   },
   {
     name: 'settings',
     title: 'Settings',
     icon: 'settings-outline',
     iconActive: 'settings',
-    href: '/(tabs)/settings',
-    matchPaths: ['/settings'],
+    routeName: 'settings',
   },
 ];
 
-export function CustomTabBar() {
+/**
+ * Map pathname to the corresponding tab name.
+ * Handles routes outside the tab navigator (e.g. /add-food/* → 'food').
+ */
+function resolveActiveTab(pathname: string, tabState?: BottomTabBarProps['state']): string {
+  // When inside the tab navigator, use its state directly
+  if (tabState) {
+    return tabState.routes[tabState.index]?.name ?? 'index';
+  }
+
+  // Outside the tab navigator — resolve from the current pathname
+  if (pathname.startsWith('/add-food') || pathname.startsWith('/restaurant')) {
+    return 'food';
+  }
+  if (pathname.startsWith('/progress') || pathname === '/(tabs)/progress') {
+    return 'progress';
+  }
+  if (pathname.startsWith('/settings') || pathname === '/(tabs)/settings') {
+    return 'settings';
+  }
+  return 'index';
+}
+
+export function CustomTabBar(props: Partial<BottomTabBarProps>) {
+  const { navigation, state } = props as BottomTabBarProps;
   const { colors } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
@@ -85,24 +107,21 @@ export function CustomTabBar() {
     return null;
   }
 
-  const isTabActive = (tab: TabItem): boolean => {
-    // Today tab - active on root/index
-    if (tab.name === 'index') {
-      return pathname === '/' || pathname === '/index' || pathname === '';
-    }
+  const activeTab = resolveActiveTab(pathname, state);
 
-    // Other tabs - check matchPaths
-    if (tab.matchPaths) {
-      return tab.matchPaths.some((path) => pathname.startsWith(path));
-    }
-    return false;
+  const isTabActive = (tab: TabItem): boolean => {
+    return tab.name === activeTab;
   };
 
   const handleTabPress = (tab: TabItem) => {
     if (tab.name === 'food') {
       router.push('/add-food');
+    } else if (navigation) {
+      // Inside the tab navigator — use tab navigation
+      navigation.navigate(tab.routeName);
     } else {
-      router.replace(tab.href as any);
+      // Outside the tab navigator — use router to go back to tabs
+      router.replace(`/(tabs)/${tab.routeName === 'index' ? '' : tab.routeName}` as any);
     }
   };
 

@@ -179,6 +179,7 @@ describe('Type Mappers', () => {
       id: 'weight-1',
       date: '2026-01-25',
       weight_kg: 80.5,
+      trend_weight_kg: 80.3,
       notes: 'Morning weight',
       created_at: '2026-01-25T07:00:00.000Z',
       updated_at: '2026-01-25T07:00:00.000Z',

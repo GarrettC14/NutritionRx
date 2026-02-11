@@ -19,14 +19,14 @@ interface WidgetRendererProps {
   isActive?: boolean;
 }
 
-export function WidgetRenderer({
+export const WidgetRenderer = React.memo(function WidgetRenderer({
   widget,
   isEditMode,
   drag,
   isActive,
 }: WidgetRendererProps) {
   const { colors } = useTheme();
-  const { removeWidget } = useDashboardStore();
+  const removeWidget = useDashboardStore((s) => s.removeWidget);
 
   const definition = getWidgetDefinition(widget.type);
 
@@ -89,7 +89,7 @@ export function WidgetRenderer({
       </View>
     </View>
   );
-}
+});
 
 const createStyles = (colors: any, isEditMode: boolean, isActive?: boolean) =>
   StyleSheet.create({
