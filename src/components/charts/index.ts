@@ -1,4 +1,4 @@
 export { WeightChart } from './WeightChart';
-export { WeightChartInteractive } from './WeightChartInteractive';
+export { WeightTrendChart } from './WeightTrendChart';
 export { CalorieChart } from './CalorieChart';
 export { MacroChart } from './MacroChart';

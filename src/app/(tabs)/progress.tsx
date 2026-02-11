@@ -11,7 +11,7 @@ import { useWeightStore, useSettingsStore, useMicronutrientStore, useProgressPho
 import { useShallow } from 'zustand/react/shallow';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { logEntryRepository, weightRepository } from '@/repositories';
-import { WeightChartInteractive, CalorieChart, MacroChart } from '@/components/charts';
+import { WeightTrendChart, CalorieChart, MacroChart } from '@/components/charts';
 import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
 import { MicronutrientSummary } from '@/components/micronutrients';
@@ -122,11 +122,10 @@ const fillMissingDates = (
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { entries: weightEntries, loadEntriesForRange, earliestDate, loadEarliestDate } = useWeightStore(useShallow((s) => ({
+  const { entries: weightEntries, loadEntries: loadWeightEntries, loadEarliestDate } = useWeightStore(useShallow((s) => ({
     entries: s.entries,
-    loadEntriesForRange: s.loadEntriesForRange,
-    earliestDate: s.earliestDate,
-    loadEarliestDate: s.loadEarliestDate,
+    loadEntries: s.loadEntries,
+    loadEarliestDate: s.loadEarliestDate
   })));
   const { settings, loadSettings, isLoaded: settingsLoaded } = useSettingsStore(useShallow((s) => ({
     settings: s.settings,
@@ -180,7 +179,6 @@ export default function ProgressScreen() {
   }, []);
 
   // Independent time range states for each section
-  const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('30d');
   const [calorieTimeRange, setCalorieTimeRange] = useState<TimeRange>('30d');
   const [macroTimeRange, setMacroTimeRange] = useState<TimeRange>('30d');
   const [insightsTimeRange, setInsightsTimeRange] = useState<TimeRange>('30d');
@@ -197,12 +195,6 @@ export default function ProgressScreen() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [daysLogged, setDaysLogged] = useState(0);
   const [lastLoadedAt, setLastLoadedAt] = useState(0);
-
-  // Load weight data based on weight time range
-  const loadWeightData = useCallback(async () => {
-    const { start, end } = getDateRange(weightTimeRange, earliestDate);
-    await loadEntriesForRange(start, end);
-  }, [weightTimeRange, loadEntriesForRange, earliestDate]);
 
   // Load calorie data based on calorie time range
   const loadCalorieData = useCallback(async (sharedData?: Array<{ date: string; totals: DailyTotals }>) => {
@@ -283,12 +275,12 @@ export default function ProgressScreen() {
 
     // Distribute shared data to each section
     await Promise.all([
-      loadWeightData(),
+      loadWeightEntries(500),
       loadCalorieData(fetchResults.get(rangeKey(calorieRange))!),
       loadMacroData(fetchResults.get(rangeKey(macroRange))!),
       loadInsightsData(fetchResults.get(rangeKey(insightsRange))!),
     ]);
-  }, [loadWeightData, loadCalorieData, loadMacroData, loadInsightsData, calorieTimeRange, macroTimeRange, insightsTimeRange]);
+  }, [loadWeightEntries, loadCalorieData, loadMacroData, loadInsightsData, calorieTimeRange, macroTimeRange, insightsTimeRange]);
 
   useEffect(() => {
     Promise.all([
@@ -322,13 +314,6 @@ export default function ProgressScreen() {
       loadDailyIntake(today);
     }, [dataLoaded, loadDailyIntake])
   );
-
-  // Reload weight data when weight time range changes
-  useEffect(() => {
-    if (dataLoaded) {
-      loadWeightData();
-    }
-  }, [weightTimeRange]);
 
   // Reload calorie data when calorie time range changes
   useEffect(() => {
@@ -449,40 +434,12 @@ export default function ProgressScreen() {
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} accessibilityRole="header">
               Weight
             </Text>
-            <View style={styles.timeRangeButtons}>
-              {timeRanges.map((range) => (
-                <Pressable
-                  key={range}
-                  testID={TIME_RANGE_TEST_IDS[range]}
-                  style={[
-                    styles.timeRangeButton,
-                    weightTimeRange === range && { backgroundColor: colors.bgInteractive },
-                  ]}
-                  onPress={() => setWeightTimeRange(range)}
-                >
-                  <Text
-                    style={[
-                      styles.timeRangeText,
-                      {
-                        color:
-                          weightTimeRange === range
-                            ? colors.textPrimary
-                            : colors.textTertiary,
-                      },
-                    ]}
-                  >
-                    {range === 'all' ? 'All' : range}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
           </View>
 
           <View testID={TestIDs.Progress.WeightChart}>
-            <WeightChartInteractive
+            <WeightTrendChart
               entries={weightEntries}
-              startDate={getDateRange(weightTimeRange, earliestDate).start}
-              endDate={getDateRange(weightTimeRange, earliestDate).end}
+              chartHeight={200}
             />
           </View>
         </View>
