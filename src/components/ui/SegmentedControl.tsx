@@ -77,16 +77,18 @@ export function SegmentedControl<T extends string | number>({
         style,
       ]}
     >
-      <Animated.View
-        style={[
-          styles.indicator,
-          {
-            backgroundColor: colors.bgElevated,
-            left: leftPercent,
-            width: `${segmentWidth}%`,
-          },
-        ]}
-      />
+      <View style={styles.indicatorTrack}>
+        <Animated.View
+          style={[
+            styles.indicator,
+            {
+              backgroundColor: colors.bgElevated,
+              left: leftPercent,
+              width: `${segmentWidth}%`,
+            },
+          ]}
+        />
+      </View>
       {options.map((option) => (
         <Pressable
           key={String(option.value)}
@@ -123,10 +125,17 @@ const styles = StyleSheet.create({
     padding: 2,
     position: 'relative',
   },
-  indicator: {
+  indicatorTrack: {
     position: 'absolute',
     top: 2,
     bottom: 2,
+    left: 2,
+    right: 2,
+  },
+  indicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
     borderRadius: borderRadius.md - 2,
   },
   segment: {
