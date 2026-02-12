@@ -28,6 +28,7 @@ const SOURCE_LABELS: Record<DataSource, string> = {
   usda: 'USDA Database',
   user: 'User Created',
   seed: 'NutritionRx Database',
+  ai_photo: 'AI Photo',
 };
 
 const SOURCE_ICONS: Record<DataSource, keyof typeof Ionicons.glyphMap> = {
@@ -35,6 +36,7 @@ const SOURCE_ICONS: Record<DataSource, keyof typeof Ionicons.glyphMap> = {
   usda: 'leaf-outline',
   user: 'person-outline',
   seed: 'nutrition-outline',
+  ai_photo: 'camera-outline',
 };
 
 export default function FoodDetailScreen() {
