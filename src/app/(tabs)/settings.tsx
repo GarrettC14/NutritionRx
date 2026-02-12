@@ -216,6 +216,8 @@ function SettingsScreen() {
   const lastTapTimeRef = useRef(0);
 
   const handleVersionTap = () => {
+    if (!__DEV__) return;
+
     const now = Date.now();
     // Reset if more than 2 seconds between taps
     if (now - lastTapTimeRef.current > 2000) {

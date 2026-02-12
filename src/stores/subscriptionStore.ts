@@ -231,6 +231,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       clearError: () => set({ error: null }),
 
       toggleDevPremium: () => {
+        if (!isDevBuild) return;
+
         const { isDevPremium } = get();
         const newDevPremium = !isDevPremium;
         set({
@@ -248,7 +250,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         isPremium: state.isPremium,
         expirationDate: state.expirationDate,
         hasBundle: state.hasBundle,
-        isDevPremium: state.isDevPremium,
+        // Only persist dev premium in dev builds to prevent leaking to production
+        ...(isDevBuild ? { isDevPremium: state.isDevPremium } : {}),
       }),
     }
   )
