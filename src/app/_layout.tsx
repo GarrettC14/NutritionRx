@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, LogBox, useColorScheme } from 'react-native';
 import * as Sentry from '@sentry/react-native';
-import { useNavigationContainerRef } from 'expo-router';
+import { useNavigationContainerRef, usePathname } from 'expo-router';
 import Constants from 'expo-constants';
 import { scrubSensitiveData, NUTRITION_PATTERN } from '@/utils/sentryHelpers';
 
@@ -76,6 +76,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { REVENUECAT_CONFIG } from '@/config/revenuecat';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { PremiumUpgradeSheet } from '@/components/premium/PremiumUpgradeSheet';
+import { useRouteStore } from '@/stores/routeStore';
+import { reviewPromptService } from '@/services/reviewPromptService';
 
 function ThemedBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
@@ -217,6 +219,17 @@ function RootLayoutContent() {
   );
 }
 
+function RouteTracker() {
+  const pathname = usePathname();
+  const setCurrentPath = useRouteStore((s) => s.setCurrentPath);
+
+  useEffect(() => {
+    setCurrentPath(pathname);
+  }, [pathname, setCurrentPath]);
+
+  return null;
+}
+
 function RootLayout() {
   const systemScheme = useColorScheme();
   const initBg = systemScheme === 'light' ? '#FFFFFF' : '#0D1117';
@@ -241,6 +254,9 @@ function RootLayout() {
         if (__DEV__) console.error('Database initialization failed:', error);
         setDbReady(true); // Still proceed to show error state
       });
+
+    // Record install date for review prompt eligibility (idempotent)
+    reviewPromptService.initializeInstallDate().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -287,6 +303,7 @@ function RootLayout() {
                 <TooltipProvider>
                   <ConfirmDialogProvider>
                     <RootLayoutContent />
+                    <RouteTracker />
                     <PremiumUpgradeSheet />
                     <TooltipModal />
                   </ConfirmDialogProvider>
