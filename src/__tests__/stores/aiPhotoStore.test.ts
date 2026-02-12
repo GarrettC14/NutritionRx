@@ -4,8 +4,16 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAIPhotoStore } from '@/stores/aiPhotoStore';
+import { create } from 'zustand';
 import { AI_PHOTO_LIMITS } from '@/types/ai-photo';
+
+// Mock subscriptionStore before importing aiPhotoStore (avoids react-native-purchases dependency)
+const mockSubscriptionStore = create(() => ({ isPremium: false }));
+jest.mock('@/stores/subscriptionStore', () => ({
+  useSubscriptionStore: mockSubscriptionStore,
+}));
+
+import { useAIPhotoStore } from '@/stores/aiPhotoStore';
 
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 
@@ -28,8 +36,10 @@ describe('aiPhotoStore', () => {
       isLoading: false,
       isLoaded: false,
       error: null,
-      isPremium: false,
     });
+
+    // Default to non-premium
+    mockSubscriptionStore.setState({ isPremium: false });
 
     jest.clearAllMocks();
   });
@@ -48,7 +58,7 @@ describe('aiPhotoStore', () => {
       expect(state.quota.monthlyLimit).toBe(AI_PHOTO_LIMITS.MONTHLY_FREE);
       expect(state.isLoading).toBe(false);
       expect(state.isLoaded).toBe(false);
-      expect(state.isPremium).toBe(false);
+      expect(mockSubscriptionStore.getState().isPremium).toBe(false);
     });
 
     it('quota lastResetDate is today', () => {
@@ -141,7 +151,7 @@ describe('aiPhotoStore', () => {
     it('applies premium limits when isPremium is true', async () => {
       const today = new Date().toISOString().split('T')[0];
       const thisMonth = today.substring(0, 7);
-      useAIPhotoStore.setState({ isPremium: true });
+      mockSubscriptionStore.setState({ isPremium: true });
 
       const storedQuota = {
         dailyUsed: 2,

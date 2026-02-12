@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AIPhotoQuota, AI_PHOTO_LIMITS } from '@/types/ai-photo';
+import { useSubscriptionStore } from './subscriptionStore';
 
 const QUOTA_STORAGE_KEY = '@ai_photo_quota';
 
@@ -10,9 +11,6 @@ interface AIPhotoState {
   isLoading: boolean;
   isLoaded: boolean;
   error: string | null;
-
-  // Premium state (placeholder - would connect to subscription service)
-  isPremium: boolean;
 
   // Actions
   loadQuota: () => Promise<void>;
@@ -61,8 +59,6 @@ export const useAIPhotoStore = create<AIPhotoState>((set, get) => ({
   isLoading: false,
   isLoaded: false,
   error: null,
-  isPremium: false, // Would be set based on subscription status
-
   loadQuota: async () => {
     if (get().isLoaded) return;
 
@@ -76,7 +72,7 @@ export const useAIPhotoStore = create<AIPhotoState>((set, get) => ({
         // Check and reset if new day/month
         quota = checkAndResetIfNeeded(quota);
         // Update limits based on premium status
-        const { isPremium } = get();
+        const isPremium = useSubscriptionStore.getState().isPremium;
         quota.dailyLimit = isPremium
           ? AI_PHOTO_LIMITS.DAILY_PREMIUM
           : AI_PHOTO_LIMITS.DAILY_FREE;
