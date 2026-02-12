@@ -145,7 +145,6 @@ export const TestIDs = {
     StreakBadge: 'widget-streak-badge',
     NutritionOverview: 'widget-nutrition-overview',
     QuickAdd: 'widget-quick-add',
-    MealIdeas: 'widget-meal-ideas',
     FastingTimer: 'widget-fasting-timer',
     MicronutrientSnapshot: 'widget-micronutrient-snapshot',
     AIDailyInsight: 'widget-ai-daily-insight',

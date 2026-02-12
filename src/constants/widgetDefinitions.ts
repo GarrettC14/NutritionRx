@@ -16,7 +16,6 @@ import {
   ProteinFocusWidget,
   QuickAddWidget,
   GoalsSummaryWidget,
-  MealIdeasWidget,
   NutritionOverviewWidget,
   // Premium widgets
   FastingTimerWidget,
@@ -138,18 +137,6 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
     maxSize: 'large',
     category: 'progress',
     component: GoalsSummaryWidget as ComponentType<WidgetProps>,
-  },
-  meal_ideas: {
-    type: 'meal_ideas',
-    name: 'Meal Ideas',
-    description: 'Smart suggestions based on remaining macros',
-    icon: 'bulb-outline',
-    defaultSize: 'medium',
-    minSize: 'small',
-    maxSize: 'large',
-    category: 'meals',
-    component: MealIdeasWidget as ComponentType<WidgetProps>,
-    isPremium: true,
   },
   nutrition_overview: {
     type: 'nutrition_overview',

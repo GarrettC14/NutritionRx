@@ -16,7 +16,6 @@ export type WidgetType =
   | 'protein_focus'
   | 'quick_add'
   | 'goals_summary'
-  | 'meal_ideas'
   | 'nutrition_overview'
   // Premium widgets
   | 'fasting_timer'

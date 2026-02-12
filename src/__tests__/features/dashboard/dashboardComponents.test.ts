@@ -15,7 +15,6 @@ jest.mock('@/components/dashboard/widgets', () => ({
   ProteinFocusWidget: jest.fn(() => null),
   QuickAddWidget: jest.fn(() => null),
   GoalsSummaryWidget: jest.fn(() => null),
-  MealIdeasWidget: jest.fn(() => null),
   NutritionOverviewWidget: jest.fn(() => null),
   FastingTimerWidget: jest.fn(() => null),
   MicronutrientSnapshotWidget: jest.fn(() => null),
@@ -61,7 +60,6 @@ describe('Widget Definitions', () => {
         'protein_focus',
         'quick_add',
         'goals_summary',
-        'meal_ideas',
         'nutrition_overview',
         'fasting_timer',
         'micronutrient_snapshot',
@@ -274,7 +272,6 @@ describe('Dashboard Store Integration', () => {
         'weekly_average',
         'protein_focus',
         'goals_summary',
-        'meal_ideas',
         'weight_trend',
       ];
 

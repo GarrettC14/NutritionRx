@@ -13,7 +13,6 @@ export { WeeklyAverageWidget } from './WeeklyAverageWidget';
 export { ProteinFocusWidget } from './ProteinFocusWidget';
 export { QuickAddWidget } from './QuickAddWidget';
 export { GoalsSummaryWidget } from './GoalsSummaryWidget';
-export { MealIdeasWidget } from './MealIdeasWidget';
 export { NutritionOverviewWidget } from './NutritionOverviewWidget';
 
 // Premium widgets
