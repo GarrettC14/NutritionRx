@@ -45,7 +45,7 @@ export function isWearOSAvailable(): boolean {
  */
 export async function initWearSync(): Promise<boolean> {
   if (!isWearOSAvailable()) {
-    console.log('Wear OS connectivity not available');
+    if (__DEV__) console.log('Wear OS connectivity not available');
     return false;
   }
 
@@ -67,10 +67,10 @@ export async function initWearSync(): Promise<boolean> {
       await syncToWatch();
     }
 
-    console.log('Wear OS sync initialized, connected:', isConnected);
+    if (__DEV__) console.log('Wear OS sync initialized, connected:', isConnected);
     return true;
   } catch (error) {
-    console.error('Failed to initialize Wear OS sync:', error);
+    if (__DEV__) console.error('Failed to initialize Wear OS sync:', error);
     return false;
   }
 }
@@ -96,7 +96,7 @@ export async function checkWatchConnection(): Promise<boolean> {
     const nodes = await WearConnectivity.getConnectedNodes();
     return nodes && nodes.length > 0;
   } catch (error) {
-    console.error('Failed to check watch connection:', error);
+    if (__DEV__) console.error('Failed to check watch connection:', error);
     return false;
   }
 }
@@ -121,7 +121,7 @@ export async function getConnectedWatch(): Promise<WearConnectionState> {
     }
     return { isConnected: false };
   } catch (error) {
-    console.error('Failed to get connected watch:', error);
+    if (__DEV__) console.error('Failed to get connected watch:', error);
     return { isConnected: false };
   }
 }
@@ -208,10 +208,10 @@ export async function syncToWatch(): Promise<boolean> {
     // Send sync complete message
     await sendMessageToWatch(WEAR_MESSAGE_PATH_SYNC_COMPLETE, '{}');
 
-    console.log('Synced to watch successfully');
+    if (__DEV__) console.log('Synced to watch successfully');
     return true;
   } catch (error) {
-    console.error('Failed to sync to watch:', error);
+    if (__DEV__) console.error('Failed to sync to watch:', error);
     return false;
   }
 }
@@ -267,7 +267,7 @@ async function sendMessageToWatch(path: string, data: string): Promise<boolean> 
     await WearConnectivity.sendMessage(connection.nodeId, path, data);
     return true;
   } catch (error) {
-    console.error('Failed to send message to watch:', error);
+    if (__DEV__) console.error('Failed to send message to watch:', error);
     return false;
   }
 }
@@ -276,7 +276,7 @@ async function sendMessageToWatch(path: string, data: string): Promise<boolean> 
  * Handle incoming message from watch
  */
 async function handleWatchMessage(message: { path: string; data: string }): Promise<void> {
-  console.log('Received watch message:', message.path);
+  if (__DEV__) console.log('Received watch message:', message.path);
 
   try {
     const payload = message.data ? JSON.parse(message.data) : {};
@@ -299,7 +299,7 @@ async function handleWatchMessage(message: { path: string; data: string }): Prom
         break;
 
       default:
-        console.log('Unknown watch action:', message.path);
+        if (__DEV__) console.log('Unknown watch action:', message.path);
     }
 
     // Confirm action processed
@@ -308,7 +308,7 @@ async function handleWatchMessage(message: { path: string; data: string }): Prom
     // Sync updated data back to watch
     await syncToWatch();
   } catch (error) {
-    console.error('Failed to handle watch message:', error);
+    if (__DEV__) console.error('Failed to handle watch message:', error);
   }
 }
 
@@ -323,7 +323,7 @@ async function handleWaterAction(payload: { glasses?: number }): Promise<void> {
     await waterStore.addGlass();
   }
 
-  console.log(`Added ${glasses} glass(es) of water from watch`);
+  if (__DEV__) console.log(`Added ${glasses} glass(es) of water from watch`);
 }
 
 /**
@@ -352,7 +352,7 @@ async function handleQuickAddAction(payload: {
     description: 'Added from watch',
   });
 
-  console.log(`Quick added ${calories} calories to ${targetMeal} from watch`);
+  if (__DEV__) console.log(`Quick added ${calories} calories to ${targetMeal} from watch`);
 }
 
 /**
@@ -377,7 +377,7 @@ async function handleLogFoodAction(payload: { foodId?: string }): Promise<void> 
       description: recentEntry.name || 'Logged from watch',
     });
 
-    console.log(`Logged food ${recentEntry.name} from watch`);
+    if (__DEV__) console.log(`Logged food ${recentEntry.name} from watch`);
   }
 }
 

@@ -18,8 +18,12 @@ import { useLLMStatus } from '@/hooks/useLLMStatus';
 import { LLMService } from '@/features/insights/services/LLMService';
 import { seedDatabase } from '@/utils/devTools/seedDatabase';
 import { DEFAULT_SEED_OPTIONS } from '@/utils/devTools/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resetDatabase } from '@/db/database';
 import Constants from 'expo-constants';
 import { TestIDs } from '@/constants/testIDs';
+import * as Sentry from '@sentry/react-native';
+import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -149,7 +153,7 @@ function ThemeSelector() {
   );
 }
 
-export default function SettingsScreen() {
+function SettingsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { isPremium, expirationDate, hasBundle, isDevPremium, toggleDevPremium } = useSubscriptionStore();
@@ -236,14 +240,9 @@ export default function SettingsScreen() {
       confirmStyle: 'destructive',
       onConfirm: async () => {
         try {
-          await Promise.all([
-            resetOnboarding(),
-            resetProfile(),
-            resetSettings(),
-            resetTooltips(),
-          ]);
-          resetDashboard();
-          router.replace('/onboarding');
+          await AsyncStorage.clear();
+          await resetDatabase();
+          router.replace('/');
         } catch (error) {
           Alert.alert('Error', 'Failed to delete data. Please try again.');
         }
@@ -585,6 +584,14 @@ export default function SettingsScreen() {
               subtitle="Review the health disclaimer"
               onPress={() => router.push('/settings/health-notice')}
             />
+            <SettingsItem
+              icon="trash-outline"
+              title="Delete My Data"
+              subtitle="Permanently erase all app data"
+              onPress={handleDeleteAllData}
+              danger
+              showChevron={false}
+            />
           </View>
         </View>
 
@@ -828,3 +835,11 @@ const styles = StyleSheet.create({
     ...typography.caption,
   },
 });
+
+export default function SettingsScreenWithErrorBoundary() {
+  return (
+    <Sentry.ErrorBoundary fallback={({ resetError }) => <CrashFallbackScreen resetError={resetError} />}>
+      <SettingsScreen />
+    </Sentry.ErrorBoundary>
+  );
+}

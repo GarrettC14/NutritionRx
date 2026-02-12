@@ -96,7 +96,7 @@ export function ReflectionModal({ visible, onClose }: ReflectionModalProps) {
       );
       setSentimentPattern(pattern);
     } catch (error) {
-      console.error('Failed to load reflection context:', error);
+      if (__DEV__) console.error('Failed to load reflection context:', error);
     }
   };
 

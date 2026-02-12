@@ -120,7 +120,7 @@ export const useAIPhotoStore = create<AIPhotoState>((set, get) => ({
       set({ quota: updatedQuota });
       return true;
     } catch (error) {
-      console.error('Failed to increment AI photo usage:', error);
+      if (__DEV__) console.error('Failed to increment AI photo usage:', error);
       return false;
     }
   },
@@ -146,7 +146,7 @@ export const useAIPhotoStore = create<AIPhotoState>((set, get) => ({
       await AsyncStorage.setItem(QUOTA_STORAGE_KEY, JSON.stringify(defaultQuota));
       set({ quota: defaultQuota });
     } catch (error) {
-      console.error('Failed to reset AI photo quota:', error);
+      if (__DEV__) console.error('Failed to reset AI photo quota:', error);
     }
   },
 }));

@@ -123,7 +123,7 @@ export async function seedProgressPhotos(
 
       if (verbose) console.log(`[seed]   ${i + 1}/${PHOTO_SCHEDULE.length} — ${image.category} (${date})`);
     } catch (error) {
-      console.warn(`[seed] Failed to download photo ${i + 1} (picsum id ${image.picsumId}):`, error);
+      if (__DEV__) console.warn(`[seed] Failed to download photo ${i + 1} (picsum id ${image.picsumId}):`, error);
     }
   }
 

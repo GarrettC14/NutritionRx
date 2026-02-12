@@ -16,7 +16,7 @@ let AppleLLMModule: {
 try {
   AppleLLMModule = require('react-native-apple-llm');
 } catch {
-  console.log('[AppleFoundationProvider] react-native-apple-llm not available');
+  if (__DEV__) console.log('[AppleFoundationProvider] react-native-apple-llm not available');
 }
 
 export class AppleFoundationProvider implements LLMProvider {
@@ -51,7 +51,7 @@ export class AppleFoundationProvider implements LLMProvider {
     try {
       this.session = new AppleLLMModule.AppleLLMSession();
       this.status = 'ready';
-      console.log('[AppleFoundationProvider] Session created');
+      if (__DEV__) console.log('[AppleFoundationProvider] Session created');
     } catch (error) {
       this.status = 'error';
       throw error;

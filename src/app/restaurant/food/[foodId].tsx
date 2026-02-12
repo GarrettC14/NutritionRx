@@ -98,7 +98,7 @@ export default function RestaurantFoodDetailScreen() {
       await logFood(food, mealType, qty, notes.trim() || undefined);
       router.dismiss();
     } catch (error) {
-      console.error('Failed to log restaurant food:', error);
+      if (__DEV__) console.error('Failed to log restaurant food:', error);
     } finally {
       setIsSaving(false);
     }

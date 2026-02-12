@@ -186,7 +186,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
 
       set({ profile: newProfile });
     } catch (error) {
-      console.error('Failed to update nutrient profile:', error);
+      if (__DEV__) console.error('Failed to update nutrient profile:', error);
     }
   },
 
@@ -261,7 +261,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
 
       set({ dailyIntake, isLoading: false });
     } catch (error) {
-      console.error('Failed to load daily intake:', error);
+      if (__DEV__) console.error('Failed to load daily intake:', error);
       set({ isLoading: false, error: 'Failed to load daily intake' });
     }
   },
@@ -306,7 +306,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
 
       set({ contributors });
     } catch (error) {
-      console.error('Failed to load contributors:', error);
+      if (__DEV__) console.error('Failed to load contributors:', error);
     }
   },
 
@@ -334,7 +334,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
       newCustomTargets.set(nutrientId, newTarget);
       set({ customTargets: newCustomTargets });
     } catch (error) {
-      console.error('Failed to set custom target:', error);
+      if (__DEV__) console.error('Failed to set custom target:', error);
     }
   },
 
@@ -351,7 +351,7 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
       newCustomTargets.delete(nutrientId);
       set({ customTargets: newCustomTargets });
     } catch (error) {
-      console.error('Failed to remove custom target:', error);
+      if (__DEV__) console.error('Failed to remove custom target:', error);
     }
   },
 

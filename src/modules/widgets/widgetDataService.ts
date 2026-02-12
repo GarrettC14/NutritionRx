@@ -115,7 +115,7 @@ class WidgetDataService {
           return this.cachedData;
         }
       } catch (error) {
-        console.warn('Failed to get shared widget data:', error);
+        if (__DEV__) console.warn('Failed to get shared widget data:', error);
       }
     }
 
@@ -127,7 +127,7 @@ class WidgetDataService {
         return this.cachedData;
       }
     } catch (error) {
-      console.warn('Failed to get local widget data:', error);
+      if (__DEV__) console.warn('Failed to get local widget data:', error);
     }
 
     // Return default data
@@ -193,7 +193,7 @@ class WidgetDataService {
     try {
       await AsyncStorage.setItem(LOCAL_WIDGET_DATA_KEY, jsonData);
     } catch (error) {
-      console.warn('Failed to save local widget data:', error);
+      if (__DEV__) console.warn('Failed to save local widget data:', error);
     }
 
     // Save to native App Groups for widgets
@@ -205,7 +205,7 @@ class WidgetDataService {
           jsonData
         );
       } catch (error) {
-        console.warn('Failed to save shared widget data:', error);
+        if (__DEV__) console.warn('Failed to save shared widget data:', error);
       }
     }
   }
@@ -218,7 +218,7 @@ class WidgetDataService {
       try {
         await this.nativeModule.reloadWidgets(widgetKind);
       } catch (error) {
-        console.warn('Failed to reload widgets:', error);
+        if (__DEV__) console.warn('Failed to reload widgets:', error);
       }
     }
   }

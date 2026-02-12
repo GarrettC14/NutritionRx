@@ -83,7 +83,7 @@ export async function migration009SeedRestaurantUSDAFoods(db: SQLiteDatabase): P
     }
   }
 
-  console.log(`Inserted ${insertedCount} restaurant food items.`);
+  if (__DEV__) console.log(`Inserted ${insertedCount} restaurant food items.`);
 
   // Process USDA foods
   const usdaFoods = (usdaData as { foods: USDAFood[] }).foods;
@@ -125,7 +125,7 @@ export async function migration009SeedRestaurantUSDAFoods(db: SQLiteDatabase): P
     usdaCount++;
   }
 
-  console.log(`Inserted ${usdaCount} USDA food items.`);
+  if (__DEV__) console.log(`Inserted ${usdaCount} USDA food items.`);
 
   // Record migration
   await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [9]);

@@ -80,7 +80,7 @@ export default function LegalAcknowledgmentScreen() {
   const handleCheckboxPress = () => {
     if (!hasScrolledToBottom) {
       // Scroll to bottom and set state immediately so the next tap toggles the checkbox
-      console.log('[Legal] Checkbox pressed before scroll — calling scrollToEnd');
+      if (__DEV__) console.log('[Legal] Checkbox pressed before scroll — calling scrollToEnd');
       scrollViewRef.current?.scrollToEnd({ animated: true });
       setHasScrolledToBottom(true);
       return;
@@ -108,7 +108,7 @@ export default function LegalAcknowledgmentScreen() {
       const onboardingComplete = useOnboardingStore.getState().isComplete;
       router.replace(onboardingComplete ? '/(tabs)' : '/onboarding');
     } catch (error) {
-      console.error('Failed to acknowledge:', error);
+      if (__DEV__) console.error('Failed to acknowledge:', error);
       setIsSubmitting(false);
     }
   };

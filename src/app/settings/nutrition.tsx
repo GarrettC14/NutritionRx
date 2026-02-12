@@ -169,7 +169,7 @@ export default function NutritionSettingsScreen() {
         onConfirm: () => {},
       });
     } catch (error) {
-      console.error('Failed to update nutrition preferences:', error);
+      if (__DEV__) console.error('Failed to update nutrition preferences:', error);
       showConfirm({
         title: 'Error',
         message: 'Failed to update preferences. Please try again.',

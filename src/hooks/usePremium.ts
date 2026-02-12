@@ -56,7 +56,7 @@ export function usePremium() {
         setState({ isPremium: __DEV__, isLoading: false, expirationDate: null });
       }
     } catch (error) {
-      console.error('Failed to load premium status:', error);
+      if (__DEV__) console.error('Failed to load premium status:', error);
       setState({ isPremium: __DEV__, isLoading: false, expirationDate: null });
     }
   };
@@ -79,7 +79,7 @@ export function usePremium() {
   const showPremiumPrompt = useCallback((feature: PremiumFeature) => {
     // This would trigger a premium upgrade modal/screen
     // For now, we'll just log it
-    console.log(`Premium prompt for feature: ${feature}`);
+    if (__DEV__) console.log(`Premium prompt for feature: ${feature}`);
   }, []);
 
   // Unlock premium (for testing/development)

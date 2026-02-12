@@ -24,32 +24,32 @@ export async function sendMessage(
   options: SendMessageOptions = {}
 ): Promise<string> {
   const { model = 'gpt-4o-mini' } = options;
-  console.log(`[LLM:Chat] sendMessage() — model=${model}, messageCount=${messages.length}, stream=false`);
+  if (__DEV__) console.log(`[LLM:Chat] sendMessage() — model=${model}, messageCount=${messages.length}, stream=false`);
 
   // Check for safety triggers in the latest user message
   const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
   if (lastUserMessage) {
-    console.log(`[LLM:Chat] Last user message: "${lastUserMessage.content.substring(0, 100)}..."`);
+    if (__DEV__) console.log(`[LLM:Chat] Last user message: "${lastUserMessage.content.substring(0, 100)}..."`);
     const trigger = detectSafetyTriggers(lastUserMessage.content);
     if (trigger) {
-      console.log(`[LLM:Chat] Safety trigger detected: ${trigger}`);
+      if (__DEV__) console.log(`[LLM:Chat] Safety trigger detected: ${trigger}`);
       return SAFETY_RESPONSES[trigger];
     }
   }
 
   const apiKey = openaiConfig.apiKey;
   if (!apiKey) {
-    console.error('[LLM:Chat] No API key configured');
+    if (__DEV__) console.error('[LLM:Chat] No API key configured');
     throw new ChatServiceError('OpenAI API key not configured', 'api');
   }
 
   const systemPrompt = buildSystemPrompt(context);
-  console.log(`[LLM:Chat] System prompt built (${systemPrompt.length} chars)`);
+  if (__DEV__) console.log(`[LLM:Chat] System prompt built (${systemPrompt.length} chars)`);
 
   const filteredMessages = messages
     .filter((m) => m.role !== 'system')
     .slice(-openaiConfig.maxConversationHistory);
-  console.log(`[LLM:Chat] Sending ${filteredMessages.length} messages (maxHistory=${openaiConfig.maxConversationHistory}), maxTokens=${openaiConfig.maxTokens}, temp=${openaiConfig.temperature}`);
+  if (__DEV__) console.log(`[LLM:Chat] Sending ${filteredMessages.length} messages (maxHistory=${openaiConfig.maxConversationHistory}), maxTokens=${openaiConfig.maxTokens}, temp=${openaiConfig.temperature}`);
 
   const requestBody = {
     model,
@@ -72,32 +72,32 @@ export async function sendMessage(
     body: JSON.stringify(requestBody),
   });
 
-  console.log(`[LLM:Chat] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);
+  if (__DEV__) console.log(`[LLM:Chat] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);
 
   if (!response.ok) {
     if (response.status === 429) {
-      console.error('[LLM:Chat] Rate limited (429)');
+      if (__DEV__) console.error('[LLM:Chat] Rate limited (429)');
       throw new ChatServiceError('Rate limited', 'rate_limited');
     }
     if (response.status === 401 || response.status === 403) {
-      console.error(`[LLM:Chat] Auth error (${response.status})`);
+      if (__DEV__) console.error(`[LLM:Chat] Auth error (${response.status})`);
       throw new ChatServiceError('Invalid API key', 'api');
     }
     const errorText = await response.text();
-    console.error(`[LLM:Chat] API error ${response.status}: ${errorText.substring(0, 300)}`);
+    if (__DEV__) console.error(`[LLM:Chat] API error ${response.status}: ${errorText.substring(0, 300)}`);
     throw new ChatServiceError(`API request failed: ${response.status}`, 'api');
   }
 
   const data = await response.json();
-  console.log(`[LLM:Chat] Response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})}`);
+  if (__DEV__) console.log(`[LLM:Chat] Response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})}`);
 
   if (!data.choices || data.choices.length === 0) {
-    console.error('[LLM:Chat] No choices in response');
+    if (__DEV__) console.error('[LLM:Chat] No choices in response');
     throw new ChatServiceError('No response from OpenAI', 'api');
   }
 
   const responseText = data.choices[0].message.content;
-  console.log(`[LLM:Chat] sendMessage COMPLETE — responseLength=${responseText.length}, preview="${responseText.substring(0, 150)}..."`);
+  if (__DEV__) console.log(`[LLM:Chat] sendMessage COMPLETE — responseLength=${responseText.length}, preview="${responseText.substring(0, 150)}..."`);
   return responseText;
 }
 
@@ -112,15 +112,15 @@ export async function sendMessageStreaming(
   options: SendMessageOptions = {}
 ): Promise<string> {
   const { model = 'gpt-4o-mini' } = options;
-  console.log(`[LLM:Chat] sendMessageStreaming() — model=${model}, messageCount=${messages.length}`);
+  if (__DEV__) console.log(`[LLM:Chat] sendMessageStreaming() — model=${model}, messageCount=${messages.length}`);
 
   // Check for safety triggers
   const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
   if (lastUserMessage) {
-    console.log(`[LLM:Chat] Streaming — last user message: "${lastUserMessage.content.substring(0, 100)}..."`);
+    if (__DEV__) console.log(`[LLM:Chat] Streaming — last user message: "${lastUserMessage.content.substring(0, 100)}..."`);
     const trigger = detectSafetyTriggers(lastUserMessage.content);
     if (trigger) {
-      console.log(`[LLM:Chat] Safety trigger detected in streaming: ${trigger}`);
+      if (__DEV__) console.log(`[LLM:Chat] Safety trigger detected in streaming: ${trigger}`);
       const response = SAFETY_RESPONSES[trigger];
       onChunk(response);
       return response;
@@ -129,17 +129,17 @@ export async function sendMessageStreaming(
 
   const apiKey = openaiConfig.apiKey;
   if (!apiKey) {
-    console.error('[LLM:Chat] No API key configured (streaming)');
+    if (__DEV__) console.error('[LLM:Chat] No API key configured (streaming)');
     throw new ChatServiceError('OpenAI API key not configured', 'api');
   }
 
   const systemPrompt = buildSystemPrompt(context);
-  console.log(`[LLM:Chat] Streaming system prompt built (${systemPrompt.length} chars)`);
+  if (__DEV__) console.log(`[LLM:Chat] Streaming system prompt built (${systemPrompt.length} chars)`);
 
   const filteredMessages = messages
     .filter((m) => m.role !== 'system')
     .slice(-openaiConfig.maxConversationHistory);
-  console.log(`[LLM:Chat] Streaming ${filteredMessages.length} messages`);
+  if (__DEV__) console.log(`[LLM:Chat] Streaming ${filteredMessages.length} messages`);
 
   const requestBody = {
     model,
@@ -162,26 +162,26 @@ export async function sendMessageStreaming(
     body: JSON.stringify(requestBody),
   });
 
-  console.log(`[LLM:Chat] Streaming API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms to first byte)`);
+  if (__DEV__) console.log(`[LLM:Chat] Streaming API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms to first byte)`);
 
   if (!response.ok) {
     if (response.status === 429) {
-      console.error('[LLM:Chat] Streaming rate limited (429)');
+      if (__DEV__) console.error('[LLM:Chat] Streaming rate limited (429)');
       throw new ChatServiceError('Rate limited', 'rate_limited');
     }
     if (response.status === 401 || response.status === 403) {
-      console.error(`[LLM:Chat] Streaming auth error (${response.status})`);
+      if (__DEV__) console.error(`[LLM:Chat] Streaming auth error (${response.status})`);
       throw new ChatServiceError('Invalid API key', 'api');
     }
     const errorText = await response.text();
-    console.error(`[LLM:Chat] Streaming API error ${response.status}: ${errorText.substring(0, 300)}`);
+    if (__DEV__) console.error(`[LLM:Chat] Streaming API error ${response.status}: ${errorText.substring(0, 300)}`);
     throw new ChatServiceError(`API request failed: ${response.status}`, 'api');
   }
 
   // Parse SSE stream
   const reader = response.body?.getReader();
   if (!reader) {
-    console.error('[LLM:Chat] No response body for streaming');
+    if (__DEV__) console.error('[LLM:Chat] No response body for streaming');
     throw new ChatServiceError('No response body', 'api');
   }
 
@@ -190,7 +190,7 @@ export async function sendMessageStreaming(
   let buffer = '';
   let chunkCount = 0;
 
-  console.log('[LLM:Chat] Starting SSE stream parsing...');
+  if (__DEV__) console.log('[LLM:Chat] Starting SSE stream parsing...');
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -205,7 +205,7 @@ export async function sendMessageStreaming(
 
       const data = trimmed.slice(6);
       if (data === '[DONE]') {
-        console.log('[LLM:Chat] Stream [DONE] received');
+        if (__DEV__) console.log('[LLM:Chat] Stream [DONE] received');
         continue;
       }
 
@@ -223,8 +223,8 @@ export async function sendMessageStreaming(
     }
   }
 
-  console.log(`[LLM:Chat] Streaming COMPLETE in ${Date.now() - apiStart}ms — ${chunkCount} chunks, responseLength=${fullResponse.length}`);
-  console.log(`[LLM:Chat] Streaming response preview: "${fullResponse.substring(0, 200)}${fullResponse.length > 200 ? '...' : ''}"`);
+  if (__DEV__) console.log(`[LLM:Chat] Streaming COMPLETE in ${Date.now() - apiStart}ms — ${chunkCount} chunks, responseLength=${fullResponse.length}`);
+  if (__DEV__) console.log(`[LLM:Chat] Streaming response preview: "${fullResponse.substring(0, 200)}${fullResponse.length > 200 ? '...' : ''}"`);
   return fullResponse;
 }
 

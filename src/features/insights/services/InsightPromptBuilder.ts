@@ -7,10 +7,10 @@ import type { InsightInputData, Insight, InsightCategory } from '../types/insigh
 import type { DailyQuestionCategory } from '../types/dailyInsights.types';
 
 export function buildInsightPrompt(data: InsightInputData): string {
-  console.log(`[LLM:InsightPromptBuilder] buildInsightPrompt() — cal=${data.todayCalories}, prot=${data.todayProtein}g, meals=${data.todayMealCount}, goal=${data.userGoal}`);
+  if (__DEV__) console.log(`[LLM:InsightPromptBuilder] buildInsightPrompt() — cal=${data.todayCalories}, prot=${data.todayProtein}g, meals=${data.todayMealCount}, goal=${data.userGoal}`);
   const goalText = data.userGoal === 'lose' ? 'weight loss' : data.userGoal === 'gain' ? 'muscle gain' : 'maintenance';
   const foodsList = data.todayFoods.slice(0, 10).join(', ') || 'No foods logged yet';
-  console.log(`[LLM:InsightPromptBuilder] Goal: ${goalText}, Foods: ${foodsList.substring(0, 100)}`);
+  if (__DEV__) console.log(`[LLM:InsightPromptBuilder] Goal: ${goalText}, Foods: ${foodsList.substring(0, 100)}`);
 
   return `You are a supportive nutrition companion for the NutritionRx app. Generate 2-3 brief, personalized insights about the user's nutrition today.
 
@@ -50,29 +50,29 @@ Generate insights now:`;
 }
 
 export function parseInsightResponse(responseText: string): Insight[] {
-  console.log(`[LLM:InsightPromptBuilder] parseInsightResponse() — responseLength=${responseText.length}`);
-  console.log(`[LLM:InsightPromptBuilder] Raw response: "${responseText.substring(0, 300)}${responseText.length > 300 ? '...' : ''}"`);
+  if (__DEV__) console.log(`[LLM:InsightPromptBuilder] parseInsightResponse() — responseLength=${responseText.length}`);
+  if (__DEV__) console.log(`[LLM:InsightPromptBuilder] Raw response: "${responseText.substring(0, 300)}${responseText.length > 300 ? '...' : ''}"`);
   try {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.warn('[LLM:InsightPromptBuilder] No JSON found in response');
+      if (__DEV__) console.warn('[LLM:InsightPromptBuilder] No JSON found in response');
       return [];
     }
-    console.log(`[LLM:InsightPromptBuilder] Extracted JSON (${jsonMatch[0].length} chars)`);
+    if (__DEV__) console.log(`[LLM:InsightPromptBuilder] Extracted JSON (${jsonMatch[0].length} chars)`);
     const parsed = JSON.parse(jsonMatch[0]);
     if (!parsed.insights || !Array.isArray(parsed.insights)) {
-      console.warn(`[LLM:InsightPromptBuilder] Invalid insights format — keys: ${Object.keys(parsed).join(', ')}`);
+      if (__DEV__) console.warn(`[LLM:InsightPromptBuilder] Invalid insights format — keys: ${Object.keys(parsed).join(', ')}`);
       return [];
     }
     const validCategories: InsightCategory[] = ['macro_balance', 'protein', 'consistency', 'pattern', 'trend', 'hydration', 'timing', 'rest'];
     const result = parsed.insights
       .filter((insight: any) => insight && typeof insight.text === 'string' && insight.text.length > 0 && validCategories.includes(insight.category))
       .map((insight: any) => ({ category: insight.category as InsightCategory, text: insight.text.trim(), icon: getCategoryIcon(insight.category) }));
-    console.log(`[LLM:InsightPromptBuilder] Parsed ${result.length} valid insights from ${parsed.insights.length} raw: [${result.map((i: Insight) => i.category).join(', ')}]`);
+    if (__DEV__) console.log(`[LLM:InsightPromptBuilder] Parsed ${result.length} valid insights from ${parsed.insights.length} raw: [${result.map((i: Insight) => i.category).join(', ')}]`);
     return result;
   } catch (error) {
-    console.error('[LLM:InsightPromptBuilder] parseInsightResponse ERROR:', error);
-    console.error(`[LLM:InsightPromptBuilder] Failed text: "${responseText.substring(0, 200)}"`);
+    if (__DEV__) console.error('[LLM:InsightPromptBuilder] parseInsightResponse ERROR:', error);
+    if (__DEV__) console.error(`[LLM:InsightPromptBuilder] Failed text: "${responseText.substring(0, 200)}"`);
     return [];
   }
 }

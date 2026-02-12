@@ -186,7 +186,7 @@ export function useHealthSync() {
 
         return { success: false, error: 'Platform not supported' };
       } catch (error) {
-        console.error('Error syncing nutrition:', error);
+        if (__DEV__) console.error('Error syncing nutrition:', error);
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Sync failed',
@@ -225,7 +225,7 @@ export function useHealthSync() {
 
         return { success: false, error: 'Platform not supported' };
       } catch (error) {
-        console.error('Error syncing water:', error);
+        if (__DEV__) console.error('Error syncing water:', error);
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Sync failed',
@@ -256,7 +256,7 @@ export function useHealthSync() {
 
         return { success: false, error: 'Platform not supported' };
       } catch (error) {
-        console.error('Error syncing weight:', error);
+        if (__DEV__) console.error('Error syncing weight:', error);
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Sync failed',
@@ -286,7 +286,7 @@ export function useHealthSync() {
 
       return null;
     } catch (error) {
-      console.error('Error getting weight:', error);
+      if (__DEV__) console.error('Error getting weight:', error);
       return null;
     }
   }, [isWeightReadEnabled, healthConnectStore]);
@@ -310,7 +310,7 @@ export function useHealthSync() {
 
         return 0;
       } catch (error) {
-        console.error('Error getting active calories:', error);
+        if (__DEV__) console.error('Error getting active calories:', error);
         return 0;
       }
     },

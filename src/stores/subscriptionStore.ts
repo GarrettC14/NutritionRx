@@ -6,7 +6,9 @@ import Purchases, {
   PurchasesOffering,
   PurchasesPackage,
 } from 'react-native-purchases';
+import * as Sentry from '@sentry/react-native';
 import { REVENUECAT_CONFIG, APP_ENTITLEMENT } from '@/config/revenuecat';
+import { isExpectedError } from '@/utils/sentryHelpers';
 
 const isDevBuild =
   (globalThis as { __DEV__?: boolean }).__DEV__ ?? process.env.NODE_ENV !== 'production';
@@ -71,8 +73,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const isPremium = !!appEntitlement || !!bundleEntitlement;
           const activeEntitlement = bundleEntitlement || appEntitlement;
 
+          const resolvedPremium = isDevBuild || isPremium;
           set({
-            isPremium: isDevBuild || isPremium,
+            isPremium: resolvedPremium,
             customerInfo,
             currentOffering,
             expirationDate: activeEntitlement?.expirationDate || null,
@@ -80,6 +83,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             hasBundle: !!bundleEntitlement,
             isLoading: false,
           });
+
+          Sentry.setTag('subscription_tier', resolvedPremium ? 'premium' : 'free');
 
           // Set up listener for future updates
           Purchases.addCustomerInfoUpdateListener((info) => {
@@ -98,7 +103,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             });
           });
         } catch (error) {
-          console.error('Failed to initialize purchases:', error);
+          Sentry.captureException(error, { tags: { feature: 'subscription', action: 'init' } });
+          if (__DEV__) console.error('Failed to initialize purchases:', error);
           set({
             isPremium: isDevBuild,
             isLoading: false,
@@ -128,7 +134,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             hasBundle: !!bundleEntitlement,
           });
         } catch (error) {
-          console.error('Failed to refresh status:', error);
+          Sentry.captureException(error, { tags: { feature: 'subscription', action: 'refresh' } });
+          if (__DEV__) console.error('Failed to refresh status:', error);
         }
       },
 
@@ -166,7 +173,10 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             return false;
           }
 
-          console.error('Purchase failed:', error);
+          if (!isExpectedError(error)) {
+            Sentry.captureException(error, { tags: { feature: 'subscription', action: 'purchase' } });
+          }
+          if (__DEV__) console.error('Purchase failed:', error);
           set({
             isLoading: false,
             error: 'Purchase failed. Please try again.',
@@ -206,7 +216,10 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           });
           return false;
         } catch (error) {
-          console.error('Restore failed:', error);
+          if (!isExpectedError(error)) {
+            Sentry.captureException(error, { tags: { feature: 'subscription', action: 'restore' } });
+          }
+          if (__DEV__) console.error('Restore failed:', error);
           set({
             isLoading: false,
             error: "Couldn't restore purchases. Please try again or contact support.",
@@ -224,7 +237,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           isDevPremium: newDevPremium,
           isPremium: newDevPremium, // Override isPremium when dev mode is enabled
         });
-        console.log(`[Dev] Premium ${newDevPremium ? 'enabled' : 'disabled'} for testing`);
+        if (__DEV__) console.log(`[Dev] Premium ${newDevPremium ? 'enabled' : 'disabled'} for testing`);
       },
     }),
     {

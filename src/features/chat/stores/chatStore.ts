@@ -62,7 +62,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (text, context) => {
-    console.log(`[LLM:ChatStore] sendMessage() — text="${text.substring(0, 100)}...", contextKeys=${Object.keys(context).join(',')}`);
+    if (__DEV__) console.log(`[LLM:ChatStore] sendMessage() — text="${text.substring(0, 100)}...", contextKeys=${Object.keys(context).join(',')}`);
     const sendStart = Date.now();
     const { addMessage, updateMessage } = get();
 
@@ -72,7 +72,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       content: text,
       status: 'sent',
     });
-    console.log(`[LLM:ChatStore] Added user message id=${userId}`);
+    if (__DEV__) console.log(`[LLM:ChatStore] Added user message id=${userId}`);
 
     // Create placeholder assistant message
     const assistantId = addMessage({
@@ -80,7 +80,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       content: '',
       status: 'sending',
     });
-    console.log(`[LLM:ChatStore] Created placeholder assistant message id=${assistantId}`);
+    if (__DEV__) console.log(`[LLM:ChatStore] Created placeholder assistant message id=${assistantId}`);
 
     set({ isGenerating: true, error: null });
 
@@ -88,7 +88,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const allMessages = get().messages.filter(
         (m) => m.role !== 'system' && m.id !== assistantId
       );
-      console.log(`[LLM:ChatStore] Sending ${allMessages.length} messages to streaming API...`);
+      if (__DEV__) console.log(`[LLM:ChatStore] Sending ${allMessages.length} messages to streaming API...`);
 
       // Use streaming for real-time response
       let fullResponse = '';
@@ -103,22 +103,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       );
 
-      console.log(`[LLM:ChatStore] Streaming complete — ${chunkCount} chunks, ${fullResponse.length} chars, ${Date.now() - sendStart}ms`);
+      if (__DEV__) console.log(`[LLM:ChatStore] Streaming complete — ${chunkCount} chunks, ${fullResponse.length} chars, ${Date.now() - sendStart}ms`);
       updateMessage(assistantId, { status: 'sent' });
     } catch (error) {
       let errorMessage = ERROR_MESSAGES.api;
 
       if (error instanceof ChatServiceError) {
-        console.error(`[LLM:ChatStore] ChatServiceError: type=${error.type}, message=${error.message}`);
+        if (__DEV__) console.error(`[LLM:ChatStore] ChatServiceError: type=${error.type}, message=${error.message}`);
         errorMessage = ERROR_MESSAGES[error.type] || ERROR_MESSAGES.api;
       } else if (error instanceof TypeError && error.message.includes('Network')) {
-        console.error(`[LLM:ChatStore] Network error: ${error.message}`);
+        if (__DEV__) console.error(`[LLM:ChatStore] Network error: ${error.message}`);
         errorMessage = ERROR_MESSAGES.network;
       } else {
-        console.error('[LLM:ChatStore] Unknown error:', error);
+        if (__DEV__) console.error('[LLM:ChatStore] Unknown error:', error);
       }
 
-      console.log(`[LLM:ChatStore] Setting error message on assistant: "${errorMessage.substring(0, 100)}..."`);
+      if (__DEV__) console.log(`[LLM:ChatStore] Setting error message on assistant: "${errorMessage.substring(0, 100)}..."`);
       updateMessage(assistantId, {
         content: errorMessage,
         status: 'error',
@@ -127,7 +127,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ error: errorMessage });
     } finally {
       set({ isGenerating: false });
-      console.log(`[LLM:ChatStore] sendMessage() DONE in ${Date.now() - sendStart}ms`);
+      if (__DEV__) console.log(`[LLM:ChatStore] sendMessage() DONE in ${Date.now() - sendStart}ms`);
     }
   },
 

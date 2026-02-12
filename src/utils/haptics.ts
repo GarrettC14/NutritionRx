@@ -48,7 +48,7 @@ export async function triggerHaptic(type: VoiceHapticType): Promise<void> {
     }
   } catch (error) {
     // Silently fail - haptics are not critical
-    console.warn('Haptic feedback failed:', error);
+    if (__DEV__) console.warn('Haptic feedback failed:', error);
   }
 }
 

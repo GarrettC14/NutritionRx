@@ -166,7 +166,7 @@ class LLMServiceClass {
       return { success: true, text };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Generation failed';
-      console.error('[LLMService] generate error:', errorMessage);
+      if (__DEV__) console.error('[LLMService] generate error:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }
@@ -199,7 +199,7 @@ class LLMServiceClass {
       return { success: true, text };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Generation failed';
-      console.error('[LLMService] generateWithSystem error:', errorMessage);
+      if (__DEV__) console.error('[LLMService] generateWithSystem error:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }

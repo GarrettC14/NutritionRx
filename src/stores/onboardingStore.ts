@@ -201,24 +201,24 @@ export const useOnboardingStore = create<OnboardingState>()(
           const data = await onboardingRepository.completeOnboarding('track', energyUnit, weightUnit);
           set({ ...mapDataToState(data) });
         } catch (error) {
-          console.error('Failed to migrate legacy onboarding:', error);
+          if (__DEV__) console.error('Failed to migrate legacy onboarding:', error);
           set({ isComplete: true });
         }
       },
 
       setGoalPath: (goal) => {
         set({ goalPath: goal });
-        onboardingRepository.setGoalPath(goal).catch(console.error);
+        onboardingRepository.setGoalPath(goal).catch((e) => { if (__DEV__) console.error(e); });
       },
 
       setEnergyUnit: (unit) => {
         set({ energyUnit: unit });
-        onboardingRepository.setEnergyUnit(unit).catch(console.error);
+        onboardingRepository.setEnergyUnit(unit).catch((e) => { if (__DEV__) console.error(e); });
       },
 
       setWeightUnit: (unit) => {
         set({ weightUnit: unit });
-        onboardingRepository.setWeightUnit(unit).catch(console.error);
+        onboardingRepository.setWeightUnit(unit).catch((e) => { if (__DEV__) console.error(e); });
       },
 
       markTooltipSeen: async (id) => {
@@ -231,7 +231,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         try {
           await onboardingRepository.markTooltipSeen(id);
         } catch (error) {
-          console.error('Failed to persist tooltip seen:', error);
+          if (__DEV__) console.error('Failed to persist tooltip seen:', error);
         }
       },
 
@@ -252,7 +252,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         try {
           await onboardingRepository.markFirstFoodLogged();
         } catch (error) {
-          console.error('Failed to mark first food logged:', error);
+          if (__DEV__) console.error('Failed to mark first food logged:', error);
         }
 
         return true;
@@ -266,7 +266,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         try {
           await onboardingRepository.incrementFoodsLogged();
         } catch (error) {
-          console.error('Failed to increment foods logged:', error);
+          if (__DEV__) console.error('Failed to increment foods logged:', error);
         }
       },
 
@@ -278,7 +278,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         try {
           await onboardingRepository.incrementDaysTracked();
         } catch (error) {
-          console.error('Failed to increment days tracked:', error);
+          if (__DEV__) console.error('Failed to increment days tracked:', error);
         }
       },
 
@@ -304,7 +304,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         try {
           await onboardingRepository.resetTooltips();
         } catch (error) {
-          console.error('Failed to reset tooltips:', error);
+          if (__DEV__) console.error('Failed to reset tooltips:', error);
         }
       },
 

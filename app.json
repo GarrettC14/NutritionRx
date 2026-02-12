@@ -62,7 +62,14 @@
           }
         }
       ],
-      "./plugins/withHealthConnect"
+      "./plugins/withHealthConnect",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "cascade-software-solutions",
+          "project": "nutritionrx"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

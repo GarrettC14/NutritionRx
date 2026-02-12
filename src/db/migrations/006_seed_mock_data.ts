@@ -54,7 +54,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     WHERE id = 'singleton'
   `, [now]);
 
-  console.log('Updated user profile');
+  if (__DEV__) console.log('Updated user profile');
 
   // ============================================================
   // WEIGHT ENTRIES - 45 days of data showing ~5kg loss
@@ -86,7 +86,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     ]);
   }
 
-  console.log('Inserted weight entries');
+  if (__DEV__) console.log('Inserted weight entries');
 
   // ============================================================
   // GOALS - Active weight loss goal
@@ -139,7 +139,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     now
   ]);
 
-  console.log('Inserted goal');
+  if (__DEV__) console.log('Inserted goal');
 
   // ============================================================
   // UPDATE USER SETTINGS with macro goals
@@ -164,7 +164,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     UPDATE user_settings SET value = ?, updated_at = ? WHERE key = 'has_seen_onboarding'
   `, ['1', now]);
 
-  console.log('Updated user settings');
+  if (__DEV__) console.log('Updated user settings');
 
   // ============================================================
   // FOOD LOG ENTRIES - 14 days of realistic meal logging
@@ -343,7 +343,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     }
   }
 
-  console.log('Inserted food log entries');
+  if (__DEV__) console.log('Inserted food log entries');
 
   // ============================================================
   // UPDATE FOOD ITEMS USAGE TRACKING
@@ -366,7 +366,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     WHERE id IN (SELECT DISTINCT food_item_id FROM log_entries)
   `, [now]);
 
-  console.log('Updated food items usage tracking');
+  if (__DEV__) console.log('Updated food items usage tracking');
 
   // ============================================================
   // QUICK ADD ENTRIES - A few quick add examples
@@ -400,7 +400,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     ]);
   }
 
-  console.log('Inserted quick add entries');
+  if (__DEV__) console.log('Inserted quick add entries');
 
   // ============================================================
   // WEEKLY REFLECTIONS - 5 weeks of check-ins
@@ -451,7 +451,7 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     ]);
   }
 
-  console.log('Inserted weekly reflections');
+  if (__DEV__) console.log('Inserted weekly reflections');
 
   // ============================================================
   // DAILY METABOLISM - 30 days of tracking
@@ -482,12 +482,12 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     ]);
   }
 
-  console.log('Inserted daily metabolism data');
+  if (__DEV__) console.log('Inserted daily metabolism data');
 
   // Record migration
   await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [6]);
 
-  console.log('Migration 006: Seeded comprehensive mock data');
+  if (__DEV__) console.log('Migration 006: Seeded comprehensive mock data');
 }
 
 // Export alias for developer menu

@@ -53,7 +53,7 @@ export const useInsightsStore = create<InsightsState>()(
       setInsights: (insights, source) => {
         const now = Date.now();
         const today = new Date().toISOString().split('T')[0];
-        console.log(`[LLM:InsightsStore] setInsights() — count=${insights.length}, source=${source}, date=${today}`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] setInsights() — count=${insights.length}, source=${source}, date=${today}`);
         set({
           cachedInsights: {
             insights,
@@ -69,36 +69,36 @@ export const useInsightsStore = create<InsightsState>()(
       },
 
       clearInsights: () => {
-        console.log('[LLM:InsightsStore] clearInsights()');
+        if (__DEV__) console.log('[LLM:InsightsStore] clearInsights()');
         set({ cachedInsights: null });
       },
 
       setLLMStatus: (status) => {
-        console.log(`[LLM:InsightsStore] setLLMStatus(${status})`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] setLLMStatus(${status})`);
         set({ llmStatus: status });
       },
 
       setDownloadProgress: (progress) => set({ downloadProgress: progress }),
 
       setIsGenerating: (generating) => {
-        console.log(`[LLM:InsightsStore] setIsGenerating(${generating})`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] setIsGenerating(${generating})`);
         set({ isGenerating: generating });
       },
 
       setGenerationError: (error) => {
-        console.log(`[LLM:InsightsStore] setGenerationError(${error})`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] setGenerationError(${error})`);
         set({ generationError: error, isGenerating: false });
       },
 
       setLLMEnabled: (enabled) => {
-        console.log(`[LLM:InsightsStore] setLLMEnabled(${enabled})`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] setLLMEnabled(${enabled})`);
         set({ llmEnabled: enabled });
       },
 
       shouldRegenerateInsights: () => {
         const { cachedInsights } = get();
         if (!cachedInsights) {
-          console.log('[LLM:InsightsStore] shouldRegenerate → true (no cache)');
+          if (__DEV__) console.log('[LLM:InsightsStore] shouldRegenerate → true (no cache)');
           return true;
         }
 
@@ -107,15 +107,15 @@ export const useInsightsStore = create<InsightsState>()(
 
         // Regenerate if cache expired or date changed
         if (now > cachedInsights.validUntil) {
-          console.log(`[LLM:InsightsStore] shouldRegenerate → true (cache expired, validUntil=${new Date(cachedInsights.validUntil).toISOString()})`);
+          if (__DEV__) console.log(`[LLM:InsightsStore] shouldRegenerate → true (cache expired, validUntil=${new Date(cachedInsights.validUntil).toISOString()})`);
           return true;
         }
         if (cachedInsights.date !== today) {
-          console.log(`[LLM:InsightsStore] shouldRegenerate → true (date changed: cached=${cachedInsights.date}, today=${today})`);
+          if (__DEV__) console.log(`[LLM:InsightsStore] shouldRegenerate → true (date changed: cached=${cachedInsights.date}, today=${today})`);
           return true;
         }
 
-        console.log(`[LLM:InsightsStore] shouldRegenerate → false (cache valid, source=${cachedInsights.source}, insights=${cachedInsights.insights.length})`);
+        if (__DEV__) console.log(`[LLM:InsightsStore] shouldRegenerate → false (cache valid, source=${cachedInsights.source}, insights=${cachedInsights.insights.length})`);
         return false;
       },
     }),

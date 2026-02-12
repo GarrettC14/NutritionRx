@@ -30,6 +30,8 @@ import { foodRepository } from '@/repositories/foodRepository';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { micronutrientRepository } from '@/repositories/micronutrientRepository';
 import { TestIDs, foodSearchResult } from '@/constants/testIDs';
+import * as Sentry from '@sentry/react-native';
+import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
 // Tab types
 type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
@@ -57,7 +59,7 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export default function AddFoodScreen() {
+function AddFoodScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ mealType?: string; date?: string; searchQuery?: string }>();
@@ -118,7 +120,7 @@ export default function AddFoodScreen() {
       const foods = await foodRepository.getUserCreated();
       setCustomFoods(foods);
     } catch (error) {
-      console.error('Failed to load custom foods:', error);
+      if (__DEV__) console.error('Failed to load custom foods:', error);
     } finally {
       setIsLoadingCustom(false);
     }
@@ -228,7 +230,7 @@ export default function AddFoodScreen() {
           });
         }
       } catch (error) {
-        console.error('Failed to save USDA food:', error);
+        if (__DEV__) console.error('Failed to save USDA food:', error);
         return; // Don't navigate if save failed
       }
     }
@@ -872,3 +874,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default function AddFoodScreenWithErrorBoundary() {
+  return (
+    <Sentry.ErrorBoundary fallback={({ resetError }) => <CrashFallbackScreen resetError={resetError} />}>
+      <AddFoodScreen />
+    </Sentry.ErrorBoundary>
+  );
+}

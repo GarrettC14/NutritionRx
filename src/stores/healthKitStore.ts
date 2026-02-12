@@ -95,7 +95,7 @@ export const useHealthKitStore = create<HealthKitState>()(
           set({ isAvailable: available });
           return available;
         } catch (error) {
-          console.error('Error checking HealthKit availability:', error);
+          if (__DEV__) console.error('Error checking HealthKit availability:', error);
           set({ isAvailable: false });
           return false;
         }
@@ -147,7 +147,7 @@ export const useHealthKitStore = create<HealthKitState>()(
           const canWrite = await healthKitService.canWriteNutrition();
           set({ isConnected: canWrite });
         } catch (error) {
-          console.error('Error checking connection status:', error);
+          if (__DEV__) console.error('Error checking connection status:', error);
           set({ isConnected: false });
         }
       },

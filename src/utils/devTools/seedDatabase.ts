@@ -232,7 +232,7 @@ export async function seedDatabase(
       } catch (error) {
         const message = `Failed to seed ${step.name}: ${error}`;
         errors.push(message);
-        console.error(message);
+        if (__DEV__) console.error(message);
       }
     }
 

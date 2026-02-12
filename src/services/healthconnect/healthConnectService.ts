@@ -89,7 +89,7 @@ const loadHealthConnect = async (): Promise<boolean> => {
       HealthConnect = healthConnectModule as unknown as HealthConnectModule;
       return true;
     } catch (error) {
-      console.error('Failed to load Health Connect module:', error);
+      if (__DEV__) console.error('Failed to load Health Connect module:', error);
       return false;
     }
   }
@@ -135,7 +135,7 @@ class HealthConnectService {
         permissionsGranted: [],
       };
     } catch (error) {
-      console.error('Health Connect availability check failed:', error);
+      if (__DEV__) console.error('Health Connect availability check failed:', error);
       return {
         isAvailable: false,
         needsInstall: false,
@@ -166,7 +166,7 @@ class HealthConnectService {
       this.initialized = true;
       return true;
     } catch (error) {
-      console.error('Health Connect initialization failed:', error);
+      if (__DEV__) console.error('Health Connect initialization failed:', error);
       return false;
     }
   }
@@ -211,7 +211,7 @@ class HealthConnectService {
         ),
       };
     } catch (error) {
-      console.error('Permission request failed:', error);
+      if (__DEV__) console.error('Permission request failed:', error);
       this.permissionDenialCount++;
       return { granted: false, permissions: [] };
     }
@@ -234,7 +234,7 @@ class HealthConnectService {
       const granted = await HealthConnect.getGrantedPermissions();
       return granted.map((p) => `${p.accessType}:${p.recordType}`);
     } catch (error) {
-      console.error('Failed to get granted permissions:', error);
+      if (__DEV__) console.error('Failed to get granted permissions:', error);
       return [];
     }
   }
@@ -262,7 +262,7 @@ class HealthConnectService {
         await HealthConnect.openHealthConnectSettings();
       }
     } catch (error) {
-      console.error('Failed to open Health Connect settings:', error);
+      if (__DEV__) console.error('Failed to open Health Connect settings:', error);
     }
   }
 
@@ -283,7 +283,7 @@ class HealthConnectService {
         await Linking.openURL(webUrl);
       }
     } catch (error) {
-      console.error('Failed to open Play Store:', error);
+      if (__DEV__) console.error('Failed to open Play Store:', error);
       await Linking.openURL(webUrl);
     }
   }
@@ -342,7 +342,7 @@ class HealthConnectService {
       await HealthConnect.insertRecords([nutritionRecord]);
       return { success: true };
     } catch (error) {
-      console.error('Failed to sync meal:', error);
+      if (__DEV__) console.error('Failed to sync meal:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -377,7 +377,7 @@ class HealthConnectService {
       await HealthConnect.insertRecords([hydrationRecord]);
       return { success: true };
     } catch (error) {
-      console.error('Failed to sync water:', error);
+      if (__DEV__) console.error('Failed to sync water:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -408,7 +408,7 @@ class HealthConnectService {
       await HealthConnect.insertRecords([weightRecord]);
       return { success: true };
     } catch (error) {
-      console.error('Failed to sync weight:', error);
+      if (__DEV__) console.error('Failed to sync weight:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -436,7 +436,7 @@ class HealthConnectService {
         weightKg: record.weight?.inKilograms || record.weight?.value || 0,
       }));
     } catch (error) {
-      console.error('Failed to read weight data:', error);
+      if (__DEV__) console.error('Failed to read weight data:', error);
       return [];
     }
   }
@@ -474,7 +474,7 @@ class HealthConnectService {
 
       return Math.round(totalCalories);
     } catch (error) {
-      console.error('Failed to read active calories:', error);
+      if (__DEV__) console.error('Failed to read active calories:', error);
       return 0;
     }
   }
@@ -507,7 +507,7 @@ class HealthConnectService {
 
       return Math.round(totalMl);
     } catch (error) {
-      console.error('Failed to read water intake:', error);
+      if (__DEV__) console.error('Failed to read water intake:', error);
       return 0;
     }
   }

@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, LogBox, useColorScheme } from 'react-native';
+import * as Sentry from '@sentry/react-native';
+import { useNavigationContainerRef } from 'expo-router';
+import Constants from 'expo-constants';
+import { scrubSensitiveData, NUTRITION_PATTERN } from '@/utils/sentryHelpers';
 
 // Suppress on-screen LogBox bars so they don't intercept Maestro E2E taps.
 // Warnings still appear in Metro console / logcat.
@@ -9,6 +13,52 @@ if (__DEV__) {
 // Allow font scaling for accessibility, cap at 2× to prevent layout breakage
 (Text as any).defaultProps = { ...(Text as any).defaultProps, maxFontSizeMultiplier: 2.0 };
 (TextInput as any).defaultProps = { ...(TextInput as any).defaultProps, maxFontSizeMultiplier: 1.5 };
+
+// ── Sentry Initialization (module scope — runs once on import) ──
+
+const routingInstrumentation = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: Boolean(process.env.EXPO_PUBLIC_SENTRY_DSN) && !__DEV__,
+  tracesSampleRate: 0.2,
+  sendDefaultPii: false,
+  environment: __DEV__ ? 'development' : 'production',
+  integrations: [routingInstrumentation],
+
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.data) scrubSensitiveData(breadcrumb.data);
+    if (breadcrumb.message) {
+      breadcrumb.message = breadcrumb.message.replace(NUTRITION_PATTERN, '[redacted]');
+    }
+    return breadcrumb;
+  },
+
+  beforeSend(event) {
+    // Drop common mobile network errors
+    if (event.exception?.values?.[0]?.value?.includes('Network request failed')) {
+      return null;
+    }
+    if (event.extra) scrubSensitiveData(event.extra as Record<string, any>);
+    if (event.contexts) scrubSensitiveData(event.contexts as Record<string, any>);
+    if (event.tags) {
+      const sensitiveKeys = ['calories', 'protein', 'carbs', 'fat', 'weight', 'food', 'meal', 'serving', 'macros', 'grams', 'intake'];
+      for (const key of Object.keys(event.tags)) {
+        if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk))) {
+          delete event.tags[key];
+        }
+      }
+    }
+    return event;
+  },
+});
+
+// Set app version tag once at startup
+Sentry.setTag('app_version', Constants.expoConfig?.version ?? 'unknown');
+
+// ── Imports (after Sentry.init so it can instrument them) ──
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -165,19 +215,28 @@ function RootLayoutContent() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const systemScheme = useColorScheme();
   const initBg = systemScheme === 'light' ? '#FFFFFF' : '#0D1117';
   const [dbReady, setDbReady] = useState(false);
   const [purchasesReady, setPurchasesReady] = useState(false);
   const initializeSubscription = useSubscriptionStore((state) => state.initialize);
+  const navigationRef = useNavigationContainerRef();
+
+  // Register Sentry navigation instrumentation
+  useEffect(() => {
+    if (navigationRef?.current) {
+      routingInstrumentation.registerNavigationContainer(navigationRef);
+    }
+  }, [navigationRef]);
 
   useEffect(() => {
     // Initialize database on app start and wait for it
     initDatabase()
       .then(() => setDbReady(true))
       .catch((error) => {
-        console.error('Database initialization failed:', error);
+        Sentry.captureException(error, { tags: { feature: 'database', action: 'init' } });
+        if (__DEV__) console.error('Database initialization failed:', error);
         setDbReady(true); // Still proceed to show error state
       });
   }, []);
@@ -196,7 +255,8 @@ export default function RootLayout() {
         await initializeSubscription();
         setPurchasesReady(true);
       } catch (error) {
-        console.error('Failed to initialize purchases:', error);
+        Sentry.captureException(error, { tags: { feature: 'subscription', action: 'init' } });
+        if (__DEV__) console.error('Failed to initialize purchases:', error);
         setPurchasesReady(true); // Still proceed even if purchases fail
       }
     };
@@ -234,3 +294,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

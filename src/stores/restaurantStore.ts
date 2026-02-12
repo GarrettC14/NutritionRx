@@ -125,7 +125,7 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
       const recentRestaurants = await restaurantRepository.getRecent(5);
       set({ recentRestaurants });
     } catch (error) {
-      console.error('Failed to load recent restaurants:', error);
+      if (__DEV__) console.error('Failed to load recent restaurants:', error);
     }
   },
 
@@ -204,7 +204,7 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
       const results = await restaurantRepository.searchRestaurants(query);
       return results;
     } catch (error) {
-      console.error('Failed to search restaurants:', error);
+      if (__DEV__) console.error('Failed to search restaurants:', error);
       return [];
     }
   },

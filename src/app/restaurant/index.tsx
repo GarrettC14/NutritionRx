@@ -99,7 +99,7 @@ export default function RestaurantListScreen() {
         }
       } catch (err) {
         // Errors are handled by the store
-        console.error('Restaurant initialization error:', err);
+        if (__DEV__) console.error('Restaurant initialization error:', err);
       }
     };
 

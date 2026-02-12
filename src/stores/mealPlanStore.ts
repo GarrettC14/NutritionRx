@@ -128,7 +128,7 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
       const todayMeals = await mealPlanRepository.getPlannedMealsForToday();
       set({ todayMeals });
     } catch (error) {
-      console.error('Failed to load today meals:', error);
+      if (__DEV__) console.error('Failed to load today meals:', error);
     }
   },
 
@@ -140,7 +140,7 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
       const weekMeals = await mealPlanRepository.getMealsForDateRange(start, end);
       set({ weekMeals, selectedWeekStart: start });
     } catch (error) {
-      console.error('Failed to load week meals:', error);
+      if (__DEV__) console.error('Failed to load week meals:', error);
     }
   },
 

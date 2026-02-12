@@ -34,7 +34,7 @@ export function useShortcuts() {
 
       // Check if native module is available
       if (!ShortcutsBridge?.donateShortcut) {
-        console.warn('ShortcutsBridge not available');
+        if (__DEV__) console.warn('ShortcutsBridge not available');
         return false;
       }
 
@@ -45,7 +45,7 @@ export function useShortcuts() {
         );
         return result?.success ?? false;
       } catch (error) {
-        console.error('Shortcut donation failed:', error);
+        if (__DEV__) console.error('Shortcut donation failed:', error);
         return false;
       }
     },

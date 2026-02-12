@@ -70,7 +70,7 @@ export async function seedMicronutrientData(): Promise<{ success: boolean; error
   try {
     const db = getDatabase();
 
-    console.log('[SeedData] Starting micronutrient data seeding...');
+    if (__DEV__) console.log('[SeedData] Starting micronutrient data seeding...');
 
     // 1. Insert micronutrient data for all 150 seed foods (3,551 rows)
     const now = new Date().toISOString();
@@ -93,7 +93,7 @@ export async function seedMicronutrientData(): Promise<{ success: boolean; error
       );
     }
 
-    console.log(`[SeedData] Micronutrient data inserted — ${SEED_MICRONUTRIENTS.length} rows across 150 foods`);
+    if (__DEV__) console.log(`[SeedData] Micronutrient data inserted — ${SEED_MICRONUTRIENTS.length} rows across 150 foods`);
 
     // 2. Get existing food item data for creating log entries
     const foodData: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {};
@@ -141,12 +141,14 @@ export async function seedMicronutrientData(): Promise<{ success: boolean; error
       );
     }
 
-    console.log('[SeedData] Log entries inserted for past 7 days');
-    console.log('[SeedData] Seeding complete!');
+    if (__DEV__) {
+      console.log('[SeedData] Log entries inserted for past 7 days');
+      console.log('[SeedData] Seeding complete!');
+    }
 
     return { success: true };
   } catch (error) {
-    console.error('[SeedData] Error seeding data:', error);
+    if (__DEV__) console.error('[SeedData] Error seeding data:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error during seeding',
@@ -172,10 +174,10 @@ export async function clearSeedData(): Promise<{ success: boolean; error?: strin
       seedFoodIds
     );
 
-    console.log('[SeedData] Seed data cleared');
+    if (__DEV__) console.log('[SeedData] Seed data cleared');
     return { success: true };
   } catch (error) {
-    console.error('[SeedData] Error clearing seed data:', error);
+    if (__DEV__) console.error('[SeedData] Error clearing seed data:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error clearing seed data',

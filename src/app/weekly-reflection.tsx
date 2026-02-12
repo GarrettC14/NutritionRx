@@ -42,7 +42,7 @@ export default function WeeklyReflectionScreen() {
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {
-      console.error('Failed to accept reflection:', error);
+      if (__DEV__) console.error('Failed to accept reflection:', error);
       Alert.alert('Error', 'Failed to update targets. Please try again.');
     }
   };
@@ -54,7 +54,7 @@ export default function WeeklyReflectionScreen() {
       await declineReflection(pendingReflection.id, notes || undefined);
       router.back();
     } catch (error) {
-      console.error('Failed to decline reflection:', error);
+      if (__DEV__) console.error('Failed to decline reflection:', error);
       Alert.alert('Error', 'Failed to decline. Please try again.');
     }
   };

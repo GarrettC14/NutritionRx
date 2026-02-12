@@ -6,6 +6,8 @@ import {
   getWeightFromHealthKit,
 } from '@/services/healthkit/healthKitNutritionSync';
 import { useHealthKitStore } from './healthKitStore';
+import * as Sentry from '@sentry/react-native';
+import { isExpectedError } from '@/utils/sentryHelpers';
 
 interface WeightState {
   // State
@@ -47,6 +49,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const entries = await weightRepository.getRecent(limit);
       set({ entries, isLoading: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'load' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load weight entries',
         isLoading: false,
@@ -65,6 +68,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const entries = await weightRepository.findByDateRange(startDate, endDate);
       set({ entries, isLoading: false, _cachedRangeKey: rangeKey } as any);
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'load-range' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load weight entries',
         isLoading: false,
@@ -78,6 +82,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const latestEntry = await weightRepository.getLatest();
       set({ latestEntry, isLoading: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'load-latest' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load latest weight',
         isLoading: false,
@@ -95,6 +100,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         set({ trendWeight: null, isLoading: false });
       }
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'load-trend' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load trend weight',
         isLoading: false,
@@ -107,6 +113,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const earliestDate = await weightRepository.getEarliestDate();
       set({ earliestDate });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'load-earliest-date' } });
       // Non-critical, silently ignore
     }
   },
@@ -134,12 +141,13 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const { writeWeight, isConnected } = useHealthKitStore.getState();
       if (writeWeight && isConnected) {
         syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
-          console.error('Failed to sync weight to HealthKit:', error);
+          if (__DEV__) console.error('Failed to sync weight to HealthKit:', error);
         });
       }
 
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'add-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to add weight entry',
         isLoading: false,
@@ -167,12 +175,13 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       const { writeWeight, isConnected } = useHealthKitStore.getState();
       if (writeWeight && isConnected) {
         syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
-          console.error('Failed to sync weight to HealthKit:', error);
+          if (__DEV__) console.error('Failed to sync weight to HealthKit:', error);
         });
       }
 
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'update-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to update weight entry',
         isLoading: false,
@@ -196,6 +205,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
 
       set({ isLoading: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'delete-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to delete weight entry',
         isLoading: false,
@@ -208,6 +218,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     try {
       return await weightRepository.findByDate(date);
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'get-by-date' } });
       return null;
     }
   },
@@ -271,7 +282,8 @@ export const useWeightStore = create<WeightState>((set, get) => ({
 
       return { imported: false };
     } catch (error) {
-      console.error('Failed to import weight from HealthKit:', error);
+      Sentry.captureException(error, { tags: { feature: 'weight', action: 'import-healthkit' } });
+      if (__DEV__) console.error('Failed to import weight from HealthKit:', error);
       return { imported: false };
     }
   },

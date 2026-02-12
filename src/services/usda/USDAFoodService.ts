@@ -50,7 +50,7 @@ class USDAFoodServiceClass {
 
     // Check rate limit
     if (!this.checkRateLimit()) {
-      console.warn('USDA API rate limit reached');
+      if (__DEV__) console.warn('USDA API rate limit reached');
       return cached?.data || [];
     }
 
@@ -87,7 +87,7 @@ class USDAFoodServiceClass {
 
       return results;
     } catch (error) {
-      console.error('USDA search error:', error);
+      if (__DEV__) console.error('USDA search error:', error);
       return cached?.data || [];
     }
   }
@@ -104,7 +104,7 @@ class USDAFoodServiceClass {
 
     // Check rate limit
     if (!this.checkRateLimit()) {
-      console.warn('USDA API rate limit reached');
+      if (__DEV__) console.warn('USDA API rate limit reached');
       return cached?.data || null;
     }
 
@@ -129,7 +129,7 @@ class USDAFoodServiceClass {
 
       return data;
     } catch (error) {
-      console.error('USDA food detail error:', error);
+      if (__DEV__) console.error('USDA food detail error:', error);
       return cached?.data || null;
     }
   }
@@ -179,7 +179,7 @@ class USDAFoodServiceClass {
 
       return results;
     } catch (error) {
-      console.error('USDA batch detail error:', error);
+      if (__DEV__) console.error('USDA batch detail error:', error);
       return results;
     }
   }

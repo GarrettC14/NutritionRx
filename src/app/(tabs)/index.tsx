@@ -26,8 +26,10 @@ import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { DashboardWidget } from '@/types/dashboard';
 import { DayTargets } from '@/types/planning';
 import { TestIDs } from '@/constants/testIDs';
+import * as Sentry from '@sentry/react-native';
+import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
-export default function TodayScreen() {
+function TodayScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
@@ -734,3 +736,11 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
   },
 });
+
+export default function TodayScreenWithErrorBoundary() {
+  return (
+    <Sentry.ErrorBoundary fallback={({ resetError }) => <CrashFallbackScreen resetError={resetError} />}>
+      <TodayScreen />
+    </Sentry.ErrorBoundary>
+  );
+}

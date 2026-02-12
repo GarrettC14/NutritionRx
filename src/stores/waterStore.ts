@@ -3,6 +3,8 @@ import { waterRepository, WaterLog, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } 
 import { settingsRepository } from '@/repositories';
 import { syncWaterToHealthKit } from '@/services/healthkit/healthKitNutritionSync';
 import { useHealthKitStore, getDateKey } from './healthKitStore';
+import * as Sentry from '@sentry/react-native';
+import { isExpectedError } from '@/utils/sentryHelpers';
 
 interface WaterState {
   // State
@@ -55,6 +57,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.getOrCreateByDate(today);
       set({ todayLog: log, isLoading: false, isLoaded: true });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'load' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load water data',
         isLoading: false,
@@ -69,7 +72,8 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const glassSizeMl = await settingsRepository.get(SETTING_KEYS.GLASS_SIZE, DEFAULT_GLASS_SIZE_ML);
       set({ goalGlasses, glassSizeMl });
     } catch (error) {
-      console.error('Failed to load water settings:', error);
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'load-settings' } });
+      if (__DEV__) console.error('Failed to load water settings:', error);
     }
   },
 
@@ -93,10 +97,11 @@ export const useWaterStore = create<WaterState>((set, get) => ({
             }
           })
           .catch((error) => {
-            console.error('Failed to sync water to HealthKit:', error);
+            if (__DEV__) console.error('Failed to sync water to HealthKit:', error);
           });
       }
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'add-glass' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to add glass',
       });
@@ -109,6 +114,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.removeGlass(today);
       set({ todayLog: log });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'remove-glass' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to remove glass',
       });
@@ -139,10 +145,11 @@ export const useWaterStore = create<WaterState>((set, get) => ({
             }
           })
           .catch((error) => {
-            console.error('Failed to sync water to HealthKit:', error);
+            if (__DEV__) console.error('Failed to sync water to HealthKit:', error);
           });
       }
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'set-glasses' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to set glasses',
       });
@@ -154,6 +161,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       await settingsRepository.set(SETTING_KEYS.WATER_GOAL, goal);
       set({ goalGlasses: goal });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'set-goal' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to set water goal',
       });
@@ -165,6 +173,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       await settingsRepository.set(SETTING_KEYS.GLASS_SIZE, size);
       set({ glassSizeMl: size });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'set-glass-size' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to set glass size',
       });
@@ -176,7 +185,8 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const logs = await waterRepository.getRecentLogs(days);
       set({ recentLogs: logs });
     } catch (error) {
-      console.error('Failed to load recent water logs:', error);
+      Sentry.captureException(error, { tags: { feature: 'water', action: 'load-recent' } });
+      if (__DEV__) console.error('Failed to load recent water logs:', error);
     }
   },
 

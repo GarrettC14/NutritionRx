@@ -91,7 +91,7 @@ export default function FoodDetailScreen() {
           await foodRepository.delete(food.id);
           router.back();
         } catch (error) {
-          console.error('Failed to delete food:', error);
+          if (__DEV__) console.error('Failed to delete food:', error);
           Alert.alert('Error', 'Failed to delete food. Please try again.');
           setIsDeleting(false);
         }

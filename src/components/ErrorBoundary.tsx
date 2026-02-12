@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console (could be sent to error reporting service)
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    if (__DEV__) console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   handleRetry = () => {

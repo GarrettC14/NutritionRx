@@ -40,7 +40,7 @@ export function useLegalAcknowledgment() {
         acknowledgedVersion: acknowledgedVersion || null,
       });
     } catch (error) {
-      console.error('Failed to load legal acknowledgment status:', error);
+      if (__DEV__) console.error('Failed to load legal acknowledgment status:', error);
       setState({
         isLoading: false,
         needsAcknowledgment: true,
@@ -71,7 +71,7 @@ export function useLegalAcknowledgment() {
         acknowledgedVersion: LEGAL_DISCLAIMER_VERSION,
       });
     } catch (error) {
-      console.error('Failed to save legal acknowledgment:', error);
+      if (__DEV__) console.error('Failed to save legal acknowledgment:', error);
       throw error;
     }
   }, []);

@@ -192,7 +192,7 @@ export async function migration004SeedFoods(db: SQLiteDatabase): Promise<void> {
     );
   }
 
-  console.log(`Inserted ${SEED_FOODS.length} seed food items.`);
+  if (__DEV__) console.log(`Inserted ${SEED_FOODS.length} seed food items.`);
 
   // Record migration
   await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [4]);

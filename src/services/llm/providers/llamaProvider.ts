@@ -18,7 +18,7 @@ if (!isExpoGo) {
     const llamaModule = require('llama.rn');
     initLlama = llamaModule.initLlama;
   } catch (e) {
-    console.log('[LlamaProvider] llama.rn not available');
+    if (__DEV__) console.log('[LlamaProvider] llama.rn not available');
   }
 }
 
@@ -59,7 +59,7 @@ export class LlamaProvider implements LLMProvider {
       const ratio = file.size / this.model.sizeBytes;
       const passed = ratio >= 0.80 && ratio <= 1.20;
       if (!passed) {
-        console.log(
+        if (__DEV__) console.log(
           `[LlamaProvider] Integrity check failed: actual=${file.size} expected=${this.model.sizeBytes} ratio=${ratio.toFixed(3)}`
         );
       }
@@ -92,7 +92,7 @@ export class LlamaProvider implements LLMProvider {
     }
 
     this.status = 'initializing';
-    console.log(`[LlamaProvider] Initializing ${this.model.name} — ctx=${this.model.contextSize}, threads=${this.model.threads}`);
+    if (__DEV__) console.log(`[LlamaProvider] Initializing ${this.model.name} — ctx=${this.model.contextSize}, threads=${this.model.threads}`);
 
     try {
       this.context = await initLlama({
@@ -102,7 +102,7 @@ export class LlamaProvider implements LLMProvider {
         n_gpu_layers: 0,
       });
       this.status = 'ready';
-      console.log(`[LlamaProvider] ${this.model.name} initialized successfully`);
+      if (__DEV__) console.log(`[LlamaProvider] ${this.model.name} initialized successfully`);
     } catch (error) {
       this.status = 'error';
       throw error;
@@ -151,7 +151,7 @@ export class LlamaProvider implements LLMProvider {
       try {
         await this.context.release();
       } catch (e) {
-        console.error('[LlamaProvider] Error releasing context:', e);
+        if (__DEV__) console.error('[LlamaProvider] Error releasing context:', e);
       }
       this.context = null;
     }
@@ -209,7 +209,7 @@ export class LlamaProvider implements LLMProvider {
         percentage: 100,
       });
 
-      console.log(`[LlamaProvider] ${this.model.name} downloaded and verified`);
+      if (__DEV__) console.log(`[LlamaProvider] ${this.model.name} downloaded and verified`);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Download failed';
@@ -229,9 +229,9 @@ export class LlamaProvider implements LLMProvider {
     try {
       const file = new File(Paths.document, this.model.filename);
       if (file.exists) file.delete();
-      console.log(`[LlamaProvider] ${this.model.name} model deleted`);
+      if (__DEV__) console.log(`[LlamaProvider] ${this.model.name} model deleted`);
     } catch (e) {
-      console.error('[LlamaProvider] Error deleting model:', e);
+      if (__DEV__) console.error('[LlamaProvider] Error deleting model:', e);
     }
     this.status = 'uninitialized';
   }

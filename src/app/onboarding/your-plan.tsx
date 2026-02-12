@@ -235,7 +235,7 @@ export default function YourPlanScreen() {
       clearDraft();
       router.replace('/(tabs)');
     } catch (error) {
-      console.error('[Onboarding] Completion failed:', error);
+      if (__DEV__) console.error('[Onboarding] Completion failed:', error);
       Alert.alert(
         'Something went wrong',
         'We couldn\'t save your information. Please try again.',

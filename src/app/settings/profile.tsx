@@ -106,7 +106,7 @@ export default function ProfileSettingsScreen() {
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully.');
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      if (__DEV__) console.error('Failed to update profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };

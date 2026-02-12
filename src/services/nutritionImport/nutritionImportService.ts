@@ -52,7 +52,7 @@ export async function pickCSVFile(): Promise<{ uri: string; name: string } | nul
     const asset = result.assets[0];
     return { uri: asset.uri, name: asset.name };
   } catch (error) {
-    console.error('Error picking file:', error);
+    if (__DEV__) console.error('Error picking file:', error);
     return null;
   }
 }
@@ -170,7 +170,7 @@ export async function analyzeNutritionCSV(
 
     return { success: true, session };
   } catch (error) {
-    console.error('Error analyzing file:', error);
+    if (__DEV__) console.error('Error analyzing file:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to analyze file',
@@ -387,7 +387,7 @@ export async function executeNutritionImport(
       skippedDays,
     };
   } catch (error) {
-    console.error('Error executing import:', error);
+    if (__DEV__) console.error('Error executing import:', error);
     return {
       success: false,
       importedDays: 0,

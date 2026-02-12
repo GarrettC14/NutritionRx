@@ -27,13 +27,13 @@ export const restaurantDataService = {
     );
 
     if (result && result.count > 0) {
-      console.log('Restaurant data already loaded');
+      if (__DEV__) console.log('Restaurant data already loaded');
       return;
     }
 
-    console.log('Loading bundled restaurant data...');
+    if (__DEV__) console.log('Loading bundled restaurant data...');
     await this.loadBundledData();
-    console.log('Restaurant data loaded successfully');
+    if (__DEV__) console.log('Restaurant data loaded successfully');
   },
 
   /**

@@ -172,7 +172,7 @@ export default function LogEntryScreen() {
     try {
       await toggleFavorite(loadedEntry.food.id);
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+      if (__DEV__) console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -211,7 +211,7 @@ export default function LogEntryScreen() {
       await refreshCurrentDate();
       router.back();
     } catch (error) {
-      console.error('Failed to update entry:', error);
+      if (__DEV__) console.error('Failed to update entry:', error);
       Alert.alert('Error', 'Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
@@ -241,7 +241,7 @@ export default function LogEntryScreen() {
           await refreshCurrentDate();
           router.back();
         } catch (error) {
-          console.error('Failed to delete entry:', error);
+          if (__DEV__) console.error('Failed to delete entry:', error);
           Alert.alert('Error', 'Failed to delete entry. Please try again.');
           setIsDeleting(false);
         }

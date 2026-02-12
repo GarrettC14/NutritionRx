@@ -49,14 +49,14 @@ export const watchConnectivityService = {
    */
   async sendDailyData(data: WatchDailyData): Promise<void> {
     if (!WatchConnectivityModule) {
-      console.log('Watch connectivity not available');
+      if (__DEV__) console.log('Watch connectivity not available');
       return;
     }
 
     try {
       WatchConnectivityModule.sendDailyDataToWatch(data);
     } catch (error) {
-      console.error('Failed to send daily data to watch:', error);
+      if (__DEV__) console.error('Failed to send daily data to watch:', error);
     }
   },
 
@@ -69,7 +69,7 @@ export const watchConnectivityService = {
     try {
       WatchConnectivityModule.sendRecentFoodsToWatch(foods);
     } catch (error) {
-      console.error('Failed to send recent foods to watch:', error);
+      if (__DEV__) console.error('Failed to send recent foods to watch:', error);
     }
   },
 

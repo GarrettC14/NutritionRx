@@ -91,7 +91,7 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
         isInitialized: true,
       });
     } catch (error) {
-      console.error('Failed to initialize reflection store:', error);
+      if (__DEV__) console.error('Failed to initialize reflection store:', error);
       set({ isInitialized: true });
     }
   },
@@ -102,7 +102,7 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
       await settingsRepository.set('reflection_banner_dismiss_count', newCount);
       set({ bannerDismissCount: newCount });
     } catch (error) {
-      console.error('Failed to persist banner dismiss:', error);
+      if (__DEV__) console.error('Failed to persist banner dismiss:', error);
     }
   },
 
@@ -362,7 +362,7 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
         submitError: null,
       });
     } catch (error) {
-      console.error('Failed to submit reflection:', error);
+      if (__DEV__) console.error('Failed to submit reflection:', error);
       set({
         isSubmitting: false,
         submitError: 'Something went wrong — please try again.',

@@ -85,7 +85,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
           const status = await healthConnectService.checkAvailability();
           set({ status, isLoading: false });
         } catch (error) {
-          console.error('Failed to check Health Connect availability:', error);
+          if (__DEV__) console.error('Failed to check Health Connect availability:', error);
           set({ isLoading: false });
         }
       },
@@ -135,7 +135,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
 
           return granted;
         } catch (error) {
-          console.error('Failed to initialize Health Connect:', error);
+          if (__DEV__) console.error('Failed to initialize Health Connect:', error);
           set({
             isLoading: false,
             syncError: 'Something went wrong connecting to Health Connect',
@@ -160,7 +160,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
             },
           });
         } catch (error) {
-          console.error('Failed to refresh permissions:', error);
+          if (__DEV__) console.error('Failed to refresh permissions:', error);
         }
       },
 
@@ -288,7 +288,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
           const calories = await getActiveCaloriesFromHealthConnect(new Date());
           set({ todayActivityCalories: calories });
         } catch (error) {
-          console.error('Failed to fetch activity calories:', error);
+          if (__DEV__) console.error('Failed to fetch activity calories:', error);
         }
       },
 
@@ -300,7 +300,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
         try {
           return await getWeightFromHealthConnect();
         } catch (error) {
-          console.error('Failed to fetch latest weight:', error);
+          if (__DEV__) console.error('Failed to fetch latest weight:', error);
           return null;
         }
       },
@@ -309,7 +309,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
         try {
           await healthConnectService.openSettings();
         } catch (error) {
-          console.error('Failed to open Health Connect settings:', error);
+          if (__DEV__) console.error('Failed to open Health Connect settings:', error);
         }
       },
 
@@ -317,7 +317,7 @@ export const useHealthConnectStore = create<HealthConnectState>()(
         try {
           await healthConnectService.openPlayStoreForInstall();
         } catch (error) {
-          console.error('Failed to open Play Store:', error);
+          if (__DEV__) console.error('Failed to open Play Store:', error);
         }
       },
 

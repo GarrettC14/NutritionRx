@@ -86,7 +86,7 @@ export async function syncDailyNutritionToHealthConnect(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing nutrition to Health Connect:', error);
+    if (__DEV__) console.error('Error syncing nutrition to Health Connect:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -132,7 +132,7 @@ export async function syncMealToHealthConnect(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing meal to Health Connect:', error);
+    if (__DEV__) console.error('Error syncing meal to Health Connect:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -170,7 +170,7 @@ export async function syncWaterToHealthConnect(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing water to Health Connect:', error);
+    if (__DEV__) console.error('Error syncing water to Health Connect:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -207,7 +207,7 @@ export async function syncWeightToHealthConnect(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing weight to Health Connect:', error);
+    if (__DEV__) console.error('Error syncing weight to Health Connect:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -245,7 +245,7 @@ export async function getWeightFromHealthConnect(): Promise<{
 
     return null;
   } catch (error) {
-    console.error('Failed to get weight from Health Connect:', error);
+    if (__DEV__) console.error('Failed to get weight from Health Connect:', error);
     return null;
   }
 }
@@ -259,7 +259,7 @@ export async function getActiveCaloriesFromHealthConnect(
   try {
     return await healthConnectService.readActiveCalories(date);
   } catch (error) {
-    console.error('Failed to get active calories from Health Connect:', error);
+    if (__DEV__) console.error('Failed to get active calories from Health Connect:', error);
     return 0;
   }
 }
@@ -273,7 +273,7 @@ export async function getWaterIntakeFromHealthConnect(
   try {
     return await healthConnectService.readWaterIntake(date);
   } catch (error) {
-    console.error('Failed to get water intake from Health Connect:', error);
+    if (__DEV__) console.error('Failed to get water intake from Health Connect:', error);
     return 0;
   }
 }

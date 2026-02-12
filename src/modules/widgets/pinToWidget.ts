@@ -60,7 +60,7 @@ class PinToWidgetService {
         return this.cachedItems;
       }
     } catch (error) {
-      console.warn('Failed to load pinned items:', error);
+      if (__DEV__) console.warn('Failed to load pinned items:', error);
     }
 
     return [];
@@ -206,7 +206,7 @@ class PinToWidgetService {
     try {
       await AsyncStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(items));
     } catch (error) {
-      console.warn('Failed to save pinned items:', error);
+      if (__DEV__) console.warn('Failed to save pinned items:', error);
     }
   }
 

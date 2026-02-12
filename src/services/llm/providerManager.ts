@@ -28,18 +28,18 @@ class ProviderManager {
 
     try {
       this.classification = await classifyDevice();
-      console.log(`[ProviderManager] Device: ${this.classification.model}, RAM: ${this.classification.ramGB.toFixed(1)}GB, capability: ${this.classification.capability}`);
+      if (__DEV__) console.log(`[ProviderManager] Device: ${this.classification.model}, RAM: ${this.classification.ramGB.toFixed(1)}GB, capability: ${this.classification.capability}`);
 
       // Try Apple Foundation first
       if (this.classification.capability === 'apple_foundation') {
         const appleProvider = new AppleFoundationProvider();
         if (await appleProvider.isAvailable()) {
           this.provider = appleProvider;
-          console.log('[ProviderManager] Selected: Apple Foundation Models');
+          if (__DEV__) console.log('[ProviderManager] Selected: Apple Foundation Models');
           return;
         }
         // Fall through to llama.rn if Apple Foundation not actually available
-        console.log('[ProviderManager] Apple Foundation not available, falling back to llama.rn');
+        if (__DEV__) console.log('[ProviderManager] Apple Foundation not available, falling back to llama.rn');
       }
 
       // Try llama.rn with device-appropriate model
@@ -49,7 +49,7 @@ class ProviderManager {
           const llamaProvider = new LlamaProvider(model);
           if (await llamaProvider.isAvailable()) {
             this.provider = llamaProvider;
-            console.log(`[ProviderManager] Selected: ${model.name} (${model.tier})`);
+            if (__DEV__) console.log(`[ProviderManager] Selected: ${model.name} (${model.tier})`);
             return;
           }
         }
@@ -57,7 +57,7 @@ class ProviderManager {
 
       // Terminal fallback
       this.provider = new UnsupportedProvider();
-      console.log('[ProviderManager] Selected: Unsupported (no LLM available)');
+      if (__DEV__) console.log('[ProviderManager] Selected: Unsupported (no LLM available)');
     } finally {
       this.resolving = false;
     }

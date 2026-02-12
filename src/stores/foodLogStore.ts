@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import * as Sentry from '@sentry/react-native';
 import {
   logEntryRepository,
   quickAddRepository,
@@ -15,6 +16,7 @@ import { useGoalStore } from './goalStore';
 import { useOnboardingStore } from './onboardingStore';
 import { getDatabase } from '@/db/database';
 import { generateId } from '@/utils/generateId';
+import { isExpectedError } from '@/utils/sentryHelpers';
 
 interface FoodLogState {
   // State
@@ -136,6 +138,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         isLoaded: true,
       });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'load-entries' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load entries',
         isLoading: false,
@@ -154,7 +157,8 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       const streak = calculateStreakFromDates(dates);
       set({ streak });
     } catch (error) {
-      console.error('Failed to load streak:', error);
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'load-streak' } });
+      if (__DEV__) console.error('Failed to load streak:', error);
     }
   },
 
@@ -185,8 +189,16 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       useOnboardingStore.getState().markFirstFoodLogged();
       useOnboardingStore.getState().incrementFoodsLogged();
 
+      Sentry.addBreadcrumb({
+        category: 'food-log',
+        message: 'Food item added to log',
+        level: 'info',
+        data: { mealSlot: input.mealType },
+      });
+
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'add-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to add entry',
         isLoading: false,
@@ -209,6 +221,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'update-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to update entry',
         isLoading: false,
@@ -233,6 +246,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       if (streakTimer) clearTimeout(streakTimer);
       streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'delete-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to delete entry',
         isLoading: false,
@@ -267,6 +281,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'add-quick-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to add quick entry',
         isLoading: false,
@@ -289,6 +304,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       return entry;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'update-quick-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to update quick entry',
         isLoading: false,
@@ -313,6 +329,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       if (streakTimer) clearTimeout(streakTimer);
       streakTimer = setTimeout(() => get().loadStreak(), STREAK_DEBOUNCE_MS);
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'delete-quick-entry' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to delete quick entry',
         isLoading: false,
@@ -375,6 +392,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       set({ isLoading: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'copy-meal' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to copy meal',
         isLoading: false,
@@ -438,6 +456,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
 
       set({ isLoading: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-log', action: 'copy-day' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to copy day',
         isLoading: false,

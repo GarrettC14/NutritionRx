@@ -67,7 +67,6 @@ const CONTEXT_CONFIG: Record<PaywallContext, ContextConfig> = {
     benefits: [
       'Extended history (90d, 1yr, all-time)',
       'Micronutrient tracking',
-      'Export your data anytime',
     ],
   },
   planning: {

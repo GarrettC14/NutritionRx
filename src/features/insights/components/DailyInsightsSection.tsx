@@ -24,7 +24,7 @@ import { InsightsLoadingState } from './InsightsLoadingState';
 import { ModelDownloadProgress } from './ModelDownloadProgress';
 
 export function DailyInsightsSection() {
-  console.log('[LLM:DailySection] Render');
+  if (__DEV__) console.log('[LLM:DailySection] Render');
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
 
@@ -52,7 +52,7 @@ export function DailyInsightsSection() {
   // Generate insights when data is available
   useEffect(() => {
     if (data && !isDataLoading) {
-      console.log(`[LLM:DailySection] Data ready — triggering generateInsights(), meals=${data.todayMealCount}, cal=${data.todayCalories}`);
+      if (__DEV__) console.log(`[LLM:DailySection] Data ready — triggering generateInsights(), meals=${data.todayMealCount}, cal=${data.todayCalories}`);
       generateInsights(data);
     }
   }, [data, isDataLoading, generateInsights]);
@@ -60,7 +60,7 @@ export function DailyInsightsSection() {
   const showDownloadPrompt = llmStatus === 'not_downloaded' && !isDownloading;
   const isLoading = isDataLoading || isGenerating;
   const hasContent = insights.length > 0 || alerts.length > 0;
-  console.log(`[LLM:DailySection] State — isPremium=${isPremium}, llmStatus=${llmStatus}, isLoading=${isLoading}, insights=${insights.length}, alerts=${alerts.length}, hasContent=${hasContent}`);
+  if (__DEV__) console.log(`[LLM:DailySection] State — isPremium=${isPremium}, llmStatus=${llmStatus}, isLoading=${isLoading}, insights=${insights.length}, alerts=${alerts.length}, hasContent=${hasContent}`);
 
   // Content to render (will be blurred for non-premium)
   const contentArea = (

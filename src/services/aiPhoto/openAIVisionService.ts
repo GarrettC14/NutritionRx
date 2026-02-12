@@ -111,11 +111,11 @@ function parseMicronutrientsFromGPT(
 export async function processImageForAPI(
   imageUri: string
 ): Promise<ProcessedImage> {
-  console.log(`[LLM:Vision] processImageForAPI() — imageUri=${imageUri.substring(0, 80)}...`);
+  if (__DEV__) console.log(`[LLM:Vision] processImageForAPI() — imageUri=${imageUri.substring(0, 80)}...`);
   const processStart = Date.now();
   try {
     // Resize and compress the image
-    console.log(`[LLM:Vision] Resizing to ${IMAGE_MAX_SIZE}x${IMAGE_MAX_SIZE}, quality=${IMAGE_QUALITY}`);
+    if (__DEV__) console.log(`[LLM:Vision] Resizing to ${IMAGE_MAX_SIZE}x${IMAGE_MAX_SIZE}, quality=${IMAGE_QUALITY}`);
     const manipResult = await ImageManipulator.manipulateAsync(
       imageUri,
       [
@@ -134,11 +134,11 @@ export async function processImageForAPI(
     );
 
     if (!manipResult.base64) {
-      console.error('[LLM:Vision] processImageForAPI → no base64 in result');
+      if (__DEV__) console.error('[LLM:Vision] processImageForAPI → no base64 in result');
       throw new Error('Failed to convert image to base64');
     }
 
-    console.log(`[LLM:Vision] Image processed in ${Date.now() - processStart}ms — ${manipResult.width}x${manipResult.height}, base64Length=${manipResult.base64.length}`);
+    if (__DEV__) console.log(`[LLM:Vision] Image processed in ${Date.now() - processStart}ms — ${manipResult.width}x${manipResult.height}, base64Length=${manipResult.base64.length}`);
     return {
       uri: manipResult.uri,
       base64: manipResult.base64,
@@ -147,38 +147,44 @@ export async function processImageForAPI(
       mimeType: 'image/jpeg',
     };
   } catch (error) {
-    console.error('[LLM:Vision] processImageForAPI → ERROR:', error);
+    if (__DEV__) console.error('[LLM:Vision] processImageForAPI → ERROR:', error);
     throw new Error('Failed to process image');
   }
 }
 
 // Parse OpenAI response to DetectedFood array
 function parseOpenAIResponse(content: string): ParsedFoodResponse {
-  console.log(`[LLM:Vision] parseOpenAIResponse() — contentLength=${content.length}`);
-  console.log(`[LLM:Vision] Raw API content: "${content.substring(0, 400)}${content.length > 400 ? '...' : ''}"`);
+  if (__DEV__) {
+    console.log(`[LLM:Vision] parseOpenAIResponse() — contentLength=${content.length}`);
+    console.log(`[LLM:Vision] Raw API content: "${content.substring(0, 400)}${content.length > 400 ? '...' : ''}"`);
+  }
   try {
     // Try to extract JSON from the response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[LLM:Vision] No JSON found in response');
+      if (__DEV__) console.error('[LLM:Vision] No JSON found in response');
       throw new Error('No JSON found in response');
     }
 
-    console.log(`[LLM:Vision] Extracted JSON (${jsonMatch[0].length} chars)`);
+    if (__DEV__) console.log(`[LLM:Vision] Extracted JSON (${jsonMatch[0].length} chars)`);
     const parsed = JSON.parse(jsonMatch[0]);
 
     // Validate structure
     if (!parsed.foods || !Array.isArray(parsed.foods)) {
-      console.error(`[LLM:Vision] Invalid response structure — keys: ${Object.keys(parsed).join(', ')}`);
+      if (__DEV__) console.error(`[LLM:Vision] Invalid response structure — keys: ${Object.keys(parsed).join(', ')}`);
       throw new Error('Invalid response structure');
     }
 
-    console.log(`[LLM:Vision] Parsed ${parsed.foods.length} foods: [${parsed.foods.map((f: any) => f.name).join(', ')}]`);
-    if (parsed.notes) console.log(`[LLM:Vision] Notes: "${parsed.notes}"`);
+    if (__DEV__) {
+      console.log(`[LLM:Vision] Parsed ${parsed.foods.length} foods: [${parsed.foods.map((f: any) => f.name).join(', ')}]`);
+      if (parsed.notes) console.log(`[LLM:Vision] Notes: "${parsed.notes}"`);
+    }
     return parsed as ParsedFoodResponse;
   } catch (error) {
-    console.error('[LLM:Vision] parseOpenAIResponse → ERROR:', error);
-    console.error('[LLM:Vision] Failed raw content:', content.substring(0, 300));
+    if (__DEV__) {
+      console.error('[LLM:Vision] parseOpenAIResponse → ERROR:', error);
+      console.error('[LLM:Vision] Failed raw content:', content.substring(0, 300));
+    }
     return {
       foods: [],
       notes: 'Failed to parse response',
@@ -233,7 +239,7 @@ export async function analyzeImage(
   processedImage: ProcessedImage
 ): Promise<AIPhotoAnalysis> {
   const analysisId = generateId();
-  console.log(`[LLM:Vision] analyzeImage() — id=${analysisId}, imageSize=${processedImage.width}x${processedImage.height}, base64Length=${processedImage.base64.length}`);
+  if (__DEV__) console.log(`[LLM:Vision] analyzeImage() — id=${analysisId}, imageSize=${processedImage.width}x${processedImage.height}, base64Length=${processedImage.base64.length}`);
   const apiStart = Date.now();
 
   try {
@@ -265,7 +271,7 @@ export async function analyzeImage(
       temperature: 0.3, // Lower temperature for more consistent results
     };
 
-    console.log(`[LLM:Vision] Sending request to ${OPENAI_API_URL} — model=${MODEL}, maxTokens=${MAX_TOKENS}`);
+    if (__DEV__) console.log(`[LLM:Vision] Sending request to ${OPENAI_API_URL} — model=${MODEL}, maxTokens=${MAX_TOKENS}`);
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
@@ -275,19 +281,19 @@ export async function analyzeImage(
       body: JSON.stringify(requestBody),
     });
 
-    console.log(`[LLM:Vision] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);
+    if (__DEV__) console.log(`[LLM:Vision] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[LLM:Vision] API error ${response.status}: ${errorText.substring(0, 300)}`);
+      if (__DEV__) console.error(`[LLM:Vision] API error ${response.status}: ${errorText.substring(0, 300)}`);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data: OpenAIVisionResponse = await response.json();
-    console.log(`[LLM:Vision] API response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})}`);
+    if (__DEV__) console.log(`[LLM:Vision] API response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})}`);
 
     if (!data.choices || data.choices.length === 0) {
-      console.error('[LLM:Vision] No choices in response');
+      if (__DEV__) console.error('[LLM:Vision] No choices in response');
       throw new Error('No response from OpenAI');
     }
 
@@ -296,11 +302,13 @@ export async function analyzeImage(
     const detectedFoods = convertToDetectedFoods(parsed);
     const totalNutrition = calculateTotalNutrition(detectedFoods);
 
-    console.log(`[LLM:Vision] analyzeImage COMPLETE in ${Date.now() - apiStart}ms — ${detectedFoods.length} foods detected`);
-    detectedFoods.forEach((f, i) => {
-      console.log(`[LLM:Vision]   Food ${i + 1}: "${f.name}" — ${f.nutrition.calories}cal, ${f.nutrition.protein}g P, ${f.nutrition.carbs}g C, ${f.nutrition.fat}g F (confidence=${f.confidence})`);
-    });
-    console.log(`[LLM:Vision]   Total: ${totalNutrition.calories}cal, ${totalNutrition.protein}g P, ${totalNutrition.carbs}g C, ${totalNutrition.fat}g F`);
+    if (__DEV__) {
+      console.log(`[LLM:Vision] analyzeImage COMPLETE in ${Date.now() - apiStart}ms — ${detectedFoods.length} foods detected`);
+      detectedFoods.forEach((f, i) => {
+        console.log(`[LLM:Vision]   Food ${i + 1}: "${f.name}" — ${f.nutrition.calories}cal, ${f.nutrition.protein}g P, ${f.nutrition.carbs}g C, ${f.nutrition.fat}g F (confidence=${f.confidence})`);
+      });
+      console.log(`[LLM:Vision]   Total: ${totalNutrition.calories}cal, ${totalNutrition.protein}g P, ${totalNutrition.carbs}g C, ${totalNutrition.fat}g F`);
+    }
 
     return {
       id: analysisId,
@@ -312,7 +320,7 @@ export async function analyzeImage(
       rawResponse: content,
     };
   } catch (error) {
-    console.error(`[LLM:Vision] analyzeImage ERROR after ${Date.now() - apiStart}ms:`, error);
+    if (__DEV__) console.error(`[LLM:Vision] analyzeImage ERROR after ${Date.now() - apiStart}ms:`, error);
     return {
       id: analysisId,
       imageUri: processedImage.uri,
@@ -330,7 +338,7 @@ export async function analyzeFood(
   apiKey: string,
   imageUri: string
 ): Promise<AIPhotoAnalysis> {
-  console.log(`[LLM:Vision] analyzeFood() — imageUri=${imageUri.substring(0, 80)}...`);
+  if (__DEV__) console.log(`[LLM:Vision] analyzeFood() — imageUri=${imageUri.substring(0, 80)}...`);
   const processedImage = await processImageForAPI(imageUri);
   return analyzeImage(apiKey, processedImage);
 }

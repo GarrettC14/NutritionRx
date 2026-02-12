@@ -49,9 +49,9 @@ export function useInsightGeneration(): UseInsightGenerationResult {
   // Check LLM status on mount
   useEffect(() => {
     const checkStatus = async () => {
-      console.log('[LLM:useInsightGeneration] Checking LLM status on mount...');
+      if (__DEV__) console.log('[LLM:useInsightGeneration] Checking LLM status on mount...');
       const status = await LLMService.getStatus();
-      console.log(`[LLM:useInsightGeneration] LLM status on mount: ${status}`);
+      if (__DEV__) console.log(`[LLM:useInsightGeneration] LLM status on mount: ${status}`);
       setLLMStatus(status);
     };
     checkStatus();
@@ -59,14 +59,14 @@ export function useInsightGeneration(): UseInsightGenerationResult {
 
   const generateInsights = useCallback(
     async (data: InsightInputData) => {
-      console.log(`[LLM:useInsightGeneration] generateInsights() called — llmEnabled=${llmEnabled}, hasCachedInsights=${!!cachedInsights}`);
-      console.log(`[LLM:useInsightGeneration] Input data — cal=${data.todayCalories}, prot=${data.todayProtein}g, meals=${data.todayMealCount}, water=${data.todayWater}ml`);
+      if (__DEV__) console.log(`[LLM:useInsightGeneration] generateInsights() called — llmEnabled=${llmEnabled}, hasCachedInsights=${!!cachedInsights}`);
+      if (__DEV__) console.log(`[LLM:useInsightGeneration] Input data — cal=${data.todayCalories}, prot=${data.todayProtein}g, meals=${data.todayMealCount}, water=${data.todayWater}ml`);
 
       // Check if we should use cached insights
       const shouldRegen = shouldRegenerateInsights();
-      console.log(`[LLM:useInsightGeneration] shouldRegenerateInsights=${shouldRegen}`);
+      if (__DEV__) console.log(`[LLM:useInsightGeneration] shouldRegenerateInsights=${shouldRegen}`);
       if (!shouldRegen && cachedInsights) {
-        console.log(`[LLM:useInsightGeneration] Using cached insights (${cachedInsights.insights.length} insights, source=${cachedInsights.source})`);
+        if (__DEV__) console.log(`[LLM:useInsightGeneration] Using cached insights (${cachedInsights.insights.length} insights, source=${cachedInsights.source})`);
         return;
       }
 
@@ -76,56 +76,56 @@ export function useInsightGeneration(): UseInsightGenerationResult {
       try {
         // Check if LLM is available and enabled
         const status = await LLMService.getStatus();
-        console.log(`[LLM:useInsightGeneration] LLM status=${status}, llmEnabled=${llmEnabled}`);
+        if (__DEV__) console.log(`[LLM:useInsightGeneration] LLM status=${status}, llmEnabled=${llmEnabled}`);
         setLLMStatus(status);
 
         if (status === 'ready' && llmEnabled) {
           // Try LLM generation with context pipeline
           try {
-            console.log('[LLM:useInsightGeneration] Building context pipeline...');
+            if (__DEV__) console.log('[LLM:useInsightGeneration] Building context pipeline...');
             const ctx = await buildUnifiedNutritionContext();
             const systemPrompt = buildSystemPrompt(ctx);
             const userMessage = buildDailyUserMessage();
-            console.log(`[LLM:useInsightGeneration] System prompt built (${systemPrompt.length} chars), generating with context pipeline...`);
+            if (__DEV__) console.log(`[LLM:useInsightGeneration] System prompt built (${systemPrompt.length} chars), generating with context pipeline...`);
 
             const result = await LLMService.generateWithSystem(systemPrompt, userMessage, 512);
 
-            console.log(`[LLM:useInsightGeneration] LLM result — success=${result.success}, textLength=${result.text?.length || 0}`);
+            if (__DEV__) console.log(`[LLM:useInsightGeneration] LLM result — success=${result.success}, textLength=${result.text?.length || 0}`);
             if (result.success && result.text) {
               const insights = parseInsightResponse(result.text);
-              console.log(`[LLM:useInsightGeneration] Parsed ${insights.length} insights from LLM response`);
+              if (__DEV__) console.log(`[LLM:useInsightGeneration] Parsed ${insights.length} insights from LLM response`);
               if (insights.length > 0) {
-                console.log(`[LLM:useInsightGeneration] Setting ${insights.length} LLM insights: [${insights.map(i => i.category).join(', ')}]`);
+                if (__DEV__) console.log(`[LLM:useInsightGeneration] Setting ${insights.length} LLM insights: [${insights.map(i => i.category).join(', ')}]`);
                 setInsights(insights, 'llm');
                 AccessibilityInfo.announceForAccessibility('Insight generated');
                 return;
               }
             }
-            console.log('[LLM:useInsightGeneration] LLM returned no usable insights, falling back');
+            if (__DEV__) console.log('[LLM:useInsightGeneration] LLM returned no usable insights, falling back');
           } catch (pipelineErr) {
-            console.error('[LLM:useInsightGeneration] Context pipeline failed, falling back:', pipelineErr);
+            if (__DEV__) console.error('[LLM:useInsightGeneration] Context pipeline failed, falling back:', pipelineErr);
           }
         }
 
         // Use fallback insights
-        console.log('[LLM:useInsightGeneration] Generating fallback insights...');
+        if (__DEV__) console.log('[LLM:useInsightGeneration] Generating fallback insights...');
         const fallbackInsights = generateFallbackInsights(data);
-        console.log(`[LLM:useInsightGeneration] Generated ${fallbackInsights.length} fallback insights: [${fallbackInsights.map(i => i.category).join(', ')}]`);
+        if (__DEV__) console.log(`[LLM:useInsightGeneration] Generated ${fallbackInsights.length} fallback insights: [${fallbackInsights.map(i => i.category).join(', ')}]`);
         setInsights(fallbackInsights, 'fallback');
         AccessibilityInfo.announceForAccessibility('Insight generated');
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate insights';
         setGenerationError(errorMessage);
-        console.error('[LLM:useInsightGeneration] generateInsights ERROR:', errorMessage, err);
+        if (__DEV__) console.error('[LLM:useInsightGeneration] generateInsights ERROR:', errorMessage, err);
         AccessibilityInfo.announceForAccessibility('Could not generate insight');
 
         // Try fallback even on error
         try {
-          console.log('[LLM:useInsightGeneration] Attempting fallback after error...');
+          if (__DEV__) console.log('[LLM:useInsightGeneration] Attempting fallback after error...');
           const fallbackInsights = generateFallbackInsights(data);
           setInsights(fallbackInsights, 'fallback');
         } catch (fallbackErr) {
-          console.error('[LLM:useInsightGeneration] Even fallback failed:', fallbackErr);
+          if (__DEV__) console.error('[LLM:useInsightGeneration] Even fallback failed:', fallbackErr);
         }
       }
     },
@@ -141,28 +141,28 @@ export function useInsightGeneration(): UseInsightGenerationResult {
   );
 
   const downloadModel = useCallback(async () => {
-    console.log('[LLM:useInsightGeneration] downloadModel() called');
+    if (__DEV__) console.log('[LLM:useInsightGeneration] downloadModel() called');
     setIsDownloading(true);
     setDownloadProgress({ bytesDownloaded: 0, totalBytes: 0, percentage: 0 });
 
     try {
       const result = await LLMService.downloadModel((progress) => {
         if (progress.percentage % 10 === 0) {
-          console.log(`[LLM:useInsightGeneration] Download progress: ${progress.percentage}% (${(progress.bytesDownloaded / 1_000_000).toFixed(0)}MB / ${(progress.totalBytes / 1_000_000).toFixed(0)}MB)`);
+          if (__DEV__) console.log(`[LLM:useInsightGeneration] Download progress: ${progress.percentage}% (${(progress.bytesDownloaded / 1_000_000).toFixed(0)}MB / ${(progress.totalBytes / 1_000_000).toFixed(0)}MB)`);
         }
         setDownloadProgress(progress);
       });
 
       if (result.success) {
-        console.log('[LLM:useInsightGeneration] Download completed successfully');
+        if (__DEV__) console.log('[LLM:useInsightGeneration] Download completed successfully');
         setLLMStatus('ready');
       } else {
-        console.log(`[LLM:useInsightGeneration] Download failed: ${result.error}`);
+        if (__DEV__) console.log(`[LLM:useInsightGeneration] Download failed: ${result.error}`);
         setGenerationError(result.error || 'Download failed');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Download failed';
-      console.error('[LLM:useInsightGeneration] Download error:', errorMessage, err);
+      if (__DEV__) console.error('[LLM:useInsightGeneration] Download error:', errorMessage, err);
       setGenerationError(errorMessage);
     } finally {
       setIsDownloading(false);

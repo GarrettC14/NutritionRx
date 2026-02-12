@@ -59,17 +59,19 @@ export async function runMigrations(db: SQLiteDatabase): Promise<void> {
     currentVersion = 0;
   }
 
-  console.log(`Current schema version: ${currentVersion}`);
-  console.log(`Target schema version: ${CURRENT_SCHEMA_VERSION}`);
+  if (__DEV__) {
+    console.log(`Current schema version: ${currentVersion}`);
+    console.log(`Target schema version: ${CURRENT_SCHEMA_VERSION}`);
+  }
 
   // Run pending migrations
   for (let i = currentVersion; i < migrations.length; i++) {
-    console.log(`Running migration ${i + 1}...`);
+    if (__DEV__) console.log(`Running migration ${i + 1}...`);
     await migrations[i](db);
-    console.log(`Migration ${i + 1} complete.`);
+    if (__DEV__) console.log(`Migration ${i + 1} complete.`);
   }
 
   if (currentVersion === migrations.length) {
-    console.log('Database is up to date.');
+    if (__DEV__) console.log('Database is up to date.');
   }
 }

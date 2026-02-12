@@ -102,7 +102,7 @@ export default function LogWeightScreen() {
       AccessibilityInfo.announceForAccessibility('Weight logged successfully');
       router.back();
     } catch (error) {
-      console.error('Failed to save weight:', error);
+      if (__DEV__) console.error('Failed to save weight:', error);
       AccessibilityInfo.announceForAccessibility('Failed to log weight');
     } finally {
       setIsSaving(false);

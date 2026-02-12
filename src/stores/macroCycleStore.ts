@@ -134,7 +134,7 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
       const todayOverride = await macroCycleRepository.getOverrideByDate(today);
       set({ todayOverride });
     } catch (error) {
-      console.error('Failed to load today override:', error);
+      if (__DEV__) console.error('Failed to load today override:', error);
     }
   },
 
@@ -167,7 +167,7 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
       const allOverrides = await macroCycleRepository.getAllOverrides();
       set({ allOverrides });
     } catch (error) {
-      console.error('Failed to load overrides:', error);
+      if (__DEV__) console.error('Failed to load overrides:', error);
     }
   },
 

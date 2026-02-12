@@ -67,7 +67,7 @@ export default function QuickAddScreen() {
       AccessibilityInfo.announceForAccessibility('Quick add saved');
       router.dismiss();
     } catch (error) {
-      console.error('Failed to save quick add:', error);
+      if (__DEV__) console.error('Failed to save quick add:', error);
       AccessibilityInfo.announceForAccessibility('Failed to save quick add');
     } finally {
       setIsSaving(false);

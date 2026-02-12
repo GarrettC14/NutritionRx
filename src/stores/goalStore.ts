@@ -245,7 +245,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         currentWeightLastUpdated: latest?.date ?? null,
       });
     } catch (error) {
-      console.error('Failed to load current weight:', error);
+      if (__DEV__) console.error('Failed to load current weight:', error);
     }
   },
 
@@ -259,7 +259,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         currentWeightLastUpdated: today,
       });
     } catch (error) {
-      console.error('Failed to update current weight:', error);
+      if (__DEV__) console.error('Failed to update current weight:', error);
     }
   },
 

@@ -21,6 +21,8 @@ import { ProgressPhotosSummary } from '@/components/progressPhotos';
 import { usePremium } from '@/hooks/usePremium';
 import { TestIDs } from '@/constants/testIDs';
 import { NutrientIntake } from '@/types/micronutrients';
+import * as Sentry from '@sentry/react-native';
+import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
 type TimeRange = '7d' | '14d' | '30d' | '90d' | 'all';
 
@@ -118,7 +120,7 @@ const fillMissingDates = (
   return result;
 };
 
-export default function ProgressScreen() {
+function ProgressScreen() {
   const { colors, colorScheme } = useTheme();
   const router = useRouter();
   const { entries: weightEntries, loadEntries: loadWeightEntries, loadEarliestDate } = useWeightStore(useShallow((s) => ({
@@ -824,3 +826,11 @@ const styles = StyleSheet.create({
     ...typography.caption,
   },
 });
+
+export default function ProgressScreenWithErrorBoundary() {
+  return (
+    <Sentry.ErrorBoundary fallback={({ resetError }) => <CrashFallbackScreen resetError={resetError} />}>
+      <ProgressScreen />
+    </Sentry.ErrorBoundary>
+  );
+}

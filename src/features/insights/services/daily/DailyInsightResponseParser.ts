@@ -22,8 +22,8 @@ export interface ParsedInsightResponse {
 }
 
 export function parseInsightResponse(rawResponse: string): ParsedInsightResponse {
-  console.log(`[LLM:ResponseParser] parseInsightResponse() — rawLength=${rawResponse.length}`);
-  console.log(`[LLM:ResponseParser] Raw response: "${rawResponse.substring(0, 300)}${rawResponse.length > 300 ? '...' : ''}"`);
+  if (__DEV__) console.log(`[LLM:ResponseParser] parseInsightResponse() — rawLength=${rawResponse.length}`);
+  if (__DEV__) console.log(`[LLM:ResponseParser] Raw response: "${rawResponse.substring(0, 300)}${rawResponse.length > 300 ? '...' : ''}"`);
   const trimmed = rawResponse.trim();
   const issues: string[] = [];
 
@@ -60,8 +60,8 @@ export function parseInsightResponse(rawResponse: string): ParsedInsightResponse
     issues.push('Exclamation marks replaced with periods');
   }
 
-  console.log(`[LLM:ResponseParser] Result — isValid=${issues.length === 0}, issues=[${issues.join('; ')}]`);
-  console.log(`[LLM:ResponseParser] Final narrative (${narrative.length} chars): "${narrative.substring(0, 200)}${narrative.length > 200 ? '...' : ''}"`);
+  if (__DEV__) console.log(`[LLM:ResponseParser] Result — isValid=${issues.length === 0}, issues=[${issues.join('; ')}]`);
+  if (__DEV__) console.log(`[LLM:ResponseParser] Final narrative (${narrative.length} chars): "${narrative.substring(0, 200)}${narrative.length > 200 ? '...' : ''}"`);
 
   return {
     icon,

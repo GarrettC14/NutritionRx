@@ -261,7 +261,7 @@ export default function MacroCyclingSetupScreen() {
         onConfirm: () => router.back(),
       });
     } catch (error) {
-      console.error('Failed to save macro cycling:', error);
+      if (__DEV__) console.error('Failed to save macro cycling:', error);
       showConfirm({
         title: 'Error',
         message: 'Failed to save settings. Please try again.',

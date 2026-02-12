@@ -29,7 +29,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
       dismissAlert: (nutrientId, severity) => {
         const now = Date.now();
         const alertId = `${nutrientId}_${severity}`;
-        console.log(`[LLM:AlertStore] dismissAlert(${alertId}) — expires ${new Date(now + DISMISSAL_DURATION_MS).toISOString()}`);
+        if (__DEV__) console.log(`[LLM:AlertStore] dismissAlert(${alertId}) — expires ${new Date(now + DISMISSAL_DURATION_MS).toISOString()}`);
 
         set((state) => {
           // Remove any existing dismissal for this alert
@@ -58,7 +58,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
         if (!dismissal) return false;
 
         const dismissed = dismissal.expiresAt > now;
-        console.log(`[LLM:AlertStore] isAlertDismissed(${alertId}) → ${dismissed}`);
+        if (__DEV__) console.log(`[LLM:AlertStore] isAlertDismissed(${alertId}) → ${dismissed}`);
         return dismissed;
       },
 
@@ -68,7 +68,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
 
         const validDismissals = dismissals.filter((d) => d.expiresAt > now);
         const ids = new Set(validDismissals.map((d) => d.alertId));
-        console.log(`[LLM:AlertStore] getDismissedAlertIds() → ${ids.size} active dismissals: [${[...ids].join(', ')}]`);
+        if (__DEV__) console.log(`[LLM:AlertStore] getDismissedAlertIds() → ${ids.size} active dismissals: [${[...ids].join(', ')}]`);
         return ids;
       },
 
@@ -77,7 +77,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
         const { dismissals } = get();
         const expiredCount = dismissals.filter((d) => d.expiresAt <= now).length;
         if (expiredCount > 0) {
-          console.log(`[LLM:AlertStore] clearExpiredDismissals() — removing ${expiredCount} expired`);
+          if (__DEV__) console.log(`[LLM:AlertStore] clearExpiredDismissals() — removing ${expiredCount} expired`);
         }
         set((state) => ({
           dismissals: state.dismissals.filter((d) => d.expiresAt > now),
@@ -85,7 +85,7 @@ export const useAlertDismissalStore = create<AlertDismissalState>()(
       },
 
       clearAllDismissals: () => {
-        console.log('[LLM:AlertStore] clearAllDismissals()');
+        if (__DEV__) console.log('[LLM:AlertStore] clearAllDismissals()');
         set({ dismissals: [] });
       },
     }),

@@ -3,6 +3,8 @@ import { foodRepository, CreateFoodInput } from '@/repositories';
 import { FoodItem } from '@/types/domain';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
+import * as Sentry from '@sentry/react-native';
+import { isExpectedError } from '@/utils/sentryHelpers';
 
 interface FoodSearchState {
   // State
@@ -125,10 +127,16 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
 
           set({ results: [...localResults, ...uniqueUsda] });
         }
-      } catch {
+      } catch (usdaError) {
         // USDA search failure is non-critical - local results already set
+        if (!isExpectedError(usdaError)) {
+          Sentry.captureException(usdaError, { tags: { feature: 'food-search', action: 'search-usda' } });
+        }
       }
     } catch (error) {
+      if (!isExpectedError(error)) {
+        Sentry.captureException(error, { tags: { feature: 'food-search', action: 'search' } });
+      }
       set({
         error: error instanceof Error ? error.message : 'Search failed',
         isSearching: false,
@@ -146,6 +154,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
       const recentFoods = await foodRepository.getRecent();
       set({ recentFoods, isLoadingRecent: false, isLoaded: true });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-search', action: 'load-recent' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load recent foods',
         isLoadingRecent: false,
@@ -160,6 +169,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
       const frequentFoods = await foodRepository.getFrequent();
       set({ frequentFoods, isLoadingRecent: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-search', action: 'load-frequent' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load frequent foods',
         isLoadingRecent: false,
@@ -172,8 +182,17 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
     try {
       const food = await foodRepository.findByBarcode(barcode);
       set({ isSearching: false });
+      Sentry.addBreadcrumb({
+        category: 'barcode',
+        message: 'Barcode scan attempted',
+        level: 'info',
+        data: { result: food ? 'found' : 'not-found' },
+      });
       return food;
     } catch (error) {
+      if (!isExpectedError(error)) {
+        Sentry.captureException(error, { tags: { feature: 'food-search', action: 'barcode-lookup' } });
+      }
       set({
         error: error instanceof Error ? error.message : 'Barcode lookup failed',
         isSearching: false,
@@ -193,6 +212,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
       set({ isSearching: false });
       return food;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-search', action: 'create-food' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to create food',
         isSearching: false,
@@ -208,6 +228,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
       set({ isSearching: false });
       return food;
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-search', action: 'update-food' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to update food',
         isSearching: false,
@@ -229,6 +250,7 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
 
       set({ isSearching: false });
     } catch (error) {
+      Sentry.captureException(error, { tags: { feature: 'food-search', action: 'delete-food' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to delete food',
         isSearching: false,

@@ -65,7 +65,7 @@ export async function syncDailyNutritionToHealthKit(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing nutrition to HealthKit:', error);
+    if (__DEV__) console.error('Error syncing nutrition to HealthKit:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -95,7 +95,7 @@ export async function syncWaterToHealthKit(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing water to HealthKit:', error);
+    if (__DEV__) console.error('Error syncing water to HealthKit:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -124,7 +124,7 @@ export async function syncWeightToHealthKit(
 
     return { success: true };
   } catch (error) {
-    console.error('Error syncing weight to HealthKit:', error);
+    if (__DEV__) console.error('Error syncing weight to HealthKit:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Sync failed',
@@ -142,7 +142,7 @@ export async function getWeightFromHealthKit(): Promise<{
   try {
     return await healthKitService.getLatestWeight();
   } catch (error) {
-    console.error('Failed to get weight from HealthKit:', error);
+    if (__DEV__) console.error('Failed to get weight from HealthKit:', error);
     return null;
   }
 }
@@ -154,7 +154,7 @@ export async function getActiveCaloriesFromHealthKit(date: Date): Promise<number
   try {
     return await healthKitService.getActiveCaloriesForDay(date);
   } catch (error) {
-    console.error('Failed to get active calories from HealthKit:', error);
+    if (__DEV__) console.error('Failed to get active calories from HealthKit:', error);
     return 0;
   }
 }

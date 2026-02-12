@@ -74,7 +74,7 @@ export function useWidgetSync(options: WidgetSyncOptions = {}): UseWidgetSyncRet
         try {
           await syncFn();
         } catch (error) {
-          console.warn('Widget sync failed:', error);
+          if (__DEV__) console.warn('Widget sync failed:', error);
         }
       }, debounceMs);
     },

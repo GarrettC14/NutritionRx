@@ -91,7 +91,7 @@ export default function LogFoodScreen() {
             }
           }
         } catch (error) {
-          console.error('Failed to load micronutrients:', error);
+          if (__DEV__) console.error('Failed to load micronutrients:', error);
         } finally {
           setIsLoadingNutrients(false);
         }
@@ -161,7 +161,7 @@ export default function LogFoodScreen() {
         await updateFavoriteDefaults(food.id, amountNum, selectedUnit);
       }
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+      if (__DEV__) console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -191,7 +191,7 @@ export default function LogFoodScreen() {
       AccessibilityInfo.announceForAccessibility('Food logged successfully');
       router.dismiss();
     } catch (error) {
-      console.error('Failed to save log entry:', error);
+      if (__DEV__) console.error('Failed to save log entry:', error);
       AccessibilityInfo.announceForAccessibility('Failed to log food');
     } finally {
       setIsSaving(false);

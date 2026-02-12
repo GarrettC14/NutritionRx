@@ -10,7 +10,7 @@ let DeviceInfo: any = null;
 try {
   DeviceInfo = require('react-native-device-info').default;
 } catch {
-  console.log('[DeviceClassifier] react-native-device-info not available');
+  if (__DEV__) console.log('[DeviceClassifier] react-native-device-info not available');
 }
 
 export type DeviceCapability =

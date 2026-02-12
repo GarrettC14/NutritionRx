@@ -123,7 +123,7 @@ export default function DeveloperScreen() {
 
       setStats(result as unknown as DatabaseStats);
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      if (__DEV__) console.error('Failed to load stats:', error);
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +176,7 @@ export default function DeveloperScreen() {
           setSeedResult(result);
           await loadStats();
         } catch (error) {
-          console.error('Failed to seed data:', error);
+          if (__DEV__) console.error('Failed to seed data:', error);
           setSeedResult({
             success: false,
             duration: 0,
@@ -209,7 +209,7 @@ export default function DeveloperScreen() {
           await clearAllData(db, true);
           await loadStats();
         } catch (error) {
-          console.error('Failed to clear data:', error);
+          if (__DEV__) console.error('Failed to clear data:', error);
         } finally {
           setIsClearing(false);
         }
@@ -234,7 +234,7 @@ export default function DeveloperScreen() {
           await resetDatabase();
           router.replace('/');
         } catch (error) {
-          console.error('Failed to reset app:', error);
+          if (__DEV__) console.error('Failed to reset app:', error);
           setIsClearing(false);
         }
       },

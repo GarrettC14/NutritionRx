@@ -113,7 +113,7 @@ export const useFastingStore = create<FastingState>((set, get) => ({
       const activeSession = await fastingRepository.getActiveSession();
       set({ activeSession });
     } catch (error) {
-      console.error('Failed to load active session:', error);
+      if (__DEV__) console.error('Failed to load active session:', error);
     }
   },
 
@@ -176,7 +176,7 @@ export const useFastingStore = create<FastingState>((set, get) => ({
       const recentSessions = await fastingRepository.getRecentSessions(limit);
       set({ recentSessions });
     } catch (error) {
-      console.error('Failed to load recent sessions:', error);
+      if (__DEV__) console.error('Failed to load recent sessions:', error);
     }
   },
 
@@ -185,7 +185,7 @@ export const useFastingStore = create<FastingState>((set, get) => ({
       const stats = await fastingRepository.getStats();
       set({ stats });
     } catch (error) {
-      console.error('Failed to load fasting stats:', error);
+      if (__DEV__) console.error('Failed to load fasting stats:', error);
     }
   },
 

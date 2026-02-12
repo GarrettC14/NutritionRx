@@ -249,7 +249,7 @@ export const openFoodFactsApi = {
 
       return { success: true, food };
     } catch (error) {
-      console.error('OpenFoodFacts API error:', error);
+      if (__DEV__) console.error('OpenFoodFacts API error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch product',
@@ -333,7 +333,7 @@ export const openFoodFactsApi = {
 
       return [...localResults, ...uniqueApiResults].slice(0, limit);
     } catch (error) {
-      console.error('OpenFoodFacts search error:', error);
+      if (__DEV__) console.error('OpenFoodFacts search error:', error);
       return foodRepository.search(query, limit);
     }
   },

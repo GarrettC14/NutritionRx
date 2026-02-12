@@ -31,7 +31,7 @@ export default function AppInitializer() {
         ]);
         setIsInitialized(true);
       } catch (error) {
-        console.error('Initialization error:', error);
+        if (__DEV__) console.error('Initialization error:', error);
         setIsInitialized(true); // Still proceed to avoid blocking
       }
     };

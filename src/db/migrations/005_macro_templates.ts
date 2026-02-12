@@ -41,5 +41,5 @@ export async function migration005MacroTemplates(db: SQLiteDatabase): Promise<vo
   // Record migration
   await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [5]);
 
-  console.log('Migration 005: Added macro template fields (eating_style, protein_priority)');
+  if (__DEV__) console.log('Migration 005: Added macro template fields (eating_style, protein_priority)');
 }

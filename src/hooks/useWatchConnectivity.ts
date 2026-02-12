@@ -54,7 +54,7 @@ export function useWatchConnectivity(
       setIsWatchAppInstalled(state.isWatchAppInstalled);
       setIsReachable(state.isReachable);
     } catch (error) {
-      console.error('Failed to get watch session state:', error);
+      if (__DEV__) console.error('Failed to get watch session state:', error);
     }
   }, [isAvailable]);
 

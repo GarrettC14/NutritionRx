@@ -96,7 +96,7 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     try {
       await favoriteRepository.updateDefaults(foodId, servingSize, servingUnit);
     } catch (error) {
-      console.error('Failed to update favorite defaults:', error);
+      if (__DEV__) console.error('Failed to update favorite defaults:', error);
     }
   },
 }));

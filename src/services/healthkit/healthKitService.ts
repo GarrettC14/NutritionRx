@@ -64,7 +64,7 @@ const loadHealthKit = async (): Promise<boolean> => {
       HKQuantityTypeIdentifier = healthKitModule.HKQuantityTypeIdentifier;
       return true;
     } catch (error) {
-      console.error('Failed to load HealthKit module:', error);
+      if (__DEV__) console.error('Failed to load HealthKit module:', error);
       return false;
     }
   }
@@ -88,7 +88,7 @@ class HealthKitService {
       }
       return await HealthKit.isHealthDataAvailable();
     } catch (error) {
-      console.error('Error checking HealthKit availability:', error);
+      if (__DEV__) console.error('Error checking HealthKit availability:', error);
       return false;
     }
   }
@@ -186,7 +186,7 @@ class HealthKitService {
         date: new Date(sample.startDate),
       };
     } catch (error) {
-      console.error('Error getting weight from HealthKit:', error);
+      if (__DEV__) console.error('Error getting weight from HealthKit:', error);
       return null;
     }
   }
@@ -215,7 +215,7 @@ class HealthKitService {
 
       return true;
     } catch (error) {
-      console.error('Error saving weight to HealthKit:', error);
+      if (__DEV__) console.error('Error saving weight to HealthKit:', error);
       return false;
     }
   }
@@ -250,7 +250,7 @@ class HealthKitService {
       // Sum all active calories for the day
       return samples.reduce((total, sample) => total + sample.quantity, 0);
     } catch (error) {
-      console.error('Error getting active calories from HealthKit:', error);
+      if (__DEV__) console.error('Error getting active calories from HealthKit:', error);
       return 0;
     }
   }
@@ -308,7 +308,7 @@ class HealthKitService {
 
       return true;
     } catch (error) {
-      console.error('Error saving nutrition to HealthKit:', error);
+      if (__DEV__) console.error('Error saving nutrition to HealthKit:', error);
       return false;
     }
   }
@@ -337,7 +337,7 @@ class HealthKitService {
 
       return true;
     } catch (error) {
-      console.error('Error saving water intake to HealthKit:', error);
+      if (__DEV__) console.error('Error saving water intake to HealthKit:', error);
       return false;
     }
   }

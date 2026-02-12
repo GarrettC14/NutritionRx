@@ -336,7 +336,7 @@ export default function GoalsSettingsScreen() {
 
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to update goal:', error);
+      if (__DEV__) console.error('Failed to update goal:', error);
       Alert.alert('Error', 'Failed to update goal. Please try again.');
     }
   };

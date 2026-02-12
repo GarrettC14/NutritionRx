@@ -112,7 +112,7 @@ export default function AIPhotoScreen() {
         });
       }
     } catch (error) {
-      console.error('Failed to take photo:', error);
+      if (__DEV__) console.error('Failed to take photo:', error);
       Alert.alert('Error', 'Failed to capture photo. Please try again.');
     }
   };
@@ -142,7 +142,7 @@ export default function AIPhotoScreen() {
         });
       }
     } catch (error) {
-      console.error('Failed to pick image:', error);
+      if (__DEV__) console.error('Failed to pick image:', error);
       Alert.alert('Error', 'Failed to select image. Please try again.');
     }
   };
@@ -205,7 +205,7 @@ export default function AIPhotoScreen() {
         throw new Error(analysis.error || 'Analysis failed');
       }
     } catch (error) {
-      console.error('Analysis error:', error);
+      if (__DEV__) console.error('Analysis error:', error);
       Alert.alert(
         'Analysis Failed',
         'Failed to analyze the image. Please try again.',
@@ -316,7 +316,7 @@ export default function AIPhotoScreen() {
       // Navigate back
       router.dismiss();
     } catch (error) {
-      console.error('Failed to log foods:', error);
+      if (__DEV__) console.error('Failed to log foods:', error);
       Alert.alert('Error', 'Failed to log foods. Please try again.');
     } finally {
       setIsSaving(false);

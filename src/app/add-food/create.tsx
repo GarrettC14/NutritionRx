@@ -179,7 +179,7 @@ export default function CreateFoodScreen() {
             try {
               await saveFoodAndLog(existingFood);
             } catch (error) {
-              console.error('Failed to save food:', error);
+              if (__DEV__) console.error('Failed to save food:', error);
             } finally {
               setIsSaving(false);
             }
@@ -190,7 +190,7 @@ export default function CreateFoodScreen() {
         await saveFoodAndLog();
       }
     } catch (error) {
-      console.error('Failed to create food:', error);
+      if (__DEV__) console.error('Failed to create food:', error);
       setIsSaving(false);
     }
   };
