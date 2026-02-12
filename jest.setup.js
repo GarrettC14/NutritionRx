@@ -1,8 +1,9 @@
 // Jest setup file
 // Provide React Native-style dev global in node test runtime.
-if (typeof global.__DEV__ === 'undefined') {
-  global.__DEV__ = false;
-}
+// Set __DEV__ = true to match React Native development mode.
+// Stores guard console.error/log with if (__DEV__), and many features
+// (e.g. toggleDevPremium) only work when __DEV__ is true.
+global.__DEV__ = true;
 
 // Mock expo-sqlite for unit tests
 jest.mock('expo-sqlite', () => ({

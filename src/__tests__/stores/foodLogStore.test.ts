@@ -45,6 +45,16 @@ jest.mock('@/stores/settingsStore', () => ({
   },
 }));
 
+// Mock database for copy operations (copyMealToDate/copyDayToDate use raw SQL)
+const mockDb = {
+  withTransactionAsync: jest.fn(async (callback: Function) => callback()),
+  runAsync: jest.fn(),
+};
+
+jest.mock('@/db/database', () => ({
+  getDatabase: jest.fn(() => mockDb),
+}));
+
 describe('useFoodLogStore', () => {
   const mockLogRepo = logEntryRepository as jest.Mocked<typeof logEntryRepository>;
   const mockQuickRepo = quickAddRepository as jest.Mocked<typeof quickAddRepository>;
@@ -357,19 +367,16 @@ describe('useFoodLogStore', () => {
         quickAddEntries: [],
       });
 
-      mockLogRepo.create.mockResolvedValue(breakfastEntry);
       mockLogRepo.findByDate.mockResolvedValue([]);
       mockQuickRepo.findByDate.mockResolvedValue([]);
       mockLogRepo.getDailyTotals.mockResolvedValue(mockDailyTotals);
 
       await useFoodLogStore.getState().copyMealToDate(MealType.Breakfast, '2024-01-16');
 
-      expect(mockLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        foodItemId: breakfastEntry.foodItemId,
-        date: '2024-01-16',
-        mealType: MealType.Breakfast,
-        servings: breakfastEntry.servings,
-      }));
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO log_entries'),
+        expect.arrayContaining([breakfastEntry.foodItemId, '2024-01-16', 'breakfast'])
+      );
     });
 
     it('copies quick entries from one meal to target date', async () => {
@@ -380,18 +387,16 @@ describe('useFoodLogStore', () => {
         quickAddEntries: [breakfastQuick],
       });
 
-      mockQuickRepo.create.mockResolvedValue(breakfastQuick);
       mockLogRepo.findByDate.mockResolvedValue([]);
       mockQuickRepo.findByDate.mockResolvedValue([]);
       mockLogRepo.getDailyTotals.mockResolvedValue(mockDailyTotals);
 
       await useFoodLogStore.getState().copyMealToDate(MealType.Breakfast, '2024-01-16');
 
-      expect(mockQuickRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        date: '2024-01-16',
-        mealType: MealType.Breakfast,
-        calories: breakfastQuick.calories,
-      }));
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO quick_add_entries'),
+        expect.arrayContaining(['2024-01-16', 'breakfast', breakfastQuick.calories])
+      );
     });
 
     it('copies to different meal type when specified', async () => {
@@ -402,17 +407,16 @@ describe('useFoodLogStore', () => {
         quickAddEntries: [],
       });
 
-      mockLogRepo.create.mockResolvedValue(lunchEntry);
       mockLogRepo.findByDate.mockResolvedValue([]);
       mockQuickRepo.findByDate.mockResolvedValue([]);
       mockLogRepo.getDailyTotals.mockResolvedValue(mockDailyTotals);
 
       await useFoodLogStore.getState().copyMealToDate(MealType.Lunch, '2024-01-16', MealType.Dinner);
 
-      expect(mockLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        date: '2024-01-16',
-        mealType: MealType.Dinner,
-      }));
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO log_entries'),
+        expect.arrayContaining(['2024-01-16', 'dinner'])
+      );
     });
 
     it('handles errors gracefully', async () => {
@@ -422,7 +426,7 @@ describe('useFoodLogStore', () => {
         quickAddEntries: [],
       });
 
-      mockLogRepo.create.mockRejectedValue(new Error('Copy failed'));
+      mockDb.runAsync.mockRejectedValueOnce(new Error('Copy failed'));
 
       await expect(
         useFoodLogStore.getState().copyMealToDate(MealType.Lunch, '2024-01-16')
@@ -448,22 +452,21 @@ describe('useFoodLogStore', () => {
         if (date === '2024-01-14') return Promise.resolve(sourceQuickEntries);
         return Promise.resolve([]);
       });
-      mockLogRepo.create.mockResolvedValue(mockLogEntry);
-      mockQuickRepo.create.mockResolvedValue(mockQuickEntry);
       mockLogRepo.getDailyTotals.mockResolvedValue(mockDailyTotals);
 
       useFoodLogStore.setState({ selectedDate: '2024-01-15' });
 
       await useFoodLogStore.getState().copyDayToDate('2024-01-14', '2024-01-15');
 
-      // Should create 2 log entries + 1 quick entry
-      expect(mockLogRepo.create).toHaveBeenCalledTimes(2);
-      expect(mockQuickRepo.create).toHaveBeenCalledTimes(1);
-
-      // Verify dates were changed
-      expect(mockLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        date: '2024-01-15',
-      }));
+      // Should batch-insert log entries and quick entries via raw SQL
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO log_entries'),
+        expect.arrayContaining(['2024-01-15'])
+      );
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO quick_add_entries'),
+        expect.arrayContaining(['2024-01-15'])
+      );
     });
 
     it('preserves meal types when copying', async () => {
@@ -472,17 +475,14 @@ describe('useFoodLogStore', () => {
 
       mockLogRepo.findByDate.mockResolvedValue([breakfastEntry, dinnerEntry]);
       mockQuickRepo.findByDate.mockResolvedValue([]);
-      mockLogRepo.create.mockResolvedValue(mockLogEntry);
       mockLogRepo.getDailyTotals.mockResolvedValue(mockDailyTotals);
 
       await useFoodLogStore.getState().copyDayToDate('2024-01-14', '2024-01-15');
 
-      expect(mockLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        mealType: MealType.Breakfast,
-      }));
-      expect(mockLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        mealType: MealType.Dinner,
-      }));
+      expect(mockDb.runAsync).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO log_entries'),
+        expect.arrayContaining(['breakfast', 'dinner', '2024-01-15'])
+      );
     });
 
     it('refreshes current date if target is selected date', async () => {
@@ -501,7 +501,7 @@ describe('useFoodLogStore', () => {
     it('handles errors gracefully', async () => {
       mockLogRepo.findByDate.mockResolvedValue([mockLogEntry]);
       mockQuickRepo.findByDate.mockResolvedValue([]);
-      mockLogRepo.create.mockRejectedValue(new Error('Copy day failed'));
+      mockDb.runAsync.mockRejectedValueOnce(new Error('Copy day failed'));
 
       await expect(
         useFoodLogStore.getState().copyDayToDate('2024-01-14', '2024-01-15')

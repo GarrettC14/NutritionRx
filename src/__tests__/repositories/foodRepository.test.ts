@@ -162,25 +162,25 @@ describe('foodRepository', () => {
       expect(mockDb.getAllAsync).toHaveBeenCalled();
     });
 
-    it('uses LIKE pattern with % wildcards', async () => {
+    it('uses FTS5 MATCH for search', async () => {
       mockDb.getAllAsync.mockResolvedValue([]);
 
       await foodRepository.search('chicken');
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
-        expect.stringContaining('LIKE ?'),
-        expect.arrayContaining(['%chicken%'])
+        expect.stringContaining('food_items_fts MATCH'),
+        expect.arrayContaining(['"chicken"'])
       );
     });
 
-    it('searches both name and brand with COLLATE NOCASE', async () => {
+    it('joins food_items with food_items_fts', async () => {
       mockDb.getAllAsync.mockResolvedValue([]);
 
       await foodRepository.search('chicken');
 
       const sql = mockDb.getAllAsync.mock.calls[0][0] as string;
-      expect(sql).toContain('name LIKE ? COLLATE NOCASE');
-      expect(sql).toContain('brand LIKE ? COLLATE NOCASE');
+      expect(sql).toContain('food_items fi');
+      expect(sql).toContain('food_items_fts');
     });
 
     it('uses maxResults as default limit', async () => {
@@ -190,7 +190,7 @@ describe('foodRepository', () => {
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
         expect.stringContaining('LIMIT ?'),
-        ['%chicken%', '%chicken%', SEARCH_SETTINGS.maxResults]
+        ['"chicken"', SEARCH_SETTINGS.maxResults]
       );
     });
 
@@ -201,7 +201,7 @@ describe('foodRepository', () => {
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
         expect.any(String),
-        ['%chicken%', '%chicken%', 10]
+        ['"chicken"', 10]
       );
     });
 
@@ -211,7 +211,7 @@ describe('foodRepository', () => {
       await foodRepository.search('chicken');
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
-        expect.stringContaining('ORDER BY usage_count DESC, name ASC'),
+        expect.stringContaining('ORDER BY fi.usage_count DESC, fi.name ASC'),
         expect.any(Array)
       );
     });

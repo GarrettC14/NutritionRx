@@ -114,8 +114,8 @@ describe('Settings Screen - Macro Cycling Settings Link (Feature 1)', () => {
       expect(settingsSource).toMatch(/CONNECTIONS/);
     });
 
-    it('should have DANGER ZONE section', () => {
-      expect(settingsSource).toMatch(/DANGER ZONE/);
+    it('should have SUPPORT section', () => {
+      expect(settingsSource).toMatch(/SUPPORT/);
     });
 
     it('should have all YOUR PLAN items in correct order', () => {

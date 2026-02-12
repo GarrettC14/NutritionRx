@@ -636,6 +636,10 @@ describe('Subscription Gating Integration', () => {
 
     it('premium user after initialize has isPremium true', async () => {
       const customerInfo = makeCustomerInfo({ premium: premiumEntitlement });
+      // Reset to clear any unconsumed one-time mock values from previous tests
+      mockPurchases.getOfferings.mockReset();
+      mockPurchases.getCustomerInfo.mockReset();
+      mockPurchases.addCustomerInfoUpdateListener.mockReturnValue({ remove: jest.fn() });
       mockPurchases.getOfferings.mockResolvedValueOnce({
         current: mockOffering,
         all: {},
@@ -650,6 +654,9 @@ describe('Subscription Gating Integration', () => {
 
     it('premium user after initialize has willRenew from entitlement', async () => {
       const customerInfo = makeCustomerInfo({ premium: premiumEntitlement });
+      mockPurchases.getOfferings.mockReset();
+      mockPurchases.getCustomerInfo.mockReset();
+      mockPurchases.addCustomerInfoUpdateListener.mockReturnValue({ remove: jest.fn() });
       mockPurchases.getOfferings.mockResolvedValueOnce({
         current: mockOffering,
         all: {},

@@ -489,22 +489,22 @@ describe('Migration Index', () => {
     expect(indexSource).toContain("import { migration014UsdaFdcId } from './014_usda_fdc_id'");
   });
 
-  it('should set CURRENT_SCHEMA_VERSION to 17', () => {
-    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 17');
+  it('should set CURRENT_SCHEMA_VERSION to 20', () => {
+    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 20');
   });
 
   it('should include migration014 in migrations array', () => {
     expect(indexSource).toContain('migration014UsdaFdcId');
   });
 
-  it('should have 17 migrations in the array', () => {
+  it('should have 20 migrations in the array', () => {
     const migrationsArray = indexSource.match(
       /export const migrations[\s\S]*?\];/
     );
     expect(migrationsArray).toBeTruthy();
     const migrationEntries = migrationsArray![0].match(/migration\d+/g);
     expect(migrationEntries).toBeTruthy();
-    expect(migrationEntries!.length).toBe(17);
+    expect(migrationEntries!.length).toBe(20);
   });
 });
 
@@ -653,7 +653,7 @@ describe('Micronutrient Repository', () => {
 
   describe('storeFoodNutrients', () => {
     it('should have storeFoodNutrients method', () => {
-      expect(repoSource).toContain('async storeFoodNutrients(foodItemId: string, nutrients: MicronutrientData)');
+      expect(repoSource).toContain("async storeFoodNutrients(foodItemId: string, nutrients: MicronutrientData, source: string = 'usda')");
     });
 
     it('should use INSERT OR REPLACE for upsert', () => {
@@ -991,7 +991,7 @@ describe('Food Log Screen Micronutrient Preview', () => {
 
   describe('Micronutrient Preview UI', () => {
     it('should show micronutrient card for USDA foods', () => {
-      expect(logSource).toContain('food.usdaFdcId && micronutrients');
+      expect(logSource).toContain('micronutrients && Object.keys(micronutrients).length > 0');
       expect(logSource).toContain('micronutrientCard');
     });
 
@@ -1006,7 +1006,7 @@ describe('Food Log Screen Micronutrient Preview', () => {
     });
 
     it('should show USDA source attribution', () => {
-      expect(logSource).toContain('Data from USDA FoodData Central');
+      expect(logSource).toContain('Nutrient data available');
     });
 
     it('should show top 3 nutrients', () => {
