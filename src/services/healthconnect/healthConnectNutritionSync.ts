@@ -2,6 +2,7 @@
  * Health Connect Nutrition Sync
  * High-level sync functions for nutrition data on Android
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import {
   healthConnectService,

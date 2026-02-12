@@ -137,6 +137,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
 
       set({ isLoading: false });
 
+      // TODO [POST_LAUNCH_HEALTH]: HealthKit weight sync — currently a no-op (isConnected defaults false)
       // Sync to HealthKit if enabled (non-blocking)
       const { writeWeight, isConnected } = useHealthKitStore.getState();
       if (writeWeight && isConnected) {
@@ -171,6 +172,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       // Refresh trend weight
       get().loadTrendWeight();
 
+      // TODO [POST_LAUNCH_HEALTH]: HealthKit weight sync — currently a no-op (isConnected defaults false)
       // Sync to HealthKit if enabled (non-blocking)
       const { writeWeight, isConnected } = useHealthKitStore.getState();
       if (writeWeight && isConnected) {
@@ -223,6 +225,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     }
   },
 
+  // TODO [POST_LAUNCH_HEALTH]: HealthKit weight import — currently a no-op (isConnected defaults false)
   /**
    * Import the latest weight from HealthKit if it's newer than local data
    * This is useful for importing weight from smart scales synced to Apple Health

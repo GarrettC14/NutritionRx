@@ -3,6 +3,7 @@
  * Core service for interacting with Apple HealthKit
  * Only works on iOS - returns safe defaults on other platforms
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { Platform } from 'react-native';
 
@@ -59,7 +60,7 @@ const loadHealthKit = async (): Promise<boolean> => {
 
   if (HealthKit === null) {
     try {
-      // TODO [NOT_LAUNCHING]: @kingstinct/react-native-healthkit is not installed.
+      // TODO [POST_LAUNCH_HEALTH]: @kingstinct/react-native-healthkit is not installed.
       // Install the package before enabling HealthKit integration in production.
       const healthKitModule = await import('@kingstinct/react-native-healthkit');
       HealthKit = healthKitModule.default;

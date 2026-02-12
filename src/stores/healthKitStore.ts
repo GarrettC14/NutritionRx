@@ -2,6 +2,7 @@
  * HealthKit Store
  * Manages HealthKit connection state and sync settings
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';

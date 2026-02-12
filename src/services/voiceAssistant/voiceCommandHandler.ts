@@ -282,7 +282,7 @@ export async function handleLogWeightCommand(
 
     // Determine unit (use parsed or default from settings)
     const parsedUnit = parseWeightUnit(unit);
-    // TODO [NOT_LAUNCHING]: Unit mismatch — WeightUnit is 'pounds'|'kilograms' but
+    // TODO [POST_LAUNCH_WEAR]: Unit mismatch — WeightUnit is 'pounds'|'kilograms' but
     // settingsStore.settings.weightUnit is 'lbs'|'kg'. This fallback will never match,
     // so the default 'pounds' is always used. Convert settings value before comparing.
     const targetUnit: WeightUnit = parsedUnit || settingsStore.settings.weightUnit || 'pounds';

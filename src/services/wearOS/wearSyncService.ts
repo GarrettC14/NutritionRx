@@ -3,6 +3,7 @@
  * Handles bidirectional sync between React Native app and Wear OS watch
  * Uses react-native-wear-connectivity for Data Layer communication
  */
+// TODO [POST_LAUNCH_WEAR]: Enable after native modules implemented and schema bugs fixed
 
 import { Platform, NativeModules, NativeEventEmitter } from 'react-native';
 import { useFoodLogStore } from '@/stores/foodLogStore';
@@ -222,7 +223,7 @@ export async function syncToWatch(): Promise<boolean> {
 async function getRecentFoodsForWatch(): Promise<WearRecentFood[]> {
   const foodLogStore = useFoodLogStore.getState();
 
-  // TODO [NOT_LAUNCHING]: Field name mismatches — LogEntry uses 'foodItemId' not 'foodId',
+  // TODO [POST_LAUNCH_WEAR]: Field name mismatches — LogEntry uses 'foodItemId' not 'foodId',
   // and does not have 'name' or 'servingSize' fields. These filters will always be false,
   // producing an empty array. Fix: use e.foodItemId, join with food_items table for name/servingSize.
   const recentEntries = foodLogStore.entries
@@ -365,7 +366,7 @@ async function handleLogFoodAction(payload: { foodId?: string }): Promise<void> 
 
   const foodLogStore = useFoodLogStore.getState();
 
-  // TODO [NOT_LAUNCHING]: LogEntry uses 'foodItemId' not 'foodId', and lacks 'name'.
+  // TODO [POST_LAUNCH_WEAR]: LogEntry uses 'foodItemId' not 'foodId', and lacks 'name'.
   // This lookup will always miss. Fix: use e.foodItemId and join food_items for name.
   const recentEntry = foodLogStore.entries.find(e => e.foodId === payload.foodId);
 

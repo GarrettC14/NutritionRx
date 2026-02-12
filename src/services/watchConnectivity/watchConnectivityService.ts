@@ -2,6 +2,7 @@
  * Watch Connectivity Service
  * Handles communication with the Apple Watch companion app
  */
+// TODO [POST_LAUNCH_WEAR]: Enable after native modules implemented and schema bugs fixed
 
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 import {

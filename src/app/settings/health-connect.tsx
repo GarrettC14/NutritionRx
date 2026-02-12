@@ -3,6 +3,7 @@
  * Route: /settings/health-connect
  * Android-only screen for Health Connect integration
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 import React from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

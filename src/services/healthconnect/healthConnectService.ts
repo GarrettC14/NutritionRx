@@ -3,6 +3,7 @@
  * Core service for interacting with Android Health Connect
  * Only works on Android - returns safe defaults on other platforms
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { Platform, Linking } from 'react-native';
 

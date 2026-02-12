@@ -2,6 +2,7 @@
  * Apple Health Settings Screen
  * Route: /settings/apple-health
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 import React from 'react';
 import { Platform, StyleSheet, View, Pressable, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

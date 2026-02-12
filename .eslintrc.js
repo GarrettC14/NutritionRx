@@ -55,5 +55,7 @@ module.exports = {
     '*.test.ts',
     '*.test.tsx',
     '__tests__/',
+    'src/app/settings/apple-health.tsx',
+    'src/app/settings/health-connect.tsx',
   ],
 };

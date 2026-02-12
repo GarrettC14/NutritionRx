@@ -2,6 +2,7 @@
  * useWearOS Hook
  * React hook for Wear OS connectivity and sync
  */
+// TODO [POST_LAUNCH_WEAR]: Enable after native modules implemented and schema bugs fixed
 
 import { useEffect, useState, useCallback } from 'react';
 import {

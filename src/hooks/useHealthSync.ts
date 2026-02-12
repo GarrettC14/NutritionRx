@@ -3,6 +3,7 @@
  * Provides a cross-platform interface for syncing health data to
  * Apple HealthKit (iOS) or Health Connect (Android)
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { useCallback } from 'react';
 import { Platform } from 'react-native';

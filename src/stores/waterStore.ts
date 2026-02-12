@@ -83,6 +83,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.addGlass(today);
       set({ todayLog: log });
 
+      // TODO [POST_LAUNCH_HEALTH]: HealthKit water sync — currently a no-op (isConnected defaults false)
       // Sync to HealthKit if enabled (non-blocking)
       const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();
       const { glassSizeMl } = get();
@@ -128,6 +129,7 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.setGlasses(today, glasses);
       set({ todayLog: log });
 
+      // TODO [POST_LAUNCH_HEALTH]: HealthKit water sync — currently a no-op (isConnected defaults false)
       // Sync difference to HealthKit if enabled (non-blocking)
       // Only sync if we're adding water (not removing)
       const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();

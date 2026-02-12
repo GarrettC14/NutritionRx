@@ -2,6 +2,7 @@
  * HealthKit Nutrition Sync
  * High-level sync functions for nutrition data
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { healthKitService } from './healthKitService';
 

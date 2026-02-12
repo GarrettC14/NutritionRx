@@ -18,5 +18,9 @@
       "@/constants/*": ["src/constants/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": [
+    "src/app/settings/apple-health.tsx",
+    "src/app/settings/health-connect.tsx"
+  ]
 }

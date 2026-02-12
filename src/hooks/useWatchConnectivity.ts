@@ -2,6 +2,7 @@
  * useWatchConnectivity Hook
  * React hook for Apple Watch connectivity
  */
+// TODO [POST_LAUNCH_WEAR]: Enable after native modules implemented and schema bugs fixed
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { watchConnectivityService } from '@/services/watchConnectivity/watchConnectivityService';

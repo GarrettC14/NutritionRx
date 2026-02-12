@@ -2,6 +2,7 @@
  * Health Connect Store
  * Zustand store for managing Health Connect state on Android
  */
+// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
