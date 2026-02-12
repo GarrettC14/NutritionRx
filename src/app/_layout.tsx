@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, LogBox, useColorScheme } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, Linking, LogBox, useColorScheme } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { useNavigationContainerRef, usePathname } from 'expo-router';
 import Constants from 'expo-constants';
@@ -78,6 +78,8 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { PremiumUpgradeSheet } from '@/components/premium/PremiumUpgradeSheet';
 import { useRouteStore } from '@/stores/routeStore';
 import { reviewPromptService } from '@/services/reviewPromptService';
+import { useReferralStore } from '@/stores/useReferralStore';
+import { useRouter } from '@/hooks/useRouter';
 
 function ThemedBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
@@ -230,6 +232,31 @@ function RouteTracker() {
   return null;
 }
 
+function ReferralLinkHandler() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleUrl = (event: { url: string }) => {
+      const match = event.url.match(
+        /app\.cascademobile\.dev\/refer\/nutritionrx\/([A-Za-z0-9]+)/,
+      );
+      if (match?.[1]) {
+        useReferralStore.getState().setPendingReferralCode(match[1]);
+        router.push('/paywall?context=referral&showReferralInput=true');
+      }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl({ url });
+    });
+
+    const subscription = Linking.addEventListener('url', handleUrl);
+    return () => subscription.remove();
+  }, [router]);
+
+  return null;
+}
+
 function RootLayout() {
   const systemScheme = useColorScheme();
   const initBg = systemScheme === 'light' ? '#FFFFFF' : '#0D1117';
@@ -304,6 +331,7 @@ function RootLayout() {
                   <ConfirmDialogProvider>
                     <RootLayoutContent />
                     <RouteTracker />
+                    <ReferralLinkHandler />
                     <PremiumUpgradeSheet />
                     <TooltipModal />
                   </ConfirmDialogProvider>
