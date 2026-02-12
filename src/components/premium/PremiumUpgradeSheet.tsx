@@ -27,12 +27,14 @@ import { PaywallErrorBanner } from './PaywallErrorBanner';
 import { trackPaywallEvent } from '@/utils/paywallAnalytics';
 import { REVENUECAT_CONFIG } from '@/config/revenuecat';
 import { getErrorMessage } from './purchaseErrorMap';
+import { useRouter } from '@/hooks/useRouter';
 
 const GOLD = '#C9953C';
 const GOLD_MUTED = 'rgba(201, 149, 60, 0.15)';
 
 export function PremiumUpgradeSheet() {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
   const sheetRef = useRef<BottomSheet>(null);
 
   const { isVisible, category, featureName, sessionId, openedAt, hidePremiumSheet } =
@@ -422,6 +424,20 @@ export function PremiumUpgradeSheet() {
           </Text>
         )}
 
+        {/* Referral teaser */}
+        <Pressable
+          style={styles.referralTeaser}
+          onPress={() => {
+            hidePremiumSheet();
+            router.push('/paywall?context=referral&showReferralInput=true');
+          }}
+        >
+          <Ionicons name="gift-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.referralTeaserText, { color: colors.textSecondary }]}>
+            Have a referral code? Enter it on the upgrade screen {'\u2192'}
+          </Text>
+        </Pressable>
+
         {/* Legal disclosure */}
         <Text style={[styles.legalText, { color: colors.textTertiary }]}>
           {legalText}
@@ -539,6 +555,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   footerSep: {
+    fontSize: 13,
+  },
+  referralTeaser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  referralTeaserText: {
     fontSize: 13,
   },
 });

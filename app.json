@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nutritionrx.app",
+      "associatedDomains": ["applinks:app.cascademobile.dev"],
       "infoPlist": {
         "NSCameraUsageDescription": "NutritionRx needs camera access to scan barcodes on food products."
       }
@@ -37,6 +38,20 @@
         "android.permission.health.WRITE_WEIGHT",
         "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
         "android.permission.health.READ_TOTAL_CALORIES_BURNED"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "app.cascademobile.dev",
+              "pathPrefix": "/refer/nutritionrx/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "web": {

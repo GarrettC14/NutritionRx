@@ -355,6 +355,12 @@ function SettingsScreen() {
                 onPress={() => router.push('/paywall?context=general')}
               />
             )}
+            <SettingsItem
+              icon="gift-outline"
+              title="Referral Program"
+              subtitle="Earn rewards by sharing with friends"
+              onPress={() => router.push('/paywall?context=referral')}
+            />
           </View>
         </View>
 

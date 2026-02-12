@@ -9,6 +9,7 @@ import {
   Linking,
   Platform,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import { useLocalSearchParams } from 'expo-router';
@@ -30,6 +31,8 @@ import { PlanCard } from './PlanCard';
 import { PaywallErrorBanner } from './PaywallErrorBanner';
 import { trackPaywallEvent, generatePaywallSessionId } from '@/utils/paywallAnalytics';
 import { getErrorMessage } from './purchaseErrorMap';
+import { useReferralStore } from '@/stores/useReferralStore';
+import * as Clipboard from 'expo-clipboard';
 
 const GOLD = '#C9953C';
 const GOLD_MUTED = 'rgba(201, 149, 60, 0.15)';
@@ -61,9 +64,9 @@ export function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const params = useLocalSearchParams<{ context?: string }>();
+  const params = useLocalSearchParams<{ context?: string; showReferralInput?: string }>();
 
-  const { currentOffering, bundleOffering } = useSubscriptionStore();
+  const { currentOffering, bundleOffering, isPremium } = useSubscriptionStore();
 
   const [paywallSessionId] = useState(() => generatePaywallSessionId());
   const [openedAt] = useState(() => Date.now());
@@ -75,6 +78,28 @@ export function PaywallScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [priceLoadError, setPriceLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Referral state
+  const {
+    referralCode,
+    isRedeemed,
+    rewardGranted,
+    rewardDetails,
+    appliedCode,
+    isLoading: referralLoading,
+    error: referralError,
+    fetchReferralStatus,
+    generateCode,
+    applyCode,
+    shareReferralLink,
+    pendingReferralCode,
+    clearPendingReferralCode,
+    clearError: clearReferralError,
+  } = useReferralStore();
+
+  const [referralInput, setReferralInput] = useState('');
+  const [referralExpanded, setReferralExpanded] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // Context validation
   const rawContext = params.context;
@@ -206,6 +231,27 @@ export function PaywallScreen() {
       clearTimeout(timeout);
     };
   }, [selectedPackage, paywallSessionId]);
+
+  // Fetch referral status on mount
+  useEffect(() => {
+    fetchReferralStatus();
+  }, [fetchReferralStatus]);
+
+  // Consume pending referral code from deep link
+  useEffect(() => {
+    if (pendingReferralCode) {
+      setReferralInput(pendingReferralCode);
+      setReferralExpanded(true);
+      clearPendingReferralCode();
+    }
+  }, [pendingReferralCode, clearPendingReferralCode]);
+
+  // Auto-expand referral section from navigation param
+  useEffect(() => {
+    if (params.showReferralInput === 'true') {
+      setReferralExpanded(true);
+    }
+  }, [params.showReferralInput]);
 
   // Savings calculations
   const annualSavings = useMemo(() => {
@@ -438,6 +484,26 @@ export function PaywallScreen() {
       });
     }
   }, [paywallSessionId, retryCount]);
+
+  const handleApplyReferral = useCallback(async () => {
+    const trimmed = referralInput.trim();
+    if (!trimmed) return;
+    const success = await applyCode(trimmed);
+    if (success) {
+      setReferralInput('');
+    }
+  }, [referralInput, applyCode]);
+
+  const handleGenerateCode = useCallback(async () => {
+    await generateCode();
+  }, [generateCode]);
+
+  const handleCopyCode = useCallback(async () => {
+    if (!referralCode) return;
+    await Clipboard.setStringAsync(referralCode);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  }, [referralCode]);
 
   // ── CTA logic ──
 
@@ -697,6 +763,149 @@ export function PaywallScreen() {
         {/* Legal */}
         <Text style={[styles.legalText, { color: colors.textTertiary }]}>{legalText}</Text>
 
+        {/* Referral Section */}
+        {isPremium ? (
+          <View style={[styles.referralCard, { backgroundColor: colors.bgSecondary }]}>
+            <View style={styles.referralCardHeader}>
+              <Ionicons name="gift-outline" size={20} color={GOLD} />
+              <Text style={[styles.referralCardTitle, { color: colors.textPrimary }]}>
+                Share the Nourishment
+              </Text>
+            </View>
+            <Text style={[styles.referralCardSubtitle, { color: colors.textSecondary }]}>
+              Give a friend premium access and earn a reward when they subscribe.
+            </Text>
+            {referralCode ? (
+              <>
+                <Pressable
+                  style={[styles.codePill, { backgroundColor: GOLD_MUTED }]}
+                  onPress={handleCopyCode}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Copy referral code ${referralCode}`}
+                >
+                  <Text style={[styles.codePillText, { color: GOLD }]}>
+                    {codeCopied ? 'Copied!' : referralCode}
+                  </Text>
+                  <Ionicons name={codeCopied ? 'checkmark' : 'copy-outline'} size={14} color={GOLD} />
+                </Pressable>
+                <Pressable
+                  style={[styles.shareButton, { backgroundColor: SAGE_GREEN }]}
+                  onPress={shareReferralLink}
+                  accessibilityRole="button"
+                  accessibilityLabel="Share referral link"
+                >
+                  <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.shareButtonText}>Share Referral Link</Text>
+                </Pressable>
+                {rewardGranted && rewardDetails && (
+                  <View style={styles.rewardBadge}>
+                    <Ionicons name="trophy" size={16} color={GOLD} />
+                    <Text style={[styles.rewardBadgeText, { color: colors.textSecondary }]}>
+                      Reward earned: {rewardDetails.duration} free!
+                    </Text>
+                  </View>
+                )}
+                {isRedeemed && !rewardGranted && (
+                  <View style={styles.rewardBadge}>
+                    <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                    <Text style={[styles.rewardBadgeText, { color: colors.textSecondary }]}>
+                      Your friend signed up! Reward is on the way.
+                    </Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <Pressable
+                style={[styles.generateButton, { backgroundColor: GOLD }, referralLoading && { opacity: 0.5 }]}
+                onPress={handleGenerateCode}
+                disabled={referralLoading}
+                accessibilityRole="button"
+                accessibilityLabel="Generate referral code"
+              >
+                {referralLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.generateButtonText}>Get Your Referral Code</Text>
+                )}
+              </Pressable>
+            )}
+          </View>
+        ) : (
+          <View style={styles.referralSection}>
+            {appliedCode ? (
+              <View style={styles.referralSuccess}>
+                <Ionicons name="checkmark-circle" size={16} color={SAGE_GREEN} />
+                <Text style={[styles.referralSuccessText, { color: SAGE_GREEN }]}>
+                  Referral code applied!
+                </Text>
+              </View>
+            ) : (
+              <>
+                <Pressable
+                  style={styles.referralToggle}
+                  onPress={() => setReferralExpanded(!referralExpanded)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Toggle referral code input"
+                >
+                  <Ionicons name="gift-outline" size={18} color={colors.textSecondary} />
+                  <Text style={[styles.referralToggleText, { color: colors.textSecondary }]}>
+                    Have a referral code from a friend?
+                  </Text>
+                  <Ionicons
+                    name={referralExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={colors.textTertiary}
+                  />
+                </Pressable>
+                {referralExpanded && (
+                  <View style={styles.referralInputContainer}>
+                    <View style={styles.referralInputRow}>
+                      <TextInput
+                        style={[styles.referralInput, {
+                          color: colors.textPrimary,
+                          backgroundColor: colors.bgSecondary,
+                        }]}
+                        placeholder="Enter code"
+                        placeholderTextColor={colors.textTertiary}
+                        value={referralInput}
+                        onChangeText={(text) => {
+                          setReferralInput(text);
+                          if (referralError) clearReferralError();
+                        }}
+                        autoCapitalize="characters"
+                        autoCorrect={false}
+                        maxLength={12}
+                      />
+                      <Pressable
+                        style={[
+                          styles.referralApplyButton,
+                          { backgroundColor: SAGE_GREEN },
+                          (!referralInput.trim() || referralLoading) && { opacity: 0.5 },
+                        ]}
+                        onPress={handleApplyReferral}
+                        disabled={!referralInput.trim() || referralLoading}
+                        accessibilityRole="button"
+                        accessibilityLabel="Apply referral code"
+                      >
+                        {referralLoading ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.referralApplyText}>Apply</Text>
+                        )}
+                      </Pressable>
+                    </View>
+                    {referralError && (
+                      <Text style={[styles.referralErrorText, { color: colors.error }]}>
+                        {referralError}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
         {/* Footer links */}
         <View style={styles.footer}>
           <TouchableOpacity
@@ -890,5 +1099,127 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  referralCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    gap: 12,
+  },
+  referralCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  referralCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  referralCardSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  codePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  codePillText: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    letterSpacing: 1.5,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 10,
+    paddingVertical: 12,
+  },
+  shareButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  generateButton: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  generateButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  rewardBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  rewardBadgeText: {
+    fontSize: 13,
+  },
+  referralSection: {
+    marginTop: 20,
+  },
+  referralToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+  },
+  referralToggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  referralInputContainer: {
+    marginTop: 8,
+    gap: 8,
+  },
+  referralInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  referralInput: {
+    flex: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    letterSpacing: 1,
+  },
+  referralApplyButton: {
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  referralApplyText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  referralErrorText: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  referralSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+  },
+  referralSuccessText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
