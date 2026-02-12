@@ -1,4 +1,5 @@
 import { SQLiteDatabase } from 'expo-sqlite';
+import * as Sentry from '@sentry/react-native';
 import { migration001Initial } from './001_initial';
 import { migration002Goals } from './002_goals';
 import { migration003HealthSync } from './003_health_sync';
@@ -67,7 +68,15 @@ export async function runMigrations(db: SQLiteDatabase): Promise<void> {
   // Run pending migrations
   for (let i = currentVersion; i < migrations.length; i++) {
     if (__DEV__) console.log(`Running migration ${i + 1}...`);
-    await migrations[i](db);
+    try {
+      await migrations[i](db);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { feature: 'database', action: 'migration' },
+        extra: { migrationNumber: i + 1, fromVersion: currentVersion, targetVersion: CURRENT_SCHEMA_VERSION },
+      });
+      throw error; // Re-throw — app cannot continue with a broken schema
+    }
     if (__DEV__) console.log(`Migration ${i + 1} complete.`);
   }
 
