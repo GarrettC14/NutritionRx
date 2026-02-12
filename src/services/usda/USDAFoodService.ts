@@ -67,6 +67,7 @@ class USDAFoodServiceClass {
           sortBy: 'dataType.keyword',
           sortOrder: 'asc',
         }),
+        signal: AbortSignal.timeout(15000),
       });
 
       if (response.status === 429) {
@@ -110,7 +111,7 @@ class USDAFoodServiceClass {
 
     try {
       const url = `${usdaConfig.baseUrl}/food/${fdcId}?api_key=${usdaConfig.apiKey}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
 
       if (response.status === 404) {
         return null;
@@ -163,6 +164,7 @@ class USDAFoodServiceClass {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fdcIds: uncachedIds }),
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!response.ok) {

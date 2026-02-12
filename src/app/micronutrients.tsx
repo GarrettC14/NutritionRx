@@ -67,6 +67,7 @@ export default function MicronutrientsScreen() {
   // Store state
   const dailyIntake = useMicronutrientStore(s => s.dailyIntake);
   const isLoading = useMicronutrientStore(s => s.isLoading);
+  const storeError = useMicronutrientStore(s => s.error);
   const loadDailyIntake = useMicronutrientStore(s => s.loadDailyIntake);
   const loadProfile = useMicronutrientStore(s => s.loadProfile);
   const getTargetForNutrient = useMicronutrientStore(s => s.getTargetForNutrient);
@@ -269,6 +270,12 @@ export default function MicronutrientsScreen() {
         maximumDate={new Date()}
       />
 
+      {storeError && (
+        <View style={[styles.errorBanner, { backgroundColor: colors.error + '18' }]}>
+          <Text style={[styles.errorBannerText, { color: colors.error }]}>{storeError}</Text>
+        </View>
+      )}
+
       {isLoading && !dailyIntake ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
@@ -435,6 +442,17 @@ const NutrientBarRow = React.memo(function NutrientBarRow({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  errorBanner: {
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[2],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    borderRadius: borderRadius.md,
+  },
+  errorBannerText: {
+    ...typography.body.small,
+    textAlign: 'center',
   },
   header: {
     flexDirection: 'row',

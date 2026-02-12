@@ -279,6 +279,7 @@ export async function analyzeImage(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (__DEV__) console.log(`[LLM:Vision] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);

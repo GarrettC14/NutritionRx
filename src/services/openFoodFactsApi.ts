@@ -160,6 +160,7 @@ export const openFoodFactsApi = {
         headers: {
           'User-Agent': 'NutritionRx/1.0 (https://github.com/nutritionrx)',
         },
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!response.ok) {
@@ -274,6 +275,7 @@ export const openFoodFactsApi = {
         headers: {
           'User-Agent': 'NutritionRx/1.0 (https://github.com/nutritionrx)',
         },
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!response.ok) {
