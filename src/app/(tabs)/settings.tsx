@@ -24,6 +24,7 @@ import Constants from 'expo-constants';
 import { TestIDs } from '@/constants/testIDs';
 import * as Sentry from '@sentry/react-native';
 import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
+import { reviewPromptService } from '@/services/reviewPromptService';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -614,6 +615,13 @@ function SettingsScreen() {
               icon="shield-outline"
               title="Privacy Policy"
               onPress={() => router.push('/settings/privacy-policy')}
+            />
+            <SettingsItem
+              icon="star-outline"
+              title="Rate NutritionRx"
+              subtitle="Leave a review on the store"
+              onPress={() => reviewPromptService.handleRateApp()}
+              testID="settings-rate-app"
             />
           </View>
         </View>

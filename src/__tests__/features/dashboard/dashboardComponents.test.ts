@@ -48,7 +48,7 @@ import { useDashboardStore } from '@/stores/dashboardStore';
 
 describe('Widget Definitions', () => {
   describe('WIDGET_DEFINITIONS', () => {
-    it('defines all 16 widget types', () => {
+    it('defines all 15 widget types', () => {
       const widgetTypes: WidgetType[] = [
         'calorie_ring',
         'macro_bars',
@@ -150,7 +150,7 @@ describe('Widget Definitions', () => {
     it('returns all widget definitions', () => {
       const definitions = getAllWidgetDefinitions();
 
-      expect(definitions).toHaveLength(16);
+      expect(definitions).toHaveLength(15);
     });
 
     it('returns array of definition objects', () => {

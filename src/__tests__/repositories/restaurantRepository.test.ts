@@ -277,8 +277,8 @@ describe('restaurantRepository', () => {
 
       expect(result).toHaveLength(1);
       expect(mockGetAllAsync).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE f.restaurant_id = ?'),
-        ['mcdonalds', '%big%', 20]
+        expect.stringContaining('restaurant_foods_fts MATCH'),
+        ['mcdonalds', '"big"', 20]
       );
     });
   });

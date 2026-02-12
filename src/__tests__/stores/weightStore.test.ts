@@ -336,13 +336,14 @@ describe('useWeightStore', () => {
     it('refreshes trend weight after update', async () => {
       const updatedEntry = { ...mockWeightEntry, weightKg: 79.5, trendWeightKg: 79.8 };
       mockWeightRepo.update.mockResolvedValue(updatedEntry);
-      mockWeightRepo.getLatest.mockResolvedValue(updatedEntry);
 
       await useWeightStore.getState().updateEntry('weight-1', 79.5);
 
       // loadTrendWeight is called non-blocking, give it a tick
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(mockWeightRepo.getLatest).toHaveBeenCalled();
+      // loadTrendWeight uses latestEntry from state (already updated), so
+      // it doesn't need to call getLatest. Verify trendWeight was set.
+      expect(useWeightStore.getState().trendWeight).toBe(79.8);
     });
 
     it('sets error and throws on failure', async () => {

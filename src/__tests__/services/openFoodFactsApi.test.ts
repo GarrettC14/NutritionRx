@@ -18,6 +18,23 @@ jest.mock('@/repositories', () => ({
   },
 }));
 
+// Mock database transaction helper
+jest.mock('@/db/database', () => ({
+  withTransaction: jest.fn(async (fn: Function) => fn()),
+}));
+
+// Mock micronutrient repository (used inside withTransaction)
+jest.mock('@/repositories/micronutrientRepository', () => ({
+  micronutrientRepository: {
+    storeFoodNutrientsWithMeta: jest.fn(),
+  },
+}));
+
+// Mock tracked nutrients (controls which micronutrients are extracted)
+jest.mock('@/constants/trackedNutrients', () => ({
+  TRACKED_NUTRIENT_IDS: new Set(),
+}));
+
 describe('openFoodFactsApi', () => {
   const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
   const mockFoodRepo = foodRepository as jest.Mocked<typeof foodRepository>;

@@ -86,14 +86,14 @@ describe('Food Repository', () => {
       expect(mockDb.getAllAsync).not.toHaveBeenCalled();
     });
 
-    it('should search by name and brand', async () => {
+    it('should search using FTS5 full-text index', async () => {
       mockDb.getAllAsync.mockResolvedValue([]);
 
       await foodRepository.search('apple');
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE name LIKE ? COLLATE NOCASE'),
-        ['%apple%', '%apple%', 50]
+        expect.stringContaining('food_items_fts MATCH'),
+        ['"apple"', 50]
       );
     });
   });

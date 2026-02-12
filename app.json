@@ -73,6 +73,10 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "appStoreUrl": "https://apps.apple.com/app/nutritionrx/id000000000",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.nutritionrx.app"
     }
   }
 }

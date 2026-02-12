@@ -198,13 +198,13 @@ describe('micronutrientStore', () => {
       expect(status).toBe('excessive');
     });
 
-    it('returns adequate when no target found for nutrient', () => {
+    it('returns no_data when no target found for nutrient', () => {
       mockGetRDA.mockReturnValue(null);
       useMicronutrientStore.setState({ customTargets: new Map() });
 
-      // 'zinc' has no custom target and no DEFAULT_ADULT_RDAS entry
+      // 'unknown_nutrient' has no custom target and no DEFAULT_ADULT_RDAS entry
       const status = useMicronutrientStore.getState().getStatusForIntake('unknown_nutrient', 50);
-      expect(status).toBe('adequate');
+      expect(status).toBe('no_data');
     });
   });
 

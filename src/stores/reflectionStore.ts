@@ -8,6 +8,7 @@ import { useProfileStore } from './profileStore';
 import { useWeightStore } from './weightStore';
 import { useSettingsStore } from './settingsStore';
 import { ACTIVITY_MULTIPLIERS } from '@/constants/defaults';
+import { reviewPromptService } from '@/services/reviewPromptService';
 
 const SMOOTHING_THRESHOLD = 25; // Don't update targets for ≤25 cal difference
 
@@ -351,6 +352,9 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
         });
         await settingsStore.loadSettings();
       }
+
+      // Fire-and-forget review prompt check (never blocks or throws)
+      reviewPromptService.onReflectionCompleted(selectedSentiment).catch(() => {});
 
       set({
         lastReflectionDate: new Date().toISOString(),
