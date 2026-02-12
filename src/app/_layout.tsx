@@ -75,6 +75,7 @@ import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { useTheme } from '@/hooks/useTheme';
 import { REVENUECAT_CONFIG } from '@/config/revenuecat';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { PremiumUpgradeSheet } from '@/components/premium/PremiumUpgradeSheet';
 
 function ThemedBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
@@ -286,6 +287,7 @@ function RootLayout() {
                 <TooltipProvider>
                   <ConfirmDialogProvider>
                     <RootLayoutContent />
+                    <PremiumUpgradeSheet />
                     <TooltipModal />
                   </ConfirmDialogProvider>
                 </TooltipProvider>

@@ -29,7 +29,7 @@ jest.mock('@/config/revenuecat', () => ({
     entitlements: {
       GYMRX_PREMIUM: 'gymrx_premium',
       NUTRITIONRX_PREMIUM: 'nutritionrx_premium',
-      BUNDLE_PREMIUM: 'bundle_premium',
+      CASCADE_BUNDLE: 'cascade_bundle',
     },
     defaultOffering: 'default',
   },

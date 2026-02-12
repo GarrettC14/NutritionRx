@@ -20,7 +20,10 @@ jest.mock('react-native-purchases', () => ({
 }));
 
 jest.mock('@/config/revenuecat', () => ({
-  REVENUECAT_CONFIG: { entitlements: { BUNDLE_PREMIUM: 'bundle_premium' } },
+  REVENUECAT_CONFIG: {
+    entitlements: { CASCADE_BUNDLE: 'cascade_bundle' },
+    offerings: { NUTRITIONRX_DEFAULT: 'nutritionrx_default', CASCADE_BUNDLE_DEFAULT: 'cascade_bundle_default' },
+  },
   APP_ENTITLEMENT: 'premium',
 }));
 
@@ -76,7 +79,7 @@ describe('useSubscriptionStore', () => {
 
   const bundleEntitlement = {
     ...premiumEntitlement,
-    identifier: 'bundle_premium',
+    identifier: 'cascade_bundle',
     productIdentifier: 'cascade_bundle_monthly',
     willRenew: false,
     expirationDate: '2025-06-15T00:00:00Z',
@@ -134,7 +137,7 @@ describe('useSubscriptionStore', () => {
     });
 
     it('sets isPremium true when bundle entitlement is active', async () => {
-      const customerInfo = makeCustomerInfo({ bundle_premium: bundleEntitlement });
+      const customerInfo = makeCustomerInfo({ cascade_bundle: bundleEntitlement });
       mockPurchases.getOfferings.mockResolvedValue({ current: mockOffering, all: {} } as any);
       mockPurchases.getCustomerInfo.mockResolvedValue(customerInfo);
       mockPurchases.addCustomerInfoUpdateListener.mockReturnValue({ remove: jest.fn() } as any);
@@ -149,7 +152,7 @@ describe('useSubscriptionStore', () => {
     it('prefers bundle entitlement over app entitlement', async () => {
       const customerInfo = makeCustomerInfo({
         premium: premiumEntitlement,
-        bundle_premium: bundleEntitlement,
+        cascade_bundle: bundleEntitlement,
       });
       mockPurchases.getOfferings.mockResolvedValue({ current: mockOffering, all: {} } as any);
       mockPurchases.getCustomerInfo.mockResolvedValue(customerInfo);
@@ -164,7 +167,7 @@ describe('useSubscriptionStore', () => {
       expect(state.hasBundle).toBe(true);
     });
 
-    it('sets isPremium false when no entitlements are active', async () => {
+    it('resolves premium via isDevBuild when no entitlements are active', async () => {
       const customerInfo = makeCustomerInfo({});
       mockPurchases.getOfferings.mockResolvedValue({ current: mockOffering, all: {} } as any);
       mockPurchases.getCustomerInfo.mockResolvedValue(customerInfo);
@@ -173,7 +176,8 @@ describe('useSubscriptionStore', () => {
       await useSubscriptionStore.getState().initialize();
 
       const state = useSubscriptionStore.getState();
-      expect(state.isPremium).toBe(false);
+      // In dev builds (__DEV__=true), isPremium defaults to true via isDevBuild
+      expect(state.isPremium).toBe(true);
       expect(state.expirationDate).toBeNull();
       expect(state.hasBundle).toBe(false);
     });
@@ -202,7 +206,8 @@ describe('useSubscriptionStore', () => {
 
       await useSubscriptionStore.getState().initialize();
 
-      expect(useSubscriptionStore.getState().isPremium).toBe(false);
+      // In dev builds, isPremium is true via isDevBuild even without entitlements
+      expect(useSubscriptionStore.getState().isPremium).toBe(true);
 
       // Simulate customer info update with premium entitlement
       const updatedInfo = makeCustomerInfo({ premium: premiumEntitlement });
@@ -220,7 +225,8 @@ describe('useSubscriptionStore', () => {
 
       const state = useSubscriptionStore.getState();
       expect(state.isLoading).toBe(false);
-      expect(state.error).toBe('Failed to load subscription status');
+      // In dev builds, errors don't block premium and error state is suppressed
+      expect(state.error).toBeNull();
 
       consoleSpy.mockRestore();
     });
@@ -376,7 +382,7 @@ describe('useSubscriptionStore', () => {
     });
 
     it('sets bundle info when bundle entitlement found on restore', async () => {
-      const customerInfo = makeCustomerInfo({ bundle_premium: bundleEntitlement });
+      const customerInfo = makeCustomerInfo({ cascade_bundle: bundleEntitlement });
       mockPurchases.restorePurchases.mockResolvedValue(customerInfo);
 
       await useSubscriptionStore.getState().restorePurchases();

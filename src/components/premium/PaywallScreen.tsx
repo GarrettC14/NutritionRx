@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,89 +7,51 @@ import {
   ActivityIndicator,
   ScrollView,
   Linking,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { PurchasesPackage } from 'react-native-purchases';
-import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated';
+import Purchases, {
+  PurchasesPackage,
+  PurchasesOffering,
+  PURCHASES_ERROR_CODE,
+  INTRO_ELIGIBILITY_STATUS,
+} from 'react-native-purchases';
 import { TestIDs } from '@/constants/testIDs';
-
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useTheme } from '@/hooks/useTheme';
+import { REVENUECAT_CONFIG } from '@/config/revenuecat';
+import { PaywallCategory, PaywallSource, PaywallTab, PaywallPlan } from './analyticsEnums';
+import { resolveCategory } from './upgradeContent';
+import { PlanCard } from './PlanCard';
+import { PaywallErrorBanner } from './PaywallErrorBanner';
+import { trackPaywallEvent, generatePaywallSessionId } from '@/utils/paywallAnalytics';
+import { getErrorMessage } from './purchaseErrorMap';
+
+const GOLD = '#C9953C';
+const GOLD_MUTED = 'rgba(201, 149, 60, 0.15)';
+const SAGE_GREEN = '#7C9A7C';
 
 // ============================================
-// CONTEXT CONFIGURATION
+// HELPERS
 // ============================================
 
-type PaywallContext =
-  | 'ai_photo'
-  | 'restaurant'
-  | 'insights'
-  | 'analytics'
-  | 'planning'
-  | 'coaching'
-  | 'general';
-
-interface ContextConfig {
-  header: string;
-  benefits: string[];
+function formatMonthlyFromAnnual(annualPackage: PurchasesPackage): string {
+  const { price, currencyCode } = annualPackage.product;
+  const monthly = price / 12;
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currencyCode,
+  }).format(monthly);
 }
 
-const CONTEXT_CONFIG: Record<PaywallContext, ContextConfig> = {
-  ai_photo: {
-    header: 'AI Food Recognition',
-    benefits: [
-      'Snap a photo, get instant macros',
-      'Works with home-cooked meals',
-      '30 scans per day',
-    ],
-  },
-  restaurant: {
-    header: 'Restaurant Menus',
-    benefits: [
-      '100+ restaurant chains',
-      'Full nutrition data',
-      'Search any menu item',
-    ],
-  },
-  insights: {
-    header: 'Smart Insights',
-    benefits: [
-      'AI-powered daily analysis',
-      'Personalized recommendations',
-      'Trend detection',
-    ],
-  },
-  analytics: {
-    header: 'Advanced Analytics',
-    benefits: [
-      'Extended history (90d, 1yr, all-time)',
-      'Micronutrient tracking',
-    ],
-  },
-  planning: {
-    header: 'Meal Planning',
-    benefits: [
-      'Custom macro cycling',
-      'Meal prep mode',
-      'Intermittent fasting timer',
-    ],
-  },
-  coaching: {
-    header: 'Advanced Coaching',
-    benefits: [
-      'Smart RIR coaching',
-      'Training periodization',
-      'Recovery recommendations',
-    ],
-  },
-  general: {
-    header: 'Unlock Premium',
-    benefits: ['All premium features', 'No ads, no limits', 'Priority support'],
-  },
-};
+function computeSavingsPercent(monthlyPrice: number, annualPrice: number): number {
+  if (monthlyPrice <= 0) return 0;
+  return Math.round((1 - annualPrice / (monthlyPrice * 12)) * 100);
+}
 
 // ============================================
 // COMPONENT
@@ -99,419 +61,646 @@ export function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const reducedMotion = useReducedMotion();
   const params = useLocalSearchParams<{ context?: string }>();
 
-  const { currentOffering, error, purchasePackage, restorePurchases, clearError } =
-    useSubscriptionStore();
+  const { currentOffering, bundleOffering } = useSubscriptionStore();
 
-  const [selectedPackage, setSelectedPackage] = useState<'monthly' | 'annual' | 'bundle'>(
-    'annual'
-  );
+  const [paywallSessionId] = useState(() => generatePaywallSessionId());
+  const [openedAt] = useState(() => Date.now());
+  const [selectedTab, setSelectedTab] = useState<PaywallTab>(PaywallTab.SINGLE_APP);
+  const [selectedPlan, setSelectedPlan] = useState<PaywallPlan>(PaywallPlan.ANNUAL);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [trialEligible, setTrialEligible] = useState<boolean | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [priceLoadError, setPriceLoadError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Get context-specific content
-  const context = (params.context as PaywallContext) || 'general';
-  const contextConfig = CONTEXT_CONFIG[context];
+  // Context validation
+  const rawContext = params.context;
+  const resolvedCategory = useMemo(() => {
+    if (!rawContext) {
+      trackPaywallEvent('paywall_context_missing', { paywallSessionId });
+      return PaywallCategory.AI_INSIGHTS;
+    }
+    const valid = Object.values(PaywallCategory).includes(rawContext as PaywallCategory);
+    if (!valid) {
+      trackPaywallEvent('paywall_context_invalid', {
+        paywallSessionId,
+        receivedContext: rawContext,
+      });
+    }
+    return resolveCategory(rawContext);
+  }, [rawContext, paywallSessionId]);
 
-  // Get packages from offering
-  const monthlyPackage = currentOffering?.availablePackages.find(
-    (p) => p.packageType === 'MONTHLY'
+  // Log view event
+  useEffect(() => {
+    trackPaywallEvent('paywall_viewed', {
+      paywallSessionId,
+      context: resolvedCategory,
+      source: PaywallSource.SETTINGS_UPGRADE,
+    });
+  }, [paywallSessionId, resolvedCategory]);
+
+  // Get packages from offerings
+  const activeOffering: PurchasesOffering | null =
+    selectedTab === PaywallTab.BUNDLE ? bundleOffering : currentOffering;
+
+  const monthlyPackage = useMemo(
+    () => activeOffering?.availablePackages.find((p) => p.packageType === 'MONTHLY'),
+    [activeOffering],
   );
-  const annualPackage = currentOffering?.availablePackages.find(
-    (p) => p.packageType === 'ANNUAL'
-  );
-  const bundlePackage = currentOffering?.availablePackages.find(
-    (p) => p.identifier === 'bundle'
+  const annualPackage = useMemo(
+    () => activeOffering?.availablePackages.find((p) => p.packageType === 'ANNUAL'),
+    [activeOffering],
   );
 
-  // Calculate savings
-  const getAnnualSavings = () => {
-    if (!monthlyPackage || !annualPackage) return 0;
-    const monthlyAnnual = monthlyPackage.product.price * 12;
-    const annual = annualPackage.product.price;
-    return Math.round(((monthlyAnnual - annual) / monthlyAnnual) * 100);
-  };
+  const selectedPackage = selectedPlan === PaywallPlan.ANNUAL ? annualPackage : monthlyPackage;
 
-  const handlePurchase = useCallback(async () => {
-    let pkg: PurchasesPackage | undefined;
+  // Auto-retry offerings once after 3 seconds
+  useEffect(() => {
+    if (currentOffering) return;
 
-    switch (selectedPackage) {
-      case 'monthly':
-        pkg = monthlyPackage;
-        break;
-      case 'annual':
-        pkg = annualPackage;
-        break;
-      case 'bundle':
-        pkg = bundlePackage;
-        break;
+    const timer = setTimeout(async () => {
+      try {
+        const offerings = await Purchases.getOfferings();
+        if (offerings.current) {
+          useSubscriptionStore.getState().initialize();
+        } else {
+          setPriceLoadError(true);
+          trackPaywallEvent('paywall_price_load_failed', {
+            paywallSessionId,
+            error: 'No offerings after auto-retry',
+            retryCount: 1,
+          });
+        }
+      } catch (error: any) {
+        setPriceLoadError(true);
+        trackPaywallEvent('paywall_price_load_failed', {
+          paywallSessionId,
+          error: error?.message ?? 'Unknown',
+          retryCount: 1,
+        });
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [currentOffering, paywallSessionId]);
+
+  // Check trial eligibility for the currently selected package
+  useEffect(() => {
+    if (!selectedPackage) {
+      setTrialEligible(null);
+      return;
     }
 
-    if (!pkg) return;
+    let cancelled = false;
+    setTrialEligible(null);
+
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        setTrialEligible(false);
+        trackPaywallEvent('trial_eligibility_check_result', {
+          paywallSessionId,
+          status: 'timeout',
+          platform: Platform.OS,
+        });
+      }
+    }, 5000);
+
+    (async () => {
+      try {
+        let eligible = false;
+        if (Platform.OS === 'ios') {
+          const productId = selectedPackage.product.identifier;
+          const result =
+            await Purchases.checkTrialOrIntroductoryPriceEligibility([productId]);
+          eligible =
+            result[productId]?.status ===
+            INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE;
+        } else {
+          eligible = selectedPackage.product.introPrice != null;
+        }
+        if (!cancelled) {
+          setTrialEligible(eligible);
+          trackPaywallEvent('trial_eligibility_check_result', {
+            paywallSessionId,
+            status: eligible ? 'eligible' : 'ineligible',
+            platform: Platform.OS,
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setTrialEligible(false);
+          trackPaywallEvent('trial_eligibility_check_result', {
+            paywallSessionId,
+            status: 'error',
+            platform: Platform.OS,
+          });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [selectedPackage, paywallSessionId]);
+
+  // Savings calculations
+  const annualSavings = useMemo(() => {
+    if (!monthlyPackage || !annualPackage) return 0;
+    return computeSavingsPercent(monthlyPackage.product.price, annualPackage.product.price);
+  }, [monthlyPackage, annualPackage]);
+
+  const monthlyFromAnnual = useMemo(
+    () => (annualPackage ? formatMonthlyFromAnnual(annualPackage) : ''),
+    [annualPackage],
+  );
+
+  // Bundle savings (bundle monthly vs single-app monthly)
+  const singleMonthlyPackage = useMemo(
+    () => currentOffering?.availablePackages.find((p) => p.packageType === 'MONTHLY'),
+    [currentOffering],
+  );
+
+  const bundleMonthlyPackage = useMemo(
+    () => bundleOffering?.availablePackages.find((p) => p.packageType === 'MONTHLY'),
+    [bundleOffering],
+  );
+
+  const bundleAnnualPackage = useMemo(
+    () => bundleOffering?.availablePackages.find((p) => p.packageType === 'ANNUAL'),
+    [bundleOffering],
+  );
+
+  const bundleMonthlySavings = useMemo(() => {
+    if (!singleMonthlyPackage || !bundleMonthlyPackage) return 0;
+    // Bundle monthly vs 2x single-app monthly
+    return computeSavingsPercent(
+      singleMonthlyPackage.product.price * 2,
+      bundleMonthlyPackage.product.price * 12,
+    );
+  }, [singleMonthlyPackage, bundleMonthlyPackage]);
+
+  const bundleAnnualSavings = useMemo(() => {
+    if (!singleMonthlyPackage || !bundleAnnualPackage) return 0;
+    return computeSavingsPercent(
+      singleMonthlyPackage.product.price * 2,
+      bundleAnnualPackage.product.price,
+    );
+  }, [singleMonthlyPackage, bundleAnnualPackage]);
+
+  const bundleMonthlyFromAnnual = useMemo(
+    () => (bundleAnnualPackage ? formatMonthlyFromAnnual(bundleAnnualPackage) : ''),
+    [bundleAnnualPackage],
+  );
+
+  // ── Handlers ──
+
+  const handleDismiss = useCallback(() => {
+    trackPaywallEvent('paywall_dismissed', {
+      paywallSessionId,
+      timeSpentMs: Date.now() - openedAt,
+      source: PaywallSource.SETTINGS_UPGRADE,
+      lastCategory: resolvedCategory,
+    });
+    router.back();
+  }, [paywallSessionId, openedAt, resolvedCategory, router]);
+
+  const handleTabSwitch = useCallback(
+    (tab: PaywallTab) => {
+      setSelectedTab(tab);
+      setSelectedPlan(PaywallPlan.ANNUAL); // Reset to annual on tab switch
+      trackPaywallEvent('paywall_tab_switched', { paywallSessionId, tab });
+    },
+    [paywallSessionId],
+  );
+
+  const handlePlanSelect = useCallback(
+    (plan: PaywallPlan) => {
+      if (plan === selectedPlan) return; // Dedupe same-plan tap
+      setSelectedPlan(plan);
+      const pkg = plan === PaywallPlan.ANNUAL ? annualPackage : monthlyPackage;
+      trackPaywallEvent('plan_selected', {
+        paywallSessionId,
+        plan,
+        tab: selectedTab,
+        productId: pkg?.product.identifier ?? '',
+        offeringId: activeOffering?.identifier ?? '',
+      });
+    },
+    [selectedPlan, paywallSessionId, selectedTab, annualPackage, monthlyPackage, activeOffering],
+  );
+
+  const handlePurchase = useCallback(async () => {
+    if (!selectedPackage || isPurchasing) return;
 
     setIsPurchasing(true);
-    const success = await purchasePackage(pkg);
-    setIsPurchasing(false);
+    setErrorMessage(null);
 
-    if (success) {
-      // Navigate back with celebration
-      router.back();
-      // The success celebration will be handled by the calling screen
+    trackPaywallEvent('purchase_initiated', {
+      paywallSessionId,
+      plan: selectedPlan,
+      tab: selectedTab,
+      productId: selectedPackage.product.identifier,
+      offeringId: activeOffering?.identifier ?? '',
+      trialEligible: trialEligible === true,
+    });
+
+    try {
+      const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
+      const hasPremium =
+        customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.NUTRITIONRX_PREMIUM] !==
+          undefined ||
+        customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE] !==
+          undefined;
+
+      if (hasPremium) {
+        trackPaywallEvent('purchase_completed', {
+          paywallSessionId,
+          plan: selectedPlan,
+          tab: selectedTab,
+          productId: selectedPackage.product.identifier,
+          offeringId: activeOffering?.identifier ?? '',
+          revenue: selectedPackage.product.price,
+          currency: selectedPackage.product.currencyCode,
+        });
+        trackPaywallEvent('paywall_converted', {
+          paywallSessionId,
+          timeSpentMs: Date.now() - openedAt,
+          source: PaywallSource.SETTINGS_UPGRADE,
+          productId: selectedPackage.product.identifier,
+          plan: selectedPlan,
+          tab: selectedTab,
+        });
+        router.back();
+        return;
+      }
+
+      setIsPurchasing(false);
+    } catch (error: any) {
+      if (
+        error.userCancelled ||
+        error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR
+      ) {
+        trackPaywallEvent('purchase_cancelled', {
+          paywallSessionId,
+          plan: selectedPlan,
+          tab: selectedTab,
+          productId: selectedPackage.product.identifier,
+        });
+        setIsPurchasing(false);
+        return;
+      }
+
+      if (error.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
+        await Purchases.syncPurchases();
+        router.back();
+        setIsPurchasing(false);
+        return;
+      }
+
+      if (error.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+        router.back();
+        setIsPurchasing(false);
+        return;
+      }
+
+      if (error.code === PURCHASES_ERROR_CODE.OPERATION_ALREADY_IN_PROGRESS_ERROR) {
+        setIsPurchasing(false);
+        return;
+      }
+
+      setErrorMessage(getErrorMessage(error.code));
+      trackPaywallEvent('purchase_failed', {
+        paywallSessionId,
+        plan: selectedPlan,
+        tab: selectedTab,
+        productId: selectedPackage.product.identifier,
+        error: error.message,
+        errorCode: error.code,
+        readableErrorCode: error.readableErrorCode,
+      });
+      setIsPurchasing(false);
     }
   }, [
     selectedPackage,
-    monthlyPackage,
-    annualPackage,
-    bundlePackage,
-    purchasePackage,
+    isPurchasing,
+    paywallSessionId,
+    selectedPlan,
+    selectedTab,
+    activeOffering,
+    trialEligible,
+    openedAt,
     router,
   ]);
 
   const handleRestore = useCallback(async () => {
+    if (isRestoring) return;
     setIsRestoring(true);
-    const success = await restorePurchases();
-    setIsRestoring(false);
 
-    if (success) {
-      router.back();
+    trackPaywallEvent('restore_purchases_tapped', { paywallSessionId });
+
+    try {
+      const customerInfo = await Purchases.restoreTransactions();
+      const entitlements = Object.keys(customerInfo.entitlements.active);
+
+      trackPaywallEvent('restore_purchases_result', {
+        paywallSessionId,
+        success: entitlements.length > 0,
+        entitlements,
+      });
+
+      if (entitlements.length > 0) {
+        router.back();
+      } else {
+        setErrorMessage('No previous purchases found for this account.');
+      }
+    } catch {
+      setErrorMessage("Couldn't check for purchases. Please check your connection.");
+    } finally {
+      setIsRestoring(false);
     }
-  }, [restorePurchases, router]);
+  }, [isRestoring, paywallSessionId, router]);
 
-  const handleDismiss = useCallback(() => {
-    router.back();
-  }, [router]);
+  const handleRetryOfferings = useCallback(async () => {
+    setPriceLoadError(false);
+    setRetryCount((c) => c + 1);
+    try {
+      await useSubscriptionStore.getState().initialize();
+    } catch (error: any) {
+      setPriceLoadError(true);
+      trackPaywallEvent('paywall_price_load_failed', {
+        paywallSessionId,
+        error: error?.message ?? 'Unknown',
+        retryCount: retryCount + 1,
+      });
+    }
+  }, [paywallSessionId, retryCount]);
 
-  // ============================================
-  // STYLES (Theme-aware)
-  // ============================================
+  // ── CTA logic ──
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.bgPrimary,
-    },
-    scrollContent: {
-      flexGrow: 1,
-      paddingHorizontal: 24,
-      paddingTop: insets.top + 16,
-      paddingBottom: insets.bottom + 24,
-    },
-    closeButton: {
-      position: 'absolute',
-      top: insets.top + 8,
-      right: 16,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.bgSecondary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
-    },
-    header: {
-      alignItems: 'center',
-      marginTop: 24,
-      marginBottom: 32,
-    },
-    appIcon: {
-      width: 64,
-      height: 64,
-      borderRadius: 14,
-      backgroundColor: colors.premiumGoldMuted,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: colors.textPrimary,
-      textAlign: 'center',
-      marginBottom: 4,
-    },
-    subtitle: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    benefitsCard: {
-      backgroundColor: colors.bgSecondary,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 24,
-    },
-    benefitRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    benefitIcon: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: colors.premiumGoldMuted,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 12,
-    },
-    benefitText: {
-      flex: 1,
-      fontSize: 15,
-      color: colors.textPrimary,
-    },
-    pricingSection: {
-      marginBottom: 24,
-    },
-    pricingOption: {
-      backgroundColor: colors.bgSecondary,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 8,
-      borderWidth: 2,
-      borderColor: 'transparent',
-    },
-    pricingOptionSelected: {
-      borderColor: colors.accent,
-    },
-    pricingOptionHighlighted: {
-      backgroundColor: colors.accent + '1A',
-    },
-    pricingHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    pricingLabel: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.textPrimary,
-    },
-    pricingBadge: {
-      backgroundColor: colors.accent,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
-    },
-    pricingBadgeText: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: '#FFFFFF',
-    },
-    pricingPrice: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    pricingSubtext: {
-      fontSize: 13,
-      color: colors.textTertiary,
-      marginTop: 2,
-    },
-    continueButton: {
-      backgroundColor: colors.accent,
-      borderRadius: 12,
-      paddingVertical: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-    },
-    continueButtonDisabled: {
-      opacity: 0.6,
-    },
-    continueButtonText: {
-      fontSize: 17,
-      fontWeight: '600',
-      color: '#FFFFFF',
-    },
-    footer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 24,
-    },
-    footerLink: {
-      paddingVertical: 8,
-    },
-    footerLinkText: {
-      fontSize: 13,
-      color: colors.textSecondary,
-    },
-    errorBanner: {
-      backgroundColor: colors.errorBg,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    errorText: {
-      flex: 1,
-      fontSize: 14,
-      color: colors.error,
-      marginLeft: 8,
-    },
-  });
+  const priceString = selectedPackage?.product.priceString;
+  let ctaText = 'Loading...';
+  let ctaDisabled = true;
+  if (!selectedPackage) {
+    ctaText = 'Loading...';
+    ctaDisabled = true;
+  } else if (trialEligible === null) {
+    ctaText = 'Loading...';
+    ctaDisabled = true;
+  } else if (trialEligible) {
+    ctaText = 'Start 14-Day Free Trial';
+    ctaDisabled = false;
+  } else if (priceString) {
+    ctaText = `Subscribe \u{2014} ${priceString}/${selectedPlan === PaywallPlan.ANNUAL ? 'year' : 'month'}`;
+    ctaDisabled = false;
+  }
 
-  // ============================================
-  // RENDER
-  // ============================================
+  let trustText = '';
+  if (trialEligible === true && priceString) {
+    trustText = `14-day free trial, then ${priceString}/${selectedPlan === PaywallPlan.ANNUAL ? 'year' : 'month'}. Cancel anytime.`;
+  } else if (trialEligible === false && priceString) {
+    trustText = `${priceString}/${selectedPlan === PaywallPlan.ANNUAL ? 'year' : 'month'}. Cancel anytime.`;
+  }
 
-  if (!currentOffering) {
+  const legalText =
+    Platform.OS === 'ios'
+      ? 'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions by going to your account settings on the App Store after purchase. Any unused portion of a free trial period, if offered, will be forfeited when the user purchases a subscription to that publication, where applicable.'
+      : 'Subscription automatically renews unless canceled at least 24 hours before the end of the current billing period. Manage subscriptions in Google Play Store settings.';
+
+  // ── Render ──
+
+  // Price load error state
+  if (!currentOffering && priceLoadError) {
     return (
-      <View testID={TestIDs.Paywall.Screen} style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <TouchableOpacity testID={TestIDs.Paywall.CloseButton} style={styles.closeButton} onPress={handleDismiss} accessibilityRole="button" accessibilityLabel="Close">
+      <View testID={TestIDs.Paywall.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+        <TouchableOpacity
+          testID={TestIDs.Paywall.CloseButton}
+          style={[styles.closeButton, { top: insets.top + 8, backgroundColor: colors.bgSecondary }]}
+          onPress={handleDismiss}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <Ionicons name="close" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <View style={styles.errorState}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.textTertiary} />
+          <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>
+            Couldn&apos;t load pricing
+          </Text>
+          <Text style={[styles.errorSubtitle, { color: colors.textSecondary }]}>
+            Please check your connection.
+          </Text>
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: GOLD }]}
+            onPress={handleRetryOfferings}
+            accessibilityRole="button"
+            accessibilityLabel="Retry"
+          >
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  // Loading state
+  if (!currentOffering) {
+    return (
+      <View testID={TestIDs.Paywall.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary, alignItems: 'center', justifyContent: 'center' }]}>
+        <TouchableOpacity
+          testID={TestIDs.Paywall.CloseButton}
+          style={[styles.closeButton, { top: insets.top + 8, backgroundColor: colors.bgSecondary }]}
+          onPress={handleDismiss}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
+          <Ionicons name="close" size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <ActivityIndicator size="large" color={GOLD} />
       </View>
     );
   }
 
   return (
-    <View testID={TestIDs.Paywall.Screen} style={styles.container}>
+    <View testID={TestIDs.Paywall.Screen} style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       {/* Close Button */}
-      <TouchableOpacity style={styles.closeButton} onPress={handleDismiss} accessibilityRole="button" accessibilityLabel="Close">
+      <TouchableOpacity
+        testID={TestIDs.Paywall.CloseButton}
+        style={[styles.closeButton, { top: insets.top + 8, backgroundColor: colors.bgSecondary }]}
+        onPress={handleDismiss}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+      >
         <Ionicons name="close" size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 48, paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.appIcon}>
-            <Ionicons name="nutrition" size={28} color={colors.premiumGold} />
+          <View style={[styles.iconCircle, { backgroundColor: GOLD_MUTED }]}>
+            <Ionicons name="sparkles" size={32} color={GOLD} />
           </View>
-          <Text style={styles.title}>{contextConfig.header}</Text>
-          <Text style={styles.subtitle}>Upgrade to unlock this feature</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]} accessibilityRole="header">
+            Nourish Your Potential
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Everything you need to understand and enjoy your nutrition.
+          </Text>
         </View>
 
         {/* Benefits */}
-        <View style={styles.benefitsCard}>
-          {contextConfig.benefits.map((benefit, index) => (
-            <View key={index} style={styles.benefitRow}>
-              <View style={styles.benefitIcon}>
-                <Ionicons name="checkmark" size={14} color={colors.premiumGold} />
-              </View>
-              <Text style={styles.benefitText}>{benefit}</Text>
+        <View style={[styles.benefitsCard, { backgroundColor: colors.bgSecondary }]}>
+          {[
+            { icon: '\u{1F9E0}', text: 'AI-powered nutrition insights' },
+            { icon: '\u{1F4F8}', text: 'Photo food recognition' },
+            { icon: '\u{1F52C}', text: 'Advanced micronutrient tracking' },
+            { icon: '\u{1F4C5}', text: 'Unlimited history & data export' },
+          ].map((b, i) => (
+            <View key={i} style={styles.benefitRow}>
+              <Text style={styles.benefitIcon}>{b.icon}</Text>
+              <Text style={[styles.benefitText, { color: colors.textPrimary }]}>{b.text}</Text>
             </View>
           ))}
         </View>
 
-        {/* Error Banner */}
-        {error && (
-          <Animated.View
-            entering={reducedMotion ? undefined : FadeIn.duration(200)}
-            exiting={reducedMotion ? undefined : FadeOut.duration(200)}
-            style={styles.errorBanner}
+        {/* Tab Selector */}
+        <View
+          style={[styles.tabContainer, { backgroundColor: colors.bgSecondary }]}
+          accessibilityRole="tablist"
+        >
+          <Pressable
+            style={[
+              styles.tab,
+              selectedTab === PaywallTab.SINGLE_APP && [styles.tabActive, { backgroundColor: SAGE_GREEN }],
+            ]}
+            onPress={() => handleTabSwitch(PaywallTab.SINGLE_APP)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: selectedTab === PaywallTab.SINGLE_APP }}
           >
-            <Ionicons name="alert-circle" size={20} color={colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={clearError} accessibilityRole="button" accessibilityLabel="Dismiss error">
-              <Ionicons name="close" size={18} color={colors.error} />
-            </TouchableOpacity>
-          </Animated.View>
-        )}
-
-        {/* Pricing Options */}
-        <View style={styles.pricingSection}>
-          {/* Monthly */}
-          {monthlyPackage && (
-            <TouchableOpacity
+            <Text
               style={[
-                styles.pricingOption,
-                selectedPackage === 'monthly' && styles.pricingOptionSelected,
+                styles.tabText,
+                { color: selectedTab === PaywallTab.SINGLE_APP ? '#FFFFFF' : colors.textSecondary },
               ]}
-              onPress={() => setSelectedPackage('monthly')}
-              accessibilityRole="button"
-              accessibilityLabel={`Monthly plan, ${monthlyPackage.product.priceString} per month`}
             >
-              <View style={styles.pricingHeader}>
-                <Text style={styles.pricingLabel}>Monthly</Text>
-              </View>
-              <Text style={styles.pricingPrice}>
-                {monthlyPackage.product.priceString}/month
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Annual - Best Value */}
-          {annualPackage && (
-            <TouchableOpacity
+              NutritionRx Only
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.tab,
+              selectedTab === PaywallTab.BUNDLE && [styles.tabActive, { backgroundColor: SAGE_GREEN }],
+            ]}
+            onPress={() => handleTabSwitch(PaywallTab.BUNDLE)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: selectedTab === PaywallTab.BUNDLE }}
+          >
+            <Text
               style={[
-                styles.pricingOption,
-                styles.pricingOptionHighlighted,
-                selectedPackage === 'annual' && styles.pricingOptionSelected,
+                styles.tabText,
+                { color: selectedTab === PaywallTab.BUNDLE ? '#FFFFFF' : colors.textSecondary },
               ]}
-              onPress={() => setSelectedPackage('annual')}
-              accessibilityRole="button"
-              accessibilityLabel={`Annual plan, ${annualPackage.product.priceString} per year, save ${getAnnualSavings()}%`}
             >
-              <View style={styles.pricingHeader}>
-                <Text style={styles.pricingLabel}>Annual</Text>
-                <View style={styles.pricingBadge}>
-                  <Text style={styles.pricingBadgeText}>SAVE {getAnnualSavings()}%</Text>
-                </View>
-              </View>
-              <Text style={styles.pricingPrice}>
-                {annualPackage.product.priceString}/year
-              </Text>
-              <Text style={styles.pricingSubtext}>
-                Just {(annualPackage.product.price / 12).toFixed(2)}/month
-              </Text>
-            </TouchableOpacity>
-          )}
+              Both Apps
+            </Text>
+          </Pressable>
+        </View>
 
-          {/* Bundle */}
-          {bundlePackage && (
-            <TouchableOpacity
-              style={[
-                styles.pricingOption,
-                selectedPackage === 'bundle' && styles.pricingOptionSelected,
-              ]}
-              onPress={() => setSelectedPackage('bundle')}
-              accessibilityRole="button"
-              accessibilityLabel={`Both Apps Bundle, ${bundlePackage.product.priceString} per year, includes GymRx and NutritionRx`}
-            >
-              <View style={styles.pricingHeader}>
-                <Text style={styles.pricingLabel}>Both Apps Bundle</Text>
-                <View style={[styles.pricingBadge, { backgroundColor: colors.success }]}>
-                  <Text style={styles.pricingBadgeText}>SAVE 40%</Text>
-                </View>
-              </View>
-              <Text style={styles.pricingPrice}>
-                {bundlePackage.product.priceString}/year
-              </Text>
-              <Text style={styles.pricingSubtext}>Includes GymRx + NutritionRx</Text>
-            </TouchableOpacity>
+        {/* Plan Cards */}
+        <View style={styles.plans}>
+          {selectedTab === PaywallTab.SINGLE_APP ? (
+            <>
+              {monthlyPackage && (
+                <PlanCard
+                  label="Monthly"
+                  priceText={`${monthlyPackage.product.priceString}/mo`}
+                  selected={selectedPlan === PaywallPlan.MONTHLY}
+                  onSelect={() => handlePlanSelect(PaywallPlan.MONTHLY)}
+                />
+              )}
+              {annualPackage && (
+                <PlanCard
+                  label="Annual"
+                  priceText={`${monthlyFromAnnual}/mo`}
+                  detail={`Billed ${annualPackage.product.priceString}/yr`}
+                  badge={annualSavings > 0 ? `Save ${annualSavings}%` : undefined}
+                  selected={selectedPlan === PaywallPlan.ANNUAL}
+                  onSelect={() => handlePlanSelect(PaywallPlan.ANNUAL)}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {bundleMonthlyPackage && (
+                <PlanCard
+                  label="Monthly"
+                  priceText={`${bundleMonthlyPackage.product.priceString}/mo`}
+                  badge={bundleMonthlySavings > 0 ? `Save ${bundleMonthlySavings}%` : undefined}
+                  selected={selectedPlan === PaywallPlan.MONTHLY}
+                  onSelect={() => handlePlanSelect(PaywallPlan.MONTHLY)}
+                />
+              )}
+              {bundleAnnualPackage && (
+                <PlanCard
+                  label="Annual"
+                  priceText={`${bundleMonthlyFromAnnual}/mo`}
+                  detail={`Billed ${bundleAnnualPackage.product.priceString}/yr`}
+                  badge={bundleAnnualSavings > 0 ? `Best Value \u{2013} Save ${bundleAnnualSavings}%` : undefined}
+                  selected={selectedPlan === PaywallPlan.ANNUAL}
+                  onSelect={() => handlePlanSelect(PaywallPlan.ANNUAL)}
+                />
+              )}
+            </>
           )}
         </View>
 
-        {/* Continue Button */}
-        <TouchableOpacity
+        {/* Error */}
+        {errorMessage && (
+          <PaywallErrorBanner message={errorMessage} onDismiss={() => setErrorMessage(null)} />
+        )}
+
+        {/* CTA */}
+        <Pressable
+          testID={TestIDs.Paywall.SubscribeButton}
           style={[
-            styles.continueButton,
-            (isPurchasing || isRestoring) && styles.continueButtonDisabled,
+            styles.ctaButton,
+            { backgroundColor: GOLD },
+            (ctaDisabled || isPurchasing) && { opacity: 0.5 },
           ]}
           onPress={handlePurchase}
-          disabled={isPurchasing || isRestoring}
+          disabled={ctaDisabled || isPurchasing}
           accessibilityRole="button"
-          accessibilityLabel="Continue"
+          accessibilityLabel={
+            trialEligible
+              ? `Start 14-day free trial for ${priceString} per ${selectedPlan === PaywallPlan.ANNUAL ? 'year' : 'month'}`
+              : `Subscribe for ${priceString} per ${selectedPlan === PaywallPlan.ANNUAL ? 'year' : 'month'}`
+          }
         >
           {isPurchasing ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.ctaText}>{ctaText}</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
 
-        {/* Footer Links */}
+        {/* Trust text */}
+        {trustText !== '' && (
+          <Text style={[styles.trustText, { color: colors.textTertiary }]}>{trustText}</Text>
+        )}
+
+        {/* Legal */}
+        <Text style={[styles.legalText, { color: colors.textTertiary }]}>{legalText}</Text>
+
+        {/* Footer links */}
         <View style={styles.footer}>
           <TouchableOpacity
-            style={styles.footerLink}
+            testID={TestIDs.Paywall.RestoreButton}
             onPress={handleRestore}
             disabled={isPurchasing || isRestoring}
             accessibilityRole="button"
@@ -520,20 +709,186 @@ export function PaywallScreen() {
             {isRestoring ? (
               <ActivityIndicator size="small" color={colors.textSecondary} />
             ) : (
-              <Text style={styles.footerLinkText}>Restore Purchases</Text>
+              <Text style={[styles.footerLink, { color: colors.textSecondary }]}>
+                Restore purchase
+              </Text>
             )}
           </TouchableOpacity>
 
+          <Text style={[styles.footerSep, { color: colors.textTertiary }]}>|</Text>
+
           <TouchableOpacity
-            style={styles.footerLink}
-            onPress={() => Linking.openURL('https://cascadesoftware.app/terms')}
+            testID={TestIDs.Paywall.TermsLink}
+            onPress={() => Linking.openURL('https://cascadesoftware.com/terms')}
             accessibilityRole="link"
-            accessibilityLabel="Terms and Privacy"
+            accessibilityLabel="Terms of Service"
           >
-            <Text style={styles.footerLinkText}>Terms & Privacy</Text>
+            <Text style={[styles.footerLink, { color: colors.textSecondary }]}>Terms</Text>
+          </TouchableOpacity>
+
+          <Text style={[styles.footerSep, { color: colors.textTertiary }]}>|</Text>
+
+          <TouchableOpacity
+            testID={TestIDs.Paywall.PrivacyLink}
+            onPress={() => Linking.openURL('https://cascadesoftware.com/privacy')}
+            accessibilityRole="link"
+            accessibilityLabel="Privacy Policy"
+          >
+            <Text style={[styles.footerLink, { color: colors.textSecondary }]}>Privacy</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
   );
 }
+
+// ============================================
+// STYLES
+// ============================================
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 21,
+  },
+  benefitsCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  benefitIcon: {
+    fontSize: 18,
+  },
+  benefitText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  tabActive: {
+    // backgroundColor set inline
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  plans: {
+    marginBottom: 8,
+  },
+  ctaButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  ctaText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  trustText: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 18,
+  },
+  legalText: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 15,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 8,
+  },
+  footerLink: {
+    fontSize: 13,
+    paddingVertical: 4,
+  },
+  footerSep: {
+    fontSize: 13,
+  },
+  errorState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  errorSubtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  retryButton: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    marginTop: 8,
+  },
+  retryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+});

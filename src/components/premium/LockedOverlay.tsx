@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { usePremiumSheetStore } from './usePremiumSheetStore';
+import { resolveCategory } from './upgradeContent';
 
 interface LockedOverlayProps {
   children: React.ReactNode;
@@ -21,16 +22,16 @@ export function LockedOverlay({
   context = 'general',
   message = 'Upgrade to unlock',
 }: LockedOverlayProps) {
-  const router = useRouter();
   const { colors, isDark } = useTheme();
   const { isPremium } = useSubscriptionStore();
+  const showPremiumSheet = usePremiumSheetStore((s) => s.showPremiumSheet);
 
   if (isPremium) {
     return <>{children}</>;
   }
 
   const handlePress = () => {
-    router.push(`/paywall?context=${context}`);
+    showPremiumSheet(resolveCategory(context), context);
   };
 
   return (

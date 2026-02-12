@@ -7,10 +7,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius as borderRadiusConstants } from '@/constants/spacing';
+import { usePremiumSheetStore } from './usePremiumSheetStore';
+import { resolveCategory } from './upgradeContent';
 
 interface LockedContentAreaProps {
   /** Content to show blurred behind the lock overlay */
@@ -46,11 +47,11 @@ export function LockedContentArea({
   borderRadius = borderRadiusConstants.lg,
   style,
 }: LockedContentAreaProps) {
-  const router = useRouter();
   const { colors, isDark } = useTheme();
+  const showPremiumSheet = usePremiumSheetStore((s) => s.showPremiumSheet);
 
   const handlePress = () => {
-    router.push(`/paywall?context=${context}`);
+    showPremiumSheet(resolveCategory(context), context);
   };
 
   return (

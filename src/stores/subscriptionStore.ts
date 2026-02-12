@@ -19,6 +19,7 @@ interface SubscriptionState {
   isLoading: boolean;
   customerInfo: CustomerInfo | null;
   currentOffering: PurchasesOffering | null;
+  bundleOffering: PurchasesOffering | null;
 
   // Subscription details
   expirationDate: string | null;
@@ -48,6 +49,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       isLoading: true,
       customerInfo: null,
       currentOffering: null,
+      bundleOffering: null,
       expirationDate: null,
       willRenew: false,
       hasBundle: false,
@@ -60,7 +62,11 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         try {
           // Fetch offerings
           const offerings = await Purchases.getOfferings();
-          const currentOffering = offerings.current;
+          const currentOffering =
+            offerings.all[REVENUECAT_CONFIG.offerings.NUTRITIONRX_DEFAULT] ??
+            offerings.current;
+          const bundleOffering =
+            offerings.all[REVENUECAT_CONFIG.offerings.CASCADE_BUNDLE_DEFAULT] ?? null;
 
           // Fetch customer info
           const customerInfo = await Purchases.getCustomerInfo();
@@ -68,7 +74,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           // Check entitlements
           const appEntitlement = customerInfo.entitlements.active[APP_ENTITLEMENT];
           const bundleEntitlement =
-            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.BUNDLE_PREMIUM];
+            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE];
 
           const isPremium = !!appEntitlement || !!bundleEntitlement;
           const activeEntitlement = bundleEntitlement || appEntitlement;
@@ -78,6 +84,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             isPremium: resolvedPremium,
             customerInfo,
             currentOffering,
+            bundleOffering,
             expirationDate: activeEntitlement?.expirationDate || null,
             willRenew: activeEntitlement?.willRenew || false,
             hasBundle: !!bundleEntitlement,
@@ -90,7 +97,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           Purchases.addCustomerInfoUpdateListener((info) => {
             const appEnt = info.entitlements.active[APP_ENTITLEMENT];
             const bundleEnt =
-              info.entitlements.active[REVENUECAT_CONFIG.entitlements.BUNDLE_PREMIUM];
+              info.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE];
             const isPrem = !!appEnt || !!bundleEnt;
             const activeEnt = bundleEnt || appEnt;
 
@@ -121,7 +128,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           const appEntitlement = customerInfo.entitlements.active[APP_ENTITLEMENT];
           const bundleEntitlement =
-            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.BUNDLE_PREMIUM];
+            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE];
 
           const isPremium = !!appEntitlement || !!bundleEntitlement;
           const activeEntitlement = bundleEntitlement || appEntitlement;
@@ -147,7 +154,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           const appEntitlement = customerInfo.entitlements.active[APP_ENTITLEMENT];
           const bundleEntitlement =
-            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.BUNDLE_PREMIUM];
+            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE];
 
           const isPremium = !!appEntitlement || !!bundleEntitlement;
 
@@ -193,7 +200,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           const appEntitlement = customerInfo.entitlements.active[APP_ENTITLEMENT];
           const bundleEntitlement =
-            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.BUNDLE_PREMIUM];
+            customerInfo.entitlements.active[REVENUECAT_CONFIG.entitlements.CASCADE_BUNDLE];
 
           const isPremium = !!appEntitlement || !!bundleEntitlement;
 

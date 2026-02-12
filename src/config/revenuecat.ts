@@ -16,10 +16,15 @@ export const REVENUECAT_CONFIG = {
   entitlements: {
     GYMRX_PREMIUM: 'gymrx_premium',
     NUTRITIONRX_PREMIUM: 'nutritionrx_premium',
-    BUNDLE_PREMIUM: 'bundle_premium', // Unlocks both apps
+    CASCADE_BUNDLE: 'cascade_bundle', // Unlocks both apps
   },
 
-  // Offering identifier
+  // Offering identifiers
+  offerings: {
+    NUTRITIONRX_DEFAULT: 'nutritionrx_default',
+    CASCADE_BUNDLE_DEFAULT: 'cascade_bundle_default',
+  },
+
   defaultOffering: 'default',
 } as const;
 
