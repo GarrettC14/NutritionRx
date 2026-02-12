@@ -62,13 +62,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Save preference when it changes
-  const setPreference = useCallback(async (newPreference: ThemePreference) => {
+  const setPreference = useCallback((newPreference: ThemePreference) => {
     setPreferenceState(newPreference);
-    try {
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, newPreference);
-    } catch (error) {
+    AsyncStorage.setItem(THEME_STORAGE_KEY, newPreference).catch((error) => {
       console.error('Failed to save theme preference:', error);
-    }
+    });
   }, []);
 
   // Resolve the actual color scheme based on preference
