@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { CustomTabBar } from '@/components/navigation/CustomTabBar';
+import { NetworkBanner } from '@/components/ui/NetworkBanner';
 import { useTheme } from '@/hooks/useTheme';
 import { colors as themeColors } from '@/constants/colors';
 
@@ -13,6 +14,7 @@ export default function TabLayout() {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <NetworkBanner />
       <Tabs
         screenOptions={{
           headerShown: false,

@@ -19,3 +19,4 @@ export { useMacroCycleStore } from './macroCycleStore';
 export { useMealPlanStore } from './mealPlanStore';
 export { useSubscriptionStore } from './subscriptionStore';
 export { useReflectionStore } from './reflectionStore';
+export { useNetworkStore } from './networkStore';

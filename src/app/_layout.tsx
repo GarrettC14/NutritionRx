@@ -68,6 +68,7 @@ import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { initDatabase } from '@/db/database';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NetworkProvider } from '@/contexts/NetworkContext';
 import { TooltipProvider } from '@/contexts/TooltipContext';
 import { TooltipModal } from '@/components/ui/TooltipModal';
 import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
@@ -279,16 +280,18 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <ThemedBackground>
-            <BottomSheetModalProvider>
-              <TooltipProvider>
-                <ConfirmDialogProvider>
-                  <RootLayoutContent />
-                  <TooltipModal />
-                </ConfirmDialogProvider>
-              </TooltipProvider>
-            </BottomSheetModalProvider>
-          </ThemedBackground>
+          <NetworkProvider>
+            <ThemedBackground>
+              <BottomSheetModalProvider>
+                <TooltipProvider>
+                  <ConfirmDialogProvider>
+                    <RootLayoutContent />
+                    <TooltipModal />
+                  </ConfirmDialogProvider>
+                </TooltipProvider>
+              </BottomSheetModalProvider>
+            </ThemedBackground>
+          </NetworkProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

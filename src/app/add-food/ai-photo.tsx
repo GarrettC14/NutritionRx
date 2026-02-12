@@ -29,6 +29,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 import { useAIPhotoStore, useFoodLogStore } from '@/stores';
+import { useNetworkGuard } from '@/hooks/useNetworkGuard';
 import { analyzeFood } from '@/services/aiPhoto';
 import {
   AIPhotoAnalysis,
@@ -69,6 +70,7 @@ export default function AIPhotoScreen() {
     getRemainingDaily,
   } = useAIPhotoStore();
   const { addLogEntry } = useFoodLogStore();
+  const { isOnline } = useNetworkGuard({ service: 'ai' });
 
   // Screen state
   const [screenState, setScreenState] = useState<AIPhotoScreenState>({
@@ -150,6 +152,16 @@ export default function AIPhotoScreen() {
   // Analyze image handler
   const handleAnalyze = async () => {
     if (!screenState.capturedImage) return;
+
+    // Check network connectivity
+    if (!isOnline) {
+      Alert.alert(
+        'No Internet Connection',
+        'AI photo analysis requires an internet connection. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
 
     // Check quota
     if (!canUseAIPhoto()) {
