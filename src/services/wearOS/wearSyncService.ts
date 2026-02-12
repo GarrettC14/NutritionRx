@@ -222,7 +222,9 @@ export async function syncToWatch(): Promise<boolean> {
 async function getRecentFoodsForWatch(): Promise<WearRecentFood[]> {
   const foodLogStore = useFoodLogStore.getState();
 
-  // Get recent entries from the last 7 days
+  // TODO [NOT_LAUNCHING]: Field name mismatches — LogEntry uses 'foodItemId' not 'foodId',
+  // and does not have 'name' or 'servingSize' fields. These filters will always be false,
+  // producing an empty array. Fix: use e.foodItemId, join with food_items table for name/servingSize.
   const recentEntries = foodLogStore.entries
     .filter(e => e.foodId && e.name)
     .slice(0, 20);
@@ -363,7 +365,8 @@ async function handleLogFoodAction(payload: { foodId?: string }): Promise<void> 
 
   const foodLogStore = useFoodLogStore.getState();
 
-  // Find the food in recent entries
+  // TODO [NOT_LAUNCHING]: LogEntry uses 'foodItemId' not 'foodId', and lacks 'name'.
+  // This lookup will always miss. Fix: use e.foodItemId and join food_items for name.
   const recentEntry = foodLogStore.entries.find(e => e.foodId === payload.foodId);
 
   if (recentEntry) {

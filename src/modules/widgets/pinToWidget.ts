@@ -56,8 +56,11 @@ class PinToWidgetService {
     try {
       const data = await AsyncStorage.getItem(PINNED_ITEMS_KEY);
       if (data) {
-        this.cachedItems = JSON.parse(data);
-        return this.cachedItems;
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          this.cachedItems = parsed;
+          return this.cachedItems;
+        }
       }
     } catch (error) {
       if (__DEV__) console.warn('Failed to load pinned items:', error);

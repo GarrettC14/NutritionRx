@@ -374,7 +374,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
           for (const entry of quickEntries) {
             values.push(
               generateId(), targetDate, finalMealType, entry.calories,
-              entry.protein, entry.carbs, entry.fat, entry.description ?? null, now, now
+              entry.protein ?? 0, entry.carbs ?? 0, entry.fat ?? 0, entry.description ?? null, now, now
             );
           }
           await db.runAsync(
@@ -438,7 +438,7 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
           for (const entry of sourceQuickEntries) {
             values.push(
               generateId(), targetDate, entry.mealType, entry.calories,
-              entry.protein, entry.carbs, entry.fat, entry.description ?? null, now, now
+              entry.protein ?? 0, entry.carbs ?? 0, entry.fat ?? 0, entry.description ?? null, now, now
             );
           }
           await db.runAsync(

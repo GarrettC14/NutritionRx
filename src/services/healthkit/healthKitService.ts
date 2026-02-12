@@ -59,6 +59,8 @@ const loadHealthKit = async (): Promise<boolean> => {
 
   if (HealthKit === null) {
     try {
+      // TODO [NOT_LAUNCHING]: @kingstinct/react-native-healthkit is not installed.
+      // Install the package before enabling HealthKit integration in production.
       const healthKitModule = await import('@kingstinct/react-native-healthkit');
       HealthKit = healthKitModule.default;
       HKQuantityTypeIdentifier = healthKitModule.HKQuantityTypeIdentifier;

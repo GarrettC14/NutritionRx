@@ -60,12 +60,15 @@ export function MicronutrientSummary({
         optimal: 0,
         high: 0,
         excessive: 0,
+        no_data: 0,
       };
 
       let totalPercent = 0;
 
       for (const intake of categoryIntakes) {
-        counts[intake.status]++;
+        if (intake.status in counts) {
+          counts[intake.status as keyof typeof counts]++;
+        }
         totalPercent += intake.percentOfTarget;
       }
 

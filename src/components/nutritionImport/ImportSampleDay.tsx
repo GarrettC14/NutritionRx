@@ -34,7 +34,7 @@ export function ImportSampleDay({ day }: ImportSampleDayProps) {
         ))}
       </View>
 
-      <View style={[styles.totalsRow, { borderTopColor: colors.border }]}>
+      <View style={[styles.totalsRow, { borderTopColor: colors.borderDefault }]}>
         <Text style={[styles.totalLabel, { color: colors.textPrimary }]}>Total</Text>
         <View style={styles.totalsValues}>
           <Text style={[styles.totalCalories, { color: colors.accent }]}>

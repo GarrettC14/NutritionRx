@@ -62,8 +62,12 @@ export async function pickCSVFile(): Promise<{ uri: string; name: string } | nul
  */
 async function readCSVFile(uri: string): Promise<{ headers: string[]; data: Record<string, string>[] }> {
   const rawContent = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.UTF8,
+    encoding: 'utf8',
   });
+
+  if (!rawContent) {
+    throw new Error('Could not read file. The file may be empty or in an unsupported format.');
+  }
 
   // Strip UTF-8 BOM if present (common in Excel/MFP exports)
   const content = rawContent.charCodeAt(0) === 0xFEFF ? rawContent.slice(1) : rawContent;
@@ -94,9 +98,15 @@ export async function analyzeNutritionCSV(
   selectedSource?: ImportSource
 ): Promise<AnalyzeResult> {
   try {
-    // Check file size before reading
+    // Check file exists and size before reading
     const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (fileInfo.exists && 'size' in fileInfo && fileInfo.size && fileInfo.size > MAX_FILE_SIZE) {
+    if (!fileInfo.exists) {
+      return {
+        success: false,
+        error: 'Could not access the selected file. Please try selecting the file again.',
+      };
+    }
+    if ('size' in fileInfo && fileInfo.size && fileInfo.size > MAX_FILE_SIZE) {
       return {
         success: false,
         error: 'This file is too large (max 10MB). Try exporting a smaller date range from your app.',

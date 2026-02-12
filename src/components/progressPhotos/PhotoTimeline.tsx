@@ -86,7 +86,7 @@ export function PhotoTimeline({
           <View style={styles.timelineColumn}>
             <View style={[styles.timelineDot, { backgroundColor: colors.accent }]} />
             {index < timeline.length - 1 && (
-              <View style={[styles.timelineLine, { backgroundColor: colors.bgTertiary }]} />
+              <View style={[styles.timelineLine, { backgroundColor: colors.bgSecondary }]} />
             )}
           </View>
 
@@ -101,7 +101,7 @@ export function PhotoTimeline({
                 Day {entry.daysSinceFirst + 1}
               </Text>
               {entry.weight && (
-                <View style={[styles.weightBadge, { backgroundColor: colors.bgTertiary }]}>
+                <View style={[styles.weightBadge, { backgroundColor: colors.bgSecondary }]}>
                   <Ionicons name="scale-outline" size={12} color={colors.textSecondary} />
                   <Text style={[styles.weightText, { color: colors.textSecondary }]}>
                     {displayWeight(entry.weight)}

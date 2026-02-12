@@ -10,9 +10,9 @@ import { NutrientRDA, Gender, AgeGroup, LifeStage } from '@/types/micronutrients
 // ============================================================
 
 type RDAValue = {
-  rda: number;
-  ul?: number;  // Tolerable Upper Intake Level
-  ai?: number;  // Adequate Intake (when RDA not established)
+  rda?: number;  // RDA (not established for infants — use ai instead)
+  ul?: number;   // Tolerable Upper Intake Level
+  ai?: number;   // Adequate Intake (when RDA not established)
 };
 
 type GenderRDAMap = {

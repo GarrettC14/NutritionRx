@@ -169,7 +169,7 @@ export function ProgressPhotosSummary({
         >
           {/* Add button */}
           <Pressable
-            style={[styles.addThumbnail, { backgroundColor: colors.bgTertiary }]}
+            style={[styles.addThumbnail, { backgroundColor: colors.bgSecondary }]}
             onPress={onAddPress}
             accessibilityRole="button"
             accessibilityLabel="Add new progress photo"
@@ -197,7 +197,7 @@ export function ProgressPhotosSummary({
       </View>
 
       {/* Stats row */}
-      <View style={[styles.statsRow, { borderTopColor: colors.bgTertiary }]}>
+      <View style={[styles.statsRow, { borderTopColor: colors.bgSecondary }]}>
         <View style={styles.stat}>
           <Ionicons name="body-outline" size={16} color={colors.textTertiary} />
           <Text style={[styles.statValue, { color: colors.textPrimary }]}>

@@ -111,8 +111,11 @@ class WidgetDataService {
           WIDGET_DATA_KEY
         );
         if (data) {
-          this.cachedData = JSON.parse(data);
-          return this.cachedData;
+          const parsed = JSON.parse(data);
+          if (parsed && parsed.nutrition && parsed.water) {
+            this.cachedData = parsed;
+            return this.cachedData!;
+          }
         }
       } catch (error) {
         if (__DEV__) console.warn('Failed to get shared widget data:', error);
@@ -123,8 +126,11 @@ class WidgetDataService {
     try {
       const data = await AsyncStorage.getItem(LOCAL_WIDGET_DATA_KEY);
       if (data) {
-        this.cachedData = JSON.parse(data);
-        return this.cachedData;
+        const parsed = JSON.parse(data);
+        if (parsed && parsed.nutrition && parsed.water) {
+          this.cachedData = parsed;
+          return this.cachedData!;
+        }
       }
     } catch (error) {
       if (__DEV__) console.warn('Failed to get local widget data:', error);

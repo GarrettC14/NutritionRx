@@ -86,7 +86,7 @@ export default function ProfileSettingsScreen() {
     try {
       await updateProfile({
         sex,
-        dateOfBirth,
+        dateOfBirth: dateOfBirth?.toISOString().split('T')[0],
         heightCm,
         activityLevel,
       });

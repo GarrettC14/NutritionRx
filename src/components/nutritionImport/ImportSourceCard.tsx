@@ -27,7 +27,7 @@ export function ImportSourceCard({
         styles.container,
         {
           backgroundColor: selected ? colors.bgInteractive : colors.bgSecondary,
-          borderColor: selected ? colors.accent : colors.border,
+          borderColor: selected ? colors.accent : colors.borderDefault,
         },
       ]}
       onPress={onPress}

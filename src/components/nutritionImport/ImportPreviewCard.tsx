@@ -50,7 +50,7 @@ export function ImportPreviewCard({ session }: ImportPreviewCardProps) {
         </View>
       </View>
 
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      <View style={[styles.divider, { backgroundColor: colors.borderDefault }]} />
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
@@ -59,7 +59,7 @@ export function ImportPreviewCard({ session }: ImportPreviewCardProps) {
           </Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Days</Text>
         </View>
-        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={[styles.statDivider, { backgroundColor: colors.borderDefault }]} />
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.textPrimary }]}>
             {avgCalories.toLocaleString()}

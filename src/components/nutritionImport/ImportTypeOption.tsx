@@ -29,7 +29,7 @@ export function ImportTypeOption({
         styles.container,
         {
           backgroundColor: selected ? colors.bgInteractive : colors.bgSecondary,
-          borderColor: selected ? colors.accent : colors.border,
+          borderColor: selected ? colors.accent : colors.borderDefault,
         },
       ]}
       onPress={onPress}
@@ -43,7 +43,7 @@ export function ImportTypeOption({
             <Text style={styles.badgeText}>Recommended</Text>
           </View>
         )}
-        <View style={[styles.radio, { borderColor: selected ? colors.accent : colors.border }]}>
+        <View style={[styles.radio, { borderColor: selected ? colors.accent : colors.borderDefault }]}>
           {selected && <View style={[styles.radioInner, { backgroundColor: colors.accent }]} />}
         </View>
       </View>
