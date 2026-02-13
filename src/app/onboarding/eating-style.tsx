@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '@/hooks/useTheme';
-import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
 import { EatingStyle } from '@/types/domain';
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 interface EatingStyleOption {
   value: EatingStyle;
@@ -43,22 +42,11 @@ const eatingStyleOptions: EatingStyleOption[] = [
   },
 ];
 
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
-
 export default function EatingStyleScreen() {
-  const { colors } = useTheme();
   const router = useRouter();
   const { draft, updateDraft } = useOnboardingStore();
 
   const [selected, setSelected] = useState<EatingStyle>(draft.eatingStyle ?? 'flexible');
-
-  const totalSteps = getScreenOrder(draft.goalPath).length;
 
   const handleSelect = (value: EatingStyle) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -78,9 +66,7 @@ export default function EatingStyleScreen() {
     <OnboardingScreen
       screenTestID="onboarding-eating-style-screen"
       title="How do you like to eat?"
-      subtitle="This helps us balance your carbs and fats."
-      step={5}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES['eating-style']}
       onBack={handleBack}
       onContinue={handleContinue}
       backTestID="onboarding-eating-style-back-button"
