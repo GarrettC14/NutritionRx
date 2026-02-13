@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/hooks/useRouter';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -30,6 +30,7 @@ import { foodRepository } from '@/repositories/foodRepository';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { micronutrientRepository } from '@/repositories/micronutrientRepository';
 import { TestIDs, foodSearchResult } from '@/constants/testIDs';
+import { RecentFoodsRow } from '@/components/food/RecentFoodsRow';
 import * as Sentry from '@sentry/react-native';
 import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
@@ -113,6 +114,13 @@ function AddFoodScreen() {
     loadFavorites();
     loadCustomFoods();
   }, []);
+
+  // Refresh recent foods when screen regains focus (e.g. after logging a food)
+  useFocusEffect(
+    useCallback(() => {
+      loadRecentFoods();
+    }, [loadRecentFoods])
+  );
 
   const loadCustomFoods = async () => {
     setIsLoadingCustom(true);
@@ -603,7 +611,10 @@ function AddFoodScreen() {
         </Text>
       </View>
 
-      {/* Search Bar - UNCHANGED */}
+      {/* Recent Foods Quick Access */}
+      <RecentFoodsRow mealType={mealType} date={date} />
+
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={[styles.searchBar, { backgroundColor: colors.bgSecondary }]}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
