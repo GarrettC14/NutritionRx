@@ -6,16 +6,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingSegmentedToggle } from '@/components/onboarding';
-
-// ─── Screen order logic ──────────────────────────────────────────
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 // ─── Unit conversion helpers ─────────────────────────────────────
 
@@ -117,8 +108,6 @@ export default function BodyStatsScreen() {
     weightKg !== null && weightKg >= WEIGHT_RANGE.minKg && weightKg <= WEIGHT_RANGE.maxKg;
   const isValid = isHeightValid && isWeightValid;
 
-  const totalSteps = getScreenOrder(draft.goalPath).length;
-
   // ─── Unit toggle handlers ─────────────────────────────────────
 
   const handleHeightUnitChange = (newUnit: HeightUnit) => {
@@ -172,9 +161,7 @@ export default function BodyStatsScreen() {
   return (
     <OnboardingScreen
       title="Your current stats"
-      subtitle="We'll use these to calculate your daily targets."
-      step={3}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES['body-stats']}
       onBack={() => router.back()}
       onContinue={handleContinue}
       continueDisabled={!isValid}

@@ -9,16 +9,7 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingSegmentedToggle } from '@/components/onboarding';
 import { DateOfBirthPicker } from '@/components/ui/DateOfBirthPicker';
-
-// ─── Screen order logic ──────────────────────────────────────────
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -85,8 +76,6 @@ export default function AboutYouScreen() {
   const isUnderAge = age !== null && age < MINIMUM_AGE;
   const isValid = sex !== null && dateOfBirth !== null && !isUnderAge;
 
-  const totalSteps = getScreenOrder(draft.goalPath).length;
-
   const handleDateSelect = (date: Date) => {
     setDateOfBirth(date);
   };
@@ -106,9 +95,7 @@ export default function AboutYouScreen() {
   return (
     <OnboardingScreen
       title="A little about you"
-      subtitle="This helps us estimate your daily calorie needs more accurately."
-      step={2}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES['about-you']}
       onBack={() => router.back()}
       onContinue={handleContinue}
       continueDisabled={!isValid}

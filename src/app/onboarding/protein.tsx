@@ -2,12 +2,11 @@ import { useState, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '@/hooks/useTheme';
-import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
 import { ProteinPriority } from '@/types/domain';
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 const PROTEIN_G_PER_KG: Record<ProteinPriority, number> = {
   standard: 1.32,
@@ -50,22 +49,12 @@ const proteinOptions: ProteinOption[] = [
   },
 ];
 
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
-
 export default function ProteinScreen() {
-  const { colors } = useTheme();
   const router = useRouter();
   const { draft, updateDraft } = useOnboardingStore();
 
   const [selected, setSelected] = useState<ProteinPriority>(draft.proteinPriority ?? 'active');
 
-  const totalSteps = getScreenOrder(draft.goalPath).length;
   const weightKg = draft.currentWeightKg ?? 80;
 
   const proteinSubtitles = useMemo(() => {
@@ -99,9 +88,7 @@ export default function ProteinScreen() {
     <OnboardingScreen
       screenTestID="onboarding-protein-screen"
       title="How much protein do you want?"
-      subtitle="Higher protein helps preserve muscle, especially when losing weight."
-      step={6}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES.protein}
       onBack={handleBack}
       onContinue={handleContinue}
       backTestID="onboarding-protein-back-button"

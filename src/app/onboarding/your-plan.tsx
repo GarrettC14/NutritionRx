@@ -11,18 +11,11 @@ import { useOnboardingStore, useGoalStore } from '@/stores';
 import { profileRepository, weightRepository, settingsRepository, GoalType } from '@/repositories';
 import { onboardingRepository, GoalPath } from '@/repositories/onboardingRepository';
 import { OnboardingScreen } from '@/components/onboarding';
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 // ============================================================
 // Helpers
 // ============================================================
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
 
 function calculateAge(dateOfBirth: string): number {
   const today = new Date();
@@ -79,12 +72,8 @@ function calculateTargetCalories(
 export default function YourPlanScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { draft, updateDraft, clearDraft } = useOnboardingStore();
+  const { draft, clearDraft } = useOnboardingStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const screenOrder = getScreenOrder(draft.goalPath);
-  const totalSteps = screenOrder.length;
-  const step = totalSteps; // last screen
 
   const goalType: GoalType = draft.goalPath === 'track' ? 'maintain' : (draft.goalPath as GoalType) ?? 'maintain';
   const isTrack = draft.goalPath === 'track';
@@ -279,8 +268,7 @@ export default function YourPlanScreen() {
   return (
     <OnboardingScreen
       title={headerTitle}
-      step={step}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES['your-plan']}
       onBack={() => router.back()}
       onContinue={handleStartTracking}
       continueLabel="Start Tracking"

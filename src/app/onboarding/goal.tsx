@@ -2,22 +2,12 @@ import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
 import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { GoalPath } from '@/repositories/onboardingRepository';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
-
-// ─── Screen order logic ──────────────────────────────────────────
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 // ─── Goal options ────────────────────────────────────────────────
 
@@ -97,13 +87,10 @@ export default function GoalPathScreen() {
     router.push('/onboarding/about-you');
   };
 
-  const totalSteps = getScreenOrder(selected).length;
-
   return (
     <OnboardingScreen
       title={"What brings you to\nNutritionRx?"}
-      step={1}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES.goal}
       onContinue={handleContinue}
       continueDisabled={selected === null}
       continueTestID={TestIDs.Onboarding.GoalContinueButton}

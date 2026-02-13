@@ -2,21 +2,11 @@ import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '@/hooks/useTheme';
 import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { ActivityLevel } from '@/constants/defaults';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
-
-// ─── Screen order logic ──────────────────────────────────────────
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 // ─── Activity options ────────────────────────────────────────────
 
@@ -73,8 +63,6 @@ export default function ActivityScreen() {
     draft.activityLevel ?? DEFAULT_ACTIVITY,
   );
 
-  const totalSteps = getScreenOrder(draft.goalPath).length;
-
   const handleSelect = (value: ActivityLevel) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setSelected(value);
@@ -92,8 +80,7 @@ export default function ActivityScreen() {
   return (
     <OnboardingScreen
       title="How active are you?"
-      step={4}
-      totalSteps={totalSteps}
+      subtitle={ONBOARDING_SUBTITLES.activity}
       onBack={() => router.back()}
       onContinue={handleContinue}
       continueTestID="onboarding-activity-continue-button"
