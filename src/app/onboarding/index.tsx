@@ -1,16 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from '@/hooks/useRouter';
 import { useOnboardingStore } from '@/stores';
-
-// ─── Screen order logic ──────────────────────────────────────────
-
-function getScreenOrder(goalPath: string | null): string[] {
-  const base = ['goal', 'about-you', 'body-stats', 'activity', 'eating-style', 'protein'];
-  if (goalPath === 'lose' || goalPath === 'gain') {
-    return [...base, 'target', 'your-plan'];
-  }
-  return [...base, 'your-plan'];
-}
+import { getScreenOrder } from '@/utils/onboarding';
 
 // ─── Component ───────────────────────────────────────────────────
 

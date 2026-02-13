@@ -398,6 +398,7 @@ describe('Tooltip System Integration', () => {
 
     it('handles all tooltips already seen', () => {
       mockOnboardingState.seenTooltips = [
+        TOOLTIP_IDS.DASHBOARD_CUSTOMIZE,
         TOOLTIP_IDS.WATER_TRACKING,
         TOOLTIP_IDS.MEAL_COLLAPSE,
         TOOLTIP_IDS.QUICK_ADD,

@@ -7,6 +7,7 @@ export const TOOLTIP_IDS = {
   SERVING_SIZE: 'onboarding.food.servingSize',
 
   // Progressive discovery
+  DASHBOARD_CUSTOMIZE: 'discovery.dashboardCustomize',
   WATER_TRACKING: 'discovery.waterTracking',
   MEAL_COLLAPSE: 'discovery.mealCollapse',
   QUICK_ADD: 'discovery.quickAdd',
