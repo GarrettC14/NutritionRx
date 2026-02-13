@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
+import { useOnboardingStep } from '@/hooks/useOnboardingStep';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
@@ -11,8 +11,6 @@ interface OnboardingScreenProps {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
-  step: number;
-  totalSteps: number;
   onBack?: () => void;
   onContinue: () => void;
   continueLabel?: string;
@@ -29,8 +27,6 @@ export function OnboardingScreen({
   children,
   title,
   subtitle,
-  step,
-  totalSteps,
   onBack,
   onContinue,
   continueLabel = 'Continue',
@@ -43,12 +39,7 @@ export function OnboardingScreen({
   keyboardAvoiding = false,
 }: OnboardingScreenProps) {
   const { colors } = useTheme();
-
-  const progressWidth = (step / totalSteps) * 100;
-
-  const progressAnimatedStyle = useAnimatedStyle(() => ({
-    width: withTiming(`${progressWidth}%` as any, { duration: 300 }),
-  }));
+  const { currentStep, totalSteps } = useOnboardingStep();
 
   const content = (
     <>
@@ -63,16 +54,11 @@ export function OnboardingScreen({
             <View style={styles.backButton} />
           )}
         </View>
-        <Text style={[styles.stepIndicator, { color: colors.textTertiary }]}>
-          Step {step}/{totalSteps}
-        </Text>
-      </View>
-
-      {/* Progress bar */}
-      <View style={[styles.progressTrack, { backgroundColor: colors.bgSecondary }]}>
-        <Animated.View
-          style={[styles.progressFill, { backgroundColor: colors.accent }, progressAnimatedStyle]}
-        />
+        {currentStep > 0 && (
+          <Text style={[styles.stepIndicator, { color: colors.textTertiary }]}>
+            Step {currentStep}/{totalSteps}
+          </Text>
+        )}
       </View>
 
       {/* Scrollable content */}
@@ -132,7 +118,7 @@ export function OnboardingScreen({
     <SafeAreaView
       testID={screenTestID}
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
-      edges={['top', 'bottom']}
+      edges={['bottom']}
     >
       {wrappedContent}
     </SafeAreaView>
@@ -162,16 +148,6 @@ const styles = StyleSheet.create({
   stepIndicator: {
     ...typography.body.small,
     fontWeight: '500',
-  },
-  progressTrack: {
-    height: 3,
-    marginHorizontal: componentSpacing.screenEdgePadding,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
   },
   scrollView: {
     flex: 1,
