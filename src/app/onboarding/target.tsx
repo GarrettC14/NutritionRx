@@ -8,6 +8,7 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
+import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 const kgToLbs = (kg: number): number => Math.round(kg * 2.20462 * 10) / 10;
 const lbsToKg = (lbs: number): number => Math.round((lbs / 2.20462) * 100) / 100;
@@ -175,8 +176,7 @@ export default function TargetScreen() {
     <OnboardingScreen
       screenTestID="onboarding-target-screen"
       title="Set your target"
-      step={7}
-      totalSteps={8}
+      subtitle={ONBOARDING_SUBTITLES.target}
       onBack={handleBack}
       onContinue={handleContinue}
       continueDisabled={continueDisabled}
