@@ -100,6 +100,7 @@ function daysAgo(n: number): string {
  * Fiber comes from food_items via JOIN (not on log_entries directly).
  */
 async function queryDailyLogs(days: number): Promise<DailyNutritionLog[]> {
+  const start = __DEV__ ? performance.now() : 0;
   const db = getDatabase();
   const startDate = daysAgo(days);
   const today = formatDate(new Date());
@@ -141,7 +142,7 @@ async function queryDailyLogs(days: number): Promise<DailyNutritionLog[]> {
     [startDate, today, startDate, today],
   );
 
-  return rows.map((r) => ({
+  const result = rows.map((r) => ({
     date: r.date,
     calories: Math.round(r.total_calories),
     protein: Math.round(r.total_protein),
@@ -150,12 +151,15 @@ async function queryDailyLogs(days: number): Promise<DailyNutritionLog[]> {
     fiber: Math.round(r.total_fiber),
     mealsLogged: r.meals_logged,
   }));
+  if (__DEV__) console.log(`[perf] queryDailyLogs: ${(performance.now() - start).toFixed(1)}ms`);
+  return result;
 }
 
 /**
  * 4-week rolling averages, computed per-week.
  */
 async function queryWeeklyAverages(): Promise<WeeklyNutritionSummary[]> {
+  const start = __DEV__ ? performance.now() : 0;
   const db = getDatabase();
   const startDate = daysAgo(28);
   const today = formatDate(new Date());
@@ -223,6 +227,7 @@ async function queryWeeklyAverages(): Promise<WeeklyNutritionSummary[]> {
     });
   }
 
+  if (__DEV__) console.log(`[perf] queryWeeklyAverages: ${(performance.now() - start).toFixed(1)}ms`);
   return weeks;
 }
 
@@ -310,6 +315,7 @@ async function queryFrequentFoods(): Promise<FrequentFood[]> {
  * Uses last 14 days of data.
  */
 async function queryMealPatterns(): Promise<MealTimingPattern[]> {
+  const start = __DEV__ ? performance.now() : 0;
   const db = getDatabase();
   const startDate = daysAgo(14);
   const today = formatDate(new Date());
@@ -336,11 +342,13 @@ async function queryMealPatterns(): Promise<MealTimingPattern[]> {
   );
 
   // Convert distinct_days to a per-week frequency (14 days → divide by 2)
-  return rows.map((r) => ({
+  const result = rows.map((r) => ({
     mealType: r.meal_type as MealTimingPattern['mealType'],
     avgCalories: r.avg_calories,
     frequency: Math.round((r.distinct_days / 2) * 10) / 10,
   }));
+  if (__DEV__) console.log(`[perf] queryMealPatterns: ${(performance.now() - start).toFixed(1)}ms`);
+  return result;
 }
 
 /**
@@ -393,6 +401,7 @@ async function queryWeightUnit(): Promise<'lbs' | 'kg'> {
 // ============================================================
 
 export async function getRawNutritionData(): Promise<RawNutritionData> {
+  const start = __DEV__ ? performance.now() : 0;
   const [
     dailyLogs,
     weeklyAverages,
@@ -413,7 +422,7 @@ export async function getRawNutritionData(): Promise<RawNutritionData> {
     queryWeightUnit(),
   ]);
 
-  return {
+  const result = {
     dailyLogs,
     weeklyAverages,
     macroTargets,
@@ -424,4 +433,6 @@ export async function getRawNutritionData(): Promise<RawNutritionData> {
     profile,
     weightUnit,
   };
+  if (__DEV__) console.log(`[perf] getRawNutritionData: ${(performance.now() - start).toFixed(1)}ms`);
+  return result;
 }

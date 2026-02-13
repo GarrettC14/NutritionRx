@@ -3,7 +3,7 @@
  * Tests for barcode scanning and product search
  */
 
-import { openFoodFactsApi } from '@/services/openFoodFactsApi';
+import { openFoodFactsApi, clearSearchCache } from '@/services/openFoodFactsApi';
 import { foodRepository } from '@/repositories';
 
 // Mock fetch globally
@@ -41,6 +41,7 @@ describe('openFoodFactsApi', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearSearchCache();
   });
 
   describe('fetchByBarcode', () => {

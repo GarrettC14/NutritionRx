@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { TestIDs } from '@/constants/testIDs';
+import Constants from 'expo-constants';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
@@ -40,7 +41,7 @@ export default function AboutScreen() {
             NutritionRx
           </Text>
           <Text style={[styles.version, { color: colors.textSecondary }]}>
-            Version 1.0.0
+            Version {Constants.expoConfig?.version ?? '1.0.0'}
           </Text>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
             Track what you eat. No judgment.
@@ -62,7 +63,7 @@ export default function AboutScreen() {
             <View style={styles.featureItem}>
               <Ionicons name="heart" size={20} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Free forever: No premium features
+                No ads: Clean, distraction-free experience
               </Text>
             </View>
           </View>

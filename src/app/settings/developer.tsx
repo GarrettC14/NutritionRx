@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/hooks/useRouter';
-import { Stack } from 'expo-router';
+import { Stack, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -78,7 +78,7 @@ const STAT_QUERIES: Array<{ key: keyof DatabaseStats; label: string; sql: string
 // Main Component
 // ============================================================
 
-export default function DeveloperScreen() {
+function DeveloperScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { showConfirm } = useConfirmDialog();
@@ -883,3 +883,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+export default function DeveloperScreenRoute() {
+  if (!__DEV__) {
+    return <Redirect href="/settings" />;
+  }
+  return <DeveloperScreen />;
+}

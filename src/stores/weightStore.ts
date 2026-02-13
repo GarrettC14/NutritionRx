@@ -15,6 +15,7 @@ interface WeightState {
   latestEntry: WeightEntry | null;
   trendWeight: number | null;
   earliestDate: string | null;
+  lastModified: number;
   isLoading: boolean;
   error: string | null;
 
@@ -39,6 +40,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
   latestEntry: null,
   trendWeight: null,
   earliestDate: null,
+  lastModified: 0,
   isLoading: false,
   error: null,
   _cachedRangeKey: null as string | null,
@@ -135,7 +137,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         get().loadEarliestDate(),
       ]);
 
-      set({ isLoading: false });
+      set({ isLoading: false, lastModified: Date.now() });
 
       // TODO [POST_LAUNCH_HEALTH]: HealthKit weight sync — currently a no-op (isConnected defaults false)
       // Sync to HealthKit if enabled (non-blocking)
@@ -167,6 +169,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         entries: state.entries.map((e) => (e.id === id ? entry : e)),
         latestEntry: state.latestEntry?.id === id ? entry : state.latestEntry,
         isLoading: false,
+        lastModified: Date.now(),
       }));
 
       // Refresh trend weight
@@ -205,7 +208,7 @@ export const useWeightStore = create<WeightState>((set, get) => ({
         get().loadEarliestDate(),
       ]);
 
-      set({ isLoading: false });
+      set({ isLoading: false, lastModified: Date.now() });
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'weight', action: 'delete-entry' } });
       set({

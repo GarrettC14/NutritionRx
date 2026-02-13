@@ -157,39 +157,46 @@ export async function migration004SeedFoods(db: SQLiteDatabase): Promise<void> {
   const now = new Date().toISOString();
 
   // Insert seed foods using parameterized queries
-  for (const food of SEED_FOODS) {
-    await db.runAsync(
-      `INSERT OR IGNORE INTO food_items (
-        id, name, brand, barcode, calories, protein, carbs, fat,
-        fiber, sugar, sodium, serving_size, serving_unit, serving_size_grams,
-        source, source_id, is_verified, is_user_created,
-        last_used_at, usage_count, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        food.id,
-        food.name,
-        food.brand,
-        food.barcode,
-        food.calories,
-        food.protein,
-        food.carbs,
-        food.fat,
-        food.fiber,
-        food.sugar,
-        food.sodium,
-        food.serving_size,
-        food.serving_unit,
-        food.serving_size_grams,
-        'seed',
-        null,
-        1,
-        0,
-        null,
-        0,
-        now,
-        now,
-      ]
-    );
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (const food of SEED_FOODS) {
+      await db.runAsync(
+        `INSERT OR IGNORE INTO food_items (
+          id, name, brand, barcode, calories, protein, carbs, fat,
+          fiber, sugar, sodium, serving_size, serving_unit, serving_size_grams,
+          source, source_id, is_verified, is_user_created,
+          last_used_at, usage_count, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          food.id,
+          food.name,
+          food.brand,
+          food.barcode,
+          food.calories,
+          food.protein,
+          food.carbs,
+          food.fat,
+          food.fiber,
+          food.sugar,
+          food.sodium,
+          food.serving_size,
+          food.serving_unit,
+          food.serving_size_grams,
+          'seed',
+          null,
+          1,
+          0,
+          null,
+          0,
+          now,
+          now,
+        ]
+      );
+    }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log(`Inserted ${SEED_FOODS.length} seed food items.`);

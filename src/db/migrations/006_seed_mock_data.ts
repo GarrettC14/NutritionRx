@@ -34,6 +34,12 @@ function datetimeAgo(n: number): string {
 }
 
 export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void> {
+  // In production, skip mock data seeding — only record schema version
+  if (!__DEV__) {
+    await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [6]);
+    return;
+  }
+
   const now = new Date().toISOString();
   const today = new Date().toISOString().split('T')[0];
 
@@ -63,27 +69,34 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
   const startWeight = 88;
   const weightLossPerDay = 0.11; // About 0.5kg/week
 
-  for (let i = 45; i >= 0; i--) {
-    const date = daysAgo(i);
-    // Add some natural fluctuation (+/- 0.3kg)
-    const fluctuation = (Math.random() - 0.5) * 0.6;
-    const weight = startWeight - (45 - i) * weightLossPerDay + fluctuation;
-    const weightRounded = Math.round(weight * 10) / 10;
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (let i = 45; i >= 0; i--) {
+      const date = daysAgo(i);
+      // Add some natural fluctuation (+/- 0.3kg)
+      const fluctuation = (Math.random() - 0.5) * 0.6;
+      const weight = startWeight - (45 - i) * weightLossPerDay + fluctuation;
+      const weightRounded = Math.round(weight * 10) / 10;
 
-    // Skip some days randomly (about 15% chance) to simulate real usage
-    if (i > 0 && Math.random() < 0.15) continue;
+      // Skip some days randomly (about 15% chance) to simulate real usage
+      if (i > 0 && Math.random() < 0.15) continue;
 
-    await db.runAsync(`
-      INSERT OR REPLACE INTO weight_entries (id, date, weight_kg, notes, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      `weight-${date}`,
-      date,
-      weightRounded,
-      null,
-      datetimeAgo(i),
-      datetimeAgo(i)
-    ]);
+      await db.runAsync(`
+        INSERT OR REPLACE INTO weight_entries (id, date, weight_kg, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [
+        `weight-${date}`,
+        date,
+        weightRounded,
+        null,
+        datetimeAgo(i),
+        datetimeAgo(i)
+      ]);
+    }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log('Inserted weight entries');
@@ -292,55 +305,62 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
   }
 
   // Generate log entries for 14 days
-  for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
-    const date = daysAgo(dayOffset);
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
+      const date = daysAgo(dayOffset);
 
-    // Pick random meals for each meal type
-    const breakfastIdx = Math.floor(Math.random() * mealTemplates.breakfast.length);
-    const lunchIdx = Math.floor(Math.random() * mealTemplates.lunch.length);
-    const dinnerIdx = Math.floor(Math.random() * mealTemplates.dinner.length);
-    const snackIdx = Math.floor(Math.random() * mealTemplates.snack.length);
+      // Pick random meals for each meal type
+      const breakfastIdx = Math.floor(Math.random() * mealTemplates.breakfast.length);
+      const lunchIdx = Math.floor(Math.random() * mealTemplates.lunch.length);
+      const dinnerIdx = Math.floor(Math.random() * mealTemplates.dinner.length);
+      const snackIdx = Math.floor(Math.random() * mealTemplates.snack.length);
 
-    // Sometimes skip snacks
-    const includeSnack = Math.random() > 0.3;
+      // Sometimes skip snacks
+      const includeSnack = Math.random() > 0.3;
 
-    const meals = [
-      ...mealTemplates.breakfast[breakfastIdx],
-      ...mealTemplates.lunch[lunchIdx],
-      ...mealTemplates.dinner[dinnerIdx],
-      ...(includeSnack ? mealTemplates.snack[snackIdx] : []),
-    ];
+      const meals = [
+        ...mealTemplates.breakfast[breakfastIdx],
+        ...mealTemplates.lunch[lunchIdx],
+        ...mealTemplates.dinner[dinnerIdx],
+        ...(includeSnack ? mealTemplates.snack[snackIdx] : []),
+      ];
 
-    for (const meal of meals) {
-      const food = foodData[meal.foodId];
-      if (!food) continue;
+      for (const meal of meals) {
+        const food = foodData[meal.foodId];
+        if (!food) continue;
 
-      const calories = Math.round(food.calories * meal.servings);
-      const protein = Math.round(food.protein * meal.servings * 10) / 10;
-      const carbs = Math.round(food.carbs * meal.servings * 10) / 10;
-      const fat = Math.round(food.fat * meal.servings * 10) / 10;
+        const calories = Math.round(food.calories * meal.servings);
+        const protein = Math.round(food.protein * meal.servings * 10) / 10;
+        const carbs = Math.round(food.carbs * meal.servings * 10) / 10;
+        const fat = Math.round(food.fat * meal.servings * 10) / 10;
 
-      await db.runAsync(`
-        INSERT INTO log_entries (
-          id, food_item_id, date, meal_type, servings,
-          calories, protein, carbs, fat, notes,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        generateId(),
-        meal.foodId,
-        date,
-        meal.meal,
-        meal.servings,
-        calories,
-        protein,
-        carbs,
-        fat,
-        null,
-        datetimeAgo(dayOffset),
-        datetimeAgo(dayOffset)
-      ]);
+        await db.runAsync(`
+          INSERT INTO log_entries (
+            id, food_item_id, date, meal_type, servings,
+            calories, protein, carbs, fat, notes,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          generateId(),
+          meal.foodId,
+          date,
+          meal.meal,
+          meal.servings,
+          calories,
+          protein,
+          carbs,
+          fat,
+          null,
+          datetimeAgo(dayOffset),
+          datetimeAgo(dayOffset)
+        ]);
+      }
     }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log('Inserted food log entries');
@@ -378,26 +398,33 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
     { date: today, meal: 'snack', calories: 100, protein: 1, carbs: 25, fat: 0, description: 'Apple' },
   ];
 
-  for (const entry of quickAddEntries) {
-    const dayOffset = entry.date === today ? 0 : parseInt(entry.date.split('-')[2]) - new Date().getDate();
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (const entry of quickAddEntries) {
+      const dayOffset = entry.date === today ? 0 : parseInt(entry.date.split('-')[2]) - new Date().getDate();
 
-    await db.runAsync(`
-      INSERT INTO quick_add_entries (
-        id, date, meal_type, calories, protein, carbs, fat,
-        description, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      generateId(),
-      entry.date,
-      entry.meal,
-      entry.calories,
-      entry.protein,
-      entry.carbs,
-      entry.fat,
-      entry.description,
-      now,
-      now
-    ]);
+      await db.runAsync(`
+        INSERT INTO quick_add_entries (
+          id, date, meal_type, calories, protein, carbs, fat,
+          description, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        generateId(),
+        entry.date,
+        entry.meal,
+        entry.calories,
+        entry.protein,
+        entry.carbs,
+        entry.fat,
+        entry.description,
+        now,
+        now
+      ]);
+    }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log('Inserted quick add entries');
@@ -405,50 +432,57 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
   // ============================================================
   // WEEKLY REFLECTIONS - 5 weeks of check-ins
   // ============================================================
-  for (let weekNum = 1; weekNum <= 5; weekNum++) {
-    const weekStartOffset = 7 + (5 - weekNum) * 7;
-    const weekStart = daysAgo(weekStartOffset);
-    const weekEnd = daysAgo(weekStartOffset - 6);
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (let weekNum = 1; weekNum <= 5; weekNum++) {
+      const weekStartOffset = 7 + (5 - weekNum) * 7;
+      const weekStart = daysAgo(weekStartOffset);
+      const weekEnd = daysAgo(weekStartOffset - 6);
 
-    const weeklyWeightChange = -0.4 - Math.random() * 0.3; // -0.4 to -0.7 kg/week
-    const avgCalories = 2050 + Math.floor(Math.random() * 200) - 100;
-    const daysLogged = 5 + Math.floor(Math.random() * 3);
-    const daysWeighed = 4 + Math.floor(Math.random() * 3);
+      const weeklyWeightChange = -0.4 - Math.random() * 0.3; // -0.4 to -0.7 kg/week
+      const avgCalories = 2050 + Math.floor(Math.random() * 200) - 100;
+      const daysLogged = 5 + Math.floor(Math.random() * 3);
+      const daysWeighed = 4 + Math.floor(Math.random() * 3);
 
-    await db.runAsync(`
-      INSERT INTO weekly_reflections (
-        id, goal_id, week_number, week_start_date, week_end_date,
-        avg_calorie_intake, days_logged, days_weighed,
-        start_trend_weight_kg, end_trend_weight_kg, weight_change_kg,
-        calculated_daily_burn, previous_tdee_estimate, previous_target_calories,
-        new_tdee_estimate, new_target_calories, new_protein_g, new_carbs_g, new_fat_g,
-        was_accepted, user_notes, data_quality, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      generateId(),
-      goalId,
-      weekNum,
-      weekStart,
-      weekEnd,
-      avgCalories,
-      daysLogged,
-      daysWeighed,
-      startWeight - (weekNum - 1) * 0.5,
-      startWeight - weekNum * 0.5,
-      weeklyWeightChange,
-      2550 + Math.floor(Math.random() * 100),
-      initialTdee - (weekNum - 1) * 10,
-      targetCalories - (weekNum - 1) * 10,
-      initialTdee - weekNum * 10,
-      targetCalories - weekNum * 10,
-      135,
-      195 - weekNum,
-      87,
-      1, // was accepted
-      weekNum === 3 ? 'Feeling good, energy levels stable' : null,
-      daysLogged >= 5 ? 'high' : 'moderate',
-      datetimeAgo(weekStartOffset - 7)
-    ]);
+      await db.runAsync(`
+        INSERT INTO weekly_reflections (
+          id, goal_id, week_number, week_start_date, week_end_date,
+          avg_calorie_intake, days_logged, days_weighed,
+          start_trend_weight_kg, end_trend_weight_kg, weight_change_kg,
+          calculated_daily_burn, previous_tdee_estimate, previous_target_calories,
+          new_tdee_estimate, new_target_calories, new_protein_g, new_carbs_g, new_fat_g,
+          was_accepted, user_notes, data_quality, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        generateId(),
+        goalId,
+        weekNum,
+        weekStart,
+        weekEnd,
+        avgCalories,
+        daysLogged,
+        daysWeighed,
+        startWeight - (weekNum - 1) * 0.5,
+        startWeight - weekNum * 0.5,
+        weeklyWeightChange,
+        2550 + Math.floor(Math.random() * 100),
+        initialTdee - (weekNum - 1) * 10,
+        targetCalories - (weekNum - 1) * 10,
+        initialTdee - weekNum * 10,
+        targetCalories - weekNum * 10,
+        135,
+        195 - weekNum,
+        87,
+        1, // was accepted
+        weekNum === 3 ? 'Feeling good, energy levels stable' : null,
+        daysLogged >= 5 ? 'high' : 'moderate',
+        datetimeAgo(weekStartOffset - 7)
+      ]);
+    }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log('Inserted weekly reflections');
@@ -456,30 +490,37 @@ export async function migration006SeedMockData(db: SQLiteDatabase): Promise<void
   // ============================================================
   // DAILY METABOLISM - 30 days of tracking
   // ============================================================
-  for (let i = 30; i >= 0; i--) {
-    const date = daysAgo(i);
-    const trendWeight = startWeight - (30 - i) * 0.12 + (Math.random() - 0.5) * 0.3;
-    const calorieIntake = 1950 + Math.floor(Math.random() * 300);
-    const estimatedBurn = 2500 + Math.floor(Math.random() * 200);
+  await db.execAsync('BEGIN TRANSACTION');
+  try {
+    for (let i = 30; i >= 0; i--) {
+      const date = daysAgo(i);
+      const trendWeight = startWeight - (30 - i) * 0.12 + (Math.random() - 0.5) * 0.3;
+      const calorieIntake = 1950 + Math.floor(Math.random() * 300);
+      const estimatedBurn = 2500 + Math.floor(Math.random() * 200);
 
-    // Skip some days randomly
-    if (i > 0 && Math.random() < 0.2) continue;
+      // Skip some days randomly
+      if (i > 0 && Math.random() < 0.2) continue;
 
-    await db.runAsync(`
-      INSERT OR REPLACE INTO daily_metabolism (
-        id, date, trend_weight_kg, calorie_intake, estimated_daily_burn,
-        data_quality, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      `metab-${date}`,
-      date,
-      Math.round(trendWeight * 10) / 10,
-      calorieIntake,
-      estimatedBurn,
-      'moderate',
-      datetimeAgo(i),
-      datetimeAgo(i)
-    ]);
+      await db.runAsync(`
+        INSERT OR REPLACE INTO daily_metabolism (
+          id, date, trend_weight_kg, calorie_intake, estimated_daily_burn,
+          data_quality, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        `metab-${date}`,
+        date,
+        Math.round(trendWeight * 10) / 10,
+        calorieIntake,
+        estimatedBurn,
+        'moderate',
+        datetimeAgo(i),
+        datetimeAgo(i)
+      ]);
+    }
+    await db.execAsync('COMMIT');
+  } catch (error) {
+    await db.execAsync('ROLLBACK');
+    throw error;
   }
 
   if (__DEV__) console.log('Inserted daily metabolism data');

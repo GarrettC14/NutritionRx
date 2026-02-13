@@ -146,6 +146,15 @@ function extractMicronutrientsFromOFF(
   return results;
 }
 
+// In-memory cache for searchProducts results
+const searchCache = new Map<string, { data: FoodItem[]; timestamp: number }>();
+const SEARCH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/** Clear the in-memory search cache (for tests). */
+export function clearSearchCache() {
+  searchCache.clear();
+}
+
 export const openFoodFactsApi = {
   async fetchByBarcode(barcode: string): Promise<FetchFoodResult> {
     try {
@@ -259,6 +268,13 @@ export const openFoodFactsApi = {
   },
 
   async searchProducts(query: string, limit: number = 10): Promise<FoodItem[]> {
+    // Check in-memory cache
+    const cacheKey = `${query}:${limit}`;
+    const cached = searchCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < SEARCH_CACHE_TTL) {
+      return cached.data;
+    }
+
     try {
       // First search local database
       const localResults = await foodRepository.search(query, limit);
@@ -333,7 +349,12 @@ export const openFoodFactsApi = {
         (f) => !localBarcodes.has(f.barcode)
       );
 
-      return [...localResults, ...uniqueApiResults].slice(0, limit);
+      const mergedResults = [...localResults, ...uniqueApiResults].slice(0, limit);
+
+      // Cache the merged results
+      searchCache.set(cacheKey, { data: mergedResults, timestamp: Date.now() });
+
+      return mergedResults;
     } catch (error) {
       if (__DEV__) console.error('OpenFoodFacts search error:', error);
       return foodRepository.search(query, limit);

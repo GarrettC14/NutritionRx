@@ -30,11 +30,18 @@ export async function migration020UnifyTrendWeight(db: SQLiteDatabase): Promise<
     // Recompute from the earliest entry to cascade through all
     const updates = recomputeEWMAFromDate(allEntries, allEntries[0].date);
 
-    for (const { id, trendWeightKg } of updates) {
-      await db.runAsync(
-        'UPDATE weight_entries SET trend_weight_kg = ? WHERE id = ?',
-        [trendWeightKg, id]
-      );
+    await db.execAsync('BEGIN TRANSACTION');
+    try {
+      for (const { id, trendWeightKg } of updates) {
+        await db.runAsync(
+          'UPDATE weight_entries SET trend_weight_kg = ? WHERE id = ?',
+          [trendWeightKg, id]
+        );
+      }
+      await db.execAsync('COMMIT');
+    } catch (error) {
+      await db.execAsync('ROLLBACK');
+      throw error;
     }
   }
 

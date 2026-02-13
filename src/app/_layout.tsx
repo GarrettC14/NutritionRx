@@ -273,7 +273,8 @@ function RootLayout() {
   }, [navigationRef]);
 
   useEffect(() => {
-    // Initialize database on app start and wait for it
+    // Initialize database and purchases in parallel — purchases uses
+    // AsyncStorage (not SQLite), so it doesn't need to wait for the DB.
     initDatabase()
       .then(() => setDbReady(true))
       .catch((error) => {
@@ -282,15 +283,13 @@ function RootLayout() {
         setDbReady(true); // Still proceed to show error state
       });
 
-    // Record install date for review prompt eligibility (idempotent)
-    reviewPromptService.initializeInstallDate().catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    // Initialize RevenueCat after database is ready
-    if (!dbReady) return;
-
     const initPurchases = async () => {
+      if (!REVENUECAT_CONFIG.apiKey) {
+        if (__DEV__) console.warn('[RevenueCat] Skipping init — no API key configured');
+        setPurchasesReady(true);
+        return;
+      }
+
       try {
         if (__DEV__) {
           Purchases.setLogLevel(LOG_LEVEL.DEBUG);
@@ -307,7 +306,10 @@ function RootLayout() {
     };
 
     initPurchases();
-  }, [dbReady, initializeSubscription]);
+
+    // Record install date for review prompt eligibility (idempotent)
+    reviewPromptService.initializeInstallDate().catch(() => {});
+  }, [initializeSubscription]);
 
   // Wait for database and purchases before rendering routes
   if (!dbReady || !purchasesReady) {

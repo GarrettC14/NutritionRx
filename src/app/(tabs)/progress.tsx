@@ -18,47 +18,13 @@ import { ProgressScreenSkeleton } from '@/components/ui/Skeleton';
 import { DailyTotals } from '@/types/domain';
 import { MicronutrientSummary } from '@/components/micronutrients';
 import { ProgressPhotosSummary } from '@/components/progressPhotos';
-import { usePremium } from '@/hooks/usePremium';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { TestIDs } from '@/constants/testIDs';
-import { NutrientIntake } from '@/types/micronutrients';
+
 import * as Sentry from '@sentry/react-native';
 import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
 type TimeRange = '7d' | '14d' | '30d' | '90d' | 'all';
-
-// Mock micronutrient data for development preview
-const MOCK_NUTRIENT_INTAKES: NutrientIntake[] = [
-  // Vitamins - mix of statuses
-  { nutrientId: 'vitamin_c', amount: 95, percentOfTarget: 106, status: 'optimal' },
-  { nutrientId: 'thiamin', amount: 1.0, percentOfTarget: 83, status: 'adequate' },
-  { nutrientId: 'riboflavin', amount: 1.1, percentOfTarget: 85, status: 'adequate' },
-  { nutrientId: 'niacin', amount: 14, percentOfTarget: 88, status: 'adequate' },
-  { nutrientId: 'vitamin_b6', amount: 1.5, percentOfTarget: 115, status: 'optimal' },
-  { nutrientId: 'vitamin_b12', amount: 2.8, percentOfTarget: 117, status: 'optimal' },
-  { nutrientId: 'folate', amount: 280, percentOfTarget: 70, status: 'low' },
-  { nutrientId: 'vitamin_a', amount: 650, percentOfTarget: 72, status: 'low' },
-  { nutrientId: 'vitamin_d', amount: 5, percentOfTarget: 33, status: 'deficient' },
-  { nutrientId: 'vitamin_e', amount: 12, percentOfTarget: 80, status: 'adequate' },
-  { nutrientId: 'vitamin_k', amount: 95, percentOfTarget: 79, status: 'adequate' },
-  // Minerals
-  { nutrientId: 'calcium', amount: 850, percentOfTarget: 85, status: 'adequate' },
-  { nutrientId: 'iron', amount: 14, percentOfTarget: 175, status: 'high' },
-  { nutrientId: 'magnesium', amount: 280, percentOfTarget: 67, status: 'low' },
-  { nutrientId: 'zinc', amount: 9, percentOfTarget: 82, status: 'adequate' },
-  { nutrientId: 'phosphorus', amount: 1100, percentOfTarget: 157, status: 'high' },
-  { nutrientId: 'potassium', amount: 2800, percentOfTarget: 60, status: 'low' },
-  { nutrientId: 'sodium', amount: 2600, percentOfTarget: 173, status: 'high' },
-  { nutrientId: 'selenium', amount: 58, percentOfTarget: 105, status: 'optimal' },
-  { nutrientId: 'copper', amount: 0.9, percentOfTarget: 100, status: 'optimal' },
-  { nutrientId: 'manganese', amount: 2.0, percentOfTarget: 87, status: 'adequate' },
-  // Fatty acids
-  { nutrientId: 'omega_3_ala', amount: 1.0, percentOfTarget: 63, status: 'low' },
-  { nutrientId: 'omega_3_epa', amount: 0.15, percentOfTarget: 60, status: 'low' },
-  { nutrientId: 'omega_3_dha', amount: 0.12, percentOfTarget: 48, status: 'deficient' },
-  { nutrientId: 'omega_6_la', amount: 14, percentOfTarget: 117, status: 'optimal' },
-  // Other
-  { nutrientId: 'fiber', amount: 18, percentOfTarget: 64, status: 'low' },
-];
 
 const TIME_RANGE_TEST_IDS: Record<TimeRange, string> = {
   '7d': TestIDs.Progress.TimeRange7d,
@@ -134,7 +100,7 @@ function ProgressScreen() {
     isLoaded: s.isLoaded,
   })));
   const { calories: resolvedCalorieGoal } = useResolvedTargets();
-  const { isPremium } = usePremium();
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
   const chartThemeColors = allChartColors[colorScheme];
   const weightUnit = settings?.weightUnit === 'lbs' ? 'lbs' : 'kg';
@@ -637,7 +603,7 @@ function ProgressScreen() {
           nutrients={
             dailyIntake?.totalFoodsLogged && dailyIntake.nutrients.some(n => n.amount > 0)
               ? dailyIntake.nutrients
-              : MOCK_NUTRIENT_INTAKES
+              : []
           }
           isPremium={isPremium}
         />

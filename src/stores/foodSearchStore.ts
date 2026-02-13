@@ -29,6 +29,8 @@ interface FoodSearchState {
   deleteFood: (id: string) => Promise<void>;
 }
 
+let currentSearchId = 0;
+
 export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
   query: '',
   results: [],
@@ -56,10 +58,13 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
       return;
     }
 
+    const thisSearchId = ++currentSearchId;
+
     set({ isSearching: true, error: null });
     try {
       // Search local DB first for immediate results
       const localResults = await foodRepository.search(query);
+      if (thisSearchId !== currentSearchId) return; // stale, discard
       set({ results: localResults, isSearching: false });
 
       // Then search USDA in background and merge results
@@ -68,6 +73,8 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
           dataTypes: ['Foundation', 'SR Legacy'],
           pageSize: 10,
         });
+
+        if (thisSearchId !== currentSearchId) return; // stale, discard
 
         if (usdaResults.length > 0) {
           // Helper: find nutrient value with fallback IDs

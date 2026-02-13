@@ -96,7 +96,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "appStoreUrl": "https://apps.apple.com/app/nutritionrx/id000000000",
+      "appStoreUrl": "https://apps.apple.com/app/nutritionrx/idTODO_SET_REAL_APP_STORE_ID",
       "playStoreUrl": "https://play.google.com/store/apps/details?id=com.nutritionrx.app",
       "router": {},
       "eas": {

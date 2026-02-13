@@ -59,8 +59,11 @@ export async function proxyOpenAIChat(
     });
 
     if (!res.ok) {
-      const errorBody = await res.text().catch(() => 'Unknown error');
-      throw new Error(`OpenAI proxy error (${res.status}): ${errorBody}`);
+      if (__DEV__) {
+        const errorBody = await res.text().catch(() => 'Unknown error');
+        throw new Error(`OpenAI proxy error (${res.status}): ${errorBody}`);
+      }
+      throw new Error(`Request failed (${res.status}). Please try again.`);
     }
 
     return res.json();

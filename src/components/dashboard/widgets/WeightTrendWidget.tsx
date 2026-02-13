@@ -6,7 +6,7 @@
  * - Data loading (loadEntries) on mount and focus
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useShallow } from 'zustand/react/shallow';
@@ -23,10 +23,12 @@ const CHART_HEIGHT = 200;
 export function WeightTrendWidget({ isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors, colorScheme } = useTheme();
-  const { entries, loadEntries } = useWeightStore(useShallow((s) => ({
+  const { entries, loadEntries, lastModified } = useWeightStore(useShallow((s) => ({
     entries: s.entries,
     loadEntries: s.loadEntries,
+    lastModified: s.lastModified,
   })));
+  const lastLoadedRef = useRef<number>(0);
   const { settings } = useSettingsStore(useShallow((s) => ({
     settings: s.settings,
   })));
@@ -52,11 +54,14 @@ export function WeightTrendWidget({ isEditMode }: WidgetProps) {
     presetDisabledText: colors.textDisabled,
   }), [colors, chartThemeColors]);
 
-  // Reload data on mount and when the dashboard tab regains focus
+  // Reload data on mount and when the dashboard tab regains focus (only if data changed)
   useFocusEffect(
     useCallback(() => {
-      loadEntries(500);
-    }, [loadEntries])
+      if (lastModified > lastLoadedRef.current) {
+        loadEntries(500);
+        lastLoadedRef.current = lastModified;
+      }
+    }, [loadEntries, lastModified])
   );
 
   const handleHeaderPress = () => {

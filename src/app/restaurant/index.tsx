@@ -24,7 +24,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { RestaurantListSkeleton } from '@/components/ui/Skeleton';
 import { PremiumBanner } from '@/components/premium';
-import { usePremium, PremiumFeature } from '@/hooks/usePremium';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { TestIDs } from '@/constants/testIDs';
 
 // Debounce hook
@@ -73,7 +73,7 @@ export default function RestaurantListScreen() {
   } = useRestaurantStore();
 
   // Premium state
-  const { isPremium } = usePremium();
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
   const [showPremiumBanner, setShowPremiumBanner] = useState(true);
 
   // Initialize data and load restaurants on mount

@@ -48,8 +48,8 @@ describe('Restaurant Premium Gating (Feature 2)', () => {
       expect(restaurantListSource).toContain('PremiumBanner');
     });
 
-    it('should import usePremium hook', () => {
-      expect(restaurantListSource).toContain('usePremium');
+    it('should import useSubscriptionStore', () => {
+      expect(restaurantListSource).toContain('useSubscriptionStore');
     });
 
     it('should have dismissible banner', () => {

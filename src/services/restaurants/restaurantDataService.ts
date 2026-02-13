@@ -13,12 +13,29 @@ import {
 } from '@/types/restaurant';
 import { BUNDLED_RESTAURANTS } from './restaurantData';
 
+// Module-scoped promise to prevent concurrent initialization (TOCTOU guard)
+let initPromise: Promise<void> | null = null;
+
 export const restaurantDataService = {
   /**
    * Initialize restaurant database with bundled data
-   * Only loads if no restaurants exist yet
+   * Only loads if no restaurants exist yet.
+   * Uses an in-flight promise so concurrent callers share the same work.
    */
   async initializeData(): Promise<void> {
+    if (initPromise) return initPromise;
+    initPromise = this._doInitialize();
+    try {
+      await initPromise;
+    } finally {
+      initPromise = null;
+    }
+  },
+
+  /**
+   * Internal initialization — checks DB count and loads bundled data if needed.
+   */
+  async _doInitialize(): Promise<void> {
     const db = getDatabase();
 
     // Check if data already loaded
@@ -42,12 +59,21 @@ export const restaurantDataService = {
   async loadBundledData(): Promise<void> {
     const db = getDatabase();
 
-    for (const restaurantData of BUNDLED_RESTAURANTS) {
-      await this.loadRestaurant(restaurantData.restaurant, restaurantData.menu);
-    }
+    try {
+      await db.execAsync('BEGIN TRANSACTION');
 
-    // Rebuild FTS index
-    await this.rebuildSearchIndex();
+      for (const restaurantData of BUNDLED_RESTAURANTS) {
+        await this.loadRestaurant(restaurantData.restaurant, restaurantData.menu);
+      }
+
+      // Rebuild FTS index
+      await this.rebuildSearchIndex();
+
+      await db.execAsync('COMMIT');
+    } catch (error) {
+      await db.execAsync('ROLLBACK');
+      throw error;
+    }
   },
 
   /**

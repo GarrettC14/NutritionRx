@@ -543,26 +543,6 @@ function SettingsScreen() {
             CONNECTIONS
           </Text>
           <View style={styles.sectionContent}>
-            {/* TODO: Re-enable health integrations in a post-launch release
-            {Platform.OS === 'ios' && (
-              <SettingsItem
-                testID={TestIDs.Settings.AppleHealthRow}
-                icon="heart-outline"
-                title="Apple Health"
-                subtitle="Sync nutrition, weight, and water"
-                onPress={() => router.push('/settings/apple-health')}
-              />
-            )}
-            {Platform.OS === 'android' && (
-              <SettingsItem
-                testID={TestIDs.Settings.HealthConnectRow}
-                icon="fitness-outline"
-                title="Health Connect"
-                subtitle="Sync nutrition, weight, and water"
-                onPress={() => router.push('/settings/health-connect')}
-              />
-            )}
-            */}
             <SettingsItem
               testID={TestIDs.Settings.WidgetsRow}
               icon="apps-outline"

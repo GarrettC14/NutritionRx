@@ -22,4 +22,6 @@ export async function migration016Reflections(db: SQLiteDatabase): Promise<void>
 
     CREATE INDEX IF NOT EXISTS idx_reflections_date ON reflections(reflected_at);
   `);
+
+  await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [16]);
 }

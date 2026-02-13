@@ -25,6 +25,8 @@ interface CacheEntry<T> {
 class USDAFoodServiceClass {
   private searchCache: Map<string, CacheEntry<USDASearchResult[]>> = new Map();
   private detailsCache: Map<number, CacheEntry<USDAFoodDetail>> = new Map();
+  private inflightSearches: Map<string, Promise<USDASearchResult[]>> = new Map();
+  private inflightDetails: Map<number, Promise<USDAFoodDetail | null>> = new Map();
   private requestCount = 0;
   private requestWindowStart = Date.now();
 
@@ -48,6 +50,27 @@ class USDAFoodServiceClass {
       return cached.data;
     }
 
+    // Deduplicate inflight requests for the same search
+    const inflight = this.inflightSearches.get(cacheKey);
+    if (inflight) return inflight;
+
+    const promise = this._fetchSearch(cacheKey, query, dataTypes, pageSize, pageNumber, cached);
+    this.inflightSearches.set(cacheKey, promise);
+    try {
+      return await promise;
+    } finally {
+      this.inflightSearches.delete(cacheKey);
+    }
+  }
+
+  private async _fetchSearch(
+    cacheKey: string,
+    query: string,
+    dataTypes: string[],
+    pageSize: number,
+    pageNumber: number,
+    cached: CacheEntry<USDASearchResult[]> | undefined
+  ): Promise<USDASearchResult[]> {
     // Check rate limit
     if (!this.checkRateLimit()) {
       if (__DEV__) console.warn('USDA API rate limit reached');
@@ -103,6 +126,23 @@ class USDAFoodServiceClass {
       return cached.data;
     }
 
+    // Deduplicate inflight requests for the same fdcId
+    const inflight = this.inflightDetails.get(fdcId);
+    if (inflight) return inflight;
+
+    const promise = this._fetchFoodDetails(fdcId, cached);
+    this.inflightDetails.set(fdcId, promise);
+    try {
+      return await promise;
+    } finally {
+      this.inflightDetails.delete(fdcId);
+    }
+  }
+
+  private async _fetchFoodDetails(
+    fdcId: number,
+    cached: CacheEntry<USDAFoodDetail> | undefined
+  ): Promise<USDAFoodDetail | null> {
     // Check rate limit
     if (!this.checkRateLimit()) {
       if (__DEV__) console.warn('USDA API rate limit reached');

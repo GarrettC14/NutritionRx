@@ -27,6 +27,12 @@ export const REVENUECAT_CONFIG = {
   defaultOffering: 'default',
 } as const;
 
+if (__DEV__ && !REVENUECAT_CONFIG.apiKey) {
+  console.warn(
+    '[RevenueCat] API key is empty. Set EXPO_PUBLIC_REVENUECAT_IOS_KEY or EXPO_PUBLIC_REVENUECAT_ANDROID_KEY in .env.local'
+  );
+}
+
 // App identifier for this app
 export const APP_ID = 'nutritionrx' as const;
 
