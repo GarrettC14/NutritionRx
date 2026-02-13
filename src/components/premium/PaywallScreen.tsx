@@ -928,7 +928,7 @@ export function PaywallScreen() {
 
           <TouchableOpacity
             testID={TestIDs.Paywall.TermsLink}
-            onPress={() => Linking.openURL('https://cascadesoftware.com/terms')}
+            onPress={() => Linking.openURL('https://app.cascademobile.dev/legal/nutritionrx/terms')}
             accessibilityRole="link"
             accessibilityLabel="Terms of Service"
           >
@@ -939,7 +939,7 @@ export function PaywallScreen() {
 
           <TouchableOpacity
             testID={TestIDs.Paywall.PrivacyLink}
-            onPress={() => Linking.openURL('https://cascadesoftware.com/privacy')}
+            onPress={() => Linking.openURL('https://app.cascademobile.dev/legal/nutritionrx/privacy')}
             accessibilityRole="link"
             accessibilityLabel="Privacy Policy"
           >

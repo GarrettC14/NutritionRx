@@ -463,7 +463,7 @@ export function PremiumUpgradeSheet() {
           <Text style={[styles.footerSep, { color: colors.textTertiary }]}>|</Text>
 
           <TouchableOpacity
-            onPress={() => Linking.openURL('https://cascadesoftware.com/terms')}
+            onPress={() => Linking.openURL('https://app.cascademobile.dev/legal/nutritionrx/terms')}
             accessibilityRole="link"
             accessibilityLabel="Terms of Service"
           >
@@ -475,7 +475,7 @@ export function PremiumUpgradeSheet() {
           <Text style={[styles.footerSep, { color: colors.textTertiary }]}>|</Text>
 
           <TouchableOpacity
-            onPress={() => Linking.openURL('https://cascadesoftware.com/privacy')}
+            onPress={() => Linking.openURL('https://app.cascademobile.dev/legal/nutritionrx/privacy')}
             accessibilityRole="link"
             accessibilityLabel="Privacy Policy"
           >

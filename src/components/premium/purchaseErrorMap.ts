@@ -14,7 +14,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   [PURCHASES_ERROR_CODE.PRODUCT_NOT_AVAILABLE_FOR_PURCHASE_ERROR]:
     "This plan isn't available in your region. Please try another plan.",
   [PURCHASES_ERROR_CODE.INVALID_RECEIPT_ERROR]:
-    "We couldn't verify your purchase. Please try again or contact support at support@cascadesoftware.com.",
+    "We couldn't verify your purchase. Please try again or contact support at garrett@cascademobile.dev.",
   [PURCHASES_ERROR_CODE.NETWORK_ERROR]:
     'Connection issue. Check your network and try again.',
   [PURCHASES_ERROR_CODE.OFFLINE_CONNECTION_ERROR]:
