@@ -1,4 +1,4 @@
-import Purchases from 'react-native-purchases';
+import { getCustomerId } from '@/services/backendService';
 
 const BASE_URL = process.env.EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL ?? '';
 
@@ -34,10 +34,6 @@ export interface ReferralStatusResponse {
 }
 
 // ── Helpers ──
-
-async function getCustomerId(): Promise<string> {
-  return Purchases.getAppUserID();
-}
 
 async function apiFetch<T>(
   path: string,

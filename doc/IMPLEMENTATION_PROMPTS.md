@@ -908,38 +908,31 @@ interface QuickReply {
 **Chat Service (`src/features/chat/services/chatService.ts`):**
 
 ```typescript
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-});
+// NOTE: OpenAI API key is managed server-side. All calls go through the
+// Supabase openai-proxy edge function via proxyOpenAIChat() in backendService.ts.
+// See src/services/backendService.ts for the proxy implementation.
+import { proxyOpenAIChat } from '@/services/backendService';
+import { openaiConfig } from '@/config/api';
 
 export const chatService = {
   async sendMessage(
     messages: ChatMessage[],
     context: ChatContext,
-    options: { stream?: boolean; model?: 'gpt-4o-mini' | 'gpt-4o' } = {}
-  ): Promise<string | AsyncIterable<string>> {
-    const { stream = true, model = 'gpt-4o-mini' } = options;
-    
+    options: { model?: 'gpt-4o-mini' | 'gpt-4o' } = {}
+  ): Promise<string> {
+    const { model = 'gpt-4o-mini' } = options;
+
     const systemPrompt = buildSystemPrompt(context);
-    
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
+
+    const data = await proxyOpenAIChat(
+      [
         { role: 'system', content: systemPrompt },
         ...messages.map(m => ({ role: m.role, content: m.content })),
       ],
-      max_tokens: 500,
-      temperature: 0.7,
-      stream,
-    });
-    
-    if (stream) {
-      return response; // Return async iterator for streaming
-    }
-    
-    return response.choices[0].message.content;
+      { model, max_tokens: openaiConfig.maxTokens, temperature: openaiConfig.temperature },
+    );
+
+    return data.choices[0].message.content;
   },
 };
 ```

@@ -41,7 +41,7 @@ export function VoiceToast({
   onDismiss,
 }: VoiceToastProps) {
   const { colors } = useTheme();
-  const dismissTimer = useRef<NodeJS.Timeout | null>(null);
+  const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible) {

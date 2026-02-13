@@ -19,9 +19,8 @@ export const USDA_CACHE_DURATIONS = {
   foodDetails: 30 * 24 * 60 * 60 * 1000,    // 30 days
 } as const;
 
-// OpenAI API Configuration
+// OpenAI chat parameters (API key is managed server-side via Supabase openai-proxy)
 export const openaiConfig = {
-  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
   model: 'gpt-4o-mini' as const,
   maxTokens: 500,
   temperature: 0.7,

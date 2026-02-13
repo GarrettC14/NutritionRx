@@ -6,10 +6,9 @@ import { Platform } from 'react-native';
  */
 
 export const REVENUECAT_CONFIG = {
-  // Replace with actual API keys from RevenueCat dashboard
   apiKey: Platform.select({
-    ios: '__REVENUECAT_IOS_API_KEY__',
-    android: '__REVENUECAT_ANDROID_API_KEY__',
+    ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '',
+    android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
   }) as string,
 
   // Entitlement identifiers (same across both apps)

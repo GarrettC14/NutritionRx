@@ -14,9 +14,9 @@ import {
 } from '@/types/ai-photo';
 import { TRACKED_NUTRIENT_MAP } from '@/constants/trackedNutrients';
 import { NutrientInsert } from '@/repositories/micronutrientRepository';
+import { proxyOpenAIChat } from '@/services/backendService';
 
 // Constants
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = 'gpt-4o-mini';
 const MAX_TOKENS = 1500;
 const IMAGE_MAX_SIZE = 1024;
@@ -235,7 +235,6 @@ function calculateTotalNutrition(
 
 // Main API call
 export async function analyzeImage(
-  apiKey: string,
   processedImage: ProcessedImage
 ): Promise<AIPhotoAnalysis> {
   const analysisId = generateId();
@@ -243,55 +242,38 @@ export async function analyzeImage(
   const apiStart = Date.now();
 
   try {
-    const requestBody: OpenAIVisionRequest = {
-      model: MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: SYSTEM_PROMPT,
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Analyze this food image and provide nutrition estimates.',
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${processedImage.mimeType};base64,${processedImage.base64}`,
-                detail: 'high',
-              },
-            },
-          ],
-        },
-      ],
-      max_tokens: MAX_TOKENS,
-      temperature: 0.3, // Lower temperature for more consistent results
-    };
-
-    if (__DEV__) console.log(`[LLM:Vision] Sending request to ${OPENAI_API_URL} — model=${MODEL}, maxTokens=${MAX_TOKENS}`);
-    const response = await fetch(OPENAI_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const messages = [
+      {
+        role: 'system' as const,
+        content: SYSTEM_PROMPT,
       },
-      body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(30000),
+      {
+        role: 'user' as const,
+        content: [
+          {
+            type: 'text',
+            text: 'Analyze this food image and provide nutrition estimates.',
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:${processedImage.mimeType};base64,${processedImage.base64}`,
+              detail: 'high',
+            },
+          },
+        ],
+      },
+    ];
+
+    if (__DEV__) console.log(`[LLM:Vision] Sending request via proxy — model=${MODEL}, maxTokens=${MAX_TOKENS}`);
+    const data: OpenAIVisionResponse = await proxyOpenAIChat(messages, {
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      temperature: 0.3,
+      timeoutMs: 30000,
     });
 
-    if (__DEV__) console.log(`[LLM:Vision] API response — status=${response.status}, ok=${response.ok} (${Date.now() - apiStart}ms)`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (__DEV__) console.error(`[LLM:Vision] API error ${response.status}: ${errorText.substring(0, 300)}`);
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data: OpenAIVisionResponse = await response.json();
-    if (__DEV__) console.log(`[LLM:Vision] API response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})}`);
+    if (__DEV__) console.log(`[LLM:Vision] Proxy response parsed — choices=${data.choices?.length || 0}, usage=${JSON.stringify(data.usage || {})} (${Date.now() - apiStart}ms)`);
 
     if (!data.choices || data.choices.length === 0) {
       if (__DEV__) console.error('[LLM:Vision] No choices in response');
@@ -336,12 +318,11 @@ export async function analyzeImage(
 
 // Combined function for convenience
 export async function analyzeFood(
-  apiKey: string,
   imageUri: string
 ): Promise<AIPhotoAnalysis> {
   if (__DEV__) console.log(`[LLM:Vision] analyzeFood() — imageUri=${imageUri.substring(0, 80)}...`);
   const processedImage = await processImageForAPI(imageUri);
-  return analyzeImage(apiKey, processedImage);
+  return analyzeImage(processedImage);
 }
 
 // Export the service object for consistency with other services

@@ -46,9 +46,6 @@ import { DataSource } from '@/types/domain';
 
 const { width, height } = Dimensions.get('window');
 
-// API Key - In production, this should come from secure storage or environment
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
-
 export default function AIPhotoScreen() {
   const { colors } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -173,16 +170,6 @@ export default function AIPhotoScreen() {
       return;
     }
 
-    // Check API key
-    if (!OPENAI_API_KEY) {
-      Alert.alert(
-        'Configuration Error',
-        'OpenAI API key is not configured. Please add EXPO_PUBLIC_OPENAI_API_KEY to your environment.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
     setScreenState({ ...screenState, step: 'analyzing' });
 
     try {
@@ -194,7 +181,6 @@ export default function AIPhotoScreen() {
 
       // Analyze the image
       const analysis = await analyzeFood(
-        OPENAI_API_KEY,
         screenState.capturedImage.uri
       );
 

@@ -543,8 +543,9 @@ describe('Chat Service (Feature 5)', () => {
       expect(serviceSource).toContain('openaiConfig');
     });
 
-    it('should define OPENAI_API_URL', () => {
-      expect(serviceSource).toContain('https://api.openai.com/v1/chat/completions');
+    it('should import proxyOpenAIChat from backendService', () => {
+      expect(serviceSource).toContain("from '@/services/backendService'");
+      expect(serviceSource).toContain('proxyOpenAIChat');
     });
   });
 
@@ -563,39 +564,28 @@ describe('Chat Service (Feature 5)', () => {
       expect(serviceSource).toContain("model = 'gpt-4o-mini'");
     });
 
-    it('should check for safety triggers before API call', () => {
+    it('should check for safety triggers before proxy call', () => {
       const sendMessageSection = serviceSource.substring(
         serviceSource.indexOf('export async function sendMessage'),
         serviceSource.indexOf('export async function sendMessageStreaming')
       );
       const safetyCheckIndex = sendMessageSection.indexOf('detectSafetyTriggers');
-      const fetchIndex = sendMessageSection.indexOf('fetch(');
-      expect(safetyCheckIndex).toBeLessThan(fetchIndex);
+      const proxyIndex = sendMessageSection.indexOf('proxyOpenAIChat');
+      expect(safetyCheckIndex).toBeLessThan(proxyIndex);
     });
 
     it('should return safety response when trigger detected', () => {
       expect(serviceSource).toContain('SAFETY_RESPONSES[trigger]');
     });
 
-    it('should check for API key', () => {
-      expect(serviceSource).toContain('openaiConfig.apiKey');
-    });
-
     it('should build system prompt from context', () => {
       expect(serviceSource).toContain('buildSystemPrompt(context)');
     });
 
-    it('should use fetch for API calls (not OpenAI SDK)', () => {
-      expect(serviceSource).toContain('fetch(OPENAI_API_URL');
+    it('should route through proxyOpenAIChat (not direct OpenAI)', () => {
+      expect(serviceSource).toContain('proxyOpenAIChat(proxyMessages');
       expect(serviceSource).not.toContain("from 'openai'");
-    });
-
-    it('should set Authorization header with Bearer token', () => {
-      expect(serviceSource).toContain('Bearer');
-    });
-
-    it('should set Content-Type to JSON', () => {
-      expect(serviceSource).toContain("'Content-Type': 'application/json'");
+      expect(serviceSource).not.toContain('api.openai.com');
     });
 
     it('should use maxTokens from config', () => {
@@ -620,33 +610,23 @@ describe('Chat Service (Feature 5)', () => {
       expect(serviceSource).toContain('onChunk: (chunk: string) => void');
     });
 
-    it('should set stream to true', () => {
-      expect(serviceSource).toContain('stream: true');
+    it('should use proxyOpenAIChat in non-streaming mode', () => {
+      const streamSection = serviceSource.substring(
+        serviceSource.indexOf('export async function sendMessageStreaming')
+      );
+      expect(streamSection).toContain('proxyOpenAIChat');
+      expect(streamSection).not.toContain('stream: true');
     });
 
-    it('should use response body reader for SSE', () => {
-      expect(serviceSource).toContain('response.body?.getReader()');
+    it('should have TODO for future SSE streaming', () => {
+      expect(serviceSource).toContain('TODO: re-enable true SSE streaming');
     });
 
-    it('should parse SSE data lines', () => {
-      expect(serviceSource).toContain("data: '");
-      expect(serviceSource).toContain('[DONE]');
+    it('should deliver full response via onChunk', () => {
+      expect(serviceSource).toContain('onChunk(fullResponse)');
     });
 
-    it('should extract delta content from chunks', () => {
-      expect(serviceSource).toContain('delta');
-      expect(serviceSource).toContain('content');
-    });
-
-    it('should call onChunk for each delta', () => {
-      expect(serviceSource).toContain('onChunk(delta)');
-    });
-
-    it('should accumulate full response', () => {
-      expect(serviceSource).toContain('fullResponse += delta');
-    });
-
-    it('should check for safety triggers before streaming', () => {
+    it('should check for safety triggers before proxy call', () => {
       const streamSection = serviceSource.substring(
         serviceSource.indexOf('export async function sendMessageStreaming')
       );
@@ -656,14 +636,13 @@ describe('Chat Service (Feature 5)', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle 429 rate limiting', () => {
-      expect(serviceSource).toContain('response.status === 429');
+    it('should detect rate limiting from proxy error message', () => {
       expect(serviceSource).toContain("'rate_limited'");
+      expect(serviceSource).toContain("msg.includes('429')");
     });
 
-    it('should handle 401/403 auth errors', () => {
-      expect(serviceSource).toContain('response.status === 401');
-      expect(serviceSource).toContain('response.status === 403');
+    it('should re-throw ChatServiceError instances', () => {
+      expect(serviceSource).toContain('if (error instanceof ChatServiceError) throw error');
     });
 
     it('should define ChatServiceError class', () => {
@@ -1555,12 +1534,12 @@ describe('OpenAI API Config (Feature 5)', () => {
       expect(configSource).toContain('export const openaiConfig');
     });
 
-    it('should read API key from environment variable', () => {
-      expect(configSource).toContain('process.env.EXPO_PUBLIC_OPENAI_API_KEY');
+    it('should NOT contain a client-side API key', () => {
+      expect(configSource).not.toContain('EXPO_PUBLIC_OPENAI_API_KEY');
     });
 
-    it('should fallback to empty string for API key', () => {
-      expect(configSource).toContain("|| ''");
+    it('should note that the API key is server-side', () => {
+      expect(configSource).toContain('server-side');
     });
 
     it('should set default model to gpt-4o-mini', () => {

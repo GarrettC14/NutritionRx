@@ -20,7 +20,7 @@ export function PlanCard({ label, priceText, detail, badge, selected, onSelect }
     <TouchableOpacity
       style={[
         styles.card,
-        { backgroundColor: colors.bgSecondary, borderColor: colors.border },
+        { backgroundColor: colors.bgSecondary, borderColor: colors.borderDefault },
         selected && { borderColor: SAGE_GREEN, borderWidth: 2 },
       ]}
       onPress={onSelect}
@@ -36,7 +36,7 @@ export function PlanCard({ label, priceText, detail, badge, selected, onSelect }
               <View style={[styles.radioInner, { backgroundColor: SAGE_GREEN }]} />
             </View>
           ) : (
-            <View style={[styles.radioOuter, { borderColor: colors.border }]} />
+            <View style={[styles.radioOuter, { borderColor: colors.borderDefault }]} />
           )}
         </View>
         <View style={styles.content}>

@@ -449,7 +449,7 @@ export function PaywallScreen() {
     trackPaywallEvent('restore_purchases_tapped', { paywallSessionId });
 
     try {
-      const customerInfo = await Purchases.restoreTransactions();
+      const customerInfo = await Purchases.restorePurchases();
       const entitlements = Object.keys(customerInfo.entitlements.active);
 
       trackPaywallEvent('restore_purchases_result', {

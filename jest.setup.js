@@ -55,4 +55,17 @@ jest.mock('@expo/vector-icons', () => {
   });
 });
 
+// Mock react-native-purchases (RevenueCat) — native module not available in Jest
+jest.mock('react-native-purchases', () => ({
+  __esModule: true,
+  default: {
+    getAppUserID: jest.fn().mockResolvedValue('test-rc-customer-id'),
+    configure: jest.fn(),
+    getOfferings: jest.fn().mockResolvedValue({ current: null }),
+    getCustomerInfo: jest.fn().mockResolvedValue({ entitlements: { active: {} } }),
+    purchasePackage: jest.fn(),
+    restorePurchases: jest.fn(),
+  },
+}));
+
 // Note: expo-file-system and expo-sharing are mocked via moduleNameMapper in jest.config.js

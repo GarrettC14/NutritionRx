@@ -55,7 +55,7 @@ export function Toast({
   onDismiss,
 }: ToastProps) {
   const { colors } = useTheme();
-  const dismissTimer = useRef<NodeJS.Timeout | null>(null);
+  const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getToastConfig = (toastType: ToastType): ToastConfig => {
     switch (toastType) {

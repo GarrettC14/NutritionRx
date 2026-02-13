@@ -60,7 +60,7 @@ export function useWidgetSync(options: WidgetSyncOptions = {}): UseWidgetSyncRet
     debounceMs = 500,
   } = options;
 
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isWidgetSupported = Platform.OS === 'ios' && widgetDataService.isNativeModuleAvailable();
 
   // Debounced sync function
