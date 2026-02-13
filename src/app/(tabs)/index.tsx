@@ -14,6 +14,8 @@ import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, u
 import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { useProgressiveTooltips } from '@/hooks/useProgressiveTooltips';
+import { useTooltip } from '@/hooks/useTooltip';
+import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 import { MealSection } from '@/components/food/MealSection';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
@@ -138,6 +140,7 @@ function TodayScreen() {
 
   // Progressive tooltips — auto-check after dashboard settles
   useProgressiveTooltips({ autoCheck: true, autoCheckDelay: 1000 });
+  const { markSeen } = useTooltip();
 
   // Get visible widgets sorted by position
   const visibleWidgets = widgets
@@ -499,15 +502,43 @@ function TodayScreen() {
                 </Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              testID={TestIDs.Home.EditButton}
-              onPress={() => setEditMode(!isEditMode)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={[styles.editButton, { color: colors.accent }]}>
-                {isEditMode ? 'Done' : 'Edit'}
-              </Text>
-            </TouchableOpacity>
+            {isEditMode ? (
+              <TouchableOpacity
+                testID={TestIDs.Home.EditButton}
+                onPress={() => setEditMode(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={[styles.editButton, { color: colors.accent }]}>
+                  Done
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Pressable
+                testID={TestIDs.Home.EditButton}
+                onPress={() => {
+                  markSeen(TOOLTIP_IDS.DASHBOARD_CUSTOMIZE);
+                  setEditMode(true);
+                }}
+                style={({ pressed }) => [
+                  styles.editButtonContainer,
+                  pressed && styles.editButtonPressed,
+                ]}
+                accessibilityLabel="Edit dashboard layout"
+                accessibilityRole="button"
+                accessibilityHint="Activates edit mode to reorder, add, or remove dashboard widgets"
+              >
+                <Ionicons
+                  name="create-outline"
+                  size={16}
+                  color={colors.accent}
+                  importantForAccessibility="no"
+                  accessibilityElementsHidden={true}
+                />
+                <Text style={[styles.editButtonText, { color: colors.accent }]}>
+                  Edit
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
@@ -618,6 +649,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   editButton: {
+    ...typography.body.large,
+    fontWeight: '600',
+  },
+  editButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: borderRadius.md,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+  },
+  editButtonPressed: {
+    opacity: 0.7,
+  },
+  editButtonText: {
     ...typography.body.large,
     fontWeight: '600',
   },

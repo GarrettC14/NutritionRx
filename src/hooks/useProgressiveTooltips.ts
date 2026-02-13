@@ -4,6 +4,7 @@ import { useOnboardingStore } from '@/stores';
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 
 export interface ProgressiveTooltipTriggers {
+  checkDashboardCustomize: () => boolean;
   checkMealCollapseTip: () => boolean;
   checkQuickAddDiscovery: () => boolean;
   checkWeeklySummary: () => boolean;
@@ -37,6 +38,25 @@ export function useProgressiveTooltips(
   const { totalFoodsLogged, daysTracked, firstFoodLoggedAt } = useOnboardingStore();
 
   const hasAutoChecked = useRef(false);
+
+  /**
+   * Dashboard Customize
+   * Trigger: No gate — shows as the first unseen tooltip in the queue
+   */
+  const checkDashboardCustomize = useCallback((): boolean => {
+    if (hasSeen(TOOLTIP_IDS.DASHBOARD_CUSTOMIZE)) return false;
+
+    return showTooltipIfNotSeen(
+      createTooltip(TOOLTIP_IDS.DASHBOARD_CUSTOMIZE,
+        'Tap Edit to rearrange, add, or remove your dashboard widgets.',
+        {
+          icon: 'create-outline',
+          position: 'center',
+          actions: [{ label: 'Got it!', onPress: () => {}, primary: true }],
+        }
+      )
+    );
+  }, [hasSeen, showTooltipIfNotSeen]);
 
   /**
    * Meal Collapse Tip
@@ -146,6 +166,7 @@ export function useProgressiveTooltips(
       hasAutoChecked.current = true;
 
       // Check tooltips in priority order - stop if one is shown
+      if (checkDashboardCustomize()) return;
       if (checkMealCollapseTip()) return;
       if (checkQuickAddDiscovery()) return;
       if (checkWeeklySummary()) return;
@@ -155,12 +176,14 @@ export function useProgressiveTooltips(
   }, [
     autoCheck,
     autoCheckDelay,
+    checkDashboardCustomize,
     checkMealCollapseTip,
     checkQuickAddDiscovery,
     checkWeeklySummary,
   ]);
 
   return {
+    checkDashboardCustomize,
     checkMealCollapseTip,
     checkQuickAddDiscovery,
     checkWeeklySummary,
