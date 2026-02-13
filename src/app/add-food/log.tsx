@@ -35,6 +35,22 @@ import { NUTRIENT_BY_ID } from '@/data/nutrients';
 import { MicronutrientData } from '@/services/usda/types';
 import { TestIDs } from '@/constants/testIDs';
 
+function parseDefaultAmount(raw?: string): string {
+  if (!raw) return '1';
+  const parsed = parseFloat(raw);
+  if (isNaN(parsed) || parsed <= 0) return '1';
+  return raw;
+}
+
+const VALID_SERVING_UNITS: Set<string> = new Set([
+  'serving', 'g', 'oz', 'cup', 'tbsp', 'tsp', 'ml', 'fl_oz',
+]);
+
+function parseDefaultUnit(raw?: string): ServingUnit {
+  if (raw && VALID_SERVING_UNITS.has(raw)) return raw as ServingUnit;
+  return 'serving';
+}
+
 export default function LogFoodScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -42,6 +58,8 @@ export default function LogFoodScreen() {
     foodId: string;
     mealType?: string;
     date?: string;
+    defaultAmount?: string;
+    defaultUnit?: string;
   }>();
 
   const { addLogEntry } = useFoodLogStore();
@@ -51,8 +69,10 @@ export default function LogFoodScreen() {
   const [food, setFood] = useState<FoodItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [amount, setAmount] = useState('1');
-  const [selectedUnit, setSelectedUnit] = useState<ServingUnit>('serving');
+  const [amount, setAmount] = useState(parseDefaultAmount(params.defaultAmount));
+  const [selectedUnit, setSelectedUnit] = useState<ServingUnit>(
+    parseDefaultUnit(params.defaultUnit)
+  );
   const [mealType, setMealType] = useState<MealType>(
     (params.mealType as MealType) || MealType.Snack
   );
