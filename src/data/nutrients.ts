@@ -30,7 +30,7 @@ const waterSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'water_soluble_vitamins',
     description: 'Essential for energy metabolism and nerve function',
     foodSources: ['Whole grains', 'Pork', 'Legumes', 'Nuts'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'riboflavin',
@@ -41,7 +41,7 @@ const waterSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'water_soluble_vitamins',
     description: 'Important for energy production and cellular function',
     foodSources: ['Dairy', 'Eggs', 'Lean meats', 'Green vegetables'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'niacin',
@@ -52,7 +52,7 @@ const waterSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'water_soluble_vitamins',
     description: 'Supports digestive system, skin, and nerve function',
     foodSources: ['Chicken', 'Tuna', 'Turkey', 'Peanuts'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'pantothenic_acid',
@@ -74,7 +74,7 @@ const waterSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'water_soluble_vitamins',
     description: 'Important for protein metabolism and brain development',
     foodSources: ['Poultry', 'Fish', 'Potatoes', 'Bananas'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'biotin',
@@ -96,7 +96,7 @@ const waterSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'water_soluble_vitamins',
     description: 'Critical for cell division and DNA synthesis',
     foodSources: ['Leafy greens', 'Legumes', 'Fortified grains', 'Asparagus'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'vitamin_b12',
@@ -147,7 +147,7 @@ const fatSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'fat_soluble_vitamins',
     description: 'Powerful antioxidant that protects cells',
     foodSources: ['Nuts', 'Seeds', 'Vegetable oils', 'Spinach'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'vitamin_k',
@@ -158,7 +158,7 @@ const fatSolubleVitamins: NutrientDefinition[] = [
     subcategory: 'fat_soluble_vitamins',
     description: 'Essential for blood clotting and bone metabolism',
     foodSources: ['Leafy greens', 'Broccoli', 'Brussels sprouts', 'Fermented foods'],
-    isPremium: false,
+    isPremium: true,
   },
 ];
 
@@ -271,7 +271,7 @@ const traceMinerals: NutrientDefinition[] = [
     subcategory: 'trace_minerals',
     description: 'Supports immune function and wound healing',
     foodSources: ['Oysters', 'Beef', 'Crab', 'Fortified cereals'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'copper',
@@ -304,7 +304,7 @@ const traceMinerals: NutrientDefinition[] = [
     subcategory: 'trace_minerals',
     description: 'Antioxidant that supports thyroid function',
     foodSources: ['Brazil nuts', 'Seafood', 'Meat', 'Eggs'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'iodine',
@@ -633,7 +633,7 @@ const omegaFattyAcids: NutrientDefinition[] = [
     subcategory: 'omega_fatty_acids',
     description: 'Essential plant-based omega-3',
     foodSources: ['Flaxseed', 'Chia seeds', 'Walnuts', 'Canola oil'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'omega_3_epa',
@@ -644,7 +644,7 @@ const omegaFattyAcids: NutrientDefinition[] = [
     subcategory: 'omega_fatty_acids',
     description: 'Marine omega-3 for heart and brain health',
     foodSources: ['Fatty fish', 'Fish oil', 'Algae oil', 'Seafood'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'omega_3_dha',
@@ -655,7 +655,7 @@ const omegaFattyAcids: NutrientDefinition[] = [
     subcategory: 'omega_fatty_acids',
     description: 'Critical for brain and eye health',
     foodSources: ['Fatty fish', 'Fish oil', 'Algae oil', 'Eggs (fortified)'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'omega_6_la',
@@ -845,7 +845,7 @@ const otherNutrients: NutrientDefinition[] = [
     subcategory: 'other_nutrients',
     description: 'Important for liver and brain function',
     foodSources: ['Eggs', 'Liver', 'Soybeans', 'Chicken'],
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'betaine',

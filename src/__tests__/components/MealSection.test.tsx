@@ -2,7 +2,7 @@
  * MealSection Component Tests
  *
  * Tests the meal section that shows meal name, food entries,
- * total calories, add food button, and empty state.
+ * total calories, add food button, menu button, and empty state.
  */
 
 import React from 'react';
@@ -158,7 +158,7 @@ describe('MealSection', () => {
   const mockOnAddPress = jest.fn();
   const mockOnEntryPress = jest.fn();
   const mockOnDeleteEntry = jest.fn();
-  const mockOnCopyMeal = jest.fn();
+  const mockOnMenuPress = jest.fn();
 
   const defaultProps = {
     mealType: MealType.Breakfast,
@@ -167,7 +167,7 @@ describe('MealSection', () => {
     onAddPress: mockOnAddPress,
     onEntryPress: mockOnEntryPress,
     onDeleteEntry: mockOnDeleteEntry,
-    onCopyMeal: mockOnCopyMeal,
+    onMenuPress: mockOnMenuPress,
   };
 
   beforeEach(() => {
@@ -254,12 +254,12 @@ describe('MealSection', () => {
         <MealSection {...defaultProps} mealType={MealType.Dinner} />
       );
 
-      // Pressable order in collapsed: [0] header toggle, [1] add button
+      // Pressable order in collapsed: [0] header toggle, [1] menu button, [2] add button
       const pressables = UNSAFE_getAllByType('Pressable' as any);
-      expect(pressables.length).toBeGreaterThanOrEqual(2);
+      expect(pressables.length).toBeGreaterThanOrEqual(3);
 
       // The add button handler calls e.stopPropagation(), so pass a mock event
-      fireEvent(pressables[1], 'press', { stopPropagation: jest.fn() });
+      fireEvent(pressables[2], 'press', { stopPropagation: jest.fn() });
       expect(mockOnAddPress).toHaveBeenCalledWith(MealType.Dinner);
     });
 
@@ -269,8 +269,21 @@ describe('MealSection', () => {
       );
 
       const pressables = UNSAFE_getAllByType('Pressable' as any);
-      fireEvent(pressables[1], 'press', { stopPropagation: jest.fn() });
+      fireEvent(pressables[2], 'press', { stopPropagation: jest.fn() });
       expect(mockOnAddPress).toHaveBeenCalledWith(MealType.Breakfast);
+    });
+  });
+
+  describe('menu button', () => {
+    it('calls onMenuPress with the correct mealType when menu button is pressed', () => {
+      const { UNSAFE_getAllByType } = render(
+        <MealSection {...defaultProps} mealType={MealType.Lunch} />
+      );
+
+      // Pressable order in collapsed: [0] header toggle, [1] menu button, [2] add button
+      const pressables = UNSAFE_getAllByType('Pressable' as any);
+      fireEvent(pressables[1], 'press', { stopPropagation: jest.fn() });
+      expect(mockOnMenuPress).toHaveBeenCalledWith(MealType.Lunch);
     });
   });
 
@@ -396,34 +409,6 @@ describe('MealSection', () => {
       );
       // FoodEntryCard shows calories as a number
       expect(getByText('95')).toBeTruthy();
-    });
-  });
-
-  describe('copy meal button', () => {
-    it('shows "Copy to tomorrow" when expanded with entries and onCopyMeal provided', () => {
-      const entries = [makeLogEntry({ id: 'e1', calories: 300 })];
-      const { getByText } = render(
-        <MealSection
-          {...defaultProps}
-          entries={entries}
-          onCopyMeal={mockOnCopyMeal}
-          defaultExpanded={true}
-        />
-      );
-      expect(getByText('Copy to tomorrow')).toBeTruthy();
-    });
-
-    it('does not show "Copy to tomorrow" when there are no entries', () => {
-      const { queryByText } = render(
-        <MealSection
-          {...defaultProps}
-          entries={[]}
-          quickAddEntries={[]}
-          onCopyMeal={mockOnCopyMeal}
-          defaultExpanded={true}
-        />
-      );
-      expect(queryByText('Copy to tomorrow')).toBeNull();
     });
   });
 });

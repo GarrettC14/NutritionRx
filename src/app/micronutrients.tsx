@@ -1,6 +1,7 @@
 /**
  * MicronutrientsScreen
- * Full micronutrient breakdown with drill-down capability
+ * Full micronutrient breakdown — free tier shows 10 essentials + premium preview;
+ * premium tier shows all 25 in Vitamins / Minerals / Other sections.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -22,29 +23,32 @@ import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import {
   NutrientDefinition,
+  NutrientIntake,
   NutrientStatus,
   NutrientTarget,
 } from '@/types/micronutrients';
-import { ALL_NUTRIENTS } from '@/data/nutrients';
-import { TRACKED_NUTRIENT_IDS } from '@/constants/trackedNutrients';
 import { useMicronutrientStore } from '@/stores/micronutrientStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { NutrientBar } from '@/components/micronutrients/NutrientBar';
-import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { LockedContentArea } from '@/components/premium/LockedContentArea';
 import { StatusOverviewCard } from '@/features/micronutrients/components/StatusOverviewCard';
 import { StatusFilterChips } from '@/features/micronutrients/components/StatusFilterChips';
 import { NutrientDetailSheet } from '@/features/micronutrients/components/NutrientDetailSheet';
 import { NutrientTargetEditor } from '@/features/micronutrients/components/NutrientTargetEditor';
 import { ThemedDatePicker } from '@/components/ui/ThemedDatePicker';
-import {
-  useFilteredNutrients,
-  NutrientWithDetails,
-} from '@/features/micronutrients/hooks/useFilteredNutrients';
+import { PremiumMicronutrientPreview } from '@/components/premium/PremiumMicronutrientPreview';
 
-// ============================================================
-// Helpers
-// ============================================================
+// ─── Helpers ────────────────────────────────────────────
+
+interface NutrientWithDetails {
+  definition: NutrientDefinition;
+  intake: NutrientIntake | null;
+}
+
+interface CategorizedRows {
+  vitamins: NutrientWithDetails[];
+  minerals: NutrientWithDetails[];
+  other: NutrientWithDetails[];
+}
 
 const getTodayString = (): string => new Date().toISOString().split('T')[0];
 
@@ -55,120 +59,225 @@ const formatDateDisplay = (dateStr: string): string => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-// ============================================================
-// Screen
-// ============================================================
+const STATUS_PRIORITY: Record<NutrientStatus, number> = {
+  deficient: 0,
+  low: 1,
+  adequate: 2,
+  optimal: 3,
+  high: 4,
+  excessive: 5,
+  no_data: 99,
+};
+
+const buildNutrientRows = (
+  defs: NutrientDefinition[],
+  intakeMap: Map<string, NutrientIntake>,
+  selectedStatuses: NutrientStatus[]
+): NutrientWithDetails[] => {
+  const rows: NutrientWithDetails[] = defs.map((definition) => ({
+    definition,
+    intake: intakeMap.get(definition.id) ?? null,
+  }));
+
+  const filtered = rows.filter((row) => {
+    if (selectedStatuses.length === 0) return true;
+    if (!row.intake || row.intake.status === 'no_data') return false;
+    return selectedStatuses.includes(row.intake.status);
+  });
+
+  filtered.sort((a, b) => {
+    const aStatus = a.intake?.status ?? 'no_data';
+    const bStatus = b.intake?.status ?? 'no_data';
+    const priorityDelta = STATUS_PRIORITY[aStatus] - STATUS_PRIORITY[bStatus];
+    if (priorityDelta !== 0) return priorityDelta;
+    return (a.intake?.percentOfTarget ?? 0) - (b.intake?.percentOfTarget ?? 0);
+  });
+
+  return filtered;
+};
+
+const getStatusCounts = (
+  defs: NutrientDefinition[],
+  intakeMap: Map<string, NutrientIntake>
+): Record<NutrientStatus, number> => {
+  const counts: Record<NutrientStatus, number> = {
+    deficient: 0,
+    low: 0,
+    adequate: 0,
+    optimal: 0,
+    high: 0,
+    excessive: 0,
+    no_data: 0,
+  };
+  for (const def of defs) {
+    const status = intakeMap.get(def.id)?.status;
+    if (status && status !== 'no_data') counts[status] += 1;
+  }
+  return counts;
+};
+
+// ─── Component ──────────────────────────────────────────
 
 export default function MicronutrientsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const isPremium = useSubscriptionStore(s => s.isPremium);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
-  // Store state
-  const dailyIntake = useMicronutrientStore(s => s.dailyIntake);
-  const isLoading = useMicronutrientStore(s => s.isLoading);
-  const storeError = useMicronutrientStore(s => s.error);
-  const loadDailyIntake = useMicronutrientStore(s => s.loadDailyIntake);
-  const loadProfile = useMicronutrientStore(s => s.loadProfile);
-  const getTargetForNutrient = useMicronutrientStore(s => s.getTargetForNutrient);
+  // Store selectors
+  const dailyIntake = useMicronutrientStore((s) => s.dailyIntake);
+  const isLoading = useMicronutrientStore((s) => s.isLoading);
+  const storeError = useMicronutrientStore((s) => s.error);
+  const loadDailyIntake = useMicronutrientStore((s) => s.loadDailyIntake);
+  const loadProfile = useMicronutrientStore((s) => s.loadProfile);
+  const getTargetForNutrient = useMicronutrientStore((s) => s.getTargetForNutrient);
+  const getVisibleNutrients = useMicronutrientStore((s) => s.getVisibleNutrients);
+  const getTrackedNutrientsByCategory = useMicronutrientStore(
+    (s) => s.getTrackedNutrientsByCategory
+  );
+  const getFreeTrackedNutrients = useMicronutrientStore((s) => s.getFreeTrackedNutrients);
+  const getPremiumTrackedNutrients = useMicronutrientStore((s) => s.getPremiumTrackedNutrients);
 
   // Local state
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<NutrientStatus[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Detail sheet state — persistent mount pattern
   const [selectedNutrient, setSelectedNutrient] = useState<NutrientDefinition | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  // Target editor state
   const [editingNutrient, setEditingNutrient] = useState<NutrientDefinition | null>(null);
   const [targetEditorVisible, setTargetEditorVisible] = useState(false);
 
-  // Date helpers
   const isToday = selectedDate === getTodayString();
 
-  // Load data on mount
+  // ─── Effects ────────────────────────────────────────
+
   useEffect(() => {
     loadProfile();
     loadDailyIntake(selectedDate);
   }, []);
 
-  // Reload on date change
   useEffect(() => {
     setIsRefreshing(true);
     loadDailyIntake(selectedDate).finally(() => setIsRefreshing(false));
   }, [selectedDate, loadDailyIntake]);
 
-  // Handle date picker selection
-  const handleDateSelect = useCallback((date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    setSelectedDate(dateStr);
-  }, []);
-
-  // Date navigation via chevrons
-  const navigateDate = useCallback((direction: -1 | 1) => {
-    const current = new Date(selectedDate + 'T12:00:00');
-    current.setDate(current.getDate() + direction);
-    const dateStr = current.toISOString().split('T')[0];
-    setSelectedDate(dateStr);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, [selectedDate]);
-
-  // Only show the 25 tracked nutrients
-  const visibleNutrients = ALL_NUTRIENTS.filter(n => TRACKED_NUTRIENT_IDS.has(n.id));
+  // ─── Derived data ───────────────────────────────────
 
   const intakes = dailyIntake?.nutrients ?? [];
 
-  // Filter and group
-  const { sections, lowestSection, statusCounts } = useFilteredNutrients({
-    intakes,
-    selectedStatuses,
-    visibleNutrients,
-  });
+  const intakeByNutrientId = useMemo(() => {
+    const map = new Map<string, NutrientIntake>();
+    for (const intake of intakes) map.set(intake.nutrientId, intake);
+    return map;
+  }, [intakes]);
 
-  // Filter chip toggle
+  const visibleNutrients = useMemo(
+    () => getVisibleNutrients(isPremium),
+    [getVisibleNutrients, isPremium]
+  );
+
+  const freeTrackedNutrients = useMemo(
+    () => getFreeTrackedNutrients(),
+    [getFreeTrackedNutrients]
+  );
+  const premiumTrackedNutrients = useMemo(
+    () => getPremiumTrackedNutrients(),
+    [getPremiumTrackedNutrients]
+  );
+
+  // Free user rows
+  const freeRows = useMemo(
+    () => buildNutrientRows(freeTrackedNutrients, intakeByNutrientId, selectedStatuses),
+    [freeTrackedNutrients, intakeByNutrientId, selectedStatuses]
+  );
+
+  // Premium user categorized rows
+  const premiumRows: CategorizedRows = useMemo(() => {
+    if (!isPremium) return { vitamins: [], minerals: [], other: [] };
+    const grouped = getTrackedNutrientsByCategory();
+    return {
+      vitamins: buildNutrientRows(grouped.vitamins, intakeByNutrientId, selectedStatuses),
+      minerals: buildNutrientRows(grouped.minerals, intakeByNutrientId, selectedStatuses),
+      other: buildNutrientRows(grouped.other, intakeByNutrientId, selectedStatuses),
+    };
+  }, [isPremium, getTrackedNutrientsByCategory, intakeByNutrientId, selectedStatuses]);
+
+  // Status counts scoped to visible tier
+  const statusCounts = useMemo(
+    () => getStatusCounts(visibleNutrients, intakeByNutrientId),
+    [visibleNutrients, intakeByNutrientId]
+  );
+
+  // Intake map for preview component (Record<string, NutrientIntake>)
+  const dailyIntakeMap = useMemo<Record<string, NutrientIntake>>(() => {
+    const map: Record<string, NutrientIntake> = {};
+    if (dailyIntake?.nutrients) {
+      for (const n of dailyIntake.nutrients) map[n.nutrientId] = n;
+    }
+    return map;
+  }, [dailyIntake]);
+
+  const totalFoods = dailyIntake?.totalFoodsLogged ?? 0;
+  const hasData = totalFoods > 0;
+  const displayedRows = isPremium
+    ? premiumRows.vitamins.length + premiumRows.minerals.length + premiumRows.other.length
+    : freeRows.length;
+
+  // ─── Callbacks ──────────────────────────────────────
+
+  const handleDateSelect = useCallback((date: Date) => {
+    setSelectedDate(date.toISOString().split('T')[0]);
+  }, []);
+
+  const navigateDate = useCallback(
+    (direction: -1 | 1) => {
+      const current = new Date(selectedDate + 'T12:00:00');
+      current.setDate(current.getDate() + direction);
+      setSelectedDate(current.toISOString().split('T')[0]);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    },
+    [selectedDate]
+  );
+
   const handleFilterToggle = useCallback((status: NutrientStatus | 'all') => {
     if (status === 'all') {
       setSelectedStatuses([]);
       return;
     }
-    setSelectedStatuses(prev => {
-      // Map broader filters: "low" includes deficient, "high" includes excessive
-      const relatedStatuses: NutrientStatus[] =
-        status === 'low' ? ['low', 'deficient'] :
-        status === 'high' ? ['high', 'excessive'] :
-        [status];
-
-      const hasAny = relatedStatuses.some(s => prev.includes(s));
-      if (hasAny) {
-        return prev.filter(s => !relatedStatuses.includes(s));
-      }
-      return [...prev, ...relatedStatuses];
+    setSelectedStatuses((prev) => {
+      const related: NutrientStatus[] =
+        status === 'low'
+          ? ['low', 'deficient']
+          : status === 'high'
+          ? ['high', 'excessive']
+          : [status];
+      const hasAny = related.some((s) => prev.includes(s));
+      return hasAny ? prev.filter((s) => !related.includes(s)) : [...prev, ...related];
     });
   }, []);
 
-  // Status overview tap
   const handleStatusPress = useCallback((status: NutrientStatus) => {
-    const relatedStatuses: NutrientStatus[] =
-      status === 'low' ? ['low', 'deficient'] :
-      status === 'high' ? ['high', 'excessive'] :
-      [status];
-    setSelectedStatuses(relatedStatuses);
+    const related: NutrientStatus[] =
+      status === 'low'
+        ? ['low', 'deficient']
+        : status === 'high'
+        ? ['high', 'excessive']
+        : [status];
+    setSelectedStatuses(related);
   }, []);
 
-  // Nutrient bar press → open detail sheet (with premium guard)
-  const handleNutrientPress = useCallback((def: NutrientDefinition) => {
-    if (!isPremium && def.isPremium) {
-      router.push('/paywall?context=micronutrients');
-      return;
-    }
-    setSelectedNutrient(def);
-    setSheetOpen(true);
-  }, [isPremium, router]);
+  const handleNutrientPress = useCallback(
+    (def: NutrientDefinition) => {
+      if (!isPremium && def.isPremium) {
+        router.push('/paywall?context=micronutrients');
+        return;
+      }
+      setSelectedNutrient(def);
+      setSheetOpen(true);
+    },
+    [isPremium, router]
+  );
 
-  // Detail sheet → edit target
   const handleEditTarget = useCallback(() => {
     if (selectedNutrient) {
       setEditingNutrient(selectedNutrient);
@@ -176,39 +285,34 @@ export default function MicronutrientsScreen() {
     }
   }, [selectedNutrient]);
 
-  // Close detail sheet
-  const handleCloseSheet = useCallback(() => {
-    setSheetOpen(false);
-  }, []);
+  const handleCloseSheet = useCallback(() => setSheetOpen(false), []);
 
-  // Close target editor & refresh data
   const handleCloseTargetEditor = useCallback(() => {
     setTargetEditorVisible(false);
     setEditingNutrient(null);
-    // Refresh intake data to reflect new targets
     loadDailyIntake(selectedDate);
   }, [selectedDate, loadDailyIntake]);
 
-  // Get target for selected nutrient (for detail sheet)
+  // ─── Derived for sheets ─────────────────────────────
+
   const selectedNutrientTarget = selectedNutrient
     ? getTargetForNutrient(selectedNutrient.id)
     : null;
   const selectedNutrientIntake = selectedNutrient
-    ? intakes.find(i => i.nutrientId === selectedNutrient.id) ?? null
+    ? intakes.find((i) => i.nutrientId === selectedNutrient.id) ?? null
     : null;
-
-  // Get target for editing nutrient
   const editingNutrientTarget = editingNutrient
     ? getTargetForNutrient(editingNutrient.id)
     : null;
 
-  // Check data coverage
-  const totalFoods = dailyIntake?.totalFoodsLogged ?? 0;
-  const hasData = totalFoods > 0;
+  // ─── Render ─────────────────────────────────────────
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bgPrimary }]} edges={['top']}>
-      {/* Header */}
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.bgPrimary }]}
+      edges={['top']}
+    >
+      {/* Header with back button, title, date navigation */}
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
@@ -219,11 +323,8 @@ export default function MicronutrientsScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
 
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          Micronutrients
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Micronutrients</Text>
 
-        {/* Date navigation with chevrons */}
         <View style={styles.dateNavigation}>
           <TouchableOpacity
             onPress={() => navigateDate(-1)}
@@ -261,7 +362,6 @@ export default function MicronutrientsScreen() {
         </View>
       </View>
 
-      {/* Date Picker */}
       <ThemedDatePicker
         visible={showDatePicker}
         value={new Date(selectedDate + 'T12:00:00')}
@@ -304,81 +404,93 @@ export default function MicronutrientsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Refreshing indicator */}
-          {isRefreshing && (
-            <View style={[styles.refreshBar, { backgroundColor: colors.accent }]} />
-          )}
-
-          {/* Summary Zone */}
-          <StatusOverviewCard
-            counts={statusCounts}
-            onStatusPress={handleStatusPress}
-          />
+          <StatusOverviewCard counts={statusCounts} onStatusPress={handleStatusPress} />
 
           <StatusFilterChips
             selectedStatuses={selectedStatuses}
             onToggle={handleFilterToggle}
           />
 
-          {/* Visual separator between summary and detail zones */}
           <View style={[styles.separator, { backgroundColor: colors.bgInteractive }]} />
 
-          {/* Detail Zone — nutrient sections */}
-          {sections.map(section => {
-            const isLowestSection = lowestSection?.subcategory === section.subcategory;
-            const defaultExpanded = isLowestSection || selectedStatuses.length > 0;
+          {isPremium ? (
+            <>
+              {/* ─── Premium: Vitamins / Minerals / Other ─── */}
+              <Text style={[styles.sectionHeader, { color: colors.textPrimary }]}>
+                Vitamins
+              </Text>
+              {premiumRows.vitamins.map((item) => (
+                <NutrientBarRow
+                  key={item.definition.id}
+                  definition={item.definition}
+                  intake={item.intake}
+                  target={getTargetForNutrient(item.definition.id)}
+                  onPress={() => handleNutrientPress(item.definition)}
+                />
+              ))}
 
-            // Split free vs premium nutrients
-            const freeNutrients = section.nutrients.filter(n => !n.definition.isPremium);
-            const premiumNutrients = section.nutrients.filter(n => n.definition.isPremium);
-
-            return (
-              <CollapsibleSection
-                key={section.subcategory}
-                title={`${section.title} (${section.nutrientCount})`}
-                itemCount={section.nutrientCount}
-                defaultExpanded={defaultExpanded}
+              <Text
+                style={[
+                  styles.sectionHeader,
+                  { color: colors.textPrimary, marginTop: spacing[4] },
+                ]}
               >
-                {/* Free nutrients — always accessible */}
-                {freeNutrients.map(item => (
-                  <NutrientBarRow
-                    key={item.definition.id}
-                    item={item}
-                    target={getTargetForNutrient(item.definition.id)}
-                    onPress={() => handleNutrientPress(item.definition)}
-                  />
-                ))}
+                Minerals
+              </Text>
+              {premiumRows.minerals.map((item) => (
+                <NutrientBarRow
+                  key={item.definition.id}
+                  definition={item.definition}
+                  intake={item.intake}
+                  target={getTargetForNutrient(item.definition.id)}
+                  onPress={() => handleNutrientPress(item.definition)}
+                />
+              ))}
 
-                {/* Premium nutrients — gated */}
-                {premiumNutrients.length > 0 && !isPremium ? (
-                  <LockedContentArea
-                    context="micronutrients"
-                    message={`${premiumNutrients.length} more nutrients`}
-                    minHeight={premiumNutrients.length * 40}
-                  >
-                    {premiumNutrients.map(item => (
-                      <NutrientBarRow
-                        key={item.definition.id}
-                        item={item}
-                        target={getTargetForNutrient(item.definition.id)}
-                      />
-                    ))}
-                  </LockedContentArea>
-                ) : (
-                  premiumNutrients.map(item => (
-                    <NutrientBarRow
-                      key={item.definition.id}
-                      item={item}
-                      target={getTargetForNutrient(item.definition.id)}
-                      onPress={() => handleNutrientPress(item.definition)}
-                    />
-                  ))
-                )}
-              </CollapsibleSection>
-            );
-          })}
+              <Text
+                style={[
+                  styles.sectionHeader,
+                  { color: colors.textPrimary, marginTop: spacing[4] },
+                ]}
+              >
+                Other
+              </Text>
+              {premiumRows.other.map((item) => (
+                <NutrientBarRow
+                  key={item.definition.id}
+                  definition={item.definition}
+                  intake={item.intake}
+                  target={getTargetForNutrient(item.definition.id)}
+                  onPress={() => handleNutrientPress(item.definition)}
+                />
+              ))}
+            </>
+          ) : (
+            <>
+              {/* ─── Free: Daily Essentials + Preview Card ─── */}
+              <Text style={[styles.sectionHeader, { color: colors.textPrimary }]}>
+                Daily Essentials
+              </Text>
+              {freeRows.map((item) => (
+                <NutrientBarRow
+                  key={item.definition.id}
+                  definition={item.definition}
+                  intake={item.intake}
+                  target={getTargetForNutrient(item.definition.id)}
+                  onPress={() => handleNutrientPress(item.definition)}
+                />
+              ))}
 
-          {sections.length === 0 && selectedStatuses.length > 0 && (
+              <View style={[styles.previewDivider, { backgroundColor: colors.bgInteractive }]} />
+
+              <PremiumMicronutrientPreview
+                premiumNutrients={premiumTrackedNutrients}
+                dailyIntake={dailyIntakeMap}
+              />
+            </>
+          )}
+
+          {displayedRows === 0 && selectedStatuses.length > 0 && (
             <View style={styles.noResults}>
               <Text style={[styles.noResultsText, { color: colors.textTertiary }]}>
                 No nutrients match the selected filters
@@ -388,7 +500,6 @@ export default function MicronutrientsScreen() {
         </ScrollView>
       )}
 
-      {/* Detail Bottom Sheet — persistent mount, controlled by index */}
       <NutrientDetailSheet
         nutrient={selectedNutrient}
         intake={selectedNutrientIntake}
@@ -399,7 +510,6 @@ export default function MicronutrientsScreen() {
         onEditTarget={handleEditTarget}
       />
 
-      {/* Target Editor Modal */}
       <NutrientTargetEditor
         visible={targetEditorVisible}
         nutrient={editingNutrient}
@@ -410,39 +520,35 @@ export default function MicronutrientsScreen() {
   );
 }
 
-// ============================================================
-// NutrientBarRow — memoized wrapper
-// ============================================================
+// ─── Extracted row component ──────────────────────────
 
 const NutrientBarRow = React.memo(function NutrientBarRow({
-  item,
+  definition,
+  intake,
   target,
   onPress,
 }: {
-  item: NutrientWithDetails;
+  definition: NutrientDefinition;
+  intake: NutrientIntake | null;
   target: NutrientTarget | null;
   onPress?: () => void;
 }) {
   return (
     <NutrientBar
-      nutrient={item.definition}
-      amount={item.intake?.amount ?? 0}
+      nutrient={definition}
+      amount={intake?.amount ?? 0}
       target={target?.targetAmount ?? 0}
-      percentOfTarget={item.intake?.percentOfTarget ?? 0}
-      status={item.intake?.status ?? 'no_data'}
+      percentOfTarget={intake?.percentOfTarget ?? 0}
+      status={intake?.status ?? 'no_data'}
       onPress={onPress}
     />
   );
 });
 
-// ============================================================
-// Styles
-// ============================================================
+// ─── Styles ───────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
   errorBanner: {
     marginHorizontal: spacing[4],
     marginBottom: spacing[2],
@@ -450,10 +556,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     borderRadius: borderRadius.md,
   },
-  errorBannerText: {
-    ...typography.body.small,
-    textAlign: 'center',
-  },
+  errorBannerText: { ...typography.body.small, textAlign: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -461,23 +564,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
   },
-  headerTitle: {
-    ...typography.title.large,
-  },
-  dateNavigation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  dateChevron: {
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dateChevronDisabled: {
-    opacity: 0.3,
-  },
+  headerTitle: { ...typography.title.large },
+  dateNavigation: { flexDirection: 'row', alignItems: 'center', gap: spacing[1] },
+  dateChevron: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+  dateChevronDisabled: { opacity: 0.3 },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -486,15 +576,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
   },
-  dateText: {
-    ...typography.body.small,
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  dateText: { ...typography.body.small, fontWeight: '500' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -502,49 +585,25 @@ const styles = StyleSheet.create({
     padding: spacing[8],
     gap: spacing[3],
   },
-  emptyTitle: {
-    ...typography.title.medium,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    ...typography.body.medium,
-    textAlign: 'center',
-  },
+  emptyTitle: { ...typography.title.medium, textAlign: 'center' },
+  emptySubtitle: { ...typography.body.medium, textAlign: 'center' },
   emptyCta: {
     paddingHorizontal: spacing[5],
     paddingVertical: spacing[3],
     borderRadius: borderRadius.full,
     marginTop: spacing[4],
   },
-  emptyCtaText: {
+  emptyCtaText: { ...typography.body.medium, color: '#FFFFFF', fontWeight: '600' },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: spacing[4], paddingBottom: spacing[16], gap: spacing[3] },
+  separator: { height: 1, marginVertical: spacing[2], marginHorizontal: spacing[2] },
+  sectionHeader: {
     ...typography.body.medium,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
+    marginTop: spacing[2],
+    marginBottom: spacing[2],
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: spacing[4],
-    paddingBottom: spacing[16],
-    gap: spacing[3],
-  },
-  refreshBar: {
-    height: 2,
-    width: '100%',
-    opacity: 0.7,
-  },
-  separator: {
-    height: 1,
-    marginVertical: spacing[2],
-    marginHorizontal: spacing[2],
-  },
-  noResults: {
-    paddingVertical: spacing[8],
-    alignItems: 'center',
-  },
-  noResultsText: {
-    ...typography.body.medium,
-    textAlign: 'center',
-  },
+  previewDivider: { height: 1, marginVertical: spacing[4] },
+  noResults: { paddingVertical: spacing[8], alignItems: 'center' },
+  noResultsText: { ...typography.body.medium, textAlign: 'center' },
 });

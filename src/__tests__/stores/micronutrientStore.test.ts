@@ -13,34 +13,39 @@ jest.mock('@/db/database', () => ({
   getDatabase: jest.fn(() => mockDb),
 }));
 
+// All 25 tracked nutrients with correct isPremium values after Cluster E tiering
 const MOCK_ALL_NUTRIENTS = [
-  {
-    id: 'vitamin_c',
-    name: 'Vitamin C',
-    shortName: 'Vit C',
-    unit: 'mg',
-    category: 'vitamins',
-    subcategory: 'water_soluble_vitamins',
-    isPremium: false,
-  },
-  {
-    id: 'vitamin_d',
-    name: 'Vitamin D',
-    shortName: 'Vit D',
-    unit: 'mcg',
-    category: 'vitamins',
-    subcategory: 'fat_soluble_vitamins',
-    isPremium: false,
-  },
-  {
-    id: 'zinc',
-    name: 'Zinc',
-    shortName: 'Zn',
-    unit: 'mg',
-    category: 'minerals',
-    subcategory: 'trace_minerals',
-    isPremium: true,
-  },
+  // Vitamins - free (4)
+  { id: 'vitamin_c', name: 'Vitamin C', shortName: 'Vit C', unit: 'mg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: false },
+  { id: 'vitamin_a', name: 'Vitamin A', shortName: 'Vit A', unit: 'mcg', category: 'vitamins', subcategory: 'fat_soluble_vitamins', isPremium: false },
+  { id: 'vitamin_d', name: 'Vitamin D', shortName: 'Vit D', unit: 'mcg', category: 'vitamins', subcategory: 'fat_soluble_vitamins', isPremium: false },
+  { id: 'vitamin_b12', name: 'Vitamin B12', shortName: 'B12', unit: 'mcg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: false },
+  // Vitamins - premium (7)
+  { id: 'vitamin_e', name: 'Vitamin E', shortName: 'Vit E', unit: 'mg', category: 'vitamins', subcategory: 'fat_soluble_vitamins', isPremium: true },
+  { id: 'vitamin_k', name: 'Vitamin K', shortName: 'Vit K', unit: 'mcg', category: 'vitamins', subcategory: 'fat_soluble_vitamins', isPremium: true },
+  { id: 'thiamin', name: 'Thiamin (B1)', shortName: 'B1', unit: 'mg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: true },
+  { id: 'riboflavin', name: 'Riboflavin (B2)', shortName: 'B2', unit: 'mg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: true },
+  { id: 'niacin', name: 'Niacin (B3)', shortName: 'B3', unit: 'mg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: true },
+  { id: 'vitamin_b6', name: 'Vitamin B6', shortName: 'B6', unit: 'mg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: true },
+  { id: 'folate', name: 'Folate (B9)', shortName: 'B9', unit: 'mcg', category: 'vitamins', subcategory: 'water_soluble_vitamins', isPremium: true },
+  // Minerals - free (4)
+  { id: 'calcium', name: 'Calcium', shortName: 'Ca', unit: 'mg', category: 'minerals', subcategory: 'major_minerals', isPremium: false },
+  { id: 'iron', name: 'Iron', shortName: 'Fe', unit: 'mg', category: 'minerals', subcategory: 'trace_minerals', isPremium: false },
+  { id: 'magnesium', name: 'Magnesium', shortName: 'Mg', unit: 'mg', category: 'minerals', subcategory: 'major_minerals', isPremium: false },
+  { id: 'potassium', name: 'Potassium', shortName: 'K', unit: 'mg', category: 'minerals', subcategory: 'major_minerals', isPremium: false },
+  { id: 'sodium', name: 'Sodium', shortName: 'Na', unit: 'mg', category: 'minerals', subcategory: 'major_minerals', isPremium: false },
+  // Minerals - premium (4)
+  { id: 'zinc', name: 'Zinc', shortName: 'Zn', unit: 'mg', category: 'minerals', subcategory: 'trace_minerals', isPremium: true },
+  { id: 'selenium', name: 'Selenium', shortName: 'Se', unit: 'mcg', category: 'minerals', subcategory: 'trace_minerals', isPremium: true },
+  { id: 'phosphorus', name: 'Phosphorus', shortName: 'P', unit: 'mg', category: 'minerals', subcategory: 'major_minerals', isPremium: true },
+  { id: 'copper', name: 'Copper', shortName: 'Cu', unit: 'mg', category: 'minerals', subcategory: 'trace_minerals', isPremium: true },
+  // Other/Fatty Acids - free (1)
+  { id: 'fiber', name: 'Fiber', shortName: 'Fiber', unit: 'g', category: 'other', subcategory: 'other_nutrients', isPremium: false },
+  // Other/Fatty Acids - premium (4)
+  { id: 'choline', name: 'Choline', shortName: 'Choline', unit: 'mg', category: 'other', subcategory: 'other_nutrients', isPremium: true },
+  { id: 'omega_3_ala', name: 'Omega-3 (ALA)', shortName: 'ALA', unit: 'g', category: 'fatty_acids', subcategory: 'omega_fatty_acids', isPremium: true },
+  { id: 'omega_3_epa', name: 'Omega-3 (EPA)', shortName: 'EPA', unit: 'g', category: 'fatty_acids', subcategory: 'omega_fatty_acids', isPremium: true },
+  { id: 'omega_3_dha', name: 'Omega-3 (DHA)', shortName: 'DHA', unit: 'g', category: 'fatty_acids', subcategory: 'omega_fatty_acids', isPremium: true },
 ];
 
 const MOCK_FREE_NUTRIENTS = MOCK_ALL_NUTRIENTS.filter(n => !n.isPremium);
@@ -290,15 +295,51 @@ describe('micronutrientStore', () => {
   // ============================================================
 
   describe('getVisibleNutrients', () => {
-    it('returns ALL_NUTRIENTS for premium users', () => {
+    it('returns all 25 tracked for premium', () => {
       const result = useMicronutrientStore.getState().getVisibleNutrients(true);
-      expect(result).toHaveLength(3);
-      expect(result.some(n => n.isPremium)).toBe(true);
+      expect(result).toHaveLength(25);
     });
 
-    it('returns FREE_NUTRIENTS for free users', () => {
+    it('returns 10 free tracked for non-premium', () => {
       const result = useMicronutrientStore.getState().getVisibleNutrients(false);
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(10);
+      expect(result.every(n => !n.isPremium)).toBe(true);
+    });
+  });
+
+  // ============================================================
+  // getTrackedNutrientsByCategory
+  // ============================================================
+
+  describe('getTrackedNutrientsByCategory', () => {
+    it('categorizes correctly', () => {
+      const cats = useMicronutrientStore.getState().getTrackedNutrientsByCategory();
+      expect(cats.vitamins).toHaveLength(11);
+      expect(cats.minerals).toHaveLength(9);
+      expect(cats.other).toHaveLength(5);
+    });
+  });
+
+  // ============================================================
+  // getPremiumTrackedNutrients
+  // ============================================================
+
+  describe('getPremiumTrackedNutrients', () => {
+    it('returns 15 premium nutrients', () => {
+      const result = useMicronutrientStore.getState().getPremiumTrackedNutrients();
+      expect(result).toHaveLength(15);
+      expect(result.every(n => n.isPremium)).toBe(true);
+    });
+  });
+
+  // ============================================================
+  // getFreeTrackedNutrients
+  // ============================================================
+
+  describe('getFreeTrackedNutrients', () => {
+    it('returns 10 free nutrients', () => {
+      const result = useMicronutrientStore.getState().getFreeTrackedNutrients();
+      expect(result).toHaveLength(10);
       expect(result.every(n => !n.isPremium)).toBe(true);
     });
   });

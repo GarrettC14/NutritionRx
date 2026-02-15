@@ -49,7 +49,18 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
     loadDailyIntake,
     loadProfile,
     isLoaded,
+    getFreeTrackedNutrients,
+    getPremiumTrackedNutrients,
   } = useMicronutrientStore();
+
+  const freeTrackedNutrients = getFreeTrackedNutrients();
+  const premiumTrackedNutrients = getPremiumTrackedNutrients();
+  const visibleNutrientIds = useMemo(() => {
+    const list = isPremium
+      ? [...freeTrackedNutrients, ...premiumTrackedNutrients]
+      : freeTrackedNutrients;
+    return new Set(list.map((n) => n.id));
+  }, [freeTrackedNutrients, isPremium, premiumTrackedNutrients]);
 
   // Load data on mount
   useEffect(() => {
@@ -71,8 +82,12 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       };
     }
 
-    // Filter to priority nutrients and sort by percent
-    const priorityIntakes = dailyIntake.nutrients
+    // Filter to visible tier, then priority nutrients
+    const visibleIntakes = dailyIntake.nutrients.filter(
+      (n) => visibleNutrientIds.has(n.nutrientId)
+    );
+
+    const priorityIntakes = visibleIntakes
       .filter(n => PRIORITY_NUTRIENTS.includes(n.nutrientId))
       .map(intake => {
         const definition = NUTRIENT_BY_ID[intake.nutrientId];
@@ -116,7 +131,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       overallStatus: status,
       suggestion: suggestionText,
     };
-  }, [dailyIntake]);
+  }, [dailyIntake, visibleNutrientIds]);
 
   const handlePress = () => {
     if (!isEditMode && isPremium) {
@@ -261,7 +276,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
         <View style={styles.lockedWrapper}>
           <LockedContentArea
             context="micronutrient_snapshot"
-            message="Upgrade to unlock"
+            message={`Unlock ${premiumTrackedNutrients.length} premium nutrients`}
             minHeight={100}
           >
             {contentArea}
