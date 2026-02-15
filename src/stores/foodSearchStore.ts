@@ -1,6 +1,10 @@
 import { create } from 'zustand';
-import { foodRepository, CreateFoodInput } from '@/repositories';
-import { FoodItem } from '@/types/domain';
+import {
+  foodRepository,
+  favoriteRepository,
+  CreateFoodInput,
+} from '@/repositories';
+import { FoodItem, FoodItemWithServing } from '@/types/domain';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import * as Sentry from '@sentry/react-native';
@@ -12,8 +16,12 @@ interface FoodSearchState {
   results: FoodItem[];
   recentFoods: FoodItem[];
   frequentFoods: FoodItem[];
+  mealContextFoods: FoodItemWithServing[];
+  scannedHistory: FoodItem[];
   isSearching: boolean;
   isLoadingRecent: boolean;
+  isLoadingMealContext: boolean;
+  isLoadingScanned: boolean;
   isLoaded: boolean;
   error: string | null;
 
@@ -23,11 +31,53 @@ interface FoodSearchState {
   clearSearch: () => void;
   loadRecentFoods: () => Promise<void>;
   loadFrequentFoods: () => Promise<void>;
+  loadMealContextFoods: (mealType: string, limit?: number) => Promise<void>;
+  loadScannedHistory: (limit?: number) => Promise<void>;
   findByBarcode: (barcode: string) => Promise<FoodItem | null>;
   createFood: (input: CreateFoodInput) => Promise<FoodItem>;
   updateFood: (id: string, updates: Partial<CreateFoodInput>) => Promise<FoodItem>;
   deleteFood: (id: string) => Promise<void>;
 }
+
+const resolveServingHints = async (foods: FoodItem[]): Promise<FoodItemWithServing[]> => {
+  if (foods.length === 0) {
+    return [];
+  }
+
+  const foodIds = foods.map((food) => food.id);
+
+  const [lastUsedServingsByFood, favoriteDefaults] = await Promise.all([
+    foodRepository.getBatchLastLogServings(foodIds),
+    Promise.all(foodIds.map((foodId) => favoriteRepository.getDefaults(foodId))),
+  ]);
+
+  const favoriteServingByFood = new Map<string, { size: number; unit: string }>();
+  favoriteDefaults.forEach((defaults, index) => {
+    if (!defaults) return;
+    if (defaults.servingSize != null && defaults.servingUnit != null) {
+      favoriteServingByFood.set(foodIds[index], {
+        size: defaults.servingSize,
+        unit: defaults.servingUnit,
+      });
+    }
+  });
+
+  return foods.map((food) => {
+    const foodWithServing = food as FoodItemWithServing;
+    const lastUsedServings = lastUsedServingsByFood.get(food.id);
+    const favoriteServing = favoriteServingByFood.get(food.id);
+
+    return {
+      ...foodWithServing,
+      lastUsedServings: lastUsedServings ?? foodWithServing.lastUsedServings ?? null,
+      servingHint: foodWithServing.servingHint
+        ?? favoriteServing
+        ?? (lastUsedServings != null
+          ? { size: lastUsedServings, unit: food.servingUnit }
+          : { size: food.servingSize, unit: food.servingUnit }),
+    };
+  });
+};
 
 let currentSearchId = 0;
 
@@ -36,8 +86,12 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
   results: [],
   recentFoods: [],
   frequentFoods: [],
+  mealContextFoods: [],
+  scannedHistory: [],
   isSearching: false,
   isLoadingRecent: false,
+  isLoadingMealContext: false,
+  isLoadingScanned: false,
   isLoaded: false,
   error: null,
 
@@ -159,7 +213,12 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
     set({ isLoadingRecent: true, error: null });
     try {
       const recentFoods = await foodRepository.getRecent();
-      set({ recentFoods, isLoadingRecent: false, isLoaded: true });
+      const recentFoodsWithServing = await resolveServingHints(recentFoods);
+      set({
+        recentFoods: recentFoodsWithServing,
+        isLoadingRecent: false,
+        isLoaded: true,
+      });
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'food-search', action: 'load-recent' } });
       set({
@@ -174,12 +233,58 @@ export const useFoodSearchStore = create<FoodSearchState>((set, get) => ({
     set({ isLoadingRecent: true, error: null });
     try {
       const frequentFoods = await foodRepository.getFrequent();
-      set({ frequentFoods, isLoadingRecent: false });
+      const frequentFoodsWithServing = await resolveServingHints(frequentFoods);
+      set({
+        frequentFoods: frequentFoodsWithServing,
+        isLoadingRecent: false,
+      });
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'food-search', action: 'load-frequent' } });
       set({
         error: error instanceof Error ? error.message : 'Failed to load frequent foods',
         isLoadingRecent: false,
+      });
+    }
+  },
+
+  loadMealContextFoods: async (mealType, limit = 10) => {
+    set({ isLoadingMealContext: true, error: null });
+    try {
+      const mealContextFoods = await foodRepository.getMealContextFoods(mealType, limit);
+      const mealContextFoodsWithServing = await resolveServingHints(
+        mealContextFoods as unknown as FoodItem[]
+      );
+      set({
+        mealContextFoods: mealContextFoodsWithServing,
+        isLoadingMealContext: false,
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { feature: 'food-search', action: 'load-meal-context-foods' },
+      });
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load meal-context foods',
+        isLoadingMealContext: false,
+      });
+    }
+  },
+
+  loadScannedHistory: async (limit = 10) => {
+    set({ isLoadingScanned: true, error: null });
+    try {
+      const scannedHistory = await foodRepository.getScannedHistory(limit);
+      const scannedHistoryWithServing = await resolveServingHints(scannedHistory);
+      set({
+        scannedHistory: scannedHistoryWithServing,
+        isLoadingScanned: false,
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { feature: 'food-search', action: 'load-scanned-history' },
+      });
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load scanned foods',
+        isLoadingScanned: false,
       });
     }
   },

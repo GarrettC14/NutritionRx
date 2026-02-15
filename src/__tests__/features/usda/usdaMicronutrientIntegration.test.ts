@@ -490,7 +490,7 @@ describe('Migration Index', () => {
   });
 
   it('should set CURRENT_SCHEMA_VERSION to 20', () => {
-    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 20');
+    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 21');
   });
 
   it('should include migration014 in migrations array', () => {
@@ -504,7 +504,7 @@ describe('Migration Index', () => {
     expect(migrationsArray).toBeTruthy();
     const migrationEntries = migrationsArray![0].match(/migration\d+/g);
     expect(migrationEntries).toBeTruthy();
-    expect(migrationEntries!.length).toBe(20);
+    expect(migrationEntries!.length).toBe(21);
   });
 });
 

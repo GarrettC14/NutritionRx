@@ -20,8 +20,9 @@ import { migration017TrendWeight } from './017_trend_weight';
 import { migration018MicronutrientPipeline } from './018_micronutrient_pipeline';
 import { migration019SearchFts } from './019_search_fts';
 import { migration020UnifyTrendWeight } from './020_unify_trend_weight';
+import { migration021LogEntriesMealFoodIndex } from './021_log_entries_meal_food_index';
 
-export const CURRENT_SCHEMA_VERSION = 20;
+export const CURRENT_SCHEMA_VERSION = 21;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -44,6 +45,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration018MicronutrientPipeline,
   migration019SearchFts,
   migration020UnifyTrendWeight,
+  migration021LogEntriesMealFoodIndex,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

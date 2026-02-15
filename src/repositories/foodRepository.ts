@@ -1,7 +1,7 @@
 import { generateId } from '@/utils/generateId';
 import { getDatabase } from '@/db/database';
 import { FoodItemRow } from '@/types/database';
-import { FoodItem, DataSource } from '@/types/domain';
+import { FoodItem, FoodItemWithServing, DataSource } from '@/types/domain';
 import { mapFoodItemRowToDomain } from '@/types/mappers';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 
@@ -94,6 +94,95 @@ export const foodRepository = {
       [limit]
     );
     return rows.map(mapFoodItemRowToDomain);
+  },
+
+  async getMealContextFoods(
+    mealType: string,
+    limit: number = 10
+  ): Promise<FoodItemWithServing[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<any>(
+      `SELECT
+        fi.*,
+        COUNT(le.id) as meal_usage_count,
+        MAX(le.created_at) as last_meal_use,
+        (SELECT le2.servings FROM log_entries le2
+         WHERE le2.food_item_id = fi.id
+         ORDER BY le2.created_at DESC LIMIT 1) as last_used_servings
+       FROM food_items fi
+       INNER JOIN log_entries le ON fi.id = le.food_item_id
+       WHERE le.meal_type = ?
+       GROUP BY fi.id
+       ORDER BY meal_usage_count DESC, last_meal_use DESC
+       LIMIT ?`,
+      [mealType, limit]
+    );
+
+    if (rows.length === 0) {
+      const frequent = await this.getFrequent(limit);
+      return frequent.map((food) => ({
+        ...food,
+        servingHint: {
+          size: food.servingSize,
+          unit: food.servingUnit,
+        },
+      }));
+    }
+
+    return rows.map((row) => this.mapToFoodItemWithServing(row));
+  },
+
+  async getScannedHistory(limit: number = 10): Promise<FoodItem[]> {
+    const db = getDatabase();
+    const rows = await db.getAllAsync<FoodItemRow>(
+      `SELECT * FROM food_items
+       WHERE barcode IS NOT NULL
+         AND barcode != ''
+         AND last_used_at IS NOT NULL
+       ORDER BY last_used_at DESC
+       LIMIT ?`,
+      [limit]
+    );
+    return rows.map(mapFoodItemRowToDomain);
+  },
+
+  async getLastLogServings(foodItemId: string): Promise<number | null> {
+    const db = getDatabase();
+    const row = await db.getFirstAsync<{ servings: number }>(
+      `SELECT servings FROM log_entries
+       WHERE food_item_id = ?
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [foodItemId]
+    );
+
+    return row?.servings ?? null;
+  },
+
+  async getBatchLastLogServings(
+    foodItemIds: string[]
+  ): Promise<Map<string, number>> {
+    if (foodItemIds.length === 0) return new Map();
+
+    const db = getDatabase();
+    const placeholders = foodItemIds.map(() => '?').join(',');
+    const rows = await db.getAllAsync<{ food_item_id: string; servings: number }>(
+      `SELECT food_item_id, servings FROM (
+         SELECT food_item_id, servings,
+           ROW_NUMBER() OVER (PARTITION BY food_item_id ORDER BY created_at DESC) as rn
+         FROM log_entries
+         WHERE food_item_id IN (${placeholders})
+       )
+       WHERE rn = 1`,
+      foodItemIds
+    );
+
+    const servingsByFood = new Map<string, number>();
+    rows.forEach((row) => {
+      servingsByFood.set(row.food_item_id, row.servings);
+    });
+
+    return servingsByFood;
   },
 
   async getUserCreated(): Promise<FoodItem[]> {
@@ -279,5 +368,20 @@ export const foodRepository = {
       );
     }
     return row ? mapFoodItemRowToDomain(row) : null;
+  },
+
+  mapToFoodItemWithServing(row: any): FoodItemWithServing {
+    const food = mapFoodItemRowToDomain(row as FoodItemRow);
+    const lastUsedServings = row.last_used_servings ?? null;
+    const servingSize = row.serving_size ?? food.servingSize;
+    return {
+      ...food,
+      lastUsedServings,
+      mealUsageCount: row.meal_usage_count ?? undefined,
+      servingHint: {
+        size: lastUsedServings ?? servingSize,
+        unit: food.servingUnit,
+      },
+    };
   },
 };

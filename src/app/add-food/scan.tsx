@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,12 +16,42 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { MealType } from '@/constants/mealTypes';
-import { openFoodFactsApi } from '@/services/openFoodFactsApi';
+import { useFoodLogStore } from '@/stores';
+import { foodRepository, openFoodFactsApi, favoriteRepository } from '@/repositories';
+import { QuickConfirmCard } from '@/components/food/QuickConfirmCard';
+import { FoodItem } from '@/types/domain';
 import { Button } from '@/components/ui/Button';
 import { TestIDs } from '@/constants/testIDs';
 
 const { width } = Dimensions.get('window');
 const SCAN_AREA_SIZE = width * 0.7;
+
+interface QuickConfirmState {
+  food: FoodItem;
+  serving: {
+    size: number;
+    unit: string;
+  };
+}
+
+function calculateNutritionForServing(food: FoodItem, servingSize: number) {
+  if (!food.servingSize || food.servingSize <= 0) {
+    return {
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    };
+  }
+
+  const multiplier = servingSize / food.servingSize;
+  return {
+    calories: Math.round(food.calories * multiplier),
+    protein: Math.round(food.protein * multiplier * 10) / 10,
+    carbs: Math.round(food.carbs * multiplier * 10) / 10,
+    fat: Math.round(food.fat * multiplier * 10) / 10,
+  };
+}
 
 export default function BarcodeScanScreen() {
   const { colors } = useTheme();
@@ -37,25 +67,121 @@ export default function BarcodeScanScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
-  const lastScannedRef = useRef<string | null>(null);
+  const [quickConfirm, setQuickConfirm] = useState<QuickConfirmState | null>(null);
 
+  const { addLogEntry } = useFoodLogStore();
+  const { color: bgColor, accent } = colors;
   const mealType = (params.mealType as MealType) || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
+  const lastScannedRef = useRef<string | null>(null);
 
-  const handleBarCodeScanned = async ({ type, data }: BarcodeScanningResult) => {
-    // Prevent double scanning
-    if (scanned || isLoading || lastScannedRef.current === data) return;
+  const resolveServingForFood = async (food: FoodItem): Promise<{
+    size: number;
+    unit: string;
+  }> => {
+    const favoriteDefaults = await favoriteRepository.getDefaults(food.id);
+    if (favoriteDefaults?.servingSize != null && favoriteDefaults.servingUnit) {
+      return {
+        size: favoriteDefaults.servingSize,
+        unit: favoriteDefaults.servingUnit,
+      };
+    }
 
-    lastScannedRef.current = data;
+    const lastServings = await foodRepository.getLastLogServings(food.id);
+    if (lastServings != null) {
+      return {
+        size: lastServings,
+        unit: food.servingUnit,
+      };
+    }
+
+    return {
+      size: food.servingSize,
+      unit: food.servingUnit,
+    };
+  };
+
+  const handleQuickConfirmLog = async (selectedServing: { size: number; unit: string }) => {
+    if (!quickConfirm) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { food } = quickConfirm;
+      const nutrition = calculateNutritionForServing(food, selectedServing.size);
+
+      await addLogEntry({
+        foodItemId: food.id,
+        date,
+        mealType,
+        servings: selectedServing.size,
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        carbs: nutrition.carbs,
+        fat: nutrition.fat,
+      });
+
+      setQuickConfirm(null);
+      setScanned(false);
+      lastScannedRef.current = null;
+      router.back();
+    } catch (err) {
+      setError('Failed to log food');
+      setScanned(false);
+      lastScannedRef.current = null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickConfirmEdit = () => {
+    if (!quickConfirm) return;
+    router.push({
+      pathname: '/add-food/log',
+      params: {
+        foodId: quickConfirm.food.id,
+        mealType,
+        date,
+      },
+    });
+    setQuickConfirm(null);
+    setScanned(false);
+    lastScannedRef.current = null;
+  };
+
+  const handleQuickConfirmDismiss = () => {
+    setQuickConfirm(null);
+    setScanned(false);
+    lastScannedRef.current = null;
+    setError(null);
+  };
+
+  const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
+    // Prevent duplicate scans while handling current barcode
+    if (scanned || isLoading || quickConfirm || !data) return;
+
     setScanned(true);
     setIsLoading(true);
     setError(null);
+    lastScannedRef.current = data;
 
     try {
-      const result = await openFoodFactsApi.fetchByBarcode(data);
+      // Local DB first for instant, one-tap logging
+      const localFood = await foodRepository.findByBarcode(data);
+      if (localFood) {
+        const serving = await resolveServingForFood(localFood);
+        setQuickConfirm({
+          food: localFood,
+          serving,
+        });
+        setScanned(true);
+        setIsLoading(false);
+        return;
+      }
 
+      // Unknown barcode: existing API flow
+      const result = await openFoodFactsApi.fetchByBarcode(data);
       if (result.success && result.food) {
-        // Navigate to food logging screen
         router.replace({
           pathname: '/add-food/log',
           params: {
@@ -66,11 +192,15 @@ export default function BarcodeScanScreen() {
         });
       } else {
         setError(result.error || 'Product not found');
-        setIsLoading(false);
+        setScanned(false);
       }
     } catch (err) {
       setError('Failed to look up product');
-      setIsLoading(false);
+      setScanned(false);
+    } finally {
+      if (!quickConfirm) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -145,6 +275,16 @@ export default function BarcodeScanScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
 
+      {quickConfirm ? (
+        <QuickConfirmCard
+          food={quickConfirm.food}
+          serving={quickConfirm.serving}
+          onLog={handleQuickConfirmLog}
+          onEdit={handleQuickConfirmEdit}
+          onDismiss={handleQuickConfirmDismiss}
+        />
+      ) : null}
+
       {/* Overlay */}
       <View style={styles.overlay}>
         {/* Header */}
@@ -192,42 +332,44 @@ export default function BarcodeScanScreen() {
         </View>
 
         {/* Instructions / Error */}
-        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
-          {error ? (
-            <View style={[styles.errorCard, { backgroundColor: colors.bgSecondary }]}>
-              <Ionicons
-                name="alert-circle-outline"
-                size={32}
-                color={colors.error}
-              />
-              <Text style={[styles.errorText, { color: colors.textPrimary }]}>
-                {error}
-              </Text>
-              <View style={styles.errorButtons}>
-                <Pressable
-                  testID={TestIDs.Scanner.ScanAgainButton}
-                  style={[styles.errorButton, { backgroundColor: colors.accent }]}
-                  onPress={handleTryAgain}
-                >
-                  <Text style={styles.errorButtonText}>Scan Again</Text>
-                </Pressable>
-                <Pressable
-                  testID={TestIDs.Scanner.EnterManuallyButton}
-                  style={[styles.errorButton, { borderColor: colors.borderDefault, borderWidth: 1 }]}
-                  onPress={handleManualEntry}
-                >
-                  <Text style={[styles.errorButtonText, { color: colors.textPrimary }]}>
-                    Enter Manually
-                  </Text>
-                </Pressable>
+        {!quickConfirm ? (
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+            {error ? (
+              <View style={[styles.errorCard, { backgroundColor: colors.bgSecondary }]}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={32}
+                  color={colors.error}
+                />
+                <Text style={[styles.errorText, { color: colors.textPrimary }]}>
+                  {error}
+                </Text>
+                <View style={styles.errorButtons}>
+                  <Pressable
+                    testID={TestIDs.Scanner.ScanAgainButton}
+                    style={[styles.errorButton, { backgroundColor: colors.accent }]}
+                    onPress={handleTryAgain}
+                  >
+                    <Text style={styles.errorButtonText}>Scan Again</Text>
+                  </Pressable>
+                  <Pressable
+                    testID={TestIDs.Scanner.EnterManuallyButton}
+                    style={[styles.errorButton, { borderColor: colors.borderDefault, borderWidth: 1 }]}
+                    onPress={handleManualEntry}
+                  >
+                    <Text style={[styles.errorButtonText, { color: colors.textPrimary }]}>
+                      Enter Manually
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          ) : (
-            <Text style={styles.instructions}>
-              Point your camera at a barcode
-            </Text>
-          )}
-        </View>
+            ) : (
+              <Text style={styles.instructions}>
+                Point your camera at a barcode
+              </Text>
+            )}
+          </View>
+        ) : null}
       </View>
     </View>
   );

@@ -52,6 +52,20 @@ export interface FoodItem {
   updatedAt: Date;
 }
 
+export interface FoodItemWithServing extends FoodItem {
+  /** Number of servings from the most recent log_entries row, if any */
+  lastUsedServings?: number | null;
+
+  /** Resolved serving hint for quick-log UI */
+  servingHint?: {
+    size: number;
+    unit: string;
+  };
+
+  /** Usage count within a specific meal context */
+  mealUsageCount?: number;
+}
+
 export interface LogEntry {
   id: string;
   foodItemId: string;
