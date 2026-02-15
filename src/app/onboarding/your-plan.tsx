@@ -77,6 +77,11 @@ export default function YourPlanScreen() {
 
   const goalType: GoalType = draft.goalPath === 'track' ? 'maintain' : (draft.goalPath as GoalType) ?? 'maintain';
   const isTrack = draft.goalPath === 'track';
+  const isBeginner = draft.experienceLevel === 'beginner';
+
+  // Beginners skip eating-style/protein screens — use sensible defaults
+  const effectiveEatingStyle = draft.eatingStyle ?? 'flexible';
+  const effectiveProteinPriority = draft.proteinPriority ?? 'active';
 
   // Calculate plan values for display
   const plan = useMemo(() => {
@@ -85,8 +90,8 @@ export default function YourPlanScreen() {
     const sex = draft.sex ?? 'male';
     const age = draft.dateOfBirth ? calculateAge(draft.dateOfBirth) : 30;
     const activity = draft.activityLevel ?? 'moderately_active';
-    const eating = draft.eatingStyle ?? 'flexible';
-    const protein = draft.proteinPriority ?? 'active';
+    const eating = effectiveEatingStyle;
+    const protein = effectiveProteinPriority;
     const rate = draft.targetRatePercent;
 
     const bmr = calculateBMR(weight, height, age, sex);
@@ -152,8 +157,8 @@ export default function YourPlanScreen() {
       !draft.heightCm ||
       !draft.currentWeightKg ||
       !draft.activityLevel ||
-      !draft.eatingStyle ||
-      !draft.proteinPriority
+      (!isBeginner && !draft.eatingStyle) ||
+      (!isBeginner && !draft.proteinPriority)
     ) {
       Alert.alert('Missing Information', 'Some required information is missing. Please go back and fill in all fields.');
       return;
@@ -171,8 +176,9 @@ export default function YourPlanScreen() {
         dateOfBirth: draft.dateOfBirth!,
         heightCm: draft.heightCm!,
         activityLevel: draft.activityLevel!,
-        eatingStyle: draft.eatingStyle!,
-        proteinPriority: draft.proteinPriority!,
+        eatingStyle: effectiveEatingStyle,
+        proteinPriority: effectiveProteinPriority,
+        experienceLevel: draft.experienceLevel ?? undefined,
         hasCompletedOnboarding: true,
       });
 
@@ -189,8 +195,8 @@ export default function YourPlanScreen() {
         heightCm: draft.heightCm!,
         age,
         activityLevel: draft.activityLevel!,
-        eatingStyle: draft.eatingStyle!,
-        proteinPriority: draft.proteinPriority!,
+        eatingStyle: effectiveEatingStyle,
+        proteinPriority: effectiveProteinPriority,
       });
 
       // 3. Seed weight entry

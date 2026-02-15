@@ -6,6 +6,7 @@ import { spacing } from '@/constants/spacing';
 import { useOnboardingStore } from '@/stores';
 import { OnboardingScreen, OnboardingRadioCard } from '@/components/onboarding';
 import { ProteinPriority } from '@/types/domain';
+import { getNextStep } from '@/utils/onboarding';
 import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
 
 const PROTEIN_G_PER_KG: Record<ProteinPriority, number> = {
@@ -73,10 +74,9 @@ export default function ProteinScreen() {
 
   const handleContinue = () => {
     updateDraft({ proteinPriority: selected, lastCompletedScreen: 'protein' });
-    if (draft.goalPath === 'lose' || draft.goalPath === 'gain') {
-      router.push('/onboarding/target');
-    } else {
-      router.push('/onboarding/your-plan');
+    const next = getNextStep('protein', draft.goalPath, draft.experienceLevel);
+    if (next) {
+      router.push(`/onboarding/${next}` as any);
     }
   };
 

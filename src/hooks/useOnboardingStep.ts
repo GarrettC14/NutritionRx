@@ -49,7 +49,7 @@ export function useOnboardingStep(): OnboardingStepInfo {
       ? 'lose'
       : (draft?.goalPath ?? null);
 
-  const screenOrder = getScreenOrder(effectiveGoalPath);
+  const screenOrder = getScreenOrder(effectiveGoalPath, draft?.experienceLevel);
   const index = screenOrder.indexOf(currentScreen);
 
   if (index === -1) {
