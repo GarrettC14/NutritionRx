@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onboardingRepository, GoalPath, EnergyUnit, OnboardingData } from '@/repositories/onboardingRepository';
-import { EatingStyle, ProteinPriority } from '@/types/domain';
+import { EatingStyle, ExperienceLevel, ProteinPriority } from '@/types/domain';
 import { ActivityLevel } from '@/constants/defaults';
 
 // ============================================================
@@ -24,6 +24,8 @@ export interface OnboardingDraft {
   energyUnit: EnergyUnit;
   // Screen 4
   activityLevel: ActivityLevel | null;
+  // Screen 4.5 — experience gate
+  experienceLevel: ExperienceLevel | null;
   // Screen 5
   eatingStyle: EatingStyle | null;
   // Screen 6
@@ -56,6 +58,7 @@ export const INITIAL_DRAFT: OnboardingDraft = {
   heightUnit: localeUnits.heightUnit,
   energyUnit: 'calories', // hardcoded — kJ not supported app-wide
   activityLevel: null,
+  experienceLevel: null,
   eatingStyle: null,
   proteinPriority: null,
   targetWeightKg: null,

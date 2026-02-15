@@ -11,7 +11,7 @@ export { weightRepository } from './weightRepository';
 export type { CreateWeightInput, UpdateWeightInput } from './weightRepository';
 
 export { profileRepository } from './profileRepository';
-export type { CreateProfileInput, UpdateProfileInput, ActivityLevel, Sex, EatingStyle as ProfileEatingStyle, ProteinPriority as ProfileProteinPriority } from './profileRepository';
+export type { CreateProfileInput, UpdateProfileInput, ActivityLevel, Sex, EatingStyle as ProfileEatingStyle, ProteinPriority as ProfileProteinPriority, ExperienceLevel } from './profileRepository';
 
 export { goalRepository } from './goalRepository';
 export type {
@@ -27,7 +27,7 @@ export type {
 } from './goalRepository';
 
 export { settingsRepository } from './settingsRepository';
-export type { UserSettings, WeightUnit, Theme } from './settingsRepository';
+export type { UserSettings, WeightUnit, Theme, CheckInDay } from './settingsRepository';
 
 export { favoriteRepository } from './favoriteRepository';
 export type { AddFavoriteInput } from './favoriteRepository';
@@ -53,3 +53,5 @@ export { reflectionRepository } from './reflectionRepository';
 export type { Reflection, Sentiment, CreateReflectionInput } from './reflectionRepository';
 
 export { recipeRepository } from './recipeRepository';
+
+export { logHealthSync, getLastSyncTimestamp, hasExternalId } from './healthSyncRepository';

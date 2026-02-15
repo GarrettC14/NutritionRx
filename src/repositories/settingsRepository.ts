@@ -4,6 +4,9 @@ import { DEFAULT_SETTINGS } from '@/constants/defaults';
 export type WeightUnit = 'lbs' | 'kg';
 export type Theme = 'light' | 'dark' | 'auto';
 
+/** 0 = Sunday, 1 = Monday, … 6 = Saturday */
+export type CheckInDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 export interface UserSettings {
   dailyCalorieGoal: number;
   dailyProteinGoal: number;
@@ -13,6 +16,7 @@ export interface UserSettings {
   theme: Theme;
   notificationsEnabled: boolean;
   reminderTime: string | null;
+  checkInDay: CheckInDay;
 }
 
 interface SettingRow {
@@ -29,6 +33,7 @@ const SETTING_KEYS = {
   THEME: 'theme',
   NOTIFICATIONS_ENABLED: 'notifications_enabled',
   REMINDER_TIME: 'reminder_time',
+  CHECK_IN_DAY: 'check_in_day',
 } as const;
 
 export const settingsRepository = {
@@ -93,6 +98,7 @@ export const settingsRepository = {
       theme: parseStr(SETTING_KEYS.THEME, DEFAULT_SETTINGS.theme) as Theme,
       notificationsEnabled: parseBool(SETTING_KEYS.NOTIFICATIONS_ENABLED, DEFAULT_SETTINGS.notificationsEnabled),
       reminderTime: parseStr(SETTING_KEYS.REMINDER_TIME, DEFAULT_SETTINGS.reminderTime as string) as string | null,
+      checkInDay: parseNum(SETTING_KEYS.CHECK_IN_DAY, 1) as CheckInDay,
     };
   },
 
@@ -120,6 +126,9 @@ export const settingsRepository = {
     }
     if (updates.reminderTime !== undefined) {
       await this.set(SETTING_KEYS.REMINDER_TIME, updates.reminderTime);
+    }
+    if (updates.checkInDay !== undefined) {
+      await this.set(SETTING_KEYS.CHECK_IN_DAY, updates.checkInDay);
     }
 
     return this.getAll();

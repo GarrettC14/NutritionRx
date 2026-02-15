@@ -102,6 +102,7 @@ export interface UserProfileRow {
   date_of_birth: string | null;
   height_cm: number | null;
   activity_level: ActivityLevel | null;
+  experience_level: string | null;
   eating_style: EatingStyle | null;
   protein_priority: ProteinPriority | null;
   has_completed_onboarding: number;
@@ -179,4 +180,26 @@ export interface DailyTotalsRow {
   total_protein: number;
   total_carbs: number;
   total_fat: number;
+}
+
+// ═══ Health Sync Types ═══
+
+// Note: 'import' included for backward compatibility with existing seed data
+// in reflectionGenerator.ts which inserts direction='import' into health_sync_log.
+// New code should use 'read' or 'write' only.
+export type HealthSyncDirection = 'read' | 'write' | 'import';
+export type HealthSyncStatus = 'success' | 'error' | 'skipped_duplicate';
+
+export interface HealthSyncLogRow {
+  id: string;
+  platform: 'apple_health' | 'health_connect';
+  direction: HealthSyncDirection;
+  data_type: string;
+  local_record_id: string | null;
+  local_record_type: string | null;
+  external_id: string | null;
+  status: HealthSyncStatus;
+  error_message: string | null;
+  synced_at: string;
+  created_at: string;
 }

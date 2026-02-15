@@ -23,8 +23,10 @@ import { migration020UnifyTrendWeight } from './020_unify_trend_weight';
 import { migration021LogEntriesMealFoodIndex } from './021_log_entries_meal_food_index';
 import { migration022Recipes } from './022_recipes';
 import { migration023CustomMealTypes } from './023_custom_meal_types';
+import { migration024HealthSyncExternalIndex } from './024_health_sync_external_index';
+import { migration025ExperienceLevel } from './025_experience_level';
 
-export const CURRENT_SCHEMA_VERSION = 23;
+export const CURRENT_SCHEMA_VERSION = 25;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -50,6 +52,8 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration021LogEntriesMealFoodIndex,
   migration022Recipes,
   migration023CustomMealTypes,
+  migration024HealthSyncExternalIndex,
+  migration025ExperienceLevel,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

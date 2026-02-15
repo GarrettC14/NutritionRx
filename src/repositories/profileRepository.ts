@@ -8,12 +8,14 @@ export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active'
 export type Sex = 'male' | 'female';
 export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
 export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface CreateProfileInput {
   sex?: Sex;
   dateOfBirth?: string;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  experienceLevel?: ExperienceLevel;
   eatingStyle?: EatingStyle;
   proteinPriority?: ProteinPriority;
 }
@@ -23,6 +25,7 @@ export interface UpdateProfileInput {
   dateOfBirth?: string;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  experienceLevel?: ExperienceLevel;
   eatingStyle?: EatingStyle;
   proteinPriority?: ProteinPriority;
   hasCompletedOnboarding?: boolean;
@@ -55,15 +58,16 @@ export const profileRepository = {
     await db.runAsync(
       `INSERT INTO user_profile (
         id, sex, date_of_birth, height_cm, activity_level,
-        eating_style, protein_priority,
+        experience_level, eating_style, protein_priority,
         has_completed_onboarding, onboarding_skipped, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         DEFAULT_PROFILE_ID,
         input.sex ?? null,
         input.dateOfBirth ?? null,
         input.heightCm ?? null,
         input.activityLevel ?? null,
+        input.experienceLevel ?? null,
         input.eatingStyle ?? 'flexible',
         input.proteinPriority ?? 'active',
         0,
@@ -103,6 +107,10 @@ export const profileRepository = {
     if (updates.activityLevel !== undefined) {
       setClauses.push('activity_level = ?');
       values.push(updates.activityLevel);
+    }
+    if (updates.experienceLevel !== undefined) {
+      setClauses.push('experience_level = ?');
+      values.push(updates.experienceLevel);
     }
     if (updates.eatingStyle !== undefined) {
       setClauses.push('eating_style = ?');
