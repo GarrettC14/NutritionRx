@@ -13,6 +13,7 @@
 import { useState, useEffect } from 'react';
 import { useGoalStore } from '@/stores/goalStore';
 import { useMacroCycleStore } from '@/stores/macroCycleStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { macroCycleRepository } from '@/repositories';
 import { DayTargets } from '@/types/planning';
 
@@ -34,6 +35,7 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
 
   const config = useMacroCycleStore((s) => s.config);
   const todayOverride = useMacroCycleStore((s) => s.todayOverride);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
   const baseTargets: DayTargets = {
     calories: calorieGoal || 2000,
@@ -51,8 +53,8 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
     let cancelled = false;
 
     const resolve = async () => {
-      // If cycling is not enabled, short-circuit to base targets (no DB call needed)
-      if (!config || !config.enabled) {
+      // If cycling is not enabled or user is not premium, short-circuit to base targets
+      if (!config || !config.enabled || !isPremium) {
         if (!cancelled) {
           setResolved({ ...baseTargets, source: 'base' });
         }
@@ -106,7 +108,7 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
     return () => {
       cancelled = true;
     };
-  }, [calorieGoal, proteinGoal, carbGoal, fatGoal, config, todayOverride, date]);
+  }, [calorieGoal, proteinGoal, carbGoal, fatGoal, config, todayOverride, date, isPremium]);
 
   return resolved;
 }

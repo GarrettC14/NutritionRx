@@ -29,7 +29,8 @@ export default function SettingsLayout() {
       <Stack.Screen name="privacy-policy" />
       <Stack.Screen name="terms-of-service" />
       <Stack.Screen name="widgets" />
-      {/* TODO [POST_LAUNCH_HEALTH]: Re-register apple-health and health-connect routes */}
+      <Stack.Screen name="apple-health" />
+      <Stack.Screen name="health-connect" />
       {__DEV__ && <Stack.Screen name="developer" />}
       <Stack.Screen name="fasting" />
       <Stack.Screen name="meal-planning" />

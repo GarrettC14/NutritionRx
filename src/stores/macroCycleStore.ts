@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useSubscriptionStore } from './subscriptionStore';
 import { macroCycleRepository } from '@/repositories';
 import {
   MacroCycleConfig,
@@ -110,6 +111,12 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
   },
 
   updatePattern: async (patternType, markedDays, dayTargets) => {
+    const { isPremium } = useSubscriptionStore.getState();
+    if (!isPremium) {
+      console.warn('[macroCycleStore] Macro cycling is a premium feature');
+      return;
+    }
+
     try {
       const config = await macroCycleRepository.updateConfig({
         patternType,
@@ -139,6 +146,12 @@ export const useMacroCycleStore = create<MacroCycleState>((set, get) => ({
   },
 
   setTodayOverride: async (targets) => {
+    const { isPremium } = useSubscriptionStore.getState();
+    if (!isPremium) {
+      console.warn('[macroCycleStore] Macro cycling is a premium feature');
+      return;
+    }
+
     try {
       const today = new Date().toISOString().split('T')[0];
       const override = await macroCycleRepository.setOverride(today, targets);

@@ -489,22 +489,22 @@ describe('Migration Index', () => {
     expect(indexSource).toContain("import { migration014UsdaFdcId } from './014_usda_fdc_id'");
   });
 
-  it('should set CURRENT_SCHEMA_VERSION to 20', () => {
-    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 21');
+  it('should set CURRENT_SCHEMA_VERSION to 24', () => {
+    expect(indexSource).toContain('export const CURRENT_SCHEMA_VERSION = 24');
   });
 
   it('should include migration014 in migrations array', () => {
     expect(indexSource).toContain('migration014UsdaFdcId');
   });
 
-  it('should have 20 migrations in the array', () => {
+  it('should have 24 migrations in the array', () => {
     const migrationsArray = indexSource.match(
       /export const migrations[\s\S]*?\];/
     );
     expect(migrationsArray).toBeTruthy();
     const migrationEntries = migrationsArray![0].match(/migration\d+/g);
     expect(migrationEntries).toBeTruthy();
-    expect(migrationEntries!.length).toBe(21);
+    expect(migrationEntries!.length).toBe(24);
   });
 });
 

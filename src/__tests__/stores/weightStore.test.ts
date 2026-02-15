@@ -17,7 +17,7 @@ jest.mock('@/repositories', () => ({
   },
 }));
 
-// Mock HealthKit sync functions
+// Mock HealthKit sync functions (used indirectly via coordinator)
 jest.mock('@/services/healthkit/healthKitNutritionSync', () => ({
   syncWeightToHealthKit: jest.fn().mockResolvedValue({ success: true }),
   getWeightFromHealthKit: jest.fn(),
@@ -34,18 +34,59 @@ jest.mock('@/stores/healthKitStore', () => ({
   },
 }));
 
+// Mock Health Connect store
+jest.mock('@/stores/healthConnectStore', () => ({
+  useHealthConnectStore: {
+    getState: jest.fn(() => ({
+      readWeightEnabled: false,
+    })),
+  },
+}));
+
+// Mock health sync service
+const mockService = {
+  isConnected: jest.fn().mockReturnValue(false),
+  getPlatformName: jest.fn().mockReturnValue('apple_health' as const),
+  readWeightChanges: jest.fn().mockResolvedValue([]),
+  writeWeight: jest.fn(),
+  writeNutrition: jest.fn(),
+  writeWater: jest.fn(),
+  readActiveCalories: jest.fn(),
+  readSteps: jest.fn(),
+};
+jest.mock('@/services/healthSyncService', () => ({
+  getHealthSyncService: jest.fn(() => mockService),
+}));
+
+// Mock health sync repository
+jest.mock('@/repositories/healthSyncRepository', () => ({
+  getLastSyncTimestamp: jest.fn().mockResolvedValue(null),
+  hasExternalId: jest.fn().mockResolvedValue(false),
+  logHealthSync: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock write coordinator
+jest.mock('@/services/healthSyncWriteCoordinator', () => ({
+  syncWeightToHealthPlatform: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock database
+jest.mock('@/db/database', () => ({
+  getDatabase: jest.fn(() => ({
+    getFirstAsync: jest.fn().mockResolvedValue(null),
+  })),
+}));
+
 import { useWeightStore } from '@/stores/weightStore';
 import { weightRepository } from '@/repositories';
-import {
-  syncWeightToHealthKit,
-  getWeightFromHealthKit,
-} from '@/services/healthkit/healthKitNutritionSync';
 import { useHealthKitStore } from '@/stores/healthKitStore';
 import { WeightEntry } from '@/types/domain';
+import { getHealthSyncService } from '@/services/healthSyncService';
+import { getLastSyncTimestamp, hasExternalId, logHealthSync } from '@/repositories/healthSyncRepository';
+import { syncWeightToHealthPlatform } from '@/services/healthSyncWriteCoordinator';
+import { getDatabase } from '@/db/database';
 
 const mockWeightRepo = weightRepository as jest.Mocked<typeof weightRepository>;
-const mockSyncWeight = syncWeightToHealthKit as jest.MockedFunction<typeof syncWeightToHealthKit>;
-const mockGetWeight = getWeightFromHealthKit as jest.MockedFunction<typeof getWeightFromHealthKit>;
 const mockHealthKitStore = useHealthKitStore as unknown as {
   getState: jest.MockedFunction<() => {
     isConnected: boolean;
@@ -53,6 +94,12 @@ const mockHealthKitStore = useHealthKitStore as unknown as {
     writeWeight: boolean;
   }>;
 };
+const mockGetHealthSyncService = getHealthSyncService as jest.MockedFunction<typeof getHealthSyncService>;
+const mockGetLastSyncTimestamp = getLastSyncTimestamp as jest.MockedFunction<typeof getLastSyncTimestamp>;
+const mockHasExternalId = hasExternalId as jest.MockedFunction<typeof hasExternalId>;
+const mockLogHealthSync = logHealthSync as jest.MockedFunction<typeof logHealthSync>;
+const mockSyncWeightToHealthPlatform = syncWeightToHealthPlatform as jest.MockedFunction<typeof syncWeightToHealthPlatform>;
+const mockGetDatabase = getDatabase as jest.MockedFunction<typeof getDatabase>;
 
 const mockWeightEntry: WeightEntry = {
   id: 'weight-1',
@@ -99,7 +146,18 @@ describe('useWeightStore', () => {
       readWeight: false,
       writeWeight: false,
     });
-    mockSyncWeight.mockResolvedValue({ success: true } as any);
+    // Default: service not connected
+    mockGetHealthSyncService.mockReturnValue(mockService as any);
+    mockService.isConnected.mockReturnValue(false);
+    mockService.readWeightChanges.mockResolvedValue([]);
+    mockGetLastSyncTimestamp.mockResolvedValue(null);
+    mockHasExternalId.mockResolvedValue(false);
+    mockLogHealthSync.mockResolvedValue(undefined);
+    mockSyncWeightToHealthPlatform.mockResolvedValue(undefined);
+    // Re-set database mock after resetAllMocks clears it
+    mockGetDatabase.mockReturnValue({
+      getFirstAsync: jest.fn().mockResolvedValue(null),
+    } as any);
   });
 
   describe('initial state', () => {
@@ -233,7 +291,6 @@ describe('useWeightStore', () => {
     };
 
     beforeEach(() => {
-      // Set up default resolved values for the cascading refresh calls
       mockWeightRepo.getRecent.mockResolvedValue(mockEntries);
       mockWeightRepo.getLatest.mockResolvedValue({ ...mockWeightEntry, trendWeightKg: 80.6 });
       mockWeightRepo.getEarliestDate.mockResolvedValue('2024-01-13');
@@ -251,46 +308,24 @@ describe('useWeightStore', () => {
       expect(mockWeightRepo.getLatest).toHaveBeenCalled();
     });
 
-    it('syncs to HealthKit when writeWeight and isConnected are true', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: true,
-        readWeight: false,
-        writeWeight: true,
-      });
+    it('fires health platform sync after successful create', async () => {
       const newEntry = { ...mockWeightEntry, id: 'weight-new', date: '2024-01-16', weightKg: 80.2 };
       mockWeightRepo.create.mockResolvedValue(newEntry);
 
       await useWeightStore.getState().addEntry(createInput);
 
-      expect(mockSyncWeight).toHaveBeenCalledWith(80.2, expect.any(Date));
+      expect(mockSyncWeightToHealthPlatform).toHaveBeenCalledWith(
+        expect.objectContaining({ weightKg: 80.2, localRecordId: 'weight-new' })
+      );
     });
 
-    it('does not sync to HealthKit when not connected', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: false,
-        readWeight: false,
-        writeWeight: true,
-      });
+    it('does not sync to health platform when skipHealthSync is true', async () => {
       const newEntry = { ...mockWeightEntry, id: 'weight-new' };
       mockWeightRepo.create.mockResolvedValue(newEntry);
 
-      await useWeightStore.getState().addEntry(createInput);
+      await useWeightStore.getState().addEntry(createInput, { skipHealthSync: true });
 
-      expect(mockSyncWeight).not.toHaveBeenCalled();
-    });
-
-    it('does not sync to HealthKit when writeWeight is false', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: true,
-        readWeight: false,
-        writeWeight: false,
-      });
-      const newEntry = { ...mockWeightEntry, id: 'weight-new' };
-      mockWeightRepo.create.mockResolvedValue(newEntry);
-
-      await useWeightStore.getState().addEntry(createInput);
-
-      expect(mockSyncWeight).not.toHaveBeenCalled();
+      expect(mockSyncWeightToHealthPlatform).not.toHaveBeenCalled();
     });
 
     it('sets error and throws on create failure', async () => {
@@ -339,10 +374,7 @@ describe('useWeightStore', () => {
 
       await useWeightStore.getState().updateEntry('weight-1', 79.5);
 
-      // loadTrendWeight is called non-blocking, give it a tick
       await new Promise(resolve => setTimeout(resolve, 10));
-      // loadTrendWeight uses latestEntry from state (already updated), so
-      // it doesn't need to call getLatest. Verify trendWeight was set.
       expect(useWeightStore.getState().trendWeight).toBe(79.8);
     });
 
@@ -419,20 +451,17 @@ describe('useWeightStore', () => {
       mockWeightRepo.getEarliestDate.mockResolvedValue(null);
     });
 
-    it('returns imported false when not connected', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: false,
-        readWeight: true,
-        writeWeight: false,
-      });
+    it('returns imported false when service is not connected', async () => {
+      mockService.isConnected.mockReturnValue(false);
 
       const result = await useWeightStore.getState().importFromHealthKit();
 
       expect(result).toEqual({ imported: false });
-      expect(mockGetWeight).not.toHaveBeenCalled();
+      expect(mockService.readWeightChanges).not.toHaveBeenCalled();
     });
 
     it('returns imported false when readWeight is disabled', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: false,
@@ -442,35 +471,32 @@ describe('useWeightStore', () => {
       const result = await useWeightStore.getState().importFromHealthKit();
 
       expect(result).toEqual({ imported: false });
-      expect(mockGetWeight).not.toHaveBeenCalled();
     });
 
-    it('returns imported false when no health data is available', async () => {
+    it('returns imported false when no samples returned', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: true,
         writeWeight: false,
       });
-      mockGetWeight.mockResolvedValue(null);
+      mockService.readWeightChanges.mockResolvedValue([]);
 
       const result = await useWeightStore.getState().importFromHealthKit();
 
-      expect(result).toEqual({ imported: false });
+      expect(result).toEqual({ imported: false, weight: undefined });
     });
 
-    it('creates new entry when health data is newer and no local entry for that date', async () => {
+    it('imports sample and creates entry via addEntry with skipHealthSync', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: true,
         writeWeight: false,
       });
-      const healthDate = new Date('2024-01-20T08:00:00Z');
-      mockGetWeight.mockResolvedValue({ kg: 79.0, date: healthDate });
-      mockWeightRepo.getLatest.mockResolvedValueOnce({
-        ...mockWeightEntry,
-        date: '2024-01-15',
-      });
-      mockWeightRepo.findByDate.mockResolvedValue(null);
+      mockService.readWeightChanges.mockResolvedValue([
+        { valueKg: 79.0, timestamp: '2024-01-20T08:00:00Z', externalId: 'ext-1' },
+      ]);
       mockWeightRepo.create.mockResolvedValue({
         ...mockWeightEntry,
         id: 'weight-imported',
@@ -480,87 +506,43 @@ describe('useWeightStore', () => {
       const result = await useWeightStore.getState().importFromHealthKit();
 
       expect(result).toEqual({ imported: true, weight: 79.0 });
-      expect(mockWeightRepo.create).toHaveBeenCalledWith({
-        weightKg: 79.0,
-        date: '2024-01-20',
-        notes: 'Imported from Apple Health',
-      });
+      expect(mockWeightRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ weightKg: 79.0, notes: 'Imported from health platform' })
+      );
+      expect(mockLogHealthSync).toHaveBeenCalledWith(
+        expect.objectContaining({ direction: 'read', data_type: 'weight', status: 'success' })
+      );
     });
 
-    it('updates existing entry when local entry exists for that date', async () => {
+    it('skips sample with already-imported external ID (layer 2)', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: true,
         writeWeight: false,
       });
-      const healthDate = new Date('2024-01-15T08:00:00Z');
-      mockGetWeight.mockResolvedValue({ kg: 79.5, date: healthDate });
-      // No latest local entry - so shouldImport is true
-      mockWeightRepo.getLatest.mockResolvedValueOnce(null);
-      // Existing entry for the same date
-      mockWeightRepo.findByDate.mockResolvedValue(mockWeightEntry);
-      mockWeightRepo.update.mockResolvedValue({
-        ...mockWeightEntry,
-        weightKg: 79.5,
-      });
+      mockService.readWeightChanges.mockResolvedValue([
+        { valueKg: 79.0, timestamp: '2024-01-20T08:00:00Z', externalId: 'ext-1' },
+      ]);
+      mockHasExternalId.mockResolvedValue(true);
 
       const result = await useWeightStore.getState().importFromHealthKit();
 
-      expect(result).toEqual({ imported: true, weight: 79.5 });
-      expect(mockWeightRepo.update).toHaveBeenCalledWith(mockWeightEntry.id, {
-        weightKg: 79.5,
-        notes: 'Imported from Apple Health',
-      });
-    });
-
-    it('does not import when local data is newer than health data', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: true,
-        readWeight: true,
-        writeWeight: false,
-      });
-      const healthDate = new Date('2024-01-10T08:00:00Z');
-      mockGetWeight.mockResolvedValue({ kg: 81.0, date: healthDate });
-      mockWeightRepo.getLatest.mockResolvedValueOnce({
-        ...mockWeightEntry,
-        date: '2024-01-15',
-      });
-
-      const result = await useWeightStore.getState().importFromHealthKit();
-
-      expect(result).toEqual({ imported: false });
+      expect(result).toEqual({ imported: false, weight: undefined });
       expect(mockWeightRepo.create).not.toHaveBeenCalled();
-      expect(mockWeightRepo.update).not.toHaveBeenCalled();
-    });
-
-    it('imports when no local data exists at all', async () => {
-      mockHealthKitStore.getState.mockReturnValue({
-        isConnected: true,
-        readWeight: true,
-        writeWeight: false,
-      });
-      const healthDate = new Date('2024-01-10T08:00:00Z');
-      mockGetWeight.mockResolvedValue({ kg: 81.0, date: healthDate });
-      mockWeightRepo.getLatest.mockResolvedValueOnce(null);
-      mockWeightRepo.findByDate.mockResolvedValue(null);
-      mockWeightRepo.create.mockResolvedValue({
-        ...mockWeightEntry,
-        id: 'weight-imported',
-        weightKg: 81.0,
-      });
-
-      const result = await useWeightStore.getState().importFromHealthKit();
-
-      expect(result).toEqual({ imported: true, weight: 81.0 });
+      expect(mockLogHealthSync).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'skipped_duplicate' })
+      );
     });
 
     it('returns imported false on error and does not throw', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: true,
         writeWeight: false,
       });
-      mockGetWeight.mockRejectedValue(new Error('HealthKit error'));
+      mockService.readWeightChanges.mockRejectedValue(new Error('HealthKit error'));
 
       const result = await useWeightStore.getState().importFromHealthKit();
 
@@ -568,15 +550,15 @@ describe('useWeightStore', () => {
     });
 
     it('refreshes all data after successful import', async () => {
+      mockService.isConnected.mockReturnValue(true);
       mockHealthKitStore.getState.mockReturnValue({
         isConnected: true,
         readWeight: true,
         writeWeight: false,
       });
-      const healthDate = new Date('2024-01-20T08:00:00Z');
-      mockGetWeight.mockResolvedValue({ kg: 79.0, date: healthDate });
-      mockWeightRepo.getLatest.mockResolvedValueOnce(null);
-      mockWeightRepo.findByDate.mockResolvedValue(null);
+      mockService.readWeightChanges.mockResolvedValue([
+        { valueKg: 79.0, timestamp: '2024-01-20T08:00:00Z', externalId: 'ext-2' },
+      ]);
       mockWeightRepo.create.mockResolvedValue({
         ...mockWeightEntry,
         id: 'weight-imported',
@@ -585,9 +567,7 @@ describe('useWeightStore', () => {
 
       await useWeightStore.getState().importFromHealthKit();
 
-      // getRecent is called during refresh (loadEntries)
       expect(mockWeightRepo.getRecent).toHaveBeenCalled();
-      // getLatest is called once during import check plus once during refresh
       expect(mockWeightRepo.getLatest).toHaveBeenCalled();
     });
   });

@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { waterRepository, WaterLog, DEFAULT_WATER_GOAL, DEFAULT_GLASS_SIZE_ML } from '@/repositories';
 import { settingsRepository } from '@/repositories';
-import { syncWaterToHealthKit } from '@/services/healthkit/healthKitNutritionSync';
-import { useHealthKitStore, getDateKey } from './healthKitStore';
+import { syncWaterToHealthPlatform } from '@/services/healthSyncWriteCoordinator';
 import * as Sentry from '@sentry/react-native';
 import { isExpectedError } from '@/utils/sentryHelpers';
 
@@ -83,23 +82,17 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.addGlass(today);
       set({ todayLog: log });
 
-      // TODO [POST_LAUNCH_HEALTH]: HealthKit water sync — currently a no-op (isConnected defaults false)
-      // Sync to HealthKit if enabled (non-blocking)
-      const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();
+      // Sync to health platform via coordinator (non-blocking)
       const { glassSizeMl } = get();
-      if (syncWater && isConnected) {
-        syncWaterToHealthKit({
-          date: new Date(),
+      if (log?.id) {
+        void syncWaterToHealthPlatform({
+          localRecordId: log.id,
+          localRecordType: 'water_entry',
           milliliters: glassSizeMl,
-        })
-          .then((result) => {
-            if (result.success) {
-              markWaterSynced(getDateKey(new Date()), glassSizeMl);
-            }
-          })
-          .catch((error) => {
-            if (__DEV__) console.error('Failed to sync water to HealthKit:', error);
-          });
+          timestamp: new Date().toISOString(),
+        }).catch((error) => {
+          if (__DEV__) console.warn('[HealthSync] water addGlass failed', error);
+        });
       }
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'water', action: 'add-glass' } });
@@ -129,26 +122,18 @@ export const useWaterStore = create<WaterState>((set, get) => ({
       const log = await waterRepository.setGlasses(today, glasses);
       set({ todayLog: log });
 
-      // TODO [POST_LAUNCH_HEALTH]: HealthKit water sync — currently a no-op (isConnected defaults false)
-      // Sync difference to HealthKit if enabled (non-blocking)
-      // Only sync if we're adding water (not removing)
-      const { syncWater, isConnected, markWaterSynced } = useHealthKitStore.getState();
+      // Sync difference to health platform via coordinator (non-blocking)
       const { glassSizeMl } = get();
       const glassesAdded = glasses - previousGlasses;
-      if (syncWater && isConnected && glassesAdded > 0) {
-        const millilitersAdded = glassesAdded * glassSizeMl;
-        syncWaterToHealthKit({
-          date: new Date(),
-          milliliters: millilitersAdded,
-        })
-          .then((result) => {
-            if (result.success) {
-              markWaterSynced(getDateKey(new Date()), millilitersAdded);
-            }
-          })
-          .catch((error) => {
-            if (__DEV__) console.error('Failed to sync water to HealthKit:', error);
-          });
+      if (glassesAdded > 0 && log?.id) {
+        void syncWaterToHealthPlatform({
+          localRecordId: log.id,
+          localRecordType: 'water_entry',
+          milliliters: glassesAdded * glassSizeMl,
+          timestamp: new Date().toISOString(),
+        }).catch((error) => {
+          if (__DEV__) console.warn('[HealthSync] water setGlasses failed', error);
+        });
       }
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'water', action: 'set-glasses' } });
