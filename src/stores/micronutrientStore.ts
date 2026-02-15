@@ -10,10 +10,15 @@ import {
   NutrientStatus,
   NutrientCategory,
   NutrientContributor,
+  NutrientDefinition,
 } from '@/types/micronutrients';
-import { ALL_NUTRIENTS, FREE_NUTRIENTS, NUTRIENT_BY_ID } from '@/data/nutrients';
+import { ALL_NUTRIENTS, NUTRIENT_BY_ID } from '@/data/nutrients';
 import { getRDA, DEFAULT_ADULT_RDAS } from '@/data/rdaTables';
-import { TRACKED_NUTRIENTS, TRACKED_NUTRIENT_IDS } from '@/constants/trackedNutrients';
+import { TRACKED_NUTRIENTS } from '@/constants/trackedNutrients';
+
+const TRACKED_NUTRIENT_DEFS: NutrientDefinition[] = TRACKED_NUTRIENTS
+  .map((n) => NUTRIENT_BY_ID[n.id])
+  .filter((n): n is NutrientDefinition => Boolean(n));
 
 // ============================================================
 // Types
@@ -64,7 +69,14 @@ interface MicronutrientState {
   // Derived getters
   getTargetForNutrient: (nutrientId: string) => NutrientTarget | null;
   getStatusForIntake: (nutrientId: string, amount: number) => NutrientStatus;
-  getVisibleNutrients: (isPremium: boolean) => typeof ALL_NUTRIENTS;
+  getVisibleNutrients: (isPremium: boolean) => NutrientDefinition[];
+  getTrackedNutrientsByCategory: () => {
+    vitamins: NutrientDefinition[];
+    minerals: NutrientDefinition[];
+    other: NutrientDefinition[];
+  };
+  getPremiumTrackedNutrients: () => NutrientDefinition[];
+  getFreeTrackedNutrients: () => NutrientDefinition[];
 }
 
 // ============================================================
@@ -413,8 +425,22 @@ export const useMicronutrientStore = create<MicronutrientState>((set, get) => ({
     return calculateStatus(amount, target.targetAmount, target.upperLimit);
   },
 
-  getVisibleNutrients: (isPremium: boolean) => {
-    if (isPremium) return ALL_NUTRIENTS;
-    return FREE_NUTRIENTS;
-  },
+  getVisibleNutrients: (isPremium: boolean) =>
+    isPremium
+      ? TRACKED_NUTRIENT_DEFS
+      : TRACKED_NUTRIENT_DEFS.filter((n) => !n.isPremium),
+
+  getTrackedNutrientsByCategory: () => ({
+    vitamins: TRACKED_NUTRIENT_DEFS.filter((n) => n.category === 'vitamins'),
+    minerals: TRACKED_NUTRIENT_DEFS.filter((n) => n.category === 'minerals'),
+    other: TRACKED_NUTRIENT_DEFS.filter(
+      (n) => n.category === 'fatty_acids' || n.category === 'other'
+    ),
+  }),
+
+  getPremiumTrackedNutrients: () =>
+    TRACKED_NUTRIENT_DEFS.filter((n) => n.isPremium),
+
+  getFreeTrackedNutrients: () =>
+    TRACKED_NUTRIENT_DEFS.filter((n) => !n.isPremium),
 }));

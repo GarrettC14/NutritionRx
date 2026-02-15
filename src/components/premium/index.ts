@@ -1,4 +1,5 @@
 export { PremiumBanner } from './PremiumBanner';
+export { PremiumMicronutrientPreview } from './PremiumMicronutrientPreview';
 export { PremiumGate } from './PremiumGate';
 export { LockedContentArea } from './LockedContentArea';
 export { LockedOverlay } from './LockedOverlay';
