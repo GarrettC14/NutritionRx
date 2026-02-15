@@ -15,6 +15,8 @@ export const DEFAULT_MACRO_CYCLE_CONFIG: Omit<MacroCycleConfig, 'createdAt' | 'l
   patternType: 'training_rest',
   markedDays: [], // No training days set by default
   dayTargets: {},
+  lockedDays: [],
+  redistributionStartDay: 0,
 };
 
 function mapConfigRowToConfig(row: MacroCycleConfigRow): MacroCycleConfig {
@@ -23,6 +25,8 @@ function mapConfigRowToConfig(row: MacroCycleConfigRow): MacroCycleConfig {
     patternType: row.pattern_type as MacroCyclePatternType,
     markedDays: JSON.parse(row.marked_days),
     dayTargets: JSON.parse(row.day_targets),
+    lockedDays: JSON.parse(row.locked_days || '[]'),
+    redistributionStartDay: row.redistribution_start_day ?? 0,
     createdAt: row.created_at,
     lastModified: row.last_modified,
   };
@@ -96,6 +100,14 @@ export const macroCycleRepository = {
       setClauses.push('day_targets = ?');
       values.push(JSON.stringify(updates.dayTargets));
     }
+    if (updates.lockedDays !== undefined) {
+      setClauses.push('locked_days = ?');
+      values.push(JSON.stringify(updates.lockedDays));
+    }
+    if (updates.redistributionStartDay !== undefined) {
+      setClauses.push('redistribution_start_day = ?');
+      values.push(updates.redistributionStartDay);
+    }
 
     await db.runAsync(
       `UPDATE macro_cycle_config SET ${setClauses.join(', ')} WHERE id = 1`,
@@ -160,6 +172,7 @@ export const macroCycleRepository = {
       case 'even_distribution':
         return 'even';
       case 'custom':
+      case 'redistribution':
         return 'custom';
       default:
         return null;
@@ -217,6 +230,73 @@ export const macroCycleRepository = {
   // ============================================================
   // Utilities
   // ============================================================
+
+  // ============================================================
+  // Redistribution
+  // ============================================================
+
+  async saveRedistributionOverrides(
+    overrides: Array<{
+      date: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+    }>
+  ): Promise<void> {
+    const db = getDatabase();
+    const dates = overrides.map((o) => o.date);
+    const placeholders = dates.map(() => '?').join(',');
+    const now = new Date().toISOString();
+
+    await db.execAsync('BEGIN TRANSACTION');
+    try {
+      await db.runAsync(
+        `DELETE FROM macro_cycle_overrides WHERE date IN (${placeholders})`,
+        dates
+      );
+      for (const o of overrides) {
+        const id = generateId();
+        await db.runAsync(
+          `INSERT INTO macro_cycle_overrides (id, date, calories, protein, carbs, fat, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [id, o.date, o.calories, o.protein, o.carbs, o.fat, now]
+        );
+      }
+      await db.execAsync('COMMIT');
+    } catch (error) {
+      await db.execAsync('ROLLBACK');
+      throw error;
+    }
+  },
+
+  async getRedistributionConfig(): Promise<{
+    lockedDays: number[];
+    redistributionStartDay: number;
+  }> {
+    const config = await this.getConfig();
+    return {
+      lockedDays: config?.lockedDays ?? [],
+      redistributionStartDay: config?.redistributionStartDay ?? 0,
+    };
+  },
+
+  async setRedistributionConfig(params: {
+    lockedDays: number[];
+    redistributionStartDay: number;
+  }): Promise<void> {
+    const db = getDatabase();
+    const now = new Date().toISOString();
+    await this.getOrCreateConfig();
+    await db.runAsync(
+      `UPDATE macro_cycle_config SET
+        locked_days = ?,
+        redistribution_start_day = ?,
+        last_modified = ?
+      WHERE id = 1`,
+      [JSON.stringify(params.lockedDays), params.redistributionStartDay, now]
+    );
+  },
 
   calculateWeeklyAverage(config: MacroCycleConfig): DayTargets {
     let totalCalories = 0;
