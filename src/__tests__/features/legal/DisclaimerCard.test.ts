@@ -11,7 +11,7 @@ describe('DisclaimerCard', () => {
 
     it('should accept string body', () => {
       const props: DisclaimerCardProps = {
-        icon: '🥗',
+        icon: 'nutrition-outline',
         title: 'Test Title',
         body: 'This is a string body',
       };
@@ -21,7 +21,7 @@ describe('DisclaimerCard', () => {
 
     it('should accept array body for bullet list', () => {
       const props: DisclaimerCardProps = {
-        icon: '⚖️',
+        icon: 'scale-outline',
         title: 'Test Title',
         body: ['Item 1', 'Item 2', 'Item 3'],
       };
@@ -30,9 +30,9 @@ describe('DisclaimerCard', () => {
       expect(props.body).toHaveLength(3);
     });
 
-    it('should accept emoji icons', () => {
+    it('should accept Ionicons names', () => {
       const props: DisclaimerCardProps = {
-        icon: '💚',
+        icon: 'heart-outline',
         title: 'Test',
         body: 'Test body',
       };

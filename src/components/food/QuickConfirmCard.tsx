@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { FoodItem } from '@/types/domain';
 
 interface QuickConfirmCardProps {
@@ -91,7 +92,7 @@ export function QuickConfirmCard({
       <Pressable style={styles.backdropTouchable} onPress={onDismiss} />
 
       <Animated.View style={[styles.card, animatedStyle]}>
-        <Text style={styles.foundText}>✓ Found in your history</Text>
+        <Text style={styles.foundText}><Ionicons name="checkmark" size={14} /> Found in your history</Text>
         <Text style={styles.nameText} numberOfLines={2}>
           {food.name}
         </Text>
@@ -122,7 +123,7 @@ export function QuickConfirmCard({
             style={styles.primaryButton}
             onPress={() => onLog({ size: amount, unit: serving.unit })}
           >
-            <Text style={styles.primaryText}>✓ Log Food</Text>
+            <Text style={styles.primaryText}><Ionicons name="checkmark" size={14} /> Log Food</Text>
           </Pressable>
         </View>
       </Animated.View>

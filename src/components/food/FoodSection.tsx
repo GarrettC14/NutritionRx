@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { FoodItem, FoodItemWithServing } from '@/types/domain';
 import { useTheme } from '@/hooks/useTheme';
 import { FoodQuickRow } from './FoodQuickRow';
@@ -67,7 +68,10 @@ export function FoodSection({
   return (
     <View testID={testID} style={styles.wrapper}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textTertiary }]}>{formatTitle(icon ? `${icon} ${title}` : title)}</Text>
+        <View style={styles.titleRow}>
+          {icon ? <Ionicons name={icon as any} size={12} color={colors.textTertiary} style={styles.titleIcon} /> : null}
+          <Text style={[styles.title, { color: colors.textTertiary }]}>{formatTitle(title)}</Text>
+        </View>
         {showSeeAll ? (
           <Pressable onPress={handleSeeAllPress}>
             <Text style={[styles.seeAll, { color: colors.accent }]}>{seeAllLabel} &gt;</Text>
@@ -112,6 +116,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  titleRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  titleIcon: {
+    marginRight: 4,
   },
   title: {
     fontSize: 12,

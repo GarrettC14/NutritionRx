@@ -93,10 +93,10 @@ describe('useProgressiveTooltips', () => {
       mockShowTooltipIfNotSeen({
         id: TOOLTIP_IDS.WATER_TRACKING,
         content: 'Stay hydrated!',
-        icon: '💧',
+        icon: 'water-outline',
       });
 
-      expect(mockActiveTooltip.icon).toBe('💧');
+      expect(mockActiveTooltip.icon).toBe('water-outline');
     });
   });
 
@@ -145,11 +145,11 @@ describe('useProgressiveTooltips', () => {
       const result = mockShowTooltipIfNotSeen({
         id: TOOLTIP_IDS.QUICK_ADD,
         content: 'Speed up your logging!',
-        icon: '⚡',
+        icon: 'flash-outline',
       });
 
       expect(result).toBe(true);
-      expect(mockActiveTooltip.icon).toBe('⚡');
+      expect(mockActiveTooltip.icon).toBe('flash-outline');
     });
 
     it('does not show tooltip when less than 10 foods logged', () => {
@@ -185,7 +185,7 @@ describe('useProgressiveTooltips', () => {
       const result = mockShowTooltipIfNotSeen({
         id: TOOLTIP_IDS.WEEKLY_SUMMARY,
         content: "You've been tracking for a week!",
-        icon: '📊',
+        icon: 'bar-chart-outline',
       });
 
       expect(result).toBe(true);
@@ -224,7 +224,7 @@ describe('useProgressiveTooltips', () => {
       const result = mockShowTooltipIfNotSeen({
         id: TOOLTIP_IDS.BARCODE_SCANNER,
         content: 'Did you know? You can scan barcodes',
-        icon: '📸',
+        icon: 'camera-outline',
       });
 
       expect(result).toBe(true);
@@ -250,7 +250,7 @@ describe('useProgressiveTooltips', () => {
       const result = mockShowTooltipIfNotSeen({
         id: TOOLTIP_IDS.SERVING_SIZE,
         content: 'Tip: You can adjust serving sizes',
-        icon: '🍽️',
+        icon: 'restaurant-outline',
       });
 
       expect(result).toBe(true);

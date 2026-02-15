@@ -202,7 +202,7 @@ export default function NutritionSettingsScreen() {
       showConfirm({
         title: 'Error',
         message: 'Failed to update preferences. Please try again.',
-        icon: '❌',
+        icon: 'close-circle',
         confirmLabel: 'OK',
         cancelLabel: null,
         confirmStyle: 'destructive',

@@ -79,7 +79,7 @@ describe('Tooltip System Integration', () => {
       mockActiveTooltip = {
         id: TOOLTIP_IDS.WATER_TRACKING,
         content: 'Stay hydrated!',
-        icon: '💧',
+        icon: 'water-outline',
       };
 
       expect(mockActiveTooltip.id).toBe(TOOLTIP_IDS.WATER_TRACKING);
@@ -335,32 +335,32 @@ describe('Tooltip System Integration', () => {
         {
           id: TOOLTIP_IDS.WATER_TRACKING,
           content: 'Stay hydrated!',
-          icon: '💧',
+          icon: 'water-outline',
         },
         {
           id: TOOLTIP_IDS.MEAL_COLLAPSE,
           content: 'Pro tip: Tap on a meal header',
-          icon: '📋',
+          icon: 'clipboard-outline',
         },
         {
           id: TOOLTIP_IDS.QUICK_ADD,
           content: 'Speed up your logging!',
-          icon: '⚡',
+          icon: 'flash-outline',
         },
         {
           id: TOOLTIP_IDS.WEEKLY_SUMMARY,
           content: "You've been tracking for a week!",
-          icon: '📊',
+          icon: 'bar-chart-outline',
         },
         {
           id: TOOLTIP_IDS.BARCODE_SCANNER,
           content: 'Did you know?',
-          icon: '📸',
+          icon: 'camera-outline',
         },
         {
           id: TOOLTIP_IDS.SERVING_SIZE,
           content: 'Tip: You can adjust serving sizes',
-          icon: '🍽️',
+          icon: 'restaurant-outline',
         },
       ];
 

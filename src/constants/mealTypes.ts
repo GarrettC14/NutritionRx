@@ -41,10 +41,10 @@ export interface MealTypeConfig {
 }
 
 export const DEFAULT_MEAL_CONFIGS: MealTypeConfig[] = [
-  { id: MealType.Breakfast, name: 'Breakfast', icon: '🌅', sortOrder: 1, isDefault: true, isActive: true },
-  { id: MealType.Lunch, name: 'Lunch', icon: '☀️', sortOrder: 2, isDefault: true, isActive: true },
-  { id: MealType.Dinner, name: 'Dinner', icon: '🌙', sortOrder: 3, isDefault: true, isActive: true },
-  { id: MealType.Snack, name: 'Snack', icon: '🍎', sortOrder: 4, isDefault: true, isActive: true },
+  { id: MealType.Breakfast, name: 'Breakfast', icon: 'sunny-outline', sortOrder: 1, isDefault: true, isActive: true },
+  { id: MealType.Lunch, name: 'Lunch', icon: 'partly-sunny-outline', sortOrder: 2, isDefault: true, isActive: true },
+  { id: MealType.Dinner, name: 'Dinner', icon: 'moon-outline', sortOrder: 3, isDefault: true, isActive: true },
+  { id: MealType.Snack, name: 'Snack', icon: 'nutrition-outline', sortOrder: 4, isDefault: true, isActive: true },
 ];
 
 /** Type guard for the 4 built-in meal types */

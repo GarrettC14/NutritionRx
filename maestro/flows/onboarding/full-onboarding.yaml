@@ -122,7 +122,28 @@ tags:
 - tapOn:
     id: "onboarding-activity-continue-button"
 
-# === Screen 5: Eating Style ===
+# === Screen 5: Experience Level ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-experience-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-experience-back-button"
+
+# Verify experience options
+- assertVisible:
+    id: "onboarding-experience-beginner"
+- assertVisible:
+    id: "onboarding-experience-intermediate"
+- assertVisible:
+    id: "onboarding-experience-advanced"
+
+# intermediate is pre-selected, just continue
+- tapOn:
+    id: "onboarding-experience-continue-button"
+
+# === Screen 6: Eating Style ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-eating-style-screen"
@@ -135,7 +156,7 @@ tags:
 - tapOn:
     id: "onboarding-eating-style-continue-button"
 
-# === Screen 6: Protein Priority ===
+# === Screen 7: Protein Priority ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-protein-screen"
@@ -148,7 +169,7 @@ tags:
 - tapOn:
     id: "onboarding-protein-continue-button"
 
-# === Screen 7: Target (shown for 'lose' goal) ===
+# === Screen 8: Target (shown for 'lose' goal) ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-target-screen"
@@ -165,7 +186,7 @@ tags:
 - tapOn:
     id: "onboarding-target-continue-button"
 
-# === Screen 8: Your Plan ===
+# === Screen 9: Your Plan ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-your-plan-screen"

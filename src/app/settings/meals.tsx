@@ -127,7 +127,9 @@ export default function MealSetupScreen() {
               key={meal.id}
               style={[styles.mealRow, { backgroundColor: colors.bgSecondary }]}
             >
-              <Text style={styles.mealIcon}>{meal.icon || '🍽'}</Text>
+              <View style={styles.mealIconContainer}>
+                <Ionicons name={(meal.icon || 'restaurant-outline') as any} size={20} color={colors.textSecondary} />
+              </View>
               <Text style={[styles.mealName, { color: colors.textPrimary }]}>{meal.name}</Text>
               <Pressable
                 style={styles.removeButton}
@@ -191,7 +193,9 @@ export default function MealSetupScreen() {
                 key={meal.id}
                 style={[styles.mealRow, styles.inactiveMealRow, { backgroundColor: colors.bgSecondary }]}
               >
-                <Text style={[styles.mealIcon, { opacity: 0.5 }]}>{meal.icon || '🍽'}</Text>
+                <View style={[styles.mealIconContainer, { opacity: 0.5 }]}>
+                  <Ionicons name={(meal.icon || 'restaurant-outline') as any} size={20} color={colors.textSecondary} />
+                </View>
                 <Text style={[styles.mealName, { color: colors.textTertiary }]}>{meal.name}</Text>
                 <Pressable
                   style={styles.restoreButton}
@@ -246,7 +250,7 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   inactiveMealRow: { opacity: 0.7 },
-  mealIcon: { fontSize: 20, width: 28, textAlign: 'center' },
+  mealIconContainer: { width: 28, alignItems: 'center' as const, justifyContent: 'center' as const },
   mealName: { ...typography.body.medium, fontWeight: '500', flex: 1 },
   removeButton: { padding: spacing[1] },
   restoreButton: { padding: spacing[1] },

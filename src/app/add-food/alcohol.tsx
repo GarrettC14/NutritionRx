@@ -119,7 +119,7 @@ export default function AlcoholEntryScreen() {
           protein: parseInt(directProtein) || undefined,
           carbs: parseInt(directCarbs) || undefined,
           fat: parseInt(directFat) || undefined,
-          description: `🍺 ${label}`,
+          description: label,
         });
       }
 
@@ -160,7 +160,7 @@ export default function AlcoholEntryScreen() {
               ]}
               onPress={() => handleSelectDrinkType(type)}
             >
-              <Text style={styles.drinkTypeIcon}>{DRINK_ICONS[type]}</Text>
+              <Ionicons name={DRINK_ICONS[type] as any} size={24} color={drinkType === type ? '#FFFFFF' : colors.textPrimary} />
               <Text
                 style={[
                   styles.drinkTypeLabel,

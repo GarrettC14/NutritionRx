@@ -38,7 +38,7 @@ function makeResponse(overrides: Partial<WeeklyInsightResponse> = {}): WeeklyIns
   return {
     questionId: 'Q-CON-01',
     text: 'Test response text',
-    icon: '📊',
+    icon: 'bar-chart-outline',
     generatedAt: Date.now(),
     source: 'template',
     weekStartDate: '2024-01-08',

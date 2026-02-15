@@ -339,7 +339,7 @@ describe('createPinnableItem', () => {
     expect(pinnableItem.servingSize).toBe(100);
     expect(pinnableItem.servingUnit).toBe('g');
     expect(pinnableItem.mealType).toBe('dinner');
-    expect(pinnableItem.iconEmoji).toBe('🌙');
+    expect(pinnableItem.iconEmoji).toBe('moon-outline');
   });
 
   it('provides defaults for optional fields', () => {
@@ -356,15 +356,15 @@ describe('createPinnableItem', () => {
     expect(pinnableItem.fat).toBe(0);
     expect(pinnableItem.servingSize).toBe(1);
     expect(pinnableItem.servingUnit).toBe('serving');
-    expect(pinnableItem.iconEmoji).toBe('🍽️');
+    expect(pinnableItem.iconEmoji).toBe('restaurant-outline');
   });
 
-  it('assigns correct meal emoji', () => {
+  it('assigns correct meal icon', () => {
     const meals = [
-      { mealType: 'breakfast' as const, emoji: '🌅' },
-      { mealType: 'lunch' as const, emoji: '☀️' },
-      { mealType: 'dinner' as const, emoji: '🌙' },
-      { mealType: 'snack' as const, emoji: '🍃' },
+      { mealType: 'breakfast' as const, emoji: 'sunny-outline' },
+      { mealType: 'lunch' as const, emoji: 'partly-sunny-outline' },
+      { mealType: 'dinner' as const, emoji: 'moon-outline' },
+      { mealType: 'snack' as const, emoji: 'leaf-outline' },
     ];
 
     meals.forEach(({ mealType, emoji }) => {

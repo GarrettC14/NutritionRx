@@ -19,14 +19,14 @@ describe('useVoiceToast', () => {
 
     act(() => {
       result.current.showToast({
-        icon: '💧',
+        icon: 'water-outline',
         title: '+1 Water',
         subtitle: '5 of 8',
       });
     });
 
     expect(result.current.toastState.visible).toBe(true);
-    expect(result.current.toastState.icon).toBe('💧');
+    expect(result.current.toastState.icon).toBe('water-outline');
     expect(result.current.toastState.title).toBe('+1 Water');
     expect(result.current.toastState.subtitle).toBe('5 of 8');
   });
@@ -36,7 +36,7 @@ describe('useVoiceToast', () => {
 
     act(() => {
       result.current.showToast({
-        icon: '💧',
+        icon: 'water-outline',
         title: 'Test',
       });
     });
@@ -125,7 +125,7 @@ describe('useVoiceToast', () => {
 
     act(() => {
       result.current.showToast({
-        icon: '💧',
+        icon: 'water-outline',
         title: 'First',
       });
     });
@@ -134,12 +134,12 @@ describe('useVoiceToast', () => {
 
     act(() => {
       result.current.showToast({
-        icon: '✓',
+        icon: 'checkmark-outline',
         title: 'Second',
       });
     });
 
     expect(result.current.toastState.title).toBe('Second');
-    expect(result.current.toastState.icon).toBe('✓');
+    expect(result.current.toastState.icon).toBe('checkmark-outline');
   });
 });

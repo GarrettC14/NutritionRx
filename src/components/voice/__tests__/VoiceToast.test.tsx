@@ -32,7 +32,7 @@ describe('VoiceToast', () => {
     const { queryByText } = render(
       <VoiceToast
         visible={false}
-        icon="💧"
+        icon="water-outline"
         title="+1 Water"
         subtitle="5 of 8"
       />
@@ -45,7 +45,7 @@ describe('VoiceToast', () => {
     const { getByText } = render(
       <VoiceToast
         visible={true}
-        icon="💧"
+        icon="water-outline"
         title="+1 Water"
         subtitle="5 of 8"
       />
@@ -59,7 +59,7 @@ describe('VoiceToast', () => {
     const { getByText, queryByText } = render(
       <VoiceToast
         visible={true}
-        icon="✓"
+        icon="checkmark-outline"
         title="+400 cal"
       />
     );
@@ -74,7 +74,7 @@ describe('VoiceToast', () => {
     render(
       <VoiceToast
         visible={true}
-        icon="💧"
+        icon="water-outline"
         title="+1 Water"
         onDismiss={onDismiss}
       />
@@ -95,7 +95,7 @@ describe('VoiceToast', () => {
     const { getByText } = render(
       <VoiceToast
         visible={true}
-        icon="💧"
+        icon="water-outline"
         title="+1 Water"
         subtitle="5 of 8"
       />
@@ -109,7 +109,7 @@ describe('VoiceToast', () => {
     const { getByText } = render(
       <VoiceToast
         visible={true}
-        icon="✓"
+        icon="checkmark-outline"
         title="+400 cal"
         subtitle="Lunch"
       />
@@ -123,7 +123,7 @@ describe('VoiceToast', () => {
     const { getByText } = render(
       <VoiceToast
         visible={true}
-        icon="⚖️"
+        icon="scale-outline"
         title="175 lbs"
         subtitle="Weight logged"
       />

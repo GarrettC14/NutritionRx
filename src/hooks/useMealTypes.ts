@@ -20,7 +20,7 @@ export function useMealTypes(): MealTypeConfig[] {
         .map((c) => ({
           id: c.id,
           name: c.name,
-          icon: c.icon || '🍽',
+          icon: c.icon || 'restaurant-outline',
           sortOrder: c.sortOrder,
           isDefault: false,
           isActive: true,

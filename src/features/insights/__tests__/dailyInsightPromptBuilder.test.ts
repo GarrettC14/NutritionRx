@@ -36,8 +36,8 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('2-3 sentences');
   });
 
-  it('specifies emoji response format', () => {
-    expect(prompt).toContain('single emoji');
+  it('specifies no-emoji response format', () => {
+    expect(prompt).toContain('Do not include emoji');
     expect(prompt).toContain('RESPONSE FORMAT');
   });
 

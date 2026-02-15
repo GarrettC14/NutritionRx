@@ -230,7 +230,7 @@ export default function WidgetsScreen() {
                 >
                   <View style={styles.pinnedItemInfo}>
                     <Text style={[styles.pinnedItemName, { color: colors.textPrimary }]}>
-                      {item.iconEmoji} {item.name}
+                      {item.iconEmoji ? <><Ionicons name={item.iconEmoji as any} size={16} color={colors.textPrimary} />{' '}</> : null}{item.name}
                     </Text>
                     <Text style={[styles.pinnedItemDetails, { color: colors.textSecondary }]}>
                       {item.calories} cal · {item.servingSize} {item.servingUnit}

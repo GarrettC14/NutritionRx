@@ -393,7 +393,7 @@ function AddFoodScreen() {
 
       setQuickLogUndo({
         entryId: entry.id,
-        message: `${food.name} logged ✓`,
+        message: `${food.name} logged`,
       });
     } catch (error) {
       if (__DEV__) console.error('Quick log failed:', error);
@@ -582,7 +582,7 @@ function AddFoodScreen() {
           <FoodSection
             testID={TestIDs.AddFood.FavoritesSection}
             title="Favorites"
-            icon="★"
+            icon="star"
             foods={favorites}
             maxVisible={5}
             onFoodPress={handleFoodPress}
@@ -594,7 +594,7 @@ function AddFoodScreen() {
         {mealType ? (
           <FoodSection
             title={`For ${getMealTypeName(mealType)}`}
-            icon="🔄"
+            icon="sync-outline"
             foods={mealContextFoods}
             isLoading={isLoadingMealContext}
             maxVisible={5}
@@ -606,7 +606,7 @@ function AddFoodScreen() {
 
         <FoodSection
           title="Recently Logged"
-          icon="🕐"
+          icon="time-outline"
           foods={recentFoods}
           isLoading={isLoadingRecent}
           maxVisible={5}
@@ -618,7 +618,7 @@ function AddFoodScreen() {
         {scannedHistory.length > 0 ? (
           <FoodSection
             title="Previously Scanned"
-            icon="📱"
+            icon="phone-portrait-outline"
             foods={scannedHistory}
             isLoading={isLoadingScanned}
             maxVisible={3}
@@ -733,7 +733,7 @@ function AddFoodScreen() {
           title="Favorites"
           itemCount={favorites.length}
           defaultExpanded={true}
-          emptyMessage="Tap ★ on any food to save it here"
+          emptyMessage="Tap the star on any food to save it here"
         >
           {favorites.map(renderFoodItemSimple)}
         </CollapsibleSection>

@@ -90,7 +90,7 @@ export function PlannedMealsSection() {
     showConfirm({
       title: 'Log This Meal',
       message: `Mark "${meal.foodName}" as logged?`,
-      icon: '✅',
+      icon: 'checkmark-circle',
       confirmLabel: 'Log',
       cancelLabel: 'Cancel',
       onConfirm: async () => {

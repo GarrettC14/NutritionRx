@@ -12,10 +12,10 @@ import type { CustomMealTypeRecord } from '@/stores/settingsStore';
 // ---- Mock data ----
 
 const DEFAULT_MEAL_CONFIGS: MealTypeConfig[] = [
-  { id: 'breakfast', name: 'Breakfast', icon: '🌅', sortOrder: 1, isDefault: true, isActive: true },
-  { id: 'lunch', name: 'Lunch', icon: '☀️', sortOrder: 2, isDefault: true, isActive: true },
-  { id: 'dinner', name: 'Dinner', icon: '🌙', sortOrder: 3, isDefault: true, isActive: true },
-  { id: 'snack', name: 'Snack', icon: '🍎', sortOrder: 4, isDefault: true, isActive: true },
+  { id: 'breakfast', name: 'Breakfast', icon: 'sunny-outline', sortOrder: 1, isDefault: true, isActive: true },
+  { id: 'lunch', name: 'Lunch', icon: 'partly-sunny-outline', sortOrder: 2, isDefault: true, isActive: true },
+  { id: 'dinner', name: 'Dinner', icon: 'moon-outline', sortOrder: 3, isDefault: true, isActive: true },
+  { id: 'snack', name: 'Snack', icon: 'nutrition-outline', sortOrder: 4, isDefault: true, isActive: true },
 ];
 
 let mockCustomMealTypes: CustomMealTypeRecord[] = [];
@@ -24,10 +24,10 @@ let mockCustomMealTypes: CustomMealTypeRecord[] = [];
 
 jest.mock('@/constants/mealTypes', () => ({
   DEFAULT_MEAL_CONFIGS: [
-    { id: 'breakfast', name: 'Breakfast', icon: '🌅', sortOrder: 1, isDefault: true, isActive: true },
-    { id: 'lunch', name: 'Lunch', icon: '☀️', sortOrder: 2, isDefault: true, isActive: true },
-    { id: 'dinner', name: 'Dinner', icon: '🌙', sortOrder: 3, isDefault: true, isActive: true },
-    { id: 'snack', name: 'Snack', icon: '🍎', sortOrder: 4, isDefault: true, isActive: true },
+    { id: 'breakfast', name: 'Breakfast', icon: 'sunny-outline', sortOrder: 1, isDefault: true, isActive: true },
+    { id: 'lunch', name: 'Lunch', icon: 'partly-sunny-outline', sortOrder: 2, isDefault: true, isActive: true },
+    { id: 'dinner', name: 'Dinner', icon: 'moon-outline', sortOrder: 3, isDefault: true, isActive: true },
+    { id: 'snack', name: 'Snack', icon: 'nutrition-outline', sortOrder: 4, isDefault: true, isActive: true },
   ],
 }));
 
@@ -91,7 +91,7 @@ describe('useMealTypes', () => {
           id: 'pre-workout',
           name: 'Pre-Workout',
           sortOrder: 5,
-          icon: '💪',
+          icon: 'fitness-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -114,7 +114,7 @@ describe('useMealTypes', () => {
           id: 'pre-workout',
           name: 'Pre-Workout',
           sortOrder: 5,
-          icon: '💪',
+          icon: 'fitness-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -123,7 +123,7 @@ describe('useMealTypes', () => {
           id: 'dessert',
           name: 'Dessert',
           sortOrder: 6,
-          icon: '🍰',
+          icon: 'cafe-outline',
           isActive: false,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -154,7 +154,7 @@ describe('useMealTypes', () => {
 
       const brunch = result.current.find((m) => m.id === 'brunch');
       expect(brunch).toBeDefined();
-      expect(brunch!.icon).toBe('🍽');
+      expect(brunch!.icon).toBe('restaurant-outline');
     });
 
     it('uses fallback icon when custom type has empty string icon', () => {
@@ -174,7 +174,7 @@ describe('useMealTypes', () => {
 
       const brunch = result.current.find((m) => m.id === 'brunch');
       expect(brunch).toBeDefined();
-      expect(brunch!.icon).toBe('🍽');
+      expect(brunch!.icon).toBe('restaurant-outline');
     });
 
     it('sorts custom types among defaults by sortOrder', () => {
@@ -183,7 +183,7 @@ describe('useMealTypes', () => {
           id: 'brunch',
           name: 'Brunch',
           sortOrder: 1.5,
-          icon: '🥂',
+          icon: 'wine-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -202,7 +202,7 @@ describe('useMealTypes', () => {
           id: 'late-night',
           name: 'Late Night',
           sortOrder: 10,
-          icon: '🌃',
+          icon: 'cloudy-night-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -221,7 +221,7 @@ describe('useMealTypes', () => {
           id: 'late-night',
           name: 'Late Night',
           sortOrder: 10,
-          icon: '🌃',
+          icon: 'cloudy-night-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -230,7 +230,7 @@ describe('useMealTypes', () => {
           id: 'brunch',
           name: 'Brunch',
           sortOrder: 1.5,
-          icon: '🥂',
+          icon: 'wine-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -239,7 +239,7 @@ describe('useMealTypes', () => {
           id: 'pre-workout',
           name: 'Pre-Workout',
           sortOrder: 2.5,
-          icon: '💪',
+          icon: 'fitness-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -266,7 +266,7 @@ describe('useMealTypes', () => {
           id: 'pre-workout',
           name: 'Pre-Workout',
           sortOrder: 5,
-          icon: '💪',
+          icon: 'fitness-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',
@@ -275,7 +275,7 @@ describe('useMealTypes', () => {
           id: 'brunch',
           name: 'Brunch',
           sortOrder: 1.5,
-          icon: '🥂',
+          icon: 'wine-outline',
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-01',

@@ -21,8 +21,8 @@ VOICE: "Nourished Calm" — warm, knowledgeable, never judgmental.
 - Do not start with "Great job" or generic praise.
 
 RESPONSE FORMAT:
-Start your response with a single emoji that best represents the insight, followed by a space, then your narrative.
-Example: 🎯 Your macros are tracking well today...
+Start your response directly with your narrative text. Do not include emoji characters.
+Example: Your macros are tracking well today...
 
 CRITICAL: All numbers in the DATA section below are pre-computed and verified. Reference them directly. Do not perform any math or calculations.`;
 }

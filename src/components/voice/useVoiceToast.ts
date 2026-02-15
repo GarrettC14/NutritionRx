@@ -50,7 +50,7 @@ export function useVoiceToast() {
 
   /**
    * Show water added toast
-   * Icon: 💧
+   * Icon: water-outline
    * Title: "+1 Water" or "+3 Water"
    * Subtitle: "5 of 8"
    */
@@ -67,7 +67,7 @@ export function useVoiceToast() {
 
   /**
    * Show quick add toast
-   * Icon: ✓
+   * Icon: checkmark-outline
    * Title: "+400 cal"
    * Subtitle: "Lunch"
    */
@@ -84,7 +84,7 @@ export function useVoiceToast() {
 
   /**
    * Show weight logged toast
-   * Icon: ⚖️
+   * Icon: scale-outline
    * Title: "175 lbs" or "79.5 kg"
    * Subtitle: "Weight logged"
    */
@@ -105,7 +105,7 @@ export function useVoiceToast() {
 
   /**
    * Show calorie query toast
-   * Icon: 🔥
+   * Icon: flame-outline
    * Title: "1,450 cal"
    * Subtitle: "Today"
    */
@@ -122,7 +122,7 @@ export function useVoiceToast() {
 
   /**
    * Show macro query toast
-   * Icon: 📊
+   * Icon: bar-chart-outline
    * Title: "85g protein"
    * Subtitle: "Today"
    */
@@ -139,7 +139,7 @@ export function useVoiceToast() {
 
   /**
    * Show water query toast
-   * Icon: 💧
+   * Icon: water-outline
    * Title: "5 glasses"
    * Subtitle: "Today"
    */
@@ -156,7 +156,7 @@ export function useVoiceToast() {
 
   /**
    * Show error toast
-   * Icon: ⚠️
+   * Icon: alert-circle-outline
    * Title: Error message
    */
   const showErrorToast = useCallback(

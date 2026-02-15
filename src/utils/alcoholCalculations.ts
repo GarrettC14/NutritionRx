@@ -29,10 +29,10 @@ export const DRINK_LABELS: Record<DrinkType, string> = {
 };
 
 export const DRINK_ICONS: Record<DrinkType, string> = {
-  beer: '🍺',
-  wine: '🍷',
-  spirit: '🥃',
-  cocktail: '🍹',
+  beer: 'beer-outline',
+  wine: 'wine-outline',
+  spirit: 'flask-outline',
+  cocktail: 'cafe-outline',
 };
 
 /** Calories from pure alcohol: volumeOz × ABV% × 1.6 */

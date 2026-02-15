@@ -56,10 +56,10 @@ describe('TooltipContext', () => {
       const config = {
         id: TOOLTIP_IDS.WATER_TRACKING as TooltipId,
         content: 'Test content',
-        icon: '💧',
+        icon: 'water-outline',
       };
 
-      expect(config.icon).toBe('💧');
+      expect(config.icon).toBe('water-outline');
     });
 
     it('should support position options', () => {

@@ -108,7 +108,9 @@ export function MealBlockBottomSheet({
 
         {/* Quick Add — always visible */}
         <Pressable style={styles.menuItem} onPress={handleQuickAdd}>
-          <Text style={styles.menuIcon}>🍽</Text>
+          <View style={styles.menuIconContainer}>
+            <Ionicons name="restaurant-outline" size={20} color={colors.textPrimary} />
+          </View>
           <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             Quick Add
           </Text>
@@ -116,7 +118,9 @@ export function MealBlockBottomSheet({
 
         {/* Add Alcohol — always visible */}
         <Pressable style={styles.menuItem} onPress={handleAddAlcohol}>
-          <Text style={styles.menuIcon}>🍺</Text>
+          <View style={styles.menuIconContainer}>
+            <Ionicons name="beer-outline" size={20} color={colors.textPrimary} />
+          </View>
           <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             Add Alcohol
           </Text>
@@ -125,7 +129,9 @@ export function MealBlockBottomSheet({
         {/* Save as Recipe — only when ≥2 entries AND recipes enabled */}
         {RECIPES_ENABLED && entryCount >= 2 && (
           <Pressable style={styles.menuItem} onPress={handleSaveAsRecipe}>
-            <Text style={styles.menuIcon}>📋</Text>
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="clipboard-outline" size={20} color={colors.textPrimary} />
+            </View>
             <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
               Save as Recipe
             </Text>
@@ -135,7 +141,9 @@ export function MealBlockBottomSheet({
         {/* Copy Meal — only when ≥1 entry */}
         {hasEntries && (
           <Pressable style={styles.menuItem} onPress={handleCopyMeal}>
-            <Text style={styles.menuIcon}>📄</Text>
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
+            </View>
             <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
               Copy Meal...
             </Text>
@@ -145,7 +153,9 @@ export function MealBlockBottomSheet({
         {/* Clear Meal — only when ≥1 entry */}
         {hasEntries && (
           <Pressable style={styles.menuItem} onPress={handleClearMeal}>
-            <Text style={styles.menuIcon}>🗑</Text>
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
+            </View>
             <Text style={[styles.menuItemText, { color: colors.error }]}>
               Clear Meal
             </Text>
@@ -173,10 +183,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[2],
   },
-  menuIcon: {
-    fontSize: 20,
+  menuIconContainer: {
     width: 28,
-    textAlign: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   menuItemText: {
     ...typography.body.large,

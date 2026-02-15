@@ -262,19 +262,19 @@ export function createPinnableItem(food: {
 }
 
 /**
- * Get emoji for meal type
+ * Get Ionicons name for meal type
  */
 function getMealEmoji(mealType?: string): string {
   switch (mealType) {
     case 'breakfast':
-      return '🌅';
+      return 'sunny-outline';
     case 'lunch':
-      return '☀️';
+      return 'partly-sunny-outline';
     case 'dinner':
-      return '🌙';
+      return 'moon-outline';
     case 'snack':
-      return '🍃';
+      return 'leaf-outline';
     default:
-      return '🍽️';
+      return 'restaurant-outline';
   }
 }
