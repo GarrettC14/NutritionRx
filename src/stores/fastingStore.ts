@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useSubscriptionStore } from './subscriptionStore';
 import { fastingRepository } from '@/repositories';
 import {
   FastingConfig,
@@ -118,6 +119,12 @@ export const useFastingStore = create<FastingState>((set, get) => ({
   },
 
   startFast: async () => {
+    const { isPremium } = useSubscriptionStore.getState();
+    if (!isPremium) {
+      console.warn('[fastingStore] Fasting is a premium feature');
+      return;
+    }
+
     const { config, getFastingHoursForProtocol } = get();
     if (!config) return;
 

@@ -53,3 +53,5 @@ export { reflectionRepository } from './reflectionRepository';
 export type { Reflection, Sentiment, CreateReflectionInput } from './reflectionRepository';
 
 export { recipeRepository } from './recipeRepository';
+
+export { logHealthSync, getLastSyncTimestamp, hasExternalId } from './healthSyncRepository';

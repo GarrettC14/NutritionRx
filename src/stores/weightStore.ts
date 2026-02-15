@@ -1,11 +1,13 @@
 import { create } from 'zustand';
+import { Platform } from 'react-native';
 import { weightRepository, CreateWeightInput } from '@/repositories';
 import { WeightEntry } from '@/types/domain';
-import {
-  syncWeightToHealthKit,
-  getWeightFromHealthKit,
-} from '@/services/healthkit/healthKitNutritionSync';
 import { useHealthKitStore } from './healthKitStore';
+import { useHealthConnectStore } from './healthConnectStore';
+import { getDatabase } from '@/db/database';
+import { getHealthSyncService } from '@/services/healthSyncService';
+import { syncWeightToHealthPlatform } from '@/services/healthSyncWriteCoordinator';
+import { getLastSyncTimestamp, hasExternalId, logHealthSync } from '@/repositories/healthSyncRepository';
 import * as Sentry from '@sentry/react-native';
 import { isExpectedError } from '@/utils/sentryHelpers';
 
@@ -26,8 +28,8 @@ interface WeightState {
   loadTrendWeight: () => Promise<void>;
   getLatestTrendWeight: () => number | null;
   loadEarliestDate: () => Promise<void>;
-  addEntry: (input: CreateWeightInput) => Promise<WeightEntry>;
-  updateEntry: (id: string, weightKg: number, notes?: string) => Promise<WeightEntry>;
+  addEntry: (input: CreateWeightInput, options?: { skipHealthSync?: boolean }) => Promise<WeightEntry>;
+  updateEntry: (id: string, weightKg: number, notes?: string, options?: { skipHealthSync?: boolean }) => Promise<WeightEntry>;
   deleteEntry: (id: string) => Promise<void>;
   getEntryByDate: (date: string) => Promise<WeightEntry | null>;
 
@@ -124,7 +126,8 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     return get().trendWeight;
   },
 
-  addEntry: async (input) => {
+  addEntry: async (input, options = {}) => {
+    const { skipHealthSync = false } = options;
     set({ isLoading: true, error: null, _cachedRangeKey: null } as any);
     try {
       const entry = await weightRepository.create(input);
@@ -139,12 +142,15 @@ export const useWeightStore = create<WeightState>((set, get) => ({
 
       set({ isLoading: false, lastModified: Date.now() });
 
-      // TODO [POST_LAUNCH_HEALTH]: HealthKit weight sync — currently a no-op (isConnected defaults false)
-      // Sync to HealthKit if enabled (non-blocking)
-      const { writeWeight, isConnected } = useHealthKitStore.getState();
-      if (writeWeight && isConnected) {
-        syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
-          if (__DEV__) console.error('Failed to sync weight to HealthKit:', error);
+      // Sync to health platform via coordinator (non-blocking)
+      if (!skipHealthSync) {
+        void syncWeightToHealthPlatform({
+          weightKg: entry.weightKg,
+          timestamp: `${entry.date}T12:00:00.000Z`,
+          localRecordId: entry.id,
+          localRecordType: 'weight_entry',
+        }).catch((error) => {
+          if (__DEV__) console.warn('[HealthSync] weight addEntry write failed', error);
         });
       }
 
@@ -159,7 +165,8 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     }
   },
 
-  updateEntry: async (id, weightKg, notes) => {
+  updateEntry: async (id, weightKg, notes, options = {}) => {
+    const { skipHealthSync = false } = options;
     set({ isLoading: true, error: null, _cachedRangeKey: null } as any);
     try {
       const entry = await weightRepository.update(id, { weightKg, notes });
@@ -175,12 +182,15 @@ export const useWeightStore = create<WeightState>((set, get) => ({
       // Refresh trend weight
       get().loadTrendWeight();
 
-      // TODO [POST_LAUNCH_HEALTH]: HealthKit weight sync — currently a no-op (isConnected defaults false)
-      // Sync to HealthKit if enabled (non-blocking)
-      const { writeWeight, isConnected } = useHealthKitStore.getState();
-      if (writeWeight && isConnected) {
-        syncWeightToHealthKit(entry.weightKg, new Date(entry.date)).catch((error) => {
-          if (__DEV__) console.error('Failed to sync weight to HealthKit:', error);
+      // Sync to health platform via coordinator (non-blocking)
+      if (!skipHealthSync) {
+        void syncWeightToHealthPlatform({
+          weightKg: entry.weightKg,
+          timestamp: `${entry.date}T12:00:00.000Z`,
+          localRecordId: entry.id,
+          localRecordType: 'weight_entry',
+        }).catch((error) => {
+          if (__DEV__) console.warn('[HealthSync] weight updateEntry write failed', error);
         });
       }
 
@@ -228,68 +238,109 @@ export const useWeightStore = create<WeightState>((set, get) => ({
     }
   },
 
-  // TODO [POST_LAUNCH_HEALTH]: HealthKit weight import — currently a no-op (isConnected defaults false)
   /**
-   * Import the latest weight from HealthKit if it's newer than local data
-   * This is useful for importing weight from smart scales synced to Apple Health
+   * Import weight from connected health platform with 3-layer dedup:
+   * Layer 1: Skip own writes (source bundle check — may be undefined)
+   * Layer 2: Skip already-imported external IDs
+   * Layer 3: Skip entries within +/-5 minutes of existing weight
    */
   importFromHealthKit: async () => {
-    const { readWeight, isConnected } = useHealthKitStore.getState();
+    const service = getHealthSyncService();
+    if (!service?.isConnected()) return { imported: false };
 
-    if (!readWeight || !isConnected) {
-      return { imported: false };
-    }
+    const platform = service.getPlatformName();
+    const APP_BUNDLE_ID = 'com.cascadesoftware.nutritionrx';
+
+    const readEnabled = Platform.OS === 'ios'
+      ? useHealthKitStore.getState().readWeight
+      : useHealthConnectStore.getState().readWeightEnabled;
+
+    if (!readEnabled) return { imported: false };
 
     try {
-      const healthWeight = await getWeightFromHealthKit();
+      const lastSync = await getLastSyncTimestamp(platform, 'read', 'weight');
+      const since = lastSync || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const samples = await service.readWeightChanges(since);
 
-      if (!healthWeight) {
-        return { imported: false };
-      }
+      let imported = false;
+      let importedWeight: number | undefined;
 
-      // Get latest local entry
-      const latestLocal = await weightRepository.getLatest();
+      for (const sample of samples) {
+        if (!Number.isFinite(sample.valueKg) || sample.valueKg <= 0) continue;
 
-      // Import if Health has newer data or no local data exists
-      const shouldImport =
-        !latestLocal || new Date(healthWeight.date) > new Date(latestLocal.date);
+        // ═══ LAYER 1: Skip own writes (source bundle check) ═══
+        if (sample.sourceBundle && sample.sourceBundle === APP_BUNDLE_ID) continue;
 
-      if (shouldImport) {
-        const dateKey = healthWeight.date.toISOString().split('T')[0];
-
-        // Check if we already have an entry for this date
-        const existingForDate = await weightRepository.findByDate(dateKey);
-
-        if (existingForDate) {
-          // Update existing entry
-          await weightRepository.update(existingForDate.id, {
-            weightKg: healthWeight.kg,
-            notes: 'Imported from Apple Health',
+        // ═══ LAYER 2: Skip already-imported external IDs ═══
+        if (await hasExternalId(platform, 'weight', sample.externalId)) {
+          await logHealthSync({
+            platform,
+            direction: 'read',
+            data_type: 'weight',
+            local_record_type: 'weight_entry',
+            external_id: sample.externalId,
+            status: 'skipped_duplicate',
           });
-        } else {
-          // Create new entry
-          await weightRepository.create({
-            weightKg: healthWeight.kg,
-            date: dateKey,
-            notes: 'Imported from Apple Health',
-          });
+          continue;
         }
 
-        // Refresh data
+        // ═══ LAYER 3: Skip entries within +/-5 minutes of existing weight ═══
+        const sampleTs = new Date(sample.timestamp).getTime();
+        const windowStart = new Date(sampleTs - 5 * 60 * 1000).toISOString();
+        const windowEnd = new Date(sampleTs + 5 * 60 * 1000).toISOString();
+
+        const db = getDatabase();
+        const nearby = await db.getFirstAsync<{ id: string }>(
+          `SELECT id FROM weight_entries WHERE created_at BETWEEN ? AND ?`,
+          [windowStart, windowEnd]
+        );
+
+        if (nearby?.id) {
+          await logHealthSync({
+            platform,
+            direction: 'read',
+            data_type: 'weight',
+            local_record_type: 'weight_entry',
+            external_id: sample.externalId,
+            status: 'skipped_duplicate',
+          });
+          continue;
+        }
+
+        // ═══ IMPORT (skipHealthSync prevents write-back loop) ═══
+        const date = new Date(sample.timestamp).toISOString().split('T')[0];
+        const created = await get().addEntry(
+          { date, weightKg: sample.valueKg, notes: 'Imported from health platform' },
+          { skipHealthSync: true }
+        );
+
+        await logHealthSync({
+          platform,
+          direction: 'read',
+          data_type: 'weight',
+          local_record_id: created.id,
+          local_record_type: 'weight_entry',
+          external_id: sample.externalId,
+          status: 'success',
+        });
+
+        imported = true;
+        importedWeight = created.weightKg;
+      }
+
+      if (imported) {
         await Promise.all([
           get().loadEntries(),
           get().loadLatest(),
           get().loadTrendWeight(),
           get().loadEarliestDate(),
         ]);
-
-        return { imported: true, weight: healthWeight.kg };
       }
 
-      return { imported: false };
+      return { imported, weight: importedWeight };
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'weight', action: 'import-healthkit' } });
-      if (__DEV__) console.error('Failed to import weight from HealthKit:', error);
+      if (__DEV__) console.error('Failed to import weight from health platform:', error);
       return { imported: false };
     }
   },

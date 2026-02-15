@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, Linking, LogBox, useColorScheme } from 'react-native';
+import { AppState, View, Text, TextInput, ActivityIndicator, Platform, Linking, LogBox, useColorScheme } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { useNavigationContainerRef, usePathname } from 'expo-router';
 import Constants from 'expo-constants';
@@ -80,6 +80,7 @@ import { useRouteStore } from '@/stores/routeStore';
 import { reviewPromptService } from '@/services/reviewPromptService';
 import { useReferralStore } from '@/stores/useReferralStore';
 import { useRouter } from '@/hooks/useRouter';
+import { performAppOpenHealthSync } from '@/services/healthSyncOrchestrator';
 
 function ThemedBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
@@ -308,6 +309,19 @@ function RootLayout() {
     // Record install date for review prompt eligibility (idempotent)
     reviewPromptService.initializeInstallDate().catch(() => {});
   }, [initializeSubscription]);
+
+  // Health sync on app open and foreground resume
+  useEffect(() => {
+    void performAppOpenHealthSync();
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void performAppOpenHealthSync();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Wait for database and purchases before rendering routes
   if (!dbReady || !purchasesReady) {

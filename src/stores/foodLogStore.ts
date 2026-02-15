@@ -17,6 +17,7 @@ import { useOnboardingStore } from './onboardingStore';
 import { getDatabase } from '@/db/database';
 import { generateId } from '@/utils/generateId';
 import { isExpectedError } from '@/utils/sentryHelpers';
+import { syncNutritionToHealthPlatform } from '@/services/healthSyncWriteCoordinator';
 
 interface FoodLogState {
   // State
@@ -196,6 +197,19 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
         data: { mealSlot: input.mealType },
       });
 
+      void syncNutritionToHealthPlatform({
+        localRecordId: entry.id,
+        localRecordType: 'log_entry',
+        calories: entry.calories,
+        protein: entry.protein,
+        carbs: entry.carbs,
+        fat: entry.fat,
+        mealType: input.mealType,
+        timestamp: entry.createdAt?.toISOString?.() ?? new Date().toISOString(),
+      }).catch((error) => {
+        if (__DEV__) console.warn('[HealthSync] addLogEntry write failed', error);
+      });
+
       return entry;
     } catch (error) {
       Sentry.captureException(error, { tags: { feature: 'food-log', action: 'add-entry' } });
@@ -278,6 +292,19 @@ export const useFoodLogStore = create<FoodLogState>((set, get) => ({
       // Track first food and increment count for onboarding celebrations
       useOnboardingStore.getState().markFirstFoodLogged();
       useOnboardingStore.getState().incrementFoodsLogged();
+
+      void syncNutritionToHealthPlatform({
+        localRecordId: entry.id,
+        localRecordType: 'quick_add_entry',
+        calories: entry.calories,
+        protein: entry.protein ?? 0,
+        carbs: entry.carbs ?? 0,
+        fat: entry.fat ?? 0,
+        mealType: input.mealType,
+        timestamp: entry.createdAt?.toISOString?.() ?? new Date().toISOString(),
+      }).catch((error) => {
+        if (__DEV__) console.warn('[HealthSync] addQuickEntry write failed', error);
+      });
 
       return entry;
     } catch (error) {

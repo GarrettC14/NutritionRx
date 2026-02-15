@@ -2,8 +2,11 @@
  * Unified Health Sync Hook
  * Provides a cross-platform interface for syncing health data to
  * Apple HealthKit (iOS) or Health Connect (Android)
+ *
+ * DEPRECATION NOTE: Store-level health sync now uses healthSyncWriteCoordinator.ts
+ * and healthSyncService.ts. This hook is retained for component-level usage but
+ * should be migrated to the service layer over time.
  */
-// TODO [POST_LAUNCH_HEALTH]: Enable after HealthKit package installed and Health Connect verified
 
 import { useCallback } from 'react';
 import { Platform } from 'react-native';
