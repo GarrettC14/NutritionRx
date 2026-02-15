@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,7 +8,7 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { ACTIVITY_MULTIPLIERS, CALORIE_FLOORS, CALORIES_PER_KG } from '@/constants/defaults';
 import { macroCalculator } from '@/services/macroCalculator';
 import { useOnboardingStore, useGoalStore } from '@/stores';
-import { profileRepository, weightRepository, settingsRepository, GoalType } from '@/repositories';
+import { profileRepository, weightRepository, settingsRepository, GoalType, CheckInDay } from '@/repositories';
 import { onboardingRepository, GoalPath } from '@/repositories/onboardingRepository';
 import { OnboardingScreen } from '@/components/onboarding';
 import { ONBOARDING_SUBTITLES } from '@/constants/onboarding-copy';
@@ -65,6 +65,16 @@ function calculateTargetCalories(
   return Math.max(targetCalories, floor);
 }
 
+const DAY_LABELS: { value: CheckInDay; label: string; name: string }[] = [
+  { value: 0, label: 'S', name: 'Sunday' },
+  { value: 1, label: 'M', name: 'Monday' },
+  { value: 2, label: 'T', name: 'Tuesday' },
+  { value: 3, label: 'W', name: 'Wednesday' },
+  { value: 4, label: 'T', name: 'Thursday' },
+  { value: 5, label: 'F', name: 'Friday' },
+  { value: 6, label: 'S', name: 'Saturday' },
+];
+
 // ============================================================
 // Summary Screen
 // ============================================================
@@ -74,6 +84,7 @@ export default function YourPlanScreen() {
   const router = useRouter();
   const { draft, clearDraft } = useOnboardingStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkInDay, setCheckInDay] = useState<CheckInDay>(1); // Monday default
 
   const goalType: GoalType = draft.goalPath === 'track' ? 'maintain' : (draft.goalPath as GoalType) ?? 'maintain';
   const isTrack = draft.goalPath === 'track';
@@ -205,8 +216,11 @@ export default function YourPlanScreen() {
         weightKg: draft.currentWeightKg!,
       });
 
-      // 4. Height unit setting
+      // 4. Height unit setting + check-in day
       await settingsRepository.set('height_unit', draft.heightUnit);
+      if (!isBeginner) {
+        await settingsRepository.set('check_in_day', checkInDay);
+      }
 
       // 5. Onboarding completion settings (writes: complete, completed_at,
       //    goal_path, energy_unit, weight_unit — called directly so errors
@@ -349,6 +363,45 @@ export default function YourPlanScreen() {
         </View>
       </View>
 
+      {/* Check-in day picker (advanced users only) */}
+      {!isBeginner && (
+        <View style={[styles.checkInCard, { backgroundColor: colors.bgSecondary }]}>
+          <Text style={[styles.checkInTitle, { color: colors.textPrimary }]}>
+            Weekly check-in day
+          </Text>
+          <Text style={[styles.checkInHint, { color: colors.textTertiary }]}>
+            Pick a day to weigh in and review progress each week.
+          </Text>
+          <View style={styles.dayRow}>
+            {DAY_LABELS.map((day) => {
+              const isActive = checkInDay === day.value;
+              return (
+                <Pressable
+                  key={day.value}
+                  style={[
+                    styles.dayButton,
+                    { backgroundColor: isActive ? colors.accent : colors.bgInteractive },
+                  ]}
+                  onPress={() => setCheckInDay(day.value)}
+                  accessibilityRole="button"
+                  accessibilityLabel={day.name}
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <Text
+                    style={[
+                      styles.dayButtonLabel,
+                      { color: isActive ? '#fff' : colors.textSecondary },
+                    ]}
+                  >
+                    {day.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
       {/* Calorie floor warning */}
       {plan.hitFloor && (
         <View style={[styles.warningBox, { backgroundColor: colors.warning + '15' }]}>
@@ -463,5 +516,34 @@ const styles = StyleSheet.create({
   bottomInfoText: {
     ...typography.body.small,
     flex: 1,
+  },
+  checkInCard: {
+    borderRadius: borderRadius.xl,
+    padding: spacing[5],
+    marginBottom: spacing[4],
+  },
+  checkInTitle: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    marginBottom: spacing[1],
+  },
+  checkInHint: {
+    ...typography.body.small,
+    marginBottom: spacing[3],
+  },
+  dayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayButtonLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
