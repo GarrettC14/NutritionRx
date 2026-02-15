@@ -206,6 +206,7 @@ describe('settingsRepository', () => {
         notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
         reminderTime: DEFAULT_SETTINGS.reminderTime,
         checkInDay: 1,
+        calorieCalculationMethod: 'label',
       });
     });
 
@@ -242,6 +243,7 @@ describe('settingsRepository', () => {
         notificationsEnabled: true,
         reminderTime: '08:00',
         checkInDay: 3,
+        calorieCalculationMethod: 'label',
       });
     });
   });
@@ -531,6 +533,7 @@ describe('settingsRepository', () => {
         notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
         reminderTime: DEFAULT_SETTINGS.reminderTime,
         checkInDay: 1,
+        calorieCalculationMethod: 'label',
       });
     });
 

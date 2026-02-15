@@ -20,6 +20,7 @@ jest.mock('@/components/dashboard/widgets', () => ({
   MicronutrientSnapshotWidget: jest.fn(() => null),
   AIDailyInsightWidget: jest.fn(() => null),
   WeeklyRecapWidget: jest.fn(() => null),
+  WeeklyBudgetWidget: jest.fn(() => null),
 }));
 
 // Mock AsyncStorage before imports
@@ -150,7 +151,7 @@ describe('Widget Definitions', () => {
     it('returns all widget definitions', () => {
       const definitions = getAllWidgetDefinitions();
 
-      expect(definitions).toHaveLength(15);
+      expect(definitions).toHaveLength(16);
     });
 
     it('returns array of definition objects', () => {

@@ -838,10 +838,10 @@ export default function MacroCyclingSetupScreen() {
           {step < 3 ? (
             <Button
               testID={TestIDs.MacroCycling.ContinueButton}
-              label={step === 1 && patternType === 'even_distribution' ? 'Enable Macro Cycling' : 'Continue'}
-              onPress={step === 1 && patternType === 'even_distribution' ? handleSave : () => setStep(step + 1)}
+              label={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? (patternType === 'redistribution' ? 'Set Up Budget' : 'Enable Macro Cycling') : 'Continue'}
+              onPress={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? handleSave : () => setStep(step + 1)}
               fullWidth
-              loading={step === 1 && patternType === 'even_distribution' ? isSaving : undefined}
+              loading={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? isSaving : undefined}
               disabled={step === 2 && patternType === 'custom' && hasCustomValidationErrors}
             />
           ) : (
