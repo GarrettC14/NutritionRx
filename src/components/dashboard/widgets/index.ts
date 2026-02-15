@@ -20,3 +20,4 @@ export { FastingTimerWidget } from './FastingTimerWidget';
 export { MicronutrientSnapshotWidget } from './MicronutrientSnapshotWidget';
 export { AIDailyInsightWidget } from './AIDailyInsightWidget';
 export { WeeklyRecapWidget } from './WeeklyRecapWidget';
+export { WeeklyBudgetWidget } from './WeeklyBudgetWidget';
