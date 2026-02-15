@@ -10,7 +10,7 @@
  * useGoalStore directly for target values.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGoalStore } from '@/stores/goalStore';
 import { useMacroCycleStore } from '@/stores/macroCycleStore';
 import { macroCycleRepository } from '@/repositories';
@@ -18,12 +18,43 @@ import { DayTargets } from '@/types/planning';
 
 type TargetSource = 'base' | 'cycling' | 'override';
 
+interface MacroRange {
+  min: number;
+  max: number;
+}
+
 interface ResolvedTargets {
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
   source: TargetSource;
+  ranges: {
+    calories: MacroRange;
+    protein: MacroRange;
+    carbs: MacroRange;
+    fat: MacroRange;
+  };
+}
+
+/**
+ * Computes ±5% range bands around a target value.
+ * Used by widgets to show "in range" zones on progress indicators.
+ */
+function computeRange(target: number): MacroRange {
+  return {
+    min: Math.round(target * 0.95),
+    max: Math.round(target * 1.05),
+  };
+}
+
+function computeRanges(targets: DayTargets) {
+  return {
+    calories: computeRange(targets.calories),
+    protein: computeRange(targets.protein),
+    carbs: computeRange(targets.carbs),
+    fat: computeRange(targets.fat),
+  };
 }
 
 export function useResolvedTargets(date?: string): ResolvedTargets {
@@ -42,9 +73,15 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
     fat: fatGoal || 65,
   };
 
+  const baseRanges = useMemo(
+    () => computeRanges(baseTargets),
+    [baseTargets.calories, baseTargets.protein, baseTargets.carbs, baseTargets.fat],
+  );
+
   const [resolved, setResolved] = useState<ResolvedTargets>({
     ...baseTargets,
     source: 'base',
+    ranges: baseRanges,
   });
 
   useEffect(() => {
@@ -54,7 +91,7 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
       // If cycling is not enabled, short-circuit to base targets (no DB call needed)
       if (!config || !config.enabled) {
         if (!cancelled) {
-          setResolved({ ...baseTargets, source: 'base' });
+          setResolved({ ...baseTargets, source: 'base', ranges: baseRanges });
         }
         return;
       }
@@ -66,6 +103,8 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
         const targets = await macroCycleRepository.getTargetsForDate(resolveDate, baseTargets);
 
         if (cancelled) return;
+
+        const targetRanges = computeRanges(targets);
 
         // Determine source by comparing to base targets
         // The repo checks overrides first, then cycling config, then returns base
@@ -80,6 +119,7 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
           setResolved({
             ...targets,
             source: matchesOverride ? 'override' : 'cycling',
+            ranges: targetRanges,
           });
         } else {
           // Check if targets differ from base — if so, they came from cycling
@@ -91,12 +131,13 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
           setResolved({
             ...targets,
             source: matchesBase ? 'base' : 'cycling',
+            ranges: targetRanges,
           });
         }
       } catch (error) {
         // On error, fall back to base targets
         if (!cancelled) {
-          setResolved({ ...baseTargets, source: 'base' });
+          setResolved({ ...baseTargets, source: 'base', ranges: baseRanges });
         }
       }
     };
