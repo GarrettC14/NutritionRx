@@ -306,9 +306,8 @@ function TodayScreen() {
   }, [activeMenuMealType, selectedDate, router]);
 
   const handleAddAlcohol = useCallback(() => {
-    // Stub: navigate to quick add until alcohol route exists (Phase 3)
     router.push({
-      pathname: '/add-food/quick',
+      pathname: '/add-food/alcohol',
       params: { mealType: activeMenuMealType, date: selectedDate },
     });
   }, [activeMenuMealType, selectedDate, router]);
