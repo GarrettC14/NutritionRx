@@ -1,4 +1,3 @@
-import { MealType } from '@/constants/mealTypes';
 import {
   FoodItemRow,
   LogEntryRow,
@@ -62,7 +61,7 @@ export function mapLogEntryRowToDomain(row: LogEntryWithFoodRow): LogEntry {
     foodName: row.food_name,
     foodBrand: row.food_brand ?? undefined,
     date: row.date,
-    mealType: row.meal_type as MealType,
+    mealType: row.meal_type,
     servings: row.servings,
     calories: row.calories,
     protein: row.protein,
@@ -80,7 +79,7 @@ export function mapQuickAddRowToDomain(row: QuickAddEntryRow): QuickAddEntry {
   return {
     id: row.id,
     date: row.date,
-    mealType: row.meal_type as MealType,
+    mealType: row.meal_type,
     calories: row.calories,
     protein: row.protein ?? undefined,
     carbs: row.carbs ?? undefined,

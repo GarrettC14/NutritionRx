@@ -10,7 +10,8 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS, getMealTypeName } from '@/constants/mealTypes';
+import { useMealTypes } from '@/hooks/useMealTypes';
 import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useReflectionStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
@@ -152,6 +153,9 @@ function TodayScreen() {
 
   // Toast
   const { toastState, showCopied, hideToast } = useToast();
+
+  // Meal types (4 defaults + custom)
+  const mealTypes = useMealTypes();
 
   // Progressive tooltips — auto-check after dashboard settles
   useProgressiveTooltips({ autoCheck: true, autoCheckDelay: 1000 });
@@ -567,12 +571,12 @@ function TodayScreen() {
   // Footer component with meal sections
   const ListFooter = () => (
     <View style={styles.mealsContainer}>
-      {MEAL_TYPE_ORDER.map((mealType) => (
+      {mealTypes.map((mt) => (
         <MealSection
-          key={mealType}
-          mealType={mealType}
-          entries={entriesByMeal[mealType]}
-          quickAddEntries={quickEntriesByMeal[mealType]}
+          key={mt.id}
+          mealType={mt.id as MealType}
+          entries={entriesByMeal[mt.id] || []}
+          quickAddEntries={quickEntriesByMeal[mt.id] || []}
           onAddPress={handleAddFood}
           onEntryPress={handleEntryPress}
           onQuickAddPress={handleQuickAddPress}

@@ -3,7 +3,7 @@
 // ============================================================
 
 export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed' | 'ai_photo';
-export type MealTypeValue = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MealTypeValue = 'breakfast' | 'lunch' | 'dinner' | 'snack' | string;
 export type GoalType = 'lose' | 'maintain' | 'gain';
 export type DataQuality = 'good' | 'partial' | 'insufficient';
 export type Sex = 'male' | 'female';
