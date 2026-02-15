@@ -30,6 +30,7 @@ export default function AddFoodLayout() {
         <Stack.Screen name="create" />
         <Stack.Screen name="scan" />
         <Stack.Screen name="ai-photo" />
+        <Stack.Screen name="alcohol" />
       </Stack>
       <CustomTabBar />
     </View>

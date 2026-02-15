@@ -72,13 +72,15 @@ export interface LogEntry {
   foodName: string;
   foodBrand?: string;
   date: string;
-  mealType: MealType;
+  mealType: string;
   servings: number;
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
   notes?: string;
+  recipeLogId?: string | null;
+  recipeName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,7 +88,7 @@ export interface LogEntry {
 export interface QuickAddEntry {
   id: string;
   date: string;
-  mealType: MealType;
+  mealType: string;
   calories: number;
   protein?: number;
   carbs?: number;
@@ -201,8 +203,8 @@ export interface DailySummary {
   goals: DailyTotals;
   entries: LogEntry[];
   quickAdds: QuickAddEntry[];
-  entriesByMeal: Record<MealType, LogEntry[]>;
-  quickAddsByMeal: Record<MealType, QuickAddEntry[]>;
+  entriesByMeal: Record<string, LogEntry[]>;
+  quickAddsByMeal: Record<string, QuickAddEntry[]>;
 }
 
 export interface WeightTrend {

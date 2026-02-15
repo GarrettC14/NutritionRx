@@ -3,7 +3,7 @@
 // ============================================================
 
 export type DataSource = 'open_food_facts' | 'usda' | 'user' | 'seed' | 'ai_photo';
-export type MealTypeValue = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MealTypeValue = 'breakfast' | 'lunch' | 'dinner' | 'snack' | string;
 export type GoalType = 'lose' | 'maintain' | 'gain';
 export type DataQuality = 'good' | 'partial' | 'insufficient';
 export type Sex = 'male' | 'female';
@@ -56,6 +56,7 @@ export interface LogEntryRow {
   carbs: number;
   fat: number;
   notes: string | null;
+  recipe_log_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +64,7 @@ export interface LogEntryRow {
 export interface LogEntryWithFoodRow extends LogEntryRow {
   food_name: string;
   food_brand: string | null;
+  recipe_name?: string | null;
 }
 
 export interface QuickAddEntryRow {

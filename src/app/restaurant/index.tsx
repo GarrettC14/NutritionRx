@@ -49,7 +49,7 @@ export default function RestaurantListScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mealType?: string; date?: string }>();
 
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Local state

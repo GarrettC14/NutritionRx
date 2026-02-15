@@ -24,7 +24,6 @@ import {
   WEAR_MESSAGE_PATH_ACTION_CONFIRMED,
   WEAR_CAPABILITY,
 } from '@/types/wearOS';
-import { MealType } from '@/constants/mealTypes';
 import { getCurrentMealPeriod, getTodayDate } from '../voiceAssistant/voiceAssistantService';
 
 // Native module - only available on Android
@@ -342,7 +341,7 @@ async function handleQuickAddAction(payload: {
   if (calories <= 0) return;
 
   const targetMeal = payload.meal
-    ? (payload.meal as MealType)
+    ? payload.meal
     : getCurrentMealPeriod();
 
   await foodLogStore.addQuickEntry({

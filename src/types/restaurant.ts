@@ -3,7 +3,6 @@
  * Domain models for restaurant food tracking
  */
 
-import { MealType } from '@/constants/mealTypes';
 
 // ============================================================
 // Restaurant Source Types
@@ -110,7 +109,7 @@ export interface RestaurantFoodLog {
   variantId?: string;
   loggedAt: string;
   date: string;
-  meal: MealType;
+  meal: string;
   quantity: number;
   notes?: string;
 
@@ -231,7 +230,7 @@ export interface LogRestaurantFoodInput {
   restaurantName: string;
   foodName: string;
   variantId?: string;
-  meal: MealType;
+  meal: string;
   quantity?: number;
   notes?: string;
   nutritionSnapshot: RestaurantFoodNutrition;

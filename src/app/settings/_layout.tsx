@@ -33,6 +33,7 @@ export default function SettingsLayout() {
       {__DEV__ && <Stack.Screen name="developer" />}
       <Stack.Screen name="fasting" />
       <Stack.Screen name="meal-planning" />
+      <Stack.Screen name="meals" />
     </Stack>
   );
 }

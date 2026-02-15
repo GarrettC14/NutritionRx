@@ -3,12 +3,10 @@ import { getDatabase } from '@/db/database';
 import { LogEntryWithFoodRow, DailyTotalsRow } from '@/types/database';
 import { LogEntry, DailyTotals } from '@/types/domain';
 import { mapLogEntryRowToDomain } from '@/types/mappers';
-import { MealType } from '@/constants/mealTypes';
-
 export interface CreateLogEntryInput {
   foodItemId: string;
   date: string;
-  mealType: MealType;
+  mealType: string;
   servings: number;
   calories: number;
   protein: number;
@@ -23,7 +21,7 @@ export interface UpdateLogEntryInput {
   protein?: number;
   carbs?: number;
   fat?: number;
-  mealType?: MealType;
+  mealType?: string;
   notes?: string;
 }
 
@@ -31,9 +29,10 @@ export const logEntryRepository = {
   async findById(id: string): Promise<LogEntry | null> {
     const db = getDatabase();
     const row = await db.getFirstAsync<LogEntryWithFoodRow>(
-      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand, rl.recipe_name
        FROM log_entries le
        JOIN food_items fi ON le.food_item_id = fi.id
+       LEFT JOIN recipe_logs rl ON le.recipe_log_id = rl.id
        WHERE le.id = ?`,
       [id]
     );
@@ -43,9 +42,10 @@ export const logEntryRepository = {
   async findByDate(date: string): Promise<LogEntry[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<LogEntryWithFoodRow>(
-      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand, rl.recipe_name
        FROM log_entries le
        JOIN food_items fi ON le.food_item_id = fi.id
+       LEFT JOIN recipe_logs rl ON le.recipe_log_id = rl.id
        WHERE le.date = ?
        ORDER BY
          CASE le.meal_type
@@ -53,6 +53,7 @@ export const logEntryRepository = {
            WHEN 'lunch' THEN 2
            WHEN 'dinner' THEN 3
            WHEN 'snack' THEN 4
+           ELSE 5
          END,
          le.created_at`,
       [date]
@@ -60,12 +61,13 @@ export const logEntryRepository = {
     return rows.map(mapLogEntryRowToDomain);
   },
 
-  async findByDateAndMeal(date: string, mealType: MealType): Promise<LogEntry[]> {
+  async findByDateAndMeal(date: string, mealType: string): Promise<LogEntry[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<LogEntryWithFoodRow>(
-      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand, rl.recipe_name
        FROM log_entries le
        JOIN food_items fi ON le.food_item_id = fi.id
+       LEFT JOIN recipe_logs rl ON le.recipe_log_id = rl.id
        WHERE le.date = ? AND le.meal_type = ?
        ORDER BY le.created_at`,
       [date, mealType]
@@ -76,9 +78,10 @@ export const logEntryRepository = {
   async findByDateRange(startDate: string, endDate: string): Promise<LogEntry[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<LogEntryWithFoodRow>(
-      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand, rl.recipe_name
        FROM log_entries le
        JOIN food_items fi ON le.food_item_id = fi.id
+       LEFT JOIN recipe_logs rl ON le.recipe_log_id = rl.id
        WHERE le.date BETWEEN ? AND ?
        ORDER BY le.date, le.meal_type, le.created_at`,
       [startDate, endDate]
@@ -89,9 +92,10 @@ export const logEntryRepository = {
   async getAll(): Promise<LogEntry[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<LogEntryWithFoodRow>(
-      `SELECT le.*, fi.name as food_name, fi.brand as food_brand
+      `SELECT le.*, fi.name as food_name, fi.brand as food_brand, rl.recipe_name
        FROM log_entries le
        JOIN food_items fi ON le.food_item_id = fi.id
+       LEFT JOIN recipe_logs rl ON le.recipe_log_id = rl.id
        ORDER BY le.date DESC, le.meal_type, le.created_at`
     );
     return rows.map(mapLogEntryRowToDomain);

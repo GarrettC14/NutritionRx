@@ -27,6 +27,47 @@ export const MEAL_ORDER: Record<MealType, number> = {
   [MealType.Snack]: 4,
 };
 
+// ============================================================
+// Custom Meal Type Support
+// ============================================================
+
+export interface MealTypeConfig {
+  id: string;
+  name: string;
+  icon: string;
+  sortOrder: number;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+export const DEFAULT_MEAL_CONFIGS: MealTypeConfig[] = [
+  { id: MealType.Breakfast, name: 'Breakfast', icon: '🌅', sortOrder: 1, isDefault: true, isActive: true },
+  { id: MealType.Lunch, name: 'Lunch', icon: '☀️', sortOrder: 2, isDefault: true, isActive: true },
+  { id: MealType.Dinner, name: 'Dinner', icon: '🌙', sortOrder: 3, isDefault: true, isActive: true },
+  { id: MealType.Snack, name: 'Snack', icon: '🍎', sortOrder: 4, isDefault: true, isActive: true },
+];
+
+/** Type guard for the 4 built-in meal types */
+export function isCoreMealType(value: string): value is MealType {
+  return Object.values(MealType).includes(value as MealType);
+}
+
+/** Get display name for any meal type (core or custom) */
+export function getMealTypeName(
+  mealTypeId: string,
+  customMealTypes?: Array<{ id: string; name: string }>,
+): string {
+  // Check core types first
+  if (isCoreMealType(mealTypeId)) {
+    return MEAL_TYPE_LABELS[mealTypeId];
+  }
+  // Check custom types
+  const custom = customMealTypes?.find((c) => c.id === mealTypeId);
+  if (custom) return custom.name;
+  // Fallback
+  return mealTypeId;
+}
+
 // Get suggested meal type based on current time
 export function getSuggestedMealType(): MealType {
   const hour = new Date().getHours();

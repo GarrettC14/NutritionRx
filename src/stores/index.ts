@@ -20,3 +20,4 @@ export { useMealPlanStore } from './mealPlanStore';
 export { useSubscriptionStore } from './subscriptionStore';
 export { useReflectionStore } from './reflectionStore';
 export { useNetworkStore } from './networkStore';
+export { useRecipeStore } from './recipeStore';

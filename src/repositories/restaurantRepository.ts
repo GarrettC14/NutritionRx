@@ -19,7 +19,6 @@ import {
   FoodVariant,
   FoodVariantRow,
 } from '@/types/restaurant';
-import { MealType } from '@/constants/mealTypes';
 
 // ============================================================
 // Mappers
@@ -94,7 +93,7 @@ function mapFoodLogRowToDomain(row: RestaurantFoodLogRow): RestaurantFoodLog {
     variantId: row.variant_id ?? undefined,
     loggedAt: row.logged_at,
     date: row.date,
-    meal: row.meal as MealType,
+    meal: row.meal,
     quantity: row.quantity,
     notes: row.notes ?? undefined,
     nutritionSnapshot: {
@@ -412,7 +411,7 @@ export const restaurantRepository = {
     return rows.map(mapFoodLogRowToDomain);
   },
 
-  async getLogsByDateAndMeal(date: string, meal: MealType): Promise<RestaurantFoodLog[]> {
+  async getLogsByDateAndMeal(date: string, meal: string): Promise<RestaurantFoodLog[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<RestaurantFoodLogRow>(
       `SELECT * FROM restaurant_food_logs WHERE date = ? AND meal = ? ORDER BY logged_at`,

@@ -10,7 +10,8 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
+import { useMealTypes } from '@/hooks/useMealTypes';
 import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useReflectionStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
@@ -143,15 +144,18 @@ function TodayScreen() {
 
   // Bottom sheet state for meal block menu
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const [activeMenuMealType, setActiveMenuMealType] = useState<MealType>(MealType.Breakfast);
+  const [activeMenuMealType, setActiveMenuMealType] = useState<string>(MealType.Breakfast);
 
   // Date picker state for copy flows
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<'meal' | 'day'>('meal');
-  const [copySourceMealType, setCopySourceMealType] = useState<MealType>(MealType.Breakfast);
+  const [copySourceMealType, setCopySourceMealType] = useState<string>(MealType.Breakfast);
 
   // Toast
   const { toastState, showCopied, hideToast } = useToast();
+
+  // Meal types (4 defaults + custom)
+  const mealTypes = useMealTypes();
 
   // Progressive tooltips — auto-check after dashboard settles
   useProgressiveTooltips({ autoCheck: true, autoCheckDelay: 1000 });
@@ -262,7 +266,7 @@ function TodayScreen() {
   }, [activeMenuMealType, entriesByMeal, quickEntriesByMeal]);
 
   // Handlers
-  const handleAddFood = (mealType: MealType) => {
+  const handleAddFood = (mealType: string) => {
     router.push({
       pathname: '/add-food',
       params: { mealType, date: selectedDate },
@@ -292,7 +296,7 @@ function TodayScreen() {
   };
 
   // ⋮ Menu press — open bottom sheet
-  const handleMenuPress = useCallback((mealType: MealType) => {
+  const handleMenuPress = useCallback((mealType: string) => {
     setActiveMenuMealType(mealType);
     bottomSheetRef.current?.snapToIndex(0);
   }, []);
@@ -306,16 +310,18 @@ function TodayScreen() {
   }, [activeMenuMealType, selectedDate, router]);
 
   const handleAddAlcohol = useCallback(() => {
-    // Stub: navigate to quick add until alcohol route exists (Phase 3)
     router.push({
-      pathname: '/add-food/quick',
+      pathname: '/add-food/alcohol',
       params: { mealType: activeMenuMealType, date: selectedDate },
     });
   }, [activeMenuMealType, selectedDate, router]);
 
   const handleSaveAsRecipe = useCallback(() => {
-    // Stub: will be implemented in Phase 2
-  }, []);
+    router.push({
+      pathname: '/recipes/create',
+      params: { mealType: activeMenuMealType, date: selectedDate },
+    });
+  }, [activeMenuMealType, selectedDate, router]);
 
   const handleCopyMealFromMenu = useCallback(() => {
     setCopySourceMealType(activeMenuMealType);
@@ -354,7 +360,7 @@ function TodayScreen() {
       const count = mealEntries.length + mealQuickEntries.length;
 
       const formattedDate = targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const mealLabel = MEAL_TYPE_LABELS[copySourceMealType];
+      const mealLabel = getMealTypeName(copySourceMealType);
       showCopied('Meal Copied', `${count} ${count === 1 ? 'item' : 'items'} added to ${mealLabel} on ${formattedDate}`);
     } catch (error) {
       Alert.alert('Error', 'Failed to copy meal. Please try again.');
@@ -565,12 +571,13 @@ function TodayScreen() {
   // Footer component with meal sections
   const ListFooter = () => (
     <View style={styles.mealsContainer}>
-      {MEAL_TYPE_ORDER.map((mealType) => (
+      {mealTypes.map((mt) => (
         <MealSection
-          key={mealType}
-          mealType={mealType}
-          entries={entriesByMeal[mealType]}
-          quickAddEntries={quickEntriesByMeal[mealType]}
+          key={mt.id}
+          mealType={mt.id}
+          mealTypeName={mt.name}
+          entries={entriesByMeal[mt.id] || []}
+          quickAddEntries={quickEntriesByMeal[mt.id] || []}
           onAddPress={handleAddFood}
           onEntryPress={handleEntryPress}
           onQuickAddPress={handleQuickAddPress}
@@ -727,7 +734,7 @@ function TodayScreen() {
         {/* Date Picker Modal for Copy flows */}
         <DatePickerModal
           visible={showDatePicker}
-          title={datePickerMode === 'meal' ? `Copy ${MEAL_TYPE_LABELS[copySourceMealType]} to...` : 'Copy Day to...'}
+          title={datePickerMode === 'meal' ? `Copy ${getMealTypeName(copySourceMealType)} to...` : 'Copy Day to...'}
           disabledDate={selectedDate}
           onConfirm={handleDatePickerConfirm}
           onCancel={() => setShowDatePicker(false)}
