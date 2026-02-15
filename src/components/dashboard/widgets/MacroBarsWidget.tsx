@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
-import { useDailyNutrition } from '@/hooks/useDailyNutrition';
+import { useAdjustedDailyNutrition as useDailyNutrition } from '@/hooks/useAdjustedDailyNutrition';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { useStatusColors } from '@/hooks/useStatusColor';
 import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progressZones';

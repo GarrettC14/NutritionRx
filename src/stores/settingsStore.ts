@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { settingsRepository, UserSettings, WeightUnit, Theme, CheckInDay } from '@/repositories';
+import { settingsRepository, UserSettings, WeightUnit, Theme, CheckInDay, CalorieCalculationMethod } from '@/repositories';
 import { DEFAULT_SETTINGS } from '@/constants/defaults';
 import { getDatabase } from '@/db/database';
 import { generateId } from '@/utils/generateId';
@@ -36,6 +36,7 @@ interface SettingsState {
   toggleNotifications: () => Promise<void>;
   setReminderTime: (time: string | null) => Promise<void>;
   setCheckInDay: (day: CheckInDay) => Promise<void>;
+  setCalorieCalculationMethod: (method: CalorieCalculationMethod) => Promise<void>;
   resetToDefaults: () => Promise<void>;
 
   // Custom meal type actions
@@ -55,6 +56,7 @@ const initialSettings: UserSettings = {
   notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
   reminderTime: DEFAULT_SETTINGS.reminderTime,
   checkInDay: 1 as CheckInDay, // Monday
+  calorieCalculationMethod: 'label' as CalorieCalculationMethod,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -122,6 +124,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setCheckInDay: async (day) => {
     await get().updateSettings({ checkInDay: day });
+  },
+
+  setCalorieCalculationMethod: async (method) => {
+    await get().updateSettings({ calorieCalculationMethod: method });
   },
 
   resetToDefaults: async () => {

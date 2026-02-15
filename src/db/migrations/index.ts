@@ -25,8 +25,9 @@ import { migration022Recipes } from './022_recipes';
 import { migration023CustomMealTypes } from './023_custom_meal_types';
 import { migration024HealthSyncExternalIndex } from './024_health_sync_external_index';
 import { migration025ExperienceLevel } from './025_experience_level';
+import { migration026Redistribution } from './026_redistribution';
 
-export const CURRENT_SCHEMA_VERSION = 25;
+export const CURRENT_SCHEMA_VERSION = 26;
 
 export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration001Initial,
@@ -54,6 +55,7 @@ export const migrations: Array<(db: SQLiteDatabase) => Promise<void>> = [
   migration023CustomMealTypes,
   migration024HealthSyncExternalIndex,
   migration025ExperienceLevel,
+  migration026Redistribution,
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {
