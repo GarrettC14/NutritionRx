@@ -57,12 +57,12 @@ tags:
 - assertVisible:
     id: "macro-cycling-close-button"
 
-# Select a pattern
+# Select the High/Low Carb pattern (app uses underscored pattern type: high_low_carb)
 - assertVisible:
-    id: "macro-cycling-pattern-option-high-low"
+    id: "macro-cycling-pattern-option-high_low_carb"
 
 - tapOn:
-    id: "macro-cycling-pattern-option-high-low"
+    id: "macro-cycling-pattern-option-high_low_carb"
 
 - waitForAnimationToEnd
 

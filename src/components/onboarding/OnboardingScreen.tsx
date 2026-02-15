@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Keyboard, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -91,16 +91,19 @@ export function OnboardingScreen({
       </ScrollView>
 
       {/* Footer */}
-      <View style={styles.footer}>
+      <Pressable style={styles.footer} onPress={Keyboard.dismiss}>
         <Button
           testID={continueTestID}
           label={continueLabel}
-          onPress={onContinue}
+          onPress={() => {
+            Keyboard.dismiss();
+            onContinue();
+          }}
           disabled={continueDisabled}
           loading={continueLoading}
           fullWidth
         />
-      </View>
+      </Pressable>
     </>
   );
 

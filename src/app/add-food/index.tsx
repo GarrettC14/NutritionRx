@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,19 +18,20 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
-import { MealType } from '@/constants/mealTypes';
-import { useFoodSearchStore, useFavoritesStore, useRestaurantStore } from '@/stores';
-import { FoodItem } from '@/types/domain';
+import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { useFoodLogStore, useFoodSearchStore, useFavoritesStore, useRestaurantStore } from '@/stores';
+import { FoodItem, FoodItemWithServing } from '@/types/domain';
 import { RestaurantFood } from '@/types/restaurant';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
 import { FoodSearchSkeleton } from '@/components/ui/Skeleton';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { foodRepository } from '@/repositories/foodRepository';
+import { FoodSection } from '@/components/food/FoodSection';
+import { UndoToast } from '@/components/ui/UndoToast';
+import { foodRepository, favoriteRepository } from '@/repositories';
 import { USDAFoodService } from '@/services/usda/USDAFoodService';
 import { micronutrientRepository } from '@/repositories/micronutrientRepository';
 import { TestIDs, foodSearchResult } from '@/constants/testIDs';
-import { RecentFoodsRow } from '@/components/food/RecentFoodsRow';
 import * as Sentry from '@sentry/react-native';
 import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
@@ -60,12 +61,36 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+function calculateNutritionForServing(food: FoodItem, servingSize: number) {
+  if (!food.servingSize || food.servingSize <= 0) {
+    return {
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    };
+  }
+
+  const multiplier = servingSize / food.servingSize;
+  return {
+    calories: Math.round(food.calories * multiplier),
+    protein: Math.round(food.protein * multiplier * 10) / 10,
+    carbs: Math.round(food.carbs * multiplier * 10) / 10,
+    fat: Math.round(food.fat * multiplier * 10) / 10,
+  };
+}
+
 function AddFoodScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ mealType?: string; date?: string; searchQuery?: string }>();
 
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealTypeFromParams = params.mealType as MealType | undefined;
+  const mealType = (Object.values(MealType) as string[]).includes(
+    mealTypeFromParams as string
+  )
+    ? (mealTypeFromParams as MealType)
+    : MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Tab state
@@ -75,10 +100,17 @@ function AddFoodScreen() {
   const [searchText, setSearchText] = useState(params.searchQuery || '');
   const debouncedSearch = useDebounce(searchText, SEARCH_SETTINGS.debounceMs);
 
+  const [favoriteServingDefaults, setFavoriteServingDefaults] = useState<Record<
+    string,
+    { size: number; unit: string }
+  >>({});
 
   // Custom foods state
   const [customFoods, setCustomFoods] = useState<FoodItem[]>([]);
-  const [isLoadingCustom, setIsLoadingCustom] = useState(false);
+  const [quickLogUndo, setQuickLogUndo] = useState<{
+    entryId: string;
+    message: string;
+  } | null>(null);
 
   // My Foods search results (local filtering)
   const [myFoodsSearchResults, setMyFoodsSearchResults] = useState<FoodItem[]>([]);
@@ -86,13 +118,23 @@ function AddFoodScreen() {
   // Food search store
   const {
     results,
+    mealContextFoods,
+    scannedHistory,
     recentFoods,
     isSearching,
+    isLoadingRecent,
+    isLoadingMealContext,
+    isLoadingScanned,
     isLoaded,
     search,
     clearSearch,
     loadRecentFoods,
+    loadFrequentFoods,
+    loadMealContextFoods,
+    loadScannedHistory,
   } = useFoodSearchStore();
+
+  const { addLogEntry, deleteLogEntry } = useFoodLogStore();
 
   // Favorites store
   const {
@@ -110,27 +152,69 @@ function AddFoodScreen() {
 
   // Load data on mount
   useEffect(() => {
-    loadRecentFoods();
-    loadFavorites();
-    loadCustomFoods();
+    Promise.all([
+      loadFavorites(),
+      loadFrequentFoods(),
+      mealType ? loadMealContextFoods(mealType, 10) : Promise.resolve(),
+      loadRecentFoods(),
+      loadScannedHistory(5),
+      loadCustomFoods(),
+    ]);
   }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadFavoriteDefaults = async () => {
+      const defaults = await Promise.all(
+        favorites.map(async (food) => {
+          const defaultsForFood = await favoriteRepository.getDefaults(food.id);
+          if (!defaultsForFood?.servingSize || !defaultsForFood.servingUnit) return null;
+          return {
+            foodId: food.id,
+            servingSize: defaultsForFood.servingSize,
+            servingUnit: defaultsForFood.servingUnit,
+          };
+        })
+      );
+
+      if (!isActive) return;
+
+      const nextMap: Record<string, { size: number; unit: string }> = {};
+      defaults.forEach((entry) => {
+        if (!entry) return;
+        nextMap[entry.foodId] = {
+          size: entry.servingSize,
+          unit: entry.servingUnit,
+        };
+      });
+      setFavoriteServingDefaults(nextMap);
+    };
+
+    loadFavoriteDefaults().catch(() => undefined);
+    return () => {
+      isActive = false;
+    };
+  }, [favorites]);
 
   // Refresh recent foods when screen regains focus (e.g. after logging a food)
   useFocusEffect(
     useCallback(() => {
-      loadRecentFoods();
-    }, [loadRecentFoods])
+      Promise.all([
+        loadRecentFoods(),
+        loadFrequentFoods(),
+        mealType ? loadMealContextFoods(mealType, 10) : Promise.resolve(),
+        loadScannedHistory(5),
+      ]);
+    }, [loadRecentFoods, loadFrequentFoods, loadScannedHistory, loadMealContextFoods, mealType])
   );
 
   const loadCustomFoods = async () => {
-    setIsLoadingCustom(true);
     try {
       const foods = await foodRepository.getUserCreated();
       setCustomFoods(foods);
     } catch (error) {
       if (__DEV__) console.error('Failed to load custom foods:', error);
-    } finally {
-      setIsLoadingCustom(false);
     }
   };
 
@@ -186,13 +270,6 @@ function AddFoodScreen() {
   }, [debouncedSearch, activeTab, favorites, customFoods]);
 
   // Combine results for "All" tab when searching
-  const allSearchResults = useMemo(() => {
-    if (activeTab !== 'all') return [];
-    // Combine local results and restaurant results
-    // Restaurant foods need to be converted to a display format
-    return results;
-  }, [activeTab, results]);
-
   const handleFoodSelect = useCallback(async (food: FoodItem) => {
     let foodId = food.id;
 
@@ -252,6 +329,86 @@ function AddFoodScreen() {
       },
     });
   }, [mealType, date, router]);
+
+  const handleFoodPress = useCallback((food: FoodItem) => {
+    router.push({
+      pathname: '/add-food/log',
+      params: {
+        foodId: food.id,
+        mealType,
+        date,
+      },
+    });
+  }, [mealType, date, router]);
+
+  const getServingHintForFood = useCallback((food: FoodItem | FoodItemWithServing) => {
+    const foodWithServing = food as FoodItemWithServing;
+    const favoriteServing = favoriteServingDefaults[food.id];
+
+    if (favoriteServing) {
+      return favoriteServing;
+    }
+
+    if (foodWithServing.servingHint) {
+      return foodWithServing.servingHint;
+    }
+
+    if (!food.servingSize) {
+      return undefined;
+    }
+
+    return {
+      size: food.servingSize,
+      unit: food.servingUnit,
+    };
+  }, [favoriteServingDefaults]);
+
+  const handleQuickLog = useCallback(async (
+    food: FoodItem | FoodItemWithServing,
+    serving: { size: number; unit: string }
+  ) => {
+    const currentMealType = mealType || MealType.Snack;
+    const currentDate = date;
+
+    const normalizedServing = serving?.size && serving.size > 0 ? serving.size : food.servingSize;
+    const nutrition = calculateNutritionForServing(food as FoodItem, normalizedServing);
+
+    try {
+      const entry = await addLogEntry({
+        foodItemId: food.id,
+        date: currentDate,
+        mealType: currentMealType,
+        servings: normalizedServing,
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        carbs: nutrition.carbs,
+        fat: nutrition.fat,
+      });
+
+      setQuickLogUndo({
+        entryId: entry.id,
+        message: `${food.name} logged ✓`,
+      });
+    } catch (error) {
+      if (__DEV__) console.error('Quick log failed:', error);
+    }
+  }, [mealType, date, addLogEntry]);
+
+  const handleQuickLogUndo = useCallback(async () => {
+    if (!quickLogUndo) return;
+
+    try {
+      await deleteLogEntry(quickLogUndo.entryId);
+    } catch (error) {
+      if (__DEV__) console.error('Undo quick log failed:', error);
+    } finally {
+      setQuickLogUndo(null);
+    }
+  }, [quickLogUndo, deleteLogEntry]);
+
+  const handleQuickLogToastDismiss = useCallback(() => {
+    setQuickLogUndo(null);
+  }, []);
 
   const handleRestaurantFoodSelect = useCallback((food: RestaurantFood) => {
     router.push({
@@ -385,10 +542,15 @@ function AddFoodScreen() {
       );
     }
 
-    // Default view: Favorites + Recently Logged sections
-    const hasAnyContent = favorites.length > 0 || recentFoods.length > 0;
+    const isDefaultLoading =
+      isLoadingRecent || isLoadingMealContext || isLoadingScanned;
+    const hasAnyContent =
+      favorites.length > 0 ||
+      mealContextFoods.length > 0 ||
+      recentFoods.length > 0 ||
+      scannedHistory.length > 0;
 
-    if (!hasAnyContent) {
+    if (!hasAnyContent && !isDefaultLoading) {
       return renderInitialEmpty();
     }
 
@@ -399,24 +561,55 @@ function AddFoodScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <CollapsibleSection
-          testID={TestIDs.AddFood.FavoritesSection}
-          title="Favorites"
-          itemCount={favorites.length}
-          defaultExpanded={true}
-          emptyMessage="Tap ★ on any food to save it here"
-        >
-          {favorites.map(renderFoodItemSimple)}
-        </CollapsibleSection>
+        {favorites.length > 0 ? (
+          <FoodSection
+            testID={TestIDs.AddFood.FavoritesSection}
+            title="Favorites"
+            icon="★"
+            foods={favorites}
+            maxVisible={5}
+            onFoodPress={handleFoodPress}
+            onQuickLog={handleQuickLog}
+            getServingHint={getServingHintForFood}
+          />
+        ) : null}
 
-        <CollapsibleSection
+        {mealType ? (
+          <FoodSection
+            title={`For ${MEAL_TYPE_LABELS[mealType] || 'this meal'}`}
+            icon="🔄"
+            foods={mealContextFoods}
+            isLoading={isLoadingMealContext}
+            maxVisible={5}
+            onFoodPress={handleFoodPress}
+            onQuickLog={handleQuickLog}
+            getServingHint={getServingHintForFood}
+          />
+        ) : null}
+
+        <FoodSection
           title="Recently Logged"
-          itemCount={recentFoods.length}
-          defaultExpanded={false}
-          emptyMessage="No recently logged foods"
-        >
-          {recentFoods.map(renderFoodItemSimple)}
-        </CollapsibleSection>
+          icon="🕐"
+          foods={recentFoods}
+          isLoading={isLoadingRecent}
+          maxVisible={5}
+          onFoodPress={handleFoodPress}
+          onQuickLog={handleQuickLog}
+          getServingHint={getServingHintForFood}
+        />
+
+        {scannedHistory.length > 0 ? (
+          <FoodSection
+            title="Previously Scanned"
+            icon="📱"
+            foods={scannedHistory}
+            isLoading={isLoadingScanned}
+            maxVisible={3}
+            onFoodPress={handleFoodPress}
+            onQuickLog={handleQuickLog}
+            getServingHint={getServingHintForFood}
+          />
+        ) : null}
       </ScrollView>
     );
   };
@@ -575,8 +768,11 @@ function AddFoodScreen() {
   const renderInitialEmpty = () => (
     <View style={styles.emptyState}>
       <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+        Start logging your meals
+      </Text>
       <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-        Search for a food or scan a barcode
+        Your favorites and frequently used foods will appear here for quick access.
       </Text>
     </View>
   );
@@ -610,9 +806,6 @@ function AddFoodScreen() {
           Add Food
         </Text>
       </View>
-
-      {/* Recent Foods Quick Access */}
-      <RecentFoodsRow mealType={mealType} date={date} />
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -662,6 +855,15 @@ function AddFoodScreen() {
 
         {!isAnySearching && renderTabContent()}
       </View>
+
+      {quickLogUndo ? (
+        <UndoToast
+          message={quickLogUndo.message}
+          onUndo={handleQuickLogUndo}
+          visible
+          onDismiss={handleQuickLogToastDismiss}
+        />
+      ) : null}
 
       {/* Bottom Action Buttons */}
       <View style={[styles.bottomButtonsContainer, { backgroundColor: colors.bgPrimary }]}>

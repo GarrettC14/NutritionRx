@@ -57,24 +57,25 @@ export function DateOfBirthPicker({
 }: DateOfBirthPickerProps) {
   const { colors, colorScheme } = useTheme();
 
+  // Default to 30 years ago when no value provided
+  const defaultYear = useMemo(() => new Date().getFullYear() - 30, []);
+
   const [step, setStep] = useState<Step>('year');
   const [selectedYear, setSelectedYear] = useState<number | null>(
-    value?.getFullYear() ?? null,
+    value?.getFullYear() ?? defaultYear,
   );
   const [selectedMonth, setSelectedMonth] = useState<number | null>(
-    value != null ? value.getMonth() : null,
+    value != null ? value.getMonth() : 0,
   );
 
   // Reset to year step when modal opens
   React.useEffect(() => {
     if (visible) {
-      if (value) {
-        setSelectedYear(value.getFullYear());
-        setSelectedMonth(value.getMonth());
-      }
+      setSelectedYear(value?.getFullYear() ?? defaultYear);
+      setSelectedMonth(value != null ? value.getMonth() : 0);
       setStep('year');
     }
-  }, [visible]);
+  }, [visible, defaultYear]);
 
   const today = useMemo(() => new Date(), []);
   const maxDate = maximumDate ?? today;
@@ -153,6 +154,16 @@ export function DateOfBirthPicker({
     if (step === 'day') setStep('month');
     else if (step === 'month') setStep('year');
   }, [step]);
+
+  const handleDone = useCallback(() => {
+    const year = selectedYear ?? defaultYear;
+    const month = selectedMonth ?? 0;
+    const day = value?.getDate() ?? 1;
+    const date = new Date(year, month, day);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    onSelect(date);
+    onClose();
+  }, [selectedYear, selectedMonth, defaultYear, value, onSelect, onClose]);
 
   const shadowStyle = shadows[colorScheme]?.lg ?? shadows.dark.lg;
 
@@ -313,6 +324,14 @@ export function DateOfBirthPicker({
               })}
             </View>
           )}
+
+          {/* Done button — confirms current selection */}
+          <Pressable
+            onPress={handleDone}
+            style={[styles.doneButton, { backgroundColor: colors.accent }]}
+          >
+            <Text style={styles.doneText}>Done</Text>
+          </Pressable>
         </Pressable>
       </Pressable>
     </Modal>
@@ -422,5 +441,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
+  },
+  doneButton: {
+    marginTop: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+  },
+  doneText: {
+    ...typography.body.medium,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

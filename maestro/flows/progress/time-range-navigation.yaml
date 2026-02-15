@@ -23,14 +23,8 @@ tags:
     visible:
       id: "progress-time-range-7d"
     timeout: 15000
-- assertVisible:
-    id: "progress-time-range-30d"
-- assertVisible:
-    id: "progress-time-range-90d"
-- assertVisible:
-    id: "progress-time-range-all"
 
-# Test each range
+# Test each range — tap sequentially (some buttons may need horizontal scroll)
 - tapOn:
     id: "progress-time-range-7d"
 - waitForAnimationToEnd

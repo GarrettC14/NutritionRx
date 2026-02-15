@@ -16,39 +16,22 @@ tags:
 - assertVisible:
     id: "legal-screen"
 
-# Swipe to scroll to bottom (triggers onScroll events for hasScrolledToBottom)
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-
-# Wait for scroll-to-bottom detection
-- extendedWaitUntil:
-    visible:
-      id: "legal-scroll-complete"
-    timeout: 3000
+# Checkbox and button are in a fixed bottom section (no scroll required)
+- waitForAnimationToEnd
 
 - tapOn:
     id: "legal-checkbox"
 
+- waitForAnimationToEnd
+
 - tapOn:
     id: "legal-proceed-button"
 
-# === Goal Selection (app goes directly from legal to goal — no welcome screen) ===
+# === Screen 1: Goal Selection ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-goal-screen"
     timeout: 5000
-- assertVisible:
-    id: "onboarding-goal-back-button"
 
 # Verify all goal options
 - assertVisible:
@@ -67,60 +50,151 @@ tags:
 - tapOn:
     id: "onboarding-goal-continue-button"
 
-# === Preferences ===
-- assertVisible:
-    id: "onboarding-preferences-screen"
-- assertVisible:
-    id: "onboarding-preferences-back-button"
+# === Screen 2: About You ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-about-you-screen"
+    timeout: 5000
 
-# Verify unit options
 - assertVisible:
-    id: "onboarding-energy-calories"
-- assertVisible:
-    id: "onboarding-energy-kilojoules"
-- assertVisible:
-    id: "onboarding-weight-lbs"
-- assertVisible:
-    id: "onboarding-weight-kg"
-
-# Select preferences
-- tapOn:
-    id: "onboarding-energy-calories"
-- tapOn:
-    id: "onboarding-weight-lbs"
+    id: "onboarding-about-you-back-button"
 
 - tapOn:
-    id: "onboarding-preferences-continue-button"
+    id: "onboarding-sex-male"
 
-# === Ready Screen ===
-- assertVisible:
-    id: "onboarding-ready-screen"
-- assertVisible:
-    id: "onboarding-ready-back-button"
-
-# Verify CTA options
-- assertVisible:
-    id: "onboarding-ready-scan-barcode"
-- assertVisible:
-    id: "onboarding-ready-search-food"
-- assertVisible:
-    id: "onboarding-ready-explore-app"
-
-# Choose to explore app
 - tapOn:
-    id: "onboarding-ready-explore-app"
+    id: "onboarding-dob"
+
+# Confirm default date
+- tapOn:
+    text: "Done"
+    optional: true
+
+- tapOn:
+    id: "onboarding-about-you-continue-button"
+
+# === Screen 3: Body Stats ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-body-stats-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-body-stats-back-button"
+
+# Height: ft/in mode — feet field has testID, maxLength=1
+- tapOn:
+    id: "onboarding-height"
+- inputText: "5"
+
+# Dismiss keyboard so weight field is visible
+- hideKeyboard
+
+- tapOn:
+    id: "onboarding-weight"
+- inputText: "180"
+
+- tapOn:
+    id: "onboarding-body-stats-continue-button"
+
+# === Screen 4: Activity Level ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-activity-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-activity-back-button"
+
+# Verify activity options
+- assertVisible:
+    id: "onboarding-activity-sedentary"
+- assertVisible:
+    id: "onboarding-activity-lightly"
+- assertVisible:
+    id: "onboarding-activity-moderately"
+- assertVisible:
+    id: "onboarding-activity-very"
+- assertVisible:
+    id: "onboarding-activity-extremely"
+
+# moderately_active is pre-selected, just continue
+- tapOn:
+    id: "onboarding-activity-continue-button"
+
+# === Screen 5: Eating Style ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-eating-style-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-eating-style-back-button"
+
+# flexible is pre-selected, just continue
+- tapOn:
+    id: "onboarding-eating-style-continue-button"
+
+# === Screen 6: Protein Priority ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-protein-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-protein-back-button"
+
+# standard is pre-selected, just continue
+- tapOn:
+    id: "onboarding-protein-continue-button"
+
+# === Screen 7: Target (shown for 'lose' goal) ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-target-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-target-back-button"
+
+- tapOn:
+    id: "onboarding-target-weight"
+- inputText: "160"
+
+# moderate rate is pre-selected, just continue
+- tapOn:
+    id: "onboarding-target-continue-button"
+
+# === Screen 8: Your Plan ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-your-plan-screen"
+    timeout: 5000
+
+- assertVisible:
+    id: "onboarding-your-plan-back-button"
+
+- tapOn:
+    id: "onboarding-start-tracking"
 
 # === Home Screen ===
+# The edit tooltip modal may appear on top, blocking home-screen testID.
+# Wait for and dismiss the tooltip first.
+- extendedWaitUntil:
+    visible:
+      text: "Got it!"
+    timeout: 15000
+
+- tapOn:
+    text: "Got it!"
+
 - extendedWaitUntil:
     visible:
       id: "home-screen"
     timeout: 5000
 
-# Wait for skeleton to dismiss (home-date-label only renders after isReady)
+# Wait for skeleton to dismiss
 - extendedWaitUntil:
     visible:
       id: "home-date-label"
     timeout: 8000
-
-# Note: widget testIDs are too deep in the view hierarchy for Maestro to access
-# The home-date-label assertion above confirms the dashboard loaded successfully

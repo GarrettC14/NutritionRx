@@ -10,7 +10,17 @@ tags:
 
 # In dev builds, isPremium defaults to true (__DEV__), so the settings premium row
 # opens the Play Store instead of the in-app paywall. Use deep link to open paywall directly.
+# Note: On Android, openLink with custom scheme triggers "Open in NutritionRx?" dialog.
 - openLink: "nutritionrx://paywall?context=general"
+
+# Dismiss Android "Open in NutritionRx?" confirmation dialog if present
+- tapOn:
+    text: "nutritionrx"
+    optional: true
+
+- tapOn:
+    text: "Open"
+    optional: true
 
 # Paywall screen may have loading state
 - extendedWaitUntil:
@@ -23,6 +33,8 @@ tags:
     id: "paywall-close-button"
 
 # Wait for offerings to load, then assert all paywall elements strictly
+# Note: In dev builds without RevenueCat configured, offerings may not load
+# and the subscribe button may not appear. This test requires proper RevenueCat setup.
 - extendedWaitUntil:
     visible:
       id: "paywall-subscribe-button"

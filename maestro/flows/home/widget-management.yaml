@@ -72,11 +72,11 @@ tags:
 
 - waitForAnimationToEnd
 
-# Verify default widget(s) restored
+# Verify default widgets restored (defaults: nutrition_overview, quick_add, water_tracker, todays_meals, streak_badge)
 - assertVisible:
-    id: "widget-calorie-ring"
+    id: "widget-nutrition-overview"
 - assertVisible:
-    id: "widget-macro-bars"
+    id: "widget-water-tracker"
 
 # Exit edit mode
 - tapOn:

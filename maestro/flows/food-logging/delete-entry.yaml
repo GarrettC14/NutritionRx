@@ -17,25 +17,29 @@ tags:
       id: "add-food-screen"
     timeout: 5000
 
-# Quick Add to create a simple entry
+# Search for a food to log
 - tapOn:
-    id: "add-food-quick-add-button"
+    id: "add-food-search-input"
+- inputText: "apple"
 
 - extendedWaitUntil:
     visible:
-      id: "quick-add-screen"
-    timeout: 3000
+      id: "add-food-search-result-item-.*"
+    timeout: 10000
 
 - tapOn:
-    id: "quick-add-calories-input"
-- inputText: "100"
+    id: "add-food-search-result-item-.*"
+    index: 0
 
-- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "log-food-screen"
+    timeout: 5000
 
+# Log the food (defaults to Snack meal type)
 - tapOn:
-    id: "quick-add-add-button"
+    id: "log-food-add-button"
 
-# Wait for dismiss animation (returns to add-food screen)
 - waitForAnimationToEnd
 
 # Navigate home via tab bar
@@ -67,7 +71,7 @@ tags:
     direction: UP
     duration: 500
 
-# Expand the Snack section (Quick Add defaults to Snack)
+# Expand the Snack section (default meal type)
 - tapOn:
     id: "meal-snack-section"
 

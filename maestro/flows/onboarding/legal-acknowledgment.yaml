@@ -19,36 +19,19 @@ tags:
 - assertVisible:
     id: "legal-scroll-view"
 
-# Swipe to scroll to bottom (triggers onScroll events for hasScrolledToBottom)
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
+# Checkbox and button are in a fixed bottom section (no scroll required)
+- waitForAnimationToEnd
 
-# Wait for scroll-to-bottom detection
-- extendedWaitUntil:
-    visible:
-      id: "legal-scroll-complete"
-    timeout: 3000
-
-# Tap checkbox — try by ID first (LogBox is now suppressed)
 - tapOn:
     id: "legal-checkbox"
 
-# Tap proceed button
+- waitForAnimationToEnd
+
 - tapOn:
     id: "legal-proceed-button"
 
-# Should move to onboarding
+# Should move to onboarding goal screen
 - extendedWaitUntil:
     visible:
-      id: "onboarding-welcome-screen"
+      id: "onboarding-goal-screen"
     timeout: 5000

@@ -114,7 +114,6 @@ function RootLayoutContent() {
         <Stack.Screen
           name="legal-acknowledgment"
           options={{
-            presentation: 'fullScreenModal',
             animation: 'fade',
             gestureEnabled: false,
           }}
@@ -128,11 +127,10 @@ function RootLayoutContent() {
           }}
         />
 
-        {/* Full screen modal flow - slide up, no gesture dismiss */}
+        {/* Full screen onboarding flow — no back gesture */}
         <Stack.Screen
           name="onboarding"
           options={{
-            presentation: 'fullScreenModal',
             animation: 'slide_from_bottom',
             gestureEnabled: false,
           }}

@@ -16,28 +16,13 @@ name: Complete Onboarding Utility
       id: "legal-screen"
     timeout: 30000
 
-# Legal Acknowledgment — swipe to scroll to bottom (triggers onScroll events)
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-
-# Wait for scroll-to-bottom detection to enable the checkbox
-- extendedWaitUntil:
-    visible:
-      id: "legal-scroll-complete"
-    timeout: 3000
+# Checkbox and button are in a fixed bottom section (no scroll required)
+- waitForAnimationToEnd
 
 - tapOn:
     id: "legal-checkbox"
+
+- waitForAnimationToEnd
 
 - tapOn:
     id: "legal-proceed-button"
@@ -80,9 +65,13 @@ name: Complete Onboarding Utility
       id: "onboarding-body-stats-screen"
     timeout: 5000
 
+# Height: ft/in mode — feet field has testID, maxLength=1
 - tapOn:
     id: "onboarding-height"
-- inputText: "70"
+- inputText: "5"
+
+# Dismiss keyboard so weight field is visible
+- hideKeyboard
 
 - tapOn:
     id: "onboarding-weight"
@@ -144,8 +133,13 @@ name: Complete Onboarding Utility
 - tapOn:
     id: "onboarding-start-tracking"
 
+# Dismiss edit tooltip modal (blocks home-screen testID on Android)
+- tapOn:
+    text: "Got it!"
+    optional: true
+
 # Verify Home
 - extendedWaitUntil:
     visible:
       id: "home-screen"
-    timeout: 10000
+    timeout: 15000

@@ -1,12 +1,10 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/hooks/useRouter';
@@ -35,7 +33,6 @@ export default function LegalAcknowledgmentScreen() {
   const router = useRouter();
   const { acknowledge } = useLegalAcknowledgment();
 
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,45 +44,8 @@ export default function LegalAcknowledgmentScreen() {
     opacity: checkScale.value,
   }));
 
-  const canProceed = hasScrolledToBottom && isChecked;
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-      const paddingToBottom = 40;
-      const isAtBottom =
-        layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom;
-
-      if (__DEV__) {
-        console.log(
-          `[Legal] onScroll: offset=${contentOffset.y.toFixed(0)} ` +
-          `layout=${layoutMeasurement.height.toFixed(0)} ` +
-          `content=${contentSize.height.toFixed(0)} ` +
-          `atBottom=${isAtBottom}`
-        );
-      }
-
-      if (isAtBottom) {
-        setHasScrolledToBottom(true);
-      }
-    },
-    []
-  );
-
-  const handleScrollToBottom = useCallback(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, []);
-
   const handleCheckboxPress = () => {
-    if (!hasScrolledToBottom) {
-      // Scroll to bottom and set state immediately so the next tap toggles the checkbox
-      if (__DEV__) console.log('[Legal] Checkbox pressed before scroll — calling scrollToEnd');
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-      setHasScrolledToBottom(true);
-      return;
-    }
-
+    if (__DEV__) console.log('[Legal] handleCheckboxPress called');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const newChecked = !isChecked;
     setIsChecked(newChecked);
@@ -98,17 +58,20 @@ export default function LegalAcknowledgmentScreen() {
   };
 
   const handleProceed = async () => {
-    if (!canProceed || isSubmitting) return;
+    if (__DEV__) console.log('[Legal] handleProceed called, isChecked:', isChecked, 'isSubmitting:', isSubmitting);
+    if (!isChecked || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
+      if (__DEV__) console.log('[Legal] Calling acknowledge()...');
       await acknowledge();
-      // Navigate directly to the right destination instead of going through
-      // root index (which may not remount properly after Fresh Session).
+      if (__DEV__) console.log('[Legal] acknowledge() done');
       const onboardingComplete = useOnboardingStore.getState().isComplete;
-      router.replace(onboardingComplete ? '/(tabs)' : '/onboarding');
+      const target = onboardingComplete ? '/(tabs)' : '/onboarding/goal';
+      if (__DEV__) console.log('[Legal] Navigating to:', target);
+      router.replace(target);
     } catch (error) {
-      if (__DEV__) console.error('Failed to acknowledge:', error);
+      if (__DEV__) console.error('[Legal] Failed to acknowledge:', error);
       setIsSubmitting(false);
     }
   };
@@ -125,13 +88,12 @@ export default function LegalAcknowledgmentScreen() {
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
       edges={['top', 'bottom']}
     >
+      {/* Scrollable disclaimer content */}
       <ScrollView
         ref={scrollViewRef}
         testID={TestIDs.Legal.ScrollView}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -154,96 +116,70 @@ export default function LegalAcknowledgmentScreen() {
           />
         ))}
 
-        {/* Acknowledgment Section */}
-        <View style={styles.acknowledgmentSection}>
-          {/* Checkbox */}
-          <Pressable
-            testID={TestIDs.Legal.Checkbox}
+      </ScrollView>
+
+      {/* Fixed bottom section — always visible */}
+      <View style={[styles.bottomSection, { borderTopColor: colors.borderDefault }]}>
+        {/* Sentinel for Maestro — always rendered since checkbox is the real gate */}
+        <View
+          testID={TestIDs.Legal.ScrollComplete}
+          collapsable={false}
+          style={{ height: 1, width: 1 }}
+        />
+        {/* Checkbox */}
+        <Pressable
+          testID={TestIDs.Legal.Checkbox}
+          style={[
+            styles.checkbox,
+            {
+              backgroundColor: colors.bgSecondary,
+              borderColor: isChecked ? colors.accent : colors.borderDefault,
+            },
+          ]}
+          onPress={handleCheckboxPress}
+        >
+          <View
             style={[
-              styles.checkbox,
+              styles.checkboxBox,
               {
-                backgroundColor: colors.bgSecondary,
-                borderColor: hasScrolledToBottom
-                  ? isChecked
-                    ? colors.accent
-                    : colors.borderDefault
-                  : colors.bgInteractive,
-                opacity: hasScrolledToBottom ? 1 : 0.5,
+                borderColor: isChecked ? colors.accent : colors.borderDefault,
+                backgroundColor: isChecked ? colors.accent : 'transparent',
               },
             ]}
-            onPress={handleCheckboxPress}
           >
-            <View
-              style={[
-                styles.checkboxBox,
-                {
-                  borderColor: isChecked ? colors.accent : colors.borderDefault,
-                  backgroundColor: isChecked ? colors.accent : 'transparent',
-                },
-              ]}
-            >
-              <Animated.View style={animatedCheckStyle}>
-                <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-              </Animated.View>
-            </View>
-            <Text
-              style={[
-                styles.checkboxLabel,
-                { color: hasScrolledToBottom ? colors.textPrimary : colors.textTertiary },
-              ]}
-            >
-              I've read and understand the above
-            </Text>
-          </Pressable>
-
-          {/* Sentinel for Maestro: visible only after scroll-to-bottom detected */}
-          {hasScrolledToBottom && (
-            <View
-              testID={TestIDs.Legal.ScrollComplete}
-              collapsable={false}
-              style={{ height: 1, width: 1 }}
-            />
-          )}
-
-          {/* Scroll hint — tappable to auto-scroll to bottom */}
-          {!hasScrolledToBottom && (
-            <Pressable
-              testID={TestIDs.Legal.ScrollToBottom}
-              style={styles.scrollHint}
-              onPress={handleScrollToBottom}
-            >
-              <Ionicons name="chevron-down" size={16} color={colors.textTertiary} />
-              <Text style={[styles.scrollHintText, { color: colors.textTertiary }]}>
-                Scroll to continue
-              </Text>
-            </Pressable>
-          )}
-
-          {/* Proceed Button */}
-          <Button
-            testID={TestIDs.Legal.ProceedButton}
-            onPress={handleProceed}
-            disabled={!canProceed}
-            loading={isSubmitting}
-            fullWidth
-            style={styles.proceedButton}
+            <Animated.View style={animatedCheckStyle}>
+              <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+            </Animated.View>
+          </View>
+          <Text
+            style={[
+              styles.checkboxLabel,
+              { color: colors.textPrimary },
+            ]}
           >
-            {content.buttonText}
-          </Button>
-
-          {/* Welcome message */}
-          <Text style={[styles.welcomeMessage, { color: colors.textSecondary }]}>
-            Welcome to NutritionRx — let's set up your preferences
+            I've read and understand the above
           </Text>
+        </Pressable>
 
-          {/* Terms Link */}
-          <Pressable testID={TestIDs.Legal.TermsLink} onPress={handleTermsPress} style={styles.termsLink}>
-            <Text style={[styles.termsText, { color: colors.textTertiary }]}>
-              Read full Terms of Service
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+        {/* Proceed Button */}
+        <Button
+          testID={TestIDs.Legal.ProceedButton}
+          onPress={handleProceed}
+          disabled={!isChecked}
+          loading={isSubmitting}
+          fullWidth
+          style={styles.proceedButton}
+        >
+          {content.buttonText}
+        </Button>
+
+        {/* Terms Link */}
+        <Pressable testID={TestIDs.Legal.TermsLink} onPress={handleTermsPress} style={styles.termsLink}>
+          <Text style={[styles.termsText, { color: colors.textTertiary }]}>
+            Read full Terms of Service
+          </Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -258,7 +194,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: componentSpacing.screenEdgePadding,
     paddingTop: spacing[8],
-    paddingBottom: spacing[6],
+    paddingBottom: spacing[4],
   },
   header: {
     alignItems: 'center',
@@ -274,8 +210,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  acknowledgmentSection: {
-    marginTop: spacing[4],
+  bottomSection: {
+    paddingHorizontal: componentSpacing.screenEdgePadding,
+    paddingTop: spacing[3],
+    paddingBottom: spacing[2],
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   checkbox: {
     flexDirection: 'row',
@@ -297,27 +236,12 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     flex: 1,
   },
-  scrollHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[1],
-    marginTop: spacing[3],
-  },
-  scrollHintText: {
-    ...typography.caption,
-  },
   proceedButton: {
-    marginTop: spacing[4],
-  },
-  welcomeMessage: {
-    ...typography.body.small,
-    textAlign: 'center',
     marginTop: spacing[3],
   },
   termsLink: {
     alignItems: 'center',
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[3],
   },
   termsText: {
     ...typography.body.small,

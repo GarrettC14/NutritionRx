@@ -16,10 +16,26 @@ tags:
       id: "settings-screen"
     timeout: 3000
 
-- scrollUntilVisible:
-    element:
+# Swipe down past Premium, Your Plan, Tracking, AI Model sections to reach PROFILE section
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 500
+
+- extendedWaitUntil:
+    visible:
       id: "settings-units-row"
-    direction: DOWN
     timeout: 5000
 
 - tapOn:

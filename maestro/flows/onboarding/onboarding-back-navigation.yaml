@@ -12,77 +12,111 @@ tags:
       id: "legal-screen"
     timeout: 30000
 
-# Swipe to scroll to bottom (triggers onScroll events for hasScrolledToBottom)
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-- swipe:
-    direction: UP
-    duration: 500
-
-# Wait for scroll-to-bottom detection
-- extendedWaitUntil:
-    visible:
-      id: "legal-scroll-complete"
-    timeout: 3000
+# Checkbox and button are in a fixed bottom section (no scroll required)
+- waitForAnimationToEnd
 
 - tapOn:
     id: "legal-checkbox"
 
+- waitForAnimationToEnd
+
 - tapOn:
     id: "legal-proceed-button"
 
-# Legal → Goal (app goes directly from legal to goal — no welcome screen)
+# === Goal Screen ===
 - extendedWaitUntil:
     visible:
       id: "onboarding-goal-screen"
     timeout: 5000
 
-# Goal → Preferences
+# Select "Maintain weight" (no target screen)
 - tapOn:
     id: "onboarding-goal-option-maintain"
 
 - tapOn:
     id: "onboarding-goal-continue-button"
 
-- assertVisible:
-    id: "onboarding-preferences-screen"
+# === About You Screen ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-about-you-screen"
+    timeout: 5000
 
 # Go back to Goal
 - tapOn:
-    id: "onboarding-preferences-back-button"
+    id: "onboarding-about-you-back-button"
 
 - assertVisible:
     id: "onboarding-goal-screen"
 
-# Previous selection should be preserved
+# Previous selection should be preserved — continue again
 - tapOn:
     id: "onboarding-goal-continue-button"
 
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-about-you-screen"
+    timeout: 5000
+
+# Fill about-you and continue
+- tapOn:
+    id: "onboarding-sex-male"
+
+- tapOn:
+    id: "onboarding-dob"
+
+- tapOn:
+    text: "Done"
+    optional: true
+
+- tapOn:
+    id: "onboarding-about-you-continue-button"
+
+# === Body Stats Screen ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-body-stats-screen"
+    timeout: 5000
+
+# Go back to About You
+- tapOn:
+    id: "onboarding-body-stats-back-button"
+
 - assertVisible:
-    id: "onboarding-preferences-screen"
+    id: "onboarding-about-you-screen"
 
-# Continue to Ready
+# Go forward again
 - tapOn:
-    id: "onboarding-energy-calories"
+    id: "onboarding-about-you-continue-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-body-stats-screen"
+    timeout: 5000
+
+# Fill body stats — height feet field has maxLength=1
 - tapOn:
-    id: "onboarding-weight-kg"
+    id: "onboarding-height"
+- inputText: "5"
+
+- hideKeyboard
 
 - tapOn:
-    id: "onboarding-preferences-continue-button"
+    id: "onboarding-weight"
+- inputText: "180"
+
+- tapOn:
+    id: "onboarding-body-stats-continue-button"
+
+# === Activity Screen ===
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-activity-screen"
+    timeout: 5000
+
+# Go back to Body Stats
+- tapOn:
+    id: "onboarding-activity-back-button"
 
 - assertVisible:
-    id: "onboarding-ready-screen"
-
-# Go back to Preferences
-- tapOn:
-    id: "onboarding-ready-back-button"
-
-- assertVisible:
-    id: "onboarding-preferences-screen"
+    id: "onboarding-body-stats-screen"
