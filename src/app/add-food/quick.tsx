@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { useFoodLogStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { TestIDs } from '@/constants/testIDs';
@@ -36,8 +36,8 @@ export default function QuickAddScreen() {
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
   const [description, setDescription] = useState('');
-  const [mealType, setMealType] = useState<MealType>(
-    (params.mealType as MealType) || MealType.Snack
+  const [mealType, setMealType] = useState<string>(
+    params.mealType || MealType.Snack
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -282,7 +282,7 @@ export default function QuickAddScreen() {
           loading={isSaving}
           disabled={!isValid}
           fullWidth
-        >{`Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
+        >{`Add to ${getMealTypeName(mealType)}`}</Button>
       </View>
     </SafeAreaView>
   );

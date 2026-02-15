@@ -18,7 +18,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { useFoodLogStore, useFoodSearchStore, useFavoritesStore, useRestaurantStore, useRecipeStore } from '@/stores';
 import { FoodItem, FoodItemWithServing } from '@/types/domain';
 import { RestaurantFood } from '@/types/restaurant';
@@ -88,12 +88,7 @@ function AddFoodScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mealType?: string; date?: string; searchQuery?: string }>();
 
-  const mealTypeFromParams = params.mealType as MealType | undefined;
-  const mealType = (Object.values(MealType) as string[]).includes(
-    mealTypeFromParams as string
-  )
-    ? (mealTypeFromParams as MealType)
-    : MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Tab state
@@ -598,7 +593,7 @@ function AddFoodScreen() {
 
         {mealType ? (
           <FoodSection
-            title={`For ${MEAL_TYPE_LABELS[mealType] || 'this meal'}`}
+            title={`For ${getMealTypeName(mealType)}`}
             icon="🔄"
             foods={mealContextFoods}
             isLoading={isLoadingMealContext}

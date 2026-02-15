@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { useRestaurantStore } from '@/stores';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { restaurantRepository } from '@/repositories';
@@ -42,8 +42,8 @@ export default function RestaurantFoodDetailScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [quantity, setQuantity] = useState('1');
   const [notes, setNotes] = useState('');
-  const [mealType, setMealType] = useState<MealType>(
-    (params.mealType as MealType) || MealType.Snack
+  const [mealType, setMealType] = useState<string>(
+    params.mealType || MealType.Snack
   );
   const date = params.date || new Date().toISOString().split('T')[0];
 
@@ -144,7 +144,7 @@ export default function RestaurantFoodDetailScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          Add to {MEAL_TYPE_LABELS[mealType]}
+          Add to {getMealTypeName(mealType)}
         </Text>
         <View style={{ width: 28 }} />
       </View>

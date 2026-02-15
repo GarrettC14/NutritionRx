@@ -101,7 +101,6 @@ import {
   quickAddRepository,
   foodRepository,
 } from '@/repositories';
-import { MealType } from '@/constants/mealTypes';
 
 // Mock goalStore's repository dependencies (goalStore also imports from @/repositories)
 jest.mock('@/services/macroCalculator', () => ({
@@ -236,7 +235,7 @@ describe('Food Logging Integration', () => {
       const input = {
         foodItemId: 'chicken-breast-1',
         date: '2024-06-15',
-        mealType: 'lunch' as MealType,
+        mealType: 'lunch',
         servings: 1,
         calories: 250,
         protein: 45,
@@ -272,7 +271,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'oatmeal-1',
         date: '2024-06-15',
-        mealType: 'breakfast' as MealType,
+        mealType: 'breakfast',
         servings: 1,
         calories: 300,
         protein: 10,
@@ -284,7 +283,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'chicken-breast-1',
         date: '2024-06-15',
-        mealType: 'lunch' as MealType,
+        mealType: 'lunch',
         servings: 1,
         calories: 250,
         protein: 45,
@@ -296,7 +295,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'salmon-1',
         date: '2024-06-15',
-        mealType: 'dinner' as MealType,
+        mealType: 'dinner',
         servings: 1,
         calories: 400,
         protein: 35,
@@ -318,7 +317,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'salmon-1',
         date: '2024-06-15',
-        mealType: 'dinner' as MealType,
+        mealType: 'dinner',
         servings: 1,
         calories: 400,
         protein: 35,
@@ -330,7 +329,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'oatmeal-1',
         date: '2024-06-15',
-        mealType: 'breakfast' as MealType,
+        mealType: 'breakfast',
         servings: 1,
         calories: 300,
         protein: 10,
@@ -349,7 +348,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'apple-1',
         date: '2024-06-15',
-        mealType: 'snack' as MealType,
+        mealType: 'snack',
         servings: 1,
         calories: 95,
         protein: 0,
@@ -371,7 +370,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-a',
         date: '2024-06-15',
-        mealType: 'lunch' as MealType,
+        mealType: 'lunch',
         servings: 1,
         calories: 300,
         protein: 30,
@@ -382,7 +381,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-b',
         date: '2024-06-15',
-        mealType: 'dinner' as MealType,
+        mealType: 'dinner',
         servings: 1,
         calories: 500,
         protein: 40,
@@ -413,7 +412,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-a',
         date: '2024-06-15',
-        mealType: 'breakfast' as MealType,
+        mealType: 'breakfast',
         servings: 1,
         calories: 400,
         protein: 20,
@@ -451,7 +450,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-1',
         date: '2024-06-15',
-        mealType: 'lunch' as MealType,
+        mealType: 'lunch',
         servings: 1,
         calories: 600,
         protein: 50,
@@ -462,7 +461,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-2',
         date: '2024-06-15',
-        mealType: 'dinner' as MealType,
+        mealType: 'dinner',
         servings: 1,
         calories: 700,
         protein: 45,
@@ -537,7 +536,7 @@ describe('Food Logging Integration', () => {
             foodItemId: 'f1',
             foodName: 'Eggs',
             date: '2024-06-15',
-            mealType: 'breakfast' as MealType,
+            mealType: 'breakfast',
             servings: 2,
             calories: 280,
             protein: 24,
@@ -551,7 +550,7 @@ describe('Food Logging Integration', () => {
             foodItemId: 'f2',
             foodName: 'Chicken',
             date: '2024-06-15',
-            mealType: 'lunch' as MealType,
+            mealType: 'lunch',
             servings: 1,
             calories: 350,
             protein: 50,
@@ -565,7 +564,7 @@ describe('Food Logging Integration', () => {
             foodItemId: 'f3',
             foodName: 'Salmon',
             date: '2024-06-15',
-            mealType: 'dinner' as MealType,
+            mealType: 'dinner',
             servings: 1,
             calories: 450,
             protein: 40,
@@ -617,7 +616,7 @@ describe('Food Logging Integration', () => {
         useFoodLogStore.getState().addLogEntry({
           foodItemId: 'food-1',
           date: '2024-06-15',
-          mealType: 'lunch' as MealType,
+          mealType: 'lunch',
           servings: 1,
           calories: 200,
           protein: 20,
@@ -635,7 +634,7 @@ describe('Food Logging Integration', () => {
       await useFoodLogStore.getState().addLogEntry({
         foodItemId: 'food-1',
         date: '2024-06-15',
-        mealType: 'lunch' as MealType,
+        mealType: 'lunch',
         servings: 1,
         calories: 200,
         protein: 20,

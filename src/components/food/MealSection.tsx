@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
 import { LogEntry, QuickAddEntry } from '@/types/domain';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { TestIDs, mealAddFoodButton, mealCopyButton, mealEntryItem } from '@/constants/testIDs';
 import { FoodEntryCard } from './FoodEntryCard';
 
@@ -16,19 +16,20 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 interface MealSectionProps {
-  mealType: MealType;
+  mealType: string;
+  mealTypeName?: string;
   entries: LogEntry[];
   quickAddEntries: QuickAddEntry[];
-  onAddPress: (mealType: MealType) => void;
+  onAddPress: (mealType: string) => void;
   onEntryPress?: (entry: LogEntry) => void;
   onQuickAddPress?: (entry: QuickAddEntry) => void;
   onDeleteEntry?: (entry: LogEntry) => void;
   onDeleteQuickAdd?: (entry: QuickAddEntry) => void;
-  onMenuPress?: (mealType: MealType) => void;
+  onMenuPress?: (mealType: string) => void;
   defaultExpanded?: boolean;
 }
 
-const MEAL_SECTION_TEST_IDS: Record<MealType, string> = {
+const MEAL_SECTION_TEST_IDS: Record<string, string | undefined> = {
   [MealType.Breakfast]: TestIDs.Meal.BreakfastSection,
   [MealType.Lunch]: TestIDs.Meal.LunchSection,
   [MealType.Dinner]: TestIDs.Meal.DinnerSection,
@@ -46,8 +47,10 @@ export const MealSection = React.memo(function MealSection({
   onDeleteQuickAdd,
   onMenuPress,
   defaultExpanded = false,
+  mealTypeName,
 }: MealSectionProps) {
   const { colors } = useTheme();
+  const displayName = mealTypeName ?? getMealTypeName(mealType);
   const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -92,7 +95,7 @@ export const MealSection = React.memo(function MealSection({
         style={styles.header}
         onPress={toggleExpanded}
         accessibilityRole="button"
-        accessibilityLabel={`${MEAL_TYPE_LABELS[mealType]}, ${totalCalories} calories, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
+        accessibilityLabel={`${displayName}, ${totalCalories} calories, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
         accessibilityState={{ expanded: isExpanded }}
       >
         <View style={styles.headerLeft}>
@@ -100,7 +103,7 @@ export const MealSection = React.memo(function MealSection({
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
           </Animated.View>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
-            {MEAL_TYPE_LABELS[mealType]}
+            {displayName}
           </Text>
           {!isExpanded && hasEntries && (
             <Text style={[styles.itemCount, { color: colors.textTertiary }]}>
@@ -118,7 +121,7 @@ export const MealSection = React.memo(function MealSection({
             onPress={handleMenuPress}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`${MEAL_TYPE_LABELS[mealType]} options menu`}
+            accessibilityLabel={`${displayName} options menu`}
           >
             <Ionicons name="ellipsis-vertical" size={16} color={colors.textSecondary} />
           </Pressable>
@@ -129,7 +132,7 @@ export const MealSection = React.memo(function MealSection({
             onPress={handleAddPress}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`Add food to ${MEAL_TYPE_LABELS[mealType]}`}
+            accessibilityLabel={`Add food to ${displayName}`}
           >
             <Ionicons name="add" size={18} color={colors.accent} />
           </Pressable>

@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import {
   ServingUnit,
   SERVING_UNITS,
@@ -73,8 +73,8 @@ export default function LogFoodScreen() {
   const [selectedUnit, setSelectedUnit] = useState<ServingUnit>(
     parseDefaultUnit(params.defaultUnit)
   );
-  const [mealType, setMealType] = useState<MealType>(
-    (params.mealType as MealType) || MealType.Snack
+  const [mealType, setMealType] = useState<string>(
+    params.mealType || MealType.Snack
   );
   const date = params.date || new Date().toISOString().split('T')[0];
 
@@ -258,7 +258,7 @@ export default function LogFoodScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]} accessibilityRole="header">
-          Add to {MEAL_TYPE_LABELS[mealType]}
+          Add to {getMealTypeName(mealType)}
         </Text>
         <FavoriteButton
           testID={TestIDs.LogFood.FavoriteButton}

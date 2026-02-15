@@ -54,7 +54,7 @@ export default function RestaurantMenuScreen() {
   }>();
 
   const restaurantId = params.restaurantId;
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Local state

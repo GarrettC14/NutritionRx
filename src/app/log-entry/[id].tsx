@@ -17,7 +17,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TestIDs } from '@/constants/testIDs';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType } from '@/constants/mealTypes';
 import {
   ServingUnit,
   getAvailableUnits,
@@ -61,7 +61,7 @@ export default function LogEntryScreen() {
   // Editable fields for log entries
   const [amount, setAmount] = useState('1');
   const [selectedUnit, setSelectedUnit] = useState<ServingUnit>('serving');
-  const [mealType, setMealType] = useState<MealType>(MealType.Snack);
+  const [mealType, setMealType] = useState<string>(MealType.Snack);
 
   // Editable fields for quick add entries
   const [quickCalories, setQuickCalories] = useState('0');
@@ -161,7 +161,7 @@ export default function LogEntryScreen() {
   };
 
   // Handle meal type change
-  const handleMealTypeChange = (meal: MealType) => {
+  const handleMealTypeChange = (meal: string) => {
     setMealType(meal);
     setHasChanges(true);
   };

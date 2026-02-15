@@ -17,7 +17,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useRecipeStore, useFoodLogStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
-import { MealType, MEAL_TYPE_LABELS, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
+import { MealType, getMealTypeName, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
 import { Recipe } from '@/types/recipes';
 import { recipeRepository } from '@/repositories/recipeRepository';
 
@@ -37,8 +37,8 @@ export default function RecipeDetailScreen() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLogging, setIsLogging] = useState(false);
-  const [selectedMealType, setSelectedMealType] = useState<MealType>(
-    (params.mealType as MealType) || MealType.Lunch,
+  const [selectedMealType, setSelectedMealType] = useState<string>(
+    params.mealType || MealType.Lunch,
   );
 
   const date = params.date || selectedDate;
@@ -205,7 +205,7 @@ export default function RecipeDetailScreen() {
                 style={[styles.mealTypeButton, { backgroundColor: selectedMealType === mt ? colors.accent : colors.bgSecondary, borderColor: selectedMealType === mt ? colors.accent : colors.borderDefault }]}
                 onPress={() => setSelectedMealType(mt)}
               >
-                <Text style={[styles.mealTypeButtonText, { color: selectedMealType === mt ? '#FFFFFF' : colors.textSecondary }]}>{MEAL_TYPE_LABELS[mt]}</Text>
+                <Text style={[styles.mealTypeButtonText, { color: selectedMealType === mt ? '#FFFFFF' : colors.textSecondary }]}>{getMealTypeName(mt)}</Text>
               </Pressable>
             ))}
           </View>
@@ -219,7 +219,7 @@ export default function RecipeDetailScreen() {
           disabled={isLogging}
         >
           <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.logButtonText}>{isLogging ? 'Logging...' : `Log to ${MEAL_TYPE_LABELS[selectedMealType]}`}</Text>
+          <Text style={styles.logButtonText}>{isLogging ? 'Logging...' : `Log to ${getMealTypeName(selectedMealType)}`}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

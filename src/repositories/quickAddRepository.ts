@@ -3,11 +3,9 @@ import { getDatabase } from '@/db/database';
 import { QuickAddEntryRow } from '@/types/database';
 import { QuickAddEntry } from '@/types/domain';
 import { mapQuickAddRowToDomain } from '@/types/mappers';
-import { MealType } from '@/constants/mealTypes';
-
 export interface CreateQuickAddInput {
   date: string;
-  mealType: MealType;
+  mealType: string;
   calories: number;
   protein?: number;
   carbs?: number;
@@ -20,7 +18,7 @@ export interface UpdateQuickAddInput {
   protein?: number;
   carbs?: number;
   fat?: number;
-  mealType?: MealType;
+  mealType?: string;
   description?: string;
 }
 
@@ -45,6 +43,7 @@ export const quickAddRepository = {
            WHEN 'lunch' THEN 2
            WHEN 'dinner' THEN 3
            WHEN 'snack' THEN 4
+           ELSE 5
          END,
          created_at`,
       [date]
@@ -52,7 +51,7 @@ export const quickAddRepository = {
     return rows.map(mapQuickAddRowToDomain);
   },
 
-  async findByDateAndMeal(date: string, mealType: MealType): Promise<QuickAddEntry[]> {
+  async findByDateAndMeal(date: string, mealType: string): Promise<QuickAddEntry[]> {
     const db = getDatabase();
     const rows = await db.getAllAsync<QuickAddEntryRow>(
       `SELECT * FROM quick_add_entries

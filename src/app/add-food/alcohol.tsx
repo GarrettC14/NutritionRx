@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { useFoodLogStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import {
@@ -38,7 +38,7 @@ export default function AlcoholEntryScreen() {
 
   const { addQuickEntry } = useFoodLogStore();
 
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Tab state
@@ -432,7 +432,7 @@ export default function AlcoholEntryScreen() {
           loading={isSaving}
           disabled={!isValid}
           fullWidth
-        >{`Add to ${MEAL_TYPE_LABELS[mealType]}`}</Button>
+        >{`Add to ${getMealTypeName(mealType)}`}</Button>
       </View>
     </SafeAreaView>
   );

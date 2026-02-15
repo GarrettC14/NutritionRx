@@ -71,7 +71,7 @@ export default function BarcodeScanScreen() {
 
   const { addLogEntry } = useFoodLogStore();
   const { color: bgColor, accent } = colors;
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
   const lastScannedRef = useRef<string | null>(null);
 

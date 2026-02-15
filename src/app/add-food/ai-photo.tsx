@@ -27,7 +27,7 @@ import Animated, {
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { useAIPhotoStore, useFoodLogStore } from '@/stores';
 import { useNetworkGuard } from '@/hooks/useNetworkGuard';
 import { analyzeFood } from '@/services/aiPhoto';
@@ -79,7 +79,7 @@ export default function AIPhotoScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingFood, setEditingFood] = useState<DetectedFood | null>(null);
 
-  const mealType = (params.mealType as MealType) || MealType.Snack;
+  const mealType = params.mealType || MealType.Snack;
   const date = params.date || new Date().toISOString().split('T')[0];
 
   // Load quota on mount
@@ -667,7 +667,7 @@ export default function AIPhotoScreen() {
             disabled={selectedFoods.length === 0}
             fullWidth
           >
-            {`Add to ${MEAL_TYPE_LABELS[mealType]}`}
+            {`Add to ${getMealTypeName(mealType)}`}
           </Button>
         </View>
 

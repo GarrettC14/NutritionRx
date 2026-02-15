@@ -17,7 +17,6 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { useRecipeStore, useFoodLogStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
-import { MealType } from '@/constants/mealTypes';
 import { LogEntry } from '@/types/domain';
 import { RecipeItemDraft } from '@/types/recipes';
 
@@ -40,7 +39,7 @@ export default function CreateRecipeScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Pre-populate with entries from the specified meal type
-  const mealType = params.mealType as MealType | undefined;
+  const mealType = params.mealType;
   const mealEntries: LogEntry[] = mealType
     ? (getEntriesByMeal()[mealType] || [])
     : entries;

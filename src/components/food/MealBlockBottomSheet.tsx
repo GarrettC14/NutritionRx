@@ -12,13 +12,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
+import { getMealTypeName } from '@/constants/mealTypes';
 
 // Inline feature flag — flip when recipe system (Phase 2) is merged
 const RECIPES_ENABLED = true;
 
 export interface MealBlockBottomSheetProps {
-  mealType: MealType;
+  mealType: string;
   date: string;
   entryCount: number;
   bottomSheetRef: React.RefObject<BottomSheet | null>;
@@ -80,8 +80,8 @@ export function MealBlockBottomSheet({
   const handleClearMeal = () => {
     bottomSheetRef.current?.close();
     Alert.alert(
-      `Clear ${MEAL_TYPE_LABELS[mealType]}?`,
-      `This will remove all ${entryCount} ${entryCount === 1 ? 'item' : 'items'} from ${MEAL_TYPE_LABELS[mealType]}.`,
+      `Clear ${getMealTypeName(mealType)}?`,
+      `This will remove all ${entryCount} ${entryCount === 1 ? 'item' : 'items'} from ${getMealTypeName(mealType)}.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Clear', style: 'destructive', onPress: onClearMeal },
@@ -89,7 +89,7 @@ export function MealBlockBottomSheet({
     );
   };
 
-  const mealLabel = MEAL_TYPE_LABELS[mealType];
+  const mealLabel = getMealTypeName(mealType);
 
   return (
     <BottomSheet
