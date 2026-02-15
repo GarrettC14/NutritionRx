@@ -1,15 +1,16 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { useRouter } from '@/hooks/useRouter';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
-import { MealType, MEAL_TYPE_ORDER } from '@/constants/mealTypes';
+import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 import { useFoodLogStore, useSettingsStore, useWaterStore, useMacroCycleStore, useDashboardStore, useReflectionStore } from '@/stores';
 import { useShallow } from 'zustand/react/shallow';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
@@ -17,6 +18,9 @@ import { useProgressiveTooltips } from '@/hooks/useProgressiveTooltips';
 import { useTooltip } from '@/hooks/useTooltip';
 import { TOOLTIP_IDS } from '@/constants/tooltipIds';
 import { MealSection } from '@/components/food/MealSection';
+import { MealBlockBottomSheet } from '@/components/food/MealBlockBottomSheet';
+import { DatePickerModal } from '@/components/ui/DatePickerModal';
+import { Toast, useToast } from '@/components/ui/Toast';
 import { StreakBadge } from '@/components/ui/StreakBadge';
 import { TodayScreenSkeleton } from '@/components/ui/Skeleton';
 import { WidgetRenderer } from '@/components/dashboard/WidgetRenderer';
@@ -134,9 +138,20 @@ function TodayScreen() {
   // State
   const [showDayMenu, setShowDayMenu] = useState(false);
   const [showWidgetPicker, setShowWidgetPicker] = useState(false);
-
   const [showReflectionModal, setShowReflectionModal] = useState(false);
   const [listKey, setListKey] = useState(0);
+
+  // Bottom sheet state for meal block menu
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [activeMenuMealType, setActiveMenuMealType] = useState<MealType>(MealType.Breakfast);
+
+  // Date picker state for copy flows
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<'meal' | 'day'>('meal');
+  const [copySourceMealType, setCopySourceMealType] = useState<MealType>(MealType.Breakfast);
+
+  // Toast
+  const { toastState, showCopied, hideToast } = useToast();
 
   // Progressive tooltips — auto-check after dashboard settles
   useProgressiveTooltips({ autoCheck: true, autoCheckDelay: 1000 });
@@ -239,6 +254,13 @@ function TodayScreen() {
 
   const dayTypeDisplay = getDayTypeDisplay();
 
+  // Entry count for active menu meal type
+  const activeMenuEntryCount = useMemo(() => {
+    const mealEntries = entriesByMeal[activeMenuMealType] || [];
+    const mealQuickEntries = quickEntriesByMeal[activeMenuMealType] || [];
+    return mealEntries.length + mealQuickEntries.length;
+  }, [activeMenuMealType, entriesByMeal, quickEntriesByMeal]);
+
   // Handlers
   const handleAddFood = (mealType: MealType) => {
     router.push({
@@ -269,32 +291,108 @@ function TodayScreen() {
     await deleteQuickEntry(entry.id);
   };
 
-  const handleCopyMeal = async (mealType: MealType) => {
-    const tomorrow = new Date(selectedDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  // ⋮ Menu press — open bottom sheet
+  const handleMenuPress = useCallback((mealType: MealType) => {
+    setActiveMenuMealType(mealType);
+    bottomSheetRef.current?.snapToIndex(0);
+  }, []);
+
+  // Bottom sheet menu actions
+  const handleQuickAdd = useCallback(() => {
+    router.push({
+      pathname: '/add-food/quick',
+      params: { mealType: activeMenuMealType, date: selectedDate },
+    });
+  }, [activeMenuMealType, selectedDate, router]);
+
+  const handleAddAlcohol = useCallback(() => {
+    // Stub: navigate to quick add until alcohol route exists (Phase 3)
+    router.push({
+      pathname: '/add-food/quick',
+      params: { mealType: activeMenuMealType, date: selectedDate },
+    });
+  }, [activeMenuMealType, selectedDate, router]);
+
+  const handleSaveAsRecipe = useCallback(() => {
+    // Stub: will be implemented in Phase 2
+  }, []);
+
+  const handleCopyMealFromMenu = useCallback(() => {
+    setCopySourceMealType(activeMenuMealType);
+    setDatePickerMode('meal');
+    // Delay opening date picker to let bottom sheet close
+    setTimeout(() => {
+      setShowDatePicker(true);
+    }, 300);
+  }, [activeMenuMealType]);
+
+  const handleClearMeal = useCallback(async () => {
+    const mealEntries = entriesByMeal[activeMenuMealType] || [];
+    const mealQuickEntries = quickEntriesByMeal[activeMenuMealType] || [];
 
     try {
-      await copyMealToDate(mealType, tomorrowStr);
-      Alert.alert('Copied', `${mealType.charAt(0).toUpperCase() + mealType.slice(1)} copied to tomorrow.`);
+      for (const entry of mealEntries) {
+        await deleteLogEntry(entry.id);
+      }
+      for (const entry of mealQuickEntries) {
+        await deleteQuickEntry(entry.id);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to clear meal. Please try again.');
+    }
+  }, [activeMenuMealType, entriesByMeal, quickEntriesByMeal, deleteLogEntry, deleteQuickEntry]);
+
+  // Copy Meal to selected date (from date picker)
+  const handleCopyMealToDate = useCallback(async (targetDate: Date) => {
+    setShowDatePicker(false);
+    const targetStr = targetDate.toISOString().split('T')[0];
+
+    try {
+      await copyMealToDate(copySourceMealType, targetStr);
+      const mealEntries = entriesByMeal[copySourceMealType] || [];
+      const mealQuickEntries = quickEntriesByMeal[copySourceMealType] || [];
+      const count = mealEntries.length + mealQuickEntries.length;
+
+      const formattedDate = targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const mealLabel = MEAL_TYPE_LABELS[copySourceMealType];
+      showCopied('Meal Copied', `${count} ${count === 1 ? 'item' : 'items'} added to ${mealLabel} on ${formattedDate}`);
     } catch (error) {
       Alert.alert('Error', 'Failed to copy meal. Please try again.');
     }
-  };
+  }, [copySourceMealType, copyMealToDate, entriesByMeal, quickEntriesByMeal, showCopied]);
 
-  const handleCopyDay = async () => {
+  // Day-level copy
+  const handleCopyDay = useCallback(() => {
     setShowDayMenu(false);
-    const tomorrow = new Date(selectedDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    setDatePickerMode('day');
+    // Delay to let menu close
+    setTimeout(() => {
+      setShowDatePicker(true);
+    }, 300);
+  }, []);
+
+  const handleCopyDayToDate = useCallback(async (targetDate: Date) => {
+    setShowDatePicker(false);
+    const targetStr = targetDate.toISOString().split('T')[0];
 
     try {
-      await copyDayToDate(selectedDate, tomorrowStr);
-      Alert.alert('Copied', 'All meals copied to tomorrow.');
+      await copyDayToDate(selectedDate, targetStr);
+      const totalCount = entries.length + quickAddEntries.length;
+      const formattedDate = targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      showCopied('Day Copied', `${totalCount} ${totalCount === 1 ? 'item' : 'items'} copied to ${formattedDate}`);
     } catch (error) {
       Alert.alert('Error', 'Failed to copy day. Please try again.');
     }
-  };
+  }, [selectedDate, copyDayToDate, entries, quickAddEntries, showCopied]);
+
+  // Unified date picker confirm handler
+  const handleDatePickerConfirm = useCallback((date: Date) => {
+    if (datePickerMode === 'meal') {
+      handleCopyMealToDate(date);
+    } else {
+      handleCopyDayToDate(date);
+    }
+  }, [datePickerMode, handleCopyMealToDate, handleCopyDayToDate]);
 
   // Drag and drop handlers
   const handleDragBegin = useCallback(() => {
@@ -478,7 +576,7 @@ function TodayScreen() {
           onQuickAddPress={handleQuickAddPress}
           onDeleteEntry={handleDeleteEntry}
           onDeleteQuickAdd={handleDeleteQuickAdd}
-          onCopyMeal={handleCopyMeal}
+          onMenuPress={handleMenuPress}
         />
       ))}
     </View>
@@ -597,7 +695,7 @@ function TodayScreen() {
               >
                 <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
                 <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                  Copy All Meals to Tomorrow
+                  Copy Day...
                 </Text>
               </Pressable>
               <Pressable
@@ -613,11 +711,41 @@ function TodayScreen() {
           </Pressable>
         </Modal>
 
+        {/* Meal Block Bottom Sheet */}
+        <MealBlockBottomSheet
+          mealType={activeMenuMealType}
+          date={selectedDate}
+          entryCount={activeMenuEntryCount}
+          bottomSheetRef={bottomSheetRef}
+          onQuickAdd={handleQuickAdd}
+          onAddAlcohol={handleAddAlcohol}
+          onSaveAsRecipe={handleSaveAsRecipe}
+          onCopyMeal={handleCopyMealFromMenu}
+          onClearMeal={handleClearMeal}
+        />
+
+        {/* Date Picker Modal for Copy flows */}
+        <DatePickerModal
+          visible={showDatePicker}
+          title={datePickerMode === 'meal' ? `Copy ${MEAL_TYPE_LABELS[copySourceMealType]} to...` : 'Copy Day to...'}
+          disabledDate={selectedDate}
+          onConfirm={handleDatePickerConfirm}
+          onCancel={() => setShowDatePicker(false)}
+        />
 
         {/* Reflection Modal */}
         <ReflectionModal
           visible={showReflectionModal}
           onClose={() => setShowReflectionModal(false)}
+        />
+
+        {/* Toast */}
+        <Toast
+          visible={toastState.visible}
+          type={toastState.type}
+          title={toastState.title}
+          subtitle={toastState.subtitle}
+          onDismiss={hideToast}
         />
       </SafeAreaView>
     </GestureHandlerRootView>

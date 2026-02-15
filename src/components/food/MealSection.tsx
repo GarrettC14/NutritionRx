@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,11 +24,9 @@ interface MealSectionProps {
   onQuickAddPress?: (entry: QuickAddEntry) => void;
   onDeleteEntry?: (entry: LogEntry) => void;
   onDeleteQuickAdd?: (entry: QuickAddEntry) => void;
-  onCopyMeal?: (mealType: MealType) => void;
+  onMenuPress?: (mealType: MealType) => void;
   defaultExpanded?: boolean;
 }
-
-const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
 
 const MEAL_SECTION_TEST_IDS: Record<MealType, string> = {
   [MealType.Breakfast]: TestIDs.Meal.BreakfastSection,
@@ -46,13 +44,12 @@ export const MealSection = React.memo(function MealSection({
   onQuickAddPress,
   onDeleteEntry,
   onDeleteQuickAdd,
-  onCopyMeal,
+  onMenuPress,
   defaultExpanded = false,
 }: MealSectionProps) {
   const { colors } = useTheme();
   const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const [showMenu, setShowMenu] = useState(false);
 
   // Chevron rotation animation
   const rotation = useSharedValue(defaultExpanded ? 90 : 0);
@@ -78,20 +75,14 @@ export const MealSection = React.memo(function MealSection({
     setIsExpanded(!isExpanded);
   };
 
-  const handleCopyMeal = () => {
-    setShowMenu(false);
-    onCopyMeal?.(mealType);
-  };
-
-  const handleMenuPress = () => {
-    if (hasEntries) {
-      setShowMenu(true);
-    }
-  };
-
   const handleAddPress = (e: any) => {
     e.stopPropagation();
     onAddPress(mealType);
+  };
+
+  const handleMenuPress = (e: any) => {
+    e.stopPropagation();
+    onMenuPress?.(mealType);
   };
 
   return (
@@ -100,8 +91,6 @@ export const MealSection = React.memo(function MealSection({
       <Pressable
         style={styles.header}
         onPress={toggleExpanded}
-        onLongPress={handleMenuPress}
-        delayLongPress={300}
         accessibilityRole="button"
         accessibilityLabel={`${MEAL_TYPE_LABELS[mealType]}, ${totalCalories} calories, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
         accessibilityState={{ expanded: isExpanded }}
@@ -123,6 +112,17 @@ export const MealSection = React.memo(function MealSection({
           <Text style={[styles.totalCalories, { color: colors.textSecondary }]}>
             {totalCalories} cal
           </Text>
+          {/* ⋮ Menu Button */}
+          <Pressable
+            style={[styles.menuButton, { backgroundColor: colors.bgInteractive }]}
+            onPress={handleMenuPress}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`${MEAL_TYPE_LABELS[mealType]} options menu`}
+          >
+            <Ionicons name="ellipsis-vertical" size={16} color={colors.textSecondary} />
+          </Pressable>
+          {/* + Add Button */}
           <Pressable
             testID={mealAddFoodButton(mealType)}
             style={[styles.addButton, { backgroundColor: colors.bgInteractive }]}
@@ -167,67 +167,8 @@ export const MealSection = React.memo(function MealSection({
               </Text>
             </View>
           )}
-
-          {/* Menu button when expanded and has entries */}
-          {hasEntries && onCopyMeal && (
-            <Pressable
-              testID={mealCopyButton(mealType)}
-              style={styles.copyButton}
-              onPress={handleCopyMeal}
-              accessibilityRole="button"
-              accessibilityLabel={`Copy ${MEAL_TYPE_LABELS[mealType]} to tomorrow`}
-            >
-              <Ionicons name="copy-outline" size={14} color={colors.textTertiary} />
-              <Text style={[styles.copyButtonText, { color: colors.textTertiary }]}>
-                Copy to tomorrow
-              </Text>
-            </Pressable>
-          )}
         </View>
       )}
-
-      {/* Menu Modal */}
-      <Modal
-        visible={showMenu}
-        transparent
-        animationType="none"
-        onRequestClose={() => setShowMenu(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowMenu(false)}
-          accessibilityRole="button"
-          accessibilityLabel="Close menu"
-        >
-          <View style={[styles.menuContainer, { backgroundColor: colors.bgSecondary }]}>
-            <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>
-              {MEAL_TYPE_LABELS[mealType]}
-            </Text>
-            <Pressable
-              style={[styles.menuItem, { borderBottomColor: colors.borderDefault }]}
-              onPress={handleCopyMeal}
-              accessibilityRole="menuitem"
-              accessibilityLabel="Copy to Tomorrow"
-            >
-              <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
-              <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                Copy to Tomorrow
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => setShowMenu(false)}
-              accessibilityRole="menuitem"
-              accessibilityLabel="Cancel"
-            >
-              <Ionicons name="close-outline" size={20} color={colors.textSecondary} />
-              <Text style={[styles.menuItemText, { color: colors.textSecondary }]}>
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
     </View>
   );
 });
@@ -261,11 +202,18 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
+    gap: spacing[2],
   },
   totalCalories: {
     ...typography.body.medium,
     fontWeight: '500',
+  },
+  menuButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addButton: {
     width: 28,
@@ -286,46 +234,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    ...typography.body.medium,
-  },
-  copyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[1],
-    marginTop: spacing[3],
-    paddingVertical: spacing[2],
-  },
-  copyButtonText: {
-    ...typography.caption,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuContainer: {
-    width: '80%',
-    maxWidth: 300,
-    borderRadius: borderRadius.lg,
-    padding: spacing[4],
-    gap: spacing[2],
-  },
-  menuTitle: {
-    ...typography.title.small,
-    textAlign: 'center',
-    marginBottom: spacing[2],
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[2],
-    borderBottomWidth: 0,
-  },
-  menuItemText: {
     ...typography.body.medium,
   },
 });
