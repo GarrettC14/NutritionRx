@@ -21,7 +21,8 @@ export type WidgetType =
   | 'fasting_timer'
   | 'micronutrient_snapshot'
   | 'ai_daily_insight'
-  | 'weekly_recap';
+  | 'weekly_recap'
+  | 'weekly_budget';
 
 /**
  * Widget-specific configuration options

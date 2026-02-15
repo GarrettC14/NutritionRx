@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
-import { useDailyNutrition } from '@/hooks/useDailyNutrition';
+import { useAdjustedDailyNutrition as useDailyNutrition } from '@/hooks/useAdjustedDailyNutrition';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { useStatusColors } from '@/hooks/useStatusColor';
 import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progressZones';

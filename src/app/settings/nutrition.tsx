@@ -10,6 +10,7 @@ import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { Button } from '@/components/ui/Button';
 import { useProfileStore, useGoalStore, useSettingsStore, useWeightStore } from '@/stores';
 import { EatingStyle, ProteinPriority } from '@/types/domain';
+import { CalorieCalculationMethod } from '@/repositories';
 import { macroCalculator } from '@/services/macroCalculator';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { TestIDs, settingsNutritionEatingStyleOption, settingsNutritionProteinPriorityOption } from '@/constants/testIDs';
@@ -29,6 +30,28 @@ interface ProteinPriorityOption {
   description: string;
   gPerLb: number;
 }
+
+interface CalorieMethodOption {
+  value: CalorieCalculationMethod;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  description: string;
+}
+
+const CALORIE_METHOD_OPTIONS: CalorieMethodOption[] = [
+  {
+    value: 'label',
+    icon: 'pricetag-outline',
+    label: 'Label Calories',
+    description: 'Use the calorie value from the food label or database',
+  },
+  {
+    value: 'macro',
+    icon: 'calculator-outline',
+    label: 'Macro-Calculated',
+    description: 'Calculate calories from macros (P×4 + C×4 + F×9)',
+  },
+];
 
 const EATING_STYLE_OPTIONS: EatingStyleOption[] = [
   {
@@ -98,7 +121,7 @@ export default function NutritionSettingsScreen() {
   const { showConfirm } = useConfirmDialog();
   const { profile, updateProfile, isLoading, loadProfile } = useProfileStore();
   const { activeGoal, updateGoalTargets, loadActiveGoal } = useGoalStore();
-  const { setDailyGoals } = useSettingsStore();
+  const { settings, setDailyGoals, setCalorieCalculationMethod } = useSettingsStore();
   const { latestEntry } = useWeightStore();
 
   const [eatingStyle, setEatingStyle] = useState<EatingStyle>(
@@ -106,6 +129,9 @@ export default function NutritionSettingsScreen() {
   );
   const [proteinPriority, setProteinPriority] = useState<ProteinPriority>(
     profile?.proteinPriority || 'active'
+  );
+  const [calorieMethod, setCalorieMethod] = useState<CalorieCalculationMethod>(
+    settings.calorieCalculationMethod
   );
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -133,6 +159,9 @@ export default function NutritionSettingsScreen() {
         eatingStyle,
         proteinPriority,
       });
+
+      // Persist calorie calculation method
+      await setCalorieCalculationMethod(calorieMethod);
 
       // Recalculate macros if there's an active goal
       if (activeGoal) {
@@ -451,6 +480,74 @@ export default function NutritionSettingsScreen() {
                 </View>
               </View>
 
+              {/* Calorie Calculation Method */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
+                  CALORIE CALCULATION
+                </Text>
+                <Text style={[styles.sectionDescription, { color: colors.textTertiary }]}>
+                  How daily calorie totals are calculated from logged foods
+                </Text>
+                <View style={styles.optionsList}>
+                  {CALORIE_METHOD_OPTIONS.map((option) => (
+                    <Pressable
+                      key={option.value}
+                      style={[
+                        styles.option,
+                        {
+                          backgroundColor:
+                            calorieMethod === option.value
+                              ? colors.accent + '20'
+                              : colors.bgSecondary,
+                          borderColor:
+                            calorieMethod === option.value ? colors.accent : 'transparent',
+                        },
+                      ]}
+                      onPress={() => setCalorieMethod(option.value)}
+                    >
+                      <View
+                        style={[
+                          styles.optionIcon,
+                          {
+                            backgroundColor:
+                              calorieMethod === option.value ? colors.accent : colors.bgPrimary,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={option.icon}
+                          size={20}
+                          color={
+                            calorieMethod === option.value ? '#FFFFFF' : colors.textSecondary
+                          }
+                        />
+                      </View>
+                      <View style={styles.optionContent}>
+                        <Text
+                          style={[
+                            styles.optionLabel,
+                            {
+                              color:
+                                calorieMethod === option.value
+                                  ? colors.accent
+                                  : colors.textPrimary,
+                            },
+                          ]}
+                        >
+                          {option.label}
+                        </Text>
+                        <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
+                          {option.description}
+                        </Text>
+                      </View>
+                      {calorieMethod === option.value && (
+                        <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+                      )}
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
               {/* Preview */}
               {previewMacros && (
                 <View style={styles.section}>
@@ -503,6 +600,7 @@ export default function NutritionSettingsScreen() {
               onPress={() => {
                 setEatingStyle(profile?.eatingStyle || 'flexible');
                 setProteinPriority(profile?.proteinPriority || 'active');
+                setCalorieMethod(settings.calorieCalculationMethod);
                 setIsEditing(false);
               }}
               fullWidth

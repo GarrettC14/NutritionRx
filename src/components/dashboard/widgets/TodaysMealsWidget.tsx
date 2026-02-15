@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+// Uses entriesByMeal entry calories (label values) directly — calorie method adjustment applies at totals level only.
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { WidgetProps } from '@/types/dashboard';
 import { MealType, MEAL_TYPE_ORDER, MEAL_TYPE_LABELS } from '@/constants/mealTypes';

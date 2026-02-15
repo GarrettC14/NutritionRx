@@ -25,7 +25,8 @@ import {
   getDefaultAmountForUnit,
   getUnitLabel,
 } from '@/constants/servingUnits';
-import { useFoodLogStore, useFavoritesStore } from '@/stores';
+import { useFoodLogStore, useFavoritesStore, useSettingsStore } from '@/stores';
+import { calculateMacroCalories } from '@/utils/calculateMacroCalories';
 import { logEntryRepository, quickAddRepository, foodRepository } from '@/repositories';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { LogEntry, QuickAddEntry, FoodItem } from '@/types/domain';
@@ -50,6 +51,7 @@ export default function LogEntryScreen() {
   const { updateLogEntry, deleteLogEntry, updateQuickEntry, deleteQuickEntry, refreshCurrentDate } =
     useFoodLogStore();
   const { isFavorite, toggleFavorite, loadFavorites } = useFavoritesStore();
+  const { settings } = useSettingsStore();
 
   // State
   const [loadedEntry, setLoadedEntry] = useState<LoadedEntry | null>(null);
@@ -451,6 +453,32 @@ export default function LogEntryScreen() {
                   </Text>
                 </View>
               </View>
+
+              {/* Label vs Macro calorie comparison */}
+              {(() => {
+                const macroCals = calculateMacroCalories(
+                  calculatedNutrition.protein,
+                  calculatedNutrition.carbs,
+                  calculatedNutrition.fat
+                );
+                const delta = macroCals - calculatedNutrition.calories;
+                if (delta === 0) return null;
+                const sign = delta > 0 ? '+' : '';
+                const activeMethod = settings.calorieCalculationMethod;
+                return (
+                  <View style={styles.calorieComparison}>
+                    <Text style={[styles.comparisonText, { color: colors.textTertiary }]}>
+                      Label: {calculatedNutrition.calories} cal{'  '}|{'  '}Macro: {macroCals} cal{'  '}
+                      <Text style={{ color: colors.textSecondary }}>
+                        ({sign}{delta})
+                      </Text>
+                    </Text>
+                    <Text style={[styles.comparisonMethod, { color: colors.accent }]}>
+                      Using {activeMethod === 'macro' ? 'macro-calculated' : 'label'} calories
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
           </>
         ) : (
@@ -754,6 +782,18 @@ const styles = StyleSheet.create({
   macroPillText: {
     ...typography.body.medium,
     fontWeight: '600',
+  },
+  calorieComparison: {
+    alignItems: 'center',
+    gap: spacing[1],
+    marginTop: spacing[1],
+  },
+  comparisonText: {
+    ...typography.caption,
+  },
+  comparisonMethod: {
+    ...typography.caption,
+    fontWeight: '500',
   },
   inputRow: {
     flexDirection: 'row',

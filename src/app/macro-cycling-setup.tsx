@@ -98,6 +98,12 @@ const PATTERN_OPTIONS: PatternOption[] = [
     description: 'Set targets for each day',
     icon: 'calendar-outline',
   },
+  {
+    value: 'redistribution',
+    label: 'Weekly Budget',
+    description: 'Distribute calories flexibly across your week',
+    icon: 'pie-chart-outline',
+  },
 ];
 
 export default function MacroCyclingSetupScreen() {
@@ -240,7 +246,11 @@ export default function MacroCyclingSetupScreen() {
     try {
       let dayTargets: { [day: number]: DayTargets };
 
-      if (patternType === 'custom') {
+      if (patternType === 'redistribution') {
+        // Redirect to the dedicated weekly budget screen
+        router.replace('/weekly-budget');
+        return;
+      } else if (patternType === 'custom') {
         dayTargets = customTargets;
       } else if (patternType === 'even_distribution') {
         dayTargets = {};
@@ -699,6 +709,7 @@ export default function MacroCyclingSetupScreen() {
       case 1:
         return renderStep1();
       case 2:
+        if (patternType === 'redistribution') return renderStep3Review();
         if (patternType === 'training_rest') return renderStep2TrainingRest();
         if (patternType === 'high_low_carb') return renderStep2HighLowCarb();
         return renderStep2Custom();
@@ -827,10 +838,10 @@ export default function MacroCyclingSetupScreen() {
           {step < 3 ? (
             <Button
               testID={TestIDs.MacroCycling.ContinueButton}
-              label={step === 1 && patternType === 'even_distribution' ? 'Enable Macro Cycling' : 'Continue'}
-              onPress={step === 1 && patternType === 'even_distribution' ? handleSave : () => setStep(step + 1)}
+              label={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? (patternType === 'redistribution' ? 'Set Up Budget' : 'Enable Macro Cycling') : 'Continue'}
+              onPress={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? handleSave : () => setStep(step + 1)}
               fullWidth
-              loading={step === 1 && patternType === 'even_distribution' ? isSaving : undefined}
+              loading={step === 1 && (patternType === 'even_distribution' || patternType === 'redistribution') ? isSaving : undefined}
               disabled={step === 2 && patternType === 'custom' && hasCustomValidationErrors}
             />
           ) : (

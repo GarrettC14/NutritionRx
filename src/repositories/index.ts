@@ -27,7 +27,7 @@ export type {
 } from './goalRepository';
 
 export { settingsRepository } from './settingsRepository';
-export type { UserSettings, WeightUnit, Theme, CheckInDay } from './settingsRepository';
+export type { UserSettings, WeightUnit, Theme, CheckInDay, CalorieCalculationMethod } from './settingsRepository';
 
 export { favoriteRepository } from './favoriteRepository';
 export type { AddFavoriteInput } from './favoriteRepository';

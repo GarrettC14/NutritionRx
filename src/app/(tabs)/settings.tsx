@@ -399,6 +399,13 @@ function SettingsScreen() {
               href="/macro-cycling-setup"
               context="planning"
             />
+            <PremiumSettingsRow
+              icon="pie-chart-outline"
+              label="Weekly Calorie Budget"
+              subtitle="Distribute calories across your week"
+              href="/weekly-budget"
+              context="planning"
+            />
           </View>
         </View>
 

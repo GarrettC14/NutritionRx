@@ -2,7 +2,7 @@
 // Macro Cycling Types
 // ============================================================
 
-export type MacroCyclePatternType = 'training_rest' | 'high_low_carb' | 'even_distribution' | 'custom';
+export type MacroCyclePatternType = 'training_rest' | 'high_low_carb' | 'even_distribution' | 'custom' | 'redistribution';
 
 export interface DayTargets {
   calories: number;
@@ -18,6 +18,8 @@ export interface MacroCycleConfig {
   dayTargets: {
     [dayOfWeek: number]: DayTargets;
   };
+  lockedDays: number[];
+  redistributionStartDay: number;
   createdAt: string;
   lastModified: string;
 }
@@ -30,6 +32,26 @@ export interface MacroCycleOverride {
   carbs: number;
   fat: number;
   createdAt: string;
+}
+
+export interface DayBudget {
+  date: string;
+  dayOfWeek: number;       // 0 (Sun) – 6 (Sat)
+  dayLabel: string;         // "Sun", "Mon", etc.
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  locked: boolean;
+  isToday: boolean;
+  isPast: boolean;
+}
+
+export interface RedistributionState {
+  weekStartDate: string;
+  days: DayBudget[];
+  weeklyTotal: number;
+  proteinFloor: number;
 }
 
 // Carb cycling scaling factors.
@@ -155,6 +177,8 @@ export interface MacroCycleConfigRow {
   pattern_type: string;
   marked_days: string; // JSON array
   day_targets: string; // JSON object
+  locked_days: string; // JSON array
+  redistribution_start_day: number;
   created_at: string;
   last_modified: string;
 }

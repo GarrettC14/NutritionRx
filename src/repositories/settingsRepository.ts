@@ -6,6 +6,7 @@ export type Theme = 'light' | 'dark' | 'auto';
 
 /** 0 = Sunday, 1 = Monday, … 6 = Saturday */
 export type CheckInDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type CalorieCalculationMethod = 'label' | 'macro';
 
 export interface UserSettings {
   dailyCalorieGoal: number;
@@ -17,6 +18,7 @@ export interface UserSettings {
   notificationsEnabled: boolean;
   reminderTime: string | null;
   checkInDay: CheckInDay;
+  calorieCalculationMethod: CalorieCalculationMethod;
 }
 
 interface SettingRow {
@@ -34,6 +36,7 @@ const SETTING_KEYS = {
   NOTIFICATIONS_ENABLED: 'notifications_enabled',
   REMINDER_TIME: 'reminder_time',
   CHECK_IN_DAY: 'check_in_day',
+  CALORIE_CALCULATION_METHOD: 'calorie_calculation_method',
 } as const;
 
 export const settingsRepository = {
@@ -99,6 +102,7 @@ export const settingsRepository = {
       notificationsEnabled: parseBool(SETTING_KEYS.NOTIFICATIONS_ENABLED, DEFAULT_SETTINGS.notificationsEnabled),
       reminderTime: parseStr(SETTING_KEYS.REMINDER_TIME, DEFAULT_SETTINGS.reminderTime as string) as string | null,
       checkInDay: parseNum(SETTING_KEYS.CHECK_IN_DAY, 1) as CheckInDay,
+      calorieCalculationMethod: parseStr(SETTING_KEYS.CALORIE_CALCULATION_METHOD, 'label') as CalorieCalculationMethod,
     };
   },
 
@@ -129,6 +133,9 @@ export const settingsRepository = {
     }
     if (updates.checkInDay !== undefined) {
       await this.set(SETTING_KEYS.CHECK_IN_DAY, updates.checkInDay);
+    }
+    if (updates.calorieCalculationMethod !== undefined) {
+      await this.set(SETTING_KEYS.CALORIE_CALCULATION_METHOD, updates.calorieCalculationMethod);
     }
 
     return this.getAll();

@@ -22,6 +22,7 @@ import {
   MicronutrientSnapshotWidget,
   AIDailyInsightWidget,
   WeeklyRecapWidget,
+  WeeklyBudgetWidget,
 } from '@/components/dashboard/widgets';
 
 /**
@@ -197,6 +198,18 @@ export const WIDGET_DEFINITIONS: Record<WidgetType, WidgetDefinition> = {
     maxSize: 'large',
     category: 'progress',
     component: WeeklyRecapWidget as ComponentType<WidgetProps>,
+    isPremium: true,
+  },
+  weekly_budget: {
+    type: 'weekly_budget',
+    name: 'Weekly Budget',
+    description: 'Calorie distribution across your week',
+    icon: 'pie-chart-outline',
+    defaultSize: 'medium',
+    minSize: 'medium',
+    maxSize: 'medium',
+    category: 'progress',
+    component: WeeklyBudgetWidget as ComponentType<WidgetProps>,
     isPremium: true,
   },
 };
