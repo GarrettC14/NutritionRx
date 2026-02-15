@@ -314,8 +314,11 @@ function TodayScreen() {
   }, [activeMenuMealType, selectedDate, router]);
 
   const handleSaveAsRecipe = useCallback(() => {
-    // Stub: will be implemented in Phase 2
-  }, []);
+    router.push({
+      pathname: '/recipes/create',
+      params: { mealType: activeMenuMealType, date: selectedDate },
+    });
+  }, [activeMenuMealType, selectedDate, router]);
 
   const handleCopyMealFromMenu = useCallback(() => {
     setCopySourceMealType(activeMenuMealType);

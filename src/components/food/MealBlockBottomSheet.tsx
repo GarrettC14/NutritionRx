@@ -15,7 +15,7 @@ import { spacing, borderRadius } from '@/constants/spacing';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
 
 // Inline feature flag — flip when recipe system (Phase 2) is merged
-const RECIPES_ENABLED = false;
+const RECIPES_ENABLED = true;
 
 export interface MealBlockBottomSheetProps {
   mealType: MealType;

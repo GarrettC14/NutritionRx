@@ -51,3 +51,5 @@ export { micronutrientRepository } from './micronutrientRepository';
 
 export { reflectionRepository } from './reflectionRepository';
 export type { Reflection, Sentiment, CreateReflectionInput } from './reflectionRepository';
+
+export { recipeRepository } from './recipeRepository';

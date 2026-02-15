@@ -56,6 +56,7 @@ export interface LogEntryRow {
   carbs: number;
   fat: number;
   notes: string | null;
+  recipe_log_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +64,7 @@ export interface LogEntryRow {
 export interface LogEntryWithFoodRow extends LogEntryRow {
   food_name: string;
   food_brand: string | null;
+  recipe_name?: string | null;
 }
 
 export interface QuickAddEntryRow {

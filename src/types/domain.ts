@@ -79,6 +79,8 @@ export interface LogEntry {
   carbs: number;
   fat: number;
   notes?: string;
+  recipeLogId?: string | null;
+  recipeName?: string;
   createdAt: Date;
   updatedAt: Date;
 }

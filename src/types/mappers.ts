@@ -69,6 +69,8 @@ export function mapLogEntryRowToDomain(row: LogEntryWithFoodRow): LogEntry {
     carbs: row.carbs,
     fat: row.fat,
     notes: row.notes ?? undefined,
+    recipeLogId: row.recipe_log_id ?? null,
+    recipeName: row.recipe_name ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

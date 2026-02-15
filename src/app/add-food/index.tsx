@@ -19,7 +19,7 @@ import { typography } from '@/constants/typography';
 import { spacing, componentSpacing, borderRadius } from '@/constants/spacing';
 import { SEARCH_SETTINGS } from '@/constants/defaults';
 import { MealType, MEAL_TYPE_LABELS } from '@/constants/mealTypes';
-import { useFoodLogStore, useFoodSearchStore, useFavoritesStore, useRestaurantStore } from '@/stores';
+import { useFoodLogStore, useFoodSearchStore, useFavoritesStore, useRestaurantStore, useRecipeStore } from '@/stores';
 import { FoodItem, FoodItemWithServing } from '@/types/domain';
 import { RestaurantFood } from '@/types/restaurant';
 import { FoodSearchResult } from '@/components/food/FoodSearchResult';
@@ -35,12 +35,15 @@ import { TestIDs, foodSearchResult } from '@/constants/testIDs';
 import * as Sentry from '@sentry/react-native';
 import { CrashFallbackScreen } from '@/components/CrashFallbackScreen';
 
+import { Recipe } from '@/types/recipes';
+
 // Tab types
-type AddFoodTab = 'all' | 'restaurants' | 'my_foods';
+type AddFoodTab = 'all' | 'restaurants' | 'recipes' | 'my_foods';
 
 const TAB_OPTIONS = [
   { value: 'all' as AddFoodTab, label: 'All', testID: TestIDs.AddFood.TabAll },
   { value: 'restaurants' as AddFoodTab, label: 'Restaurants', testID: TestIDs.AddFood.TabRestaurants },
+  { value: 'recipes' as AddFoodTab, label: 'Recipes' },
   { value: 'my_foods' as AddFoodTab, label: 'My Foods', testID: TestIDs.AddFood.TabMyFoods },
 ];
 
@@ -150,6 +153,13 @@ function AddFoodScreen() {
     searchFoods: searchRestaurantFoods,
   } = useRestaurantStore();
 
+  // Recipe store
+  const {
+    recipes,
+    isLoaded: recipesLoaded,
+    loadRecipes,
+  } = useRecipeStore();
+
   // Load data on mount
   useEffect(() => {
     Promise.all([
@@ -159,6 +169,7 @@ function AddFoodScreen() {
       loadRecentFoods(),
       loadScannedHistory(5),
       loadCustomFoods(),
+      loadRecipes(),
     ]);
   }, []);
 
@@ -456,6 +467,17 @@ function AddFoodScreen() {
     });
   };
 
+  const handleBrowseRecipes = () => {
+    router.push('/recipes' as any);
+  };
+
+  const handleRecipePress = (recipe: Recipe) => {
+    router.push({
+      pathname: '/recipes/[id]',
+      params: { id: recipe.id, mealType, date },
+    } as any);
+  };
+
   // Compute display states
   const isActiveSearch = searchText.length >= SEARCH_SETTINGS.minQueryLength;
   const isAnySearching = isSearching || isSearchingRestaurants;
@@ -733,6 +755,61 @@ function AddFoodScreen() {
     );
   };
 
+  // Render "Recipes" tab content
+  const renderRecipesTabContent = () => {
+    if (recipes.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="book-outline" size={48} color={colors.textTertiary} />
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+            No recipes yet
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            Save meals as recipes for quick logging
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView
+        style={styles.sectionsContainer}
+        contentContainerStyle={styles.sectionsContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {recipes.slice(0, 10).map((recipe) => (
+          <Pressable
+            key={recipe.id}
+            style={[styles.restaurantFoodItem, { backgroundColor: colors.bgSecondary }]}
+            onPress={() => handleRecipePress(recipe)}
+          >
+            <View style={styles.restaurantFoodInfo}>
+              <Text style={[styles.restaurantFoodName, { color: colors.textPrimary }]} numberOfLines={1}>
+                {recipe.name}
+              </Text>
+              <Text style={[styles.restaurantFoodBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+                {recipe.itemCount} {recipe.itemCount === 1 ? 'item' : 'items'}
+              </Text>
+            </View>
+            <Text style={[styles.restaurantFoodCalories, { color: colors.textSecondary }]}>
+              {Math.round(recipe.totalCalories)} cal
+            </Text>
+          </Pressable>
+        ))}
+        {recipes.length > 10 && (
+          <Pressable
+            style={[styles.browseButton, { backgroundColor: colors.accent }]}
+            onPress={handleBrowseRecipes}
+          >
+            <Text style={styles.browseButtonText}>View all recipes</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </Pressable>
+        )}
+      </ScrollView>
+    );
+  };
+
   // Render no results empty state
   const renderNoResultsEmpty = () => (
     <View style={styles.emptyState}>
@@ -784,6 +861,8 @@ function AddFoodScreen() {
         return renderAllTabContent();
       case 'restaurants':
         return renderRestaurantsTabContent();
+      case 'recipes':
+        return renderRecipesTabContent();
       case 'my_foods':
         return renderMyFoodsTabContent();
     }
