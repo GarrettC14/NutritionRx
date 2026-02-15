@@ -10,6 +10,8 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progressZones';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
@@ -24,6 +26,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
   const { calories: calorieTarget, protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
+  const { palette } = useStatusColors();
 
   const [view, setView] = useState<'consumed' | 'remaining'>('consumed');
 
@@ -33,6 +36,10 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const calorieProgress = calorieTarget > 0 ? Math.min(caloriesConsumed / calorieTarget, 1) : 0;
   const isOver = caloriesConsumed > calorieTarget;
   const overAmount = isOver ? caloriesConsumed - calorieTarget : 0;
+
+  // Zone-based color for calorie ring
+  const calorieZone = getProgressZone(caloriesConsumed, calorieTarget);
+  const calorieZoneColor = palette[ZONE_COLORS[calorieZone]];
 
   // Ring calculations
   const ringSize = 180;
@@ -110,7 +117,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
               cx={center}
               cy={center}
               r={radius}
-              stroke={isOver ? colors.warning : colors.ringFill}
+              stroke={calorieZoneColor}
               strokeWidth={strokeWidth}
               fill="none"
               strokeDasharray={`${circumference} ${circumference}`}
@@ -128,7 +135,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
             <Text style={[styles.primaryValue, { color: colors.textPrimary }]}>
               {primaryValue.toLocaleString()}
             </Text>
-            <Text style={[styles.secondaryText, { color: isOver ? colors.warning : colors.textSecondary }]}>
+            <Text style={[styles.secondaryText, { color: isOver ? calorieZoneColor : colors.textSecondary }]}>
               {secondaryText}
             </Text>
           </View>
@@ -163,7 +170,8 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
       <View style={styles.macroSection}>
         {macros.map((macro) => {
           const progress = Math.min(macro.consumed / macro.target, 1);
-          const remaining = Math.max(0, macro.target - macro.consumed);
+          const macroZone = getProgressZone(macro.consumed, macro.target);
+          const macroZoneColor = palette[ZONE_COLORS[macroZone]];
 
           return (
             <View key={macro.name} style={styles.macroRow}>
@@ -183,7 +191,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
                 <View
                   style={[
                     styles.progressFill,
-                    { width: `${progress * 100}%`, backgroundColor: macro.color },
+                    { width: `${progress * 100}%`, backgroundColor: macroZoneColor },
                   ]}
                 />
               </View>

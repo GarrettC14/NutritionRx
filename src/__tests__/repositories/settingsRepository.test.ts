@@ -205,6 +205,7 @@ describe('settingsRepository', () => {
         theme: DEFAULT_SETTINGS.theme,
         notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
         reminderTime: DEFAULT_SETTINGS.reminderTime,
+        checkInDay: 1,
       });
     });
 
@@ -226,6 +227,7 @@ describe('settingsRepository', () => {
         { key: 'theme', value: 'light' },
         { key: 'notifications_enabled', value: '1' },
         { key: 'reminder_time', value: '08:00' },
+        { key: 'check_in_day', value: '3' },
       ]);
 
       const result = await settingsRepository.getAll();
@@ -239,6 +241,7 @@ describe('settingsRepository', () => {
         theme: 'light',
         notificationsEnabled: true,
         reminderTime: '08:00',
+        checkInDay: 3,
       });
     });
   });
@@ -527,6 +530,7 @@ describe('settingsRepository', () => {
         theme: DEFAULT_SETTINGS.theme,
         notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
         reminderTime: DEFAULT_SETTINGS.reminderTime,
+        checkInDay: 1,
       });
     });
 

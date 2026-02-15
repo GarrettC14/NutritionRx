@@ -9,6 +9,8 @@ import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progressZones';
 import { WidgetProps } from '@/types/dashboard';
 
 interface MacroData {
@@ -23,6 +25,7 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
   const { protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
+  const { palette } = useStatusColors();
 
   const macros: MacroData[] = [
     {
@@ -68,6 +71,9 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
         {macros.map((macro) => {
           const progress = Math.min(macro.consumed / macro.target, 1);
           const remaining = Math.max(0, macro.target - macro.consumed);
+          const zone = getProgressZone(macro.consumed, macro.target);
+          const zoneColor = palette[ZONE_COLORS[zone]];
+          const zoneText = getZoneStatusText(zone);
 
           return (
             <View key={macro.name} style={styles.macroRow}>
@@ -84,12 +90,15 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
                 <View
                   style={[
                     styles.progressFill,
-                    { width: `${progress * 100}%`, backgroundColor: macro.color },
+                    { width: `${progress * 100}%`, backgroundColor: zoneColor },
                   ]}
                 />
               </View>
 
-              <Text style={styles.remaining}>{remaining}g left</Text>
+              <View style={styles.macroFooter}>
+                <Text style={[styles.zoneLabel, { color: zoneColor }]}>{zoneText}</Text>
+                <Text style={styles.remaining}>{remaining}g left</Text>
+              </View>
             </View>
           );
         })}
@@ -151,10 +160,18 @@ const createStyles = (colors: any) =>
       height: '100%',
       borderRadius: 4,
     },
+    macroFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    zoneLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+    },
     remaining: {
       fontSize: 12,
       color: colors.textTertiary,
-      marginTop: 4,
-      textAlign: 'right',
     },
   });

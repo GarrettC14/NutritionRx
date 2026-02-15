@@ -16,6 +16,10 @@ export type ActivityLevel =
   | 'very_active'
   | 'extremely_active';
 
+// Experience / Progress Types
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+export type ProgressZone = 'under' | 'approaching' | 'inRange' | 'overRange' | 'over';
+
 // Macro Template Types
 export type EatingStyle = 'flexible' | 'carb_focused' | 'fat_focused' | 'very_low_carb';
 export type ProteinPriority = 'standard' | 'active' | 'athletic' | 'maximum';
@@ -114,12 +118,18 @@ export interface UserProfile {
   dateOfBirth?: Date;
   heightCm?: number;
   activityLevel?: ActivityLevel;
+  experienceLevel?: ExperienceLevel;
   eatingStyle: EatingStyle;
   proteinPriority: ProteinPriority;
   hasCompletedOnboarding: boolean;
   onboardingSkipped: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Returns the effective experience level, defaulting to 'intermediate' for existing users */
+export function getEffectiveExperienceLevel(profile: UserProfile | null): ExperienceLevel {
+  return profile?.experienceLevel ?? 'intermediate';
 }
 
 export interface Goal {

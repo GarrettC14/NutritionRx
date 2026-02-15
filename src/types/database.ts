@@ -102,6 +102,7 @@ export interface UserProfileRow {
   date_of_birth: string | null;
   height_cm: number | null;
   activity_level: ActivityLevel | null;
+  experience_level: string | null;
   eating_style: EatingStyle | null;
   protein_priority: ProteinPriority | null;
   has_completed_onboarding: number;

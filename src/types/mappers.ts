@@ -15,6 +15,7 @@ import {
   QuickAddEntry,
   WeightEntry,
   UserProfile,
+  ExperienceLevel,
   Goal,
   PlanningMode,
   WeeklyReflection,
@@ -110,6 +111,9 @@ export function mapUserProfileRowToDomain(row: UserProfileRow): UserProfile {
     heightCm: row.height_cm ?? undefined,
     activityLevel: row.activity_level
       ? (row.activity_level as UserProfile['activityLevel'])
+      : undefined,
+    experienceLevel: row.experience_level
+      ? (row.experience_level as ExperienceLevel)
       : undefined,
     eatingStyle: (row.eating_style as UserProfile['eatingStyle']) ?? 'flexible',
     proteinPriority: (row.protein_priority as UserProfile['proteinPriority']) ?? 'active',

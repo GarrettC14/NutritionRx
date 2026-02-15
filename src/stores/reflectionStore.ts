@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { reflectionRepository, Reflection, Sentiment } from '@/repositories/reflectionRepository';
-import { settingsRepository, weightRepository } from '@/repositories';
+import { settingsRepository, weightRepository, CheckInDay } from '@/repositories';
 import { withTransaction } from '@/db/database';
 import { recomputeEWMAFromDate } from '@/utils/trendWeight';
 import { useGoalStore } from './goalStore';
@@ -14,6 +14,31 @@ const SMOOTHING_THRESHOLD = 25; // Don't update targets for ≤25 cal difference
 
 function roundToNearest(value: number, nearest: number): number {
   return Math.round(value / nearest) * nearest;
+}
+
+/**
+ * Determines whether a weekly check-in is due.
+ * Returns true when today is on or after the configured check-in day
+ * AND no reflection has been recorded since the most recent check-in day.
+ */
+export function isCheckInDue(checkInDay: CheckInDay, lastReflectionDate: string | null): boolean {
+  const today = new Date();
+  const todayDay = today.getDay(); // 0 = Sunday … 6 = Saturday
+
+  // How many days ago was the most recent check-in day (0 = today)?
+  const daysSinceCheckIn = (todayDay - checkInDay + 7) % 7;
+
+  // Build a midnight-local Date for the most recent check-in day
+  const lastCheckIn = new Date(today);
+  lastCheckIn.setDate(today.getDate() - daysSinceCheckIn);
+  lastCheckIn.setHours(0, 0, 0, 0);
+
+  // No previous reflection → check-in is due
+  if (!lastReflectionDate) return true;
+
+  // If last reflection is before the most recent check-in day, it's due
+  const lastReflection = new Date(lastReflectionDate);
+  return lastReflection < lastCheckIn;
 }
 
 interface ReflectionState {
@@ -82,7 +107,9 @@ export const useReflectionStore = create<ReflectionState>((set, get) => ({
       const hasActiveGoal = goalStore.activeGoal?.isActive === true;
       const hasAnyWeight = goalStore.currentWeightKg != null;
 
-      const shouldShow = hasActiveGoal && hasAnyWeight && (daysSince === null || daysSince >= 6);
+      // Use check-in day from settings to determine if check-in is due
+      const { checkInDay } = useSettingsStore.getState().settings;
+      const shouldShow = hasActiveGoal && hasAnyWeight && isCheckInDue(checkInDay, lastDate);
 
       set({
         lastReflectionDate: lastDate,

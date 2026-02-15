@@ -18,7 +18,7 @@ export default function OnboardingIndex() {
 
     // Resuming a partially-completed flow
     if (draft.lastCompletedScreen) {
-      const order = getScreenOrder(draft.goalPath);
+      const order = getScreenOrder(draft.goalPath, draft.experienceLevel);
       const lastIndex = order.indexOf(draft.lastCompletedScreen);
       const nextScreen = order[lastIndex + 1];
       if (nextScreen) {

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { useGoalStore, useSettingsStore, useWeightStore, useProfileStore } from '@/stores';
 import { GoalType, PlanningMode } from '@/types/domain';
+import type { CheckInDay } from '@/repositories';
 import { RATE_OPTIONS, TIMELINE_SAFETY } from '@/constants/defaults';
 import {
   calculateTimelineRate,
@@ -29,6 +30,16 @@ const PLANNING_MODE_OPTIONS: { value: PlanningMode; label: string }[] = [
 ];
 
 const QUICK_SELECT_WEEKS = [4, 8, 12] as const;
+
+const DAY_LABELS: { value: CheckInDay; label: string }[] = [
+  { value: 0, label: 'S' },
+  { value: 1, label: 'M' },
+  { value: 2, label: 'T' },
+  { value: 3, label: 'W' },
+  { value: 4, label: 'T' },
+  { value: 5, label: 'F' },
+  { value: 6, label: 'S' },
+];
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -66,7 +77,7 @@ export default function GoalsSettingsScreen() {
     loadCurrentWeight,
     updateCurrentWeight,
   } = useGoalStore();
-  const { settings } = useSettingsStore();
+  const { settings, setCheckInDay } = useSettingsStore();
   const { latestEntry } = useWeightStore();
   const { profile } = useProfileStore();
 
@@ -500,6 +511,47 @@ export default function GoalsSettingsScreen() {
                   fullWidth
                   testID={TestIDs.SettingsGoals.EditButton}
                 />
+              </View>
+            </View>
+
+            {/* Check-In Day */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]} accessibilityRole="header">
+                WEEKLY CHECK-IN DAY
+              </Text>
+              <View style={[styles.card, { backgroundColor: colors.bgSecondary }]}>
+                <Text style={[styles.checkInHint, { color: colors.textTertiary }]}>
+                  We'll remind you to weigh in and review your progress on this day each week.
+                </Text>
+                <View style={styles.dayRow}>
+                  {DAY_LABELS.map((day) => {
+                    const isActive = settings.checkInDay === day.value;
+                    return (
+                      <Pressable
+                        key={day.value}
+                        style={[
+                          styles.dayButton,
+                          {
+                            backgroundColor: isActive ? colors.accent : colors.bgInteractive,
+                          },
+                        ]}
+                        onPress={() => setCheckInDay(day.value)}
+                        accessibilityRole="button"
+                        accessibilityLabel={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day.value]}
+                        accessibilityState={{ selected: isActive }}
+                      >
+                        <Text
+                          style={[
+                            styles.dayLabel,
+                            { color: isActive ? '#fff' : colors.textSecondary },
+                          ]}
+                        >
+                          {day.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             </View>
           </ScrollView>
@@ -1168,5 +1220,25 @@ const styles = StyleSheet.create({
   summaryDetail: {
     ...typography.body.small,
     textAlign: 'center',
+  },
+  checkInHint: {
+    ...typography.body.small,
+    marginBottom: spacing[3],
+  },
+  dayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing[2],
+  },
+  dayButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -19,6 +19,7 @@ type OnboardingStep =
   | 'about-you'
   | 'body-stats'
   | 'activity'
+  | 'experience'
   | 'eating-style'
   | 'protein'
   | 'target'
@@ -29,6 +30,7 @@ export const ONBOARDING_SUBTITLES: Record<OnboardingStep, string> = {
   'about-you': "Age and sex help us estimate your body\'s daily energy needs.",
   'body-stats': "Height and weight help us find a starting point that fits your body.",
   activity: "Your activity level shapes how many calories you need each day.",
+  experience: "This helps us tailor how much detail you see upfront.",
   'eating-style': "Your preferences help us suggest a carb and fat balance you\'ll enjoy.",
   protein: "Protein needs vary by goal \u2014 we\'ll calibrate yours to match.",
   target: "Adjust to your comfort level \u2014 you can change this anytime.",

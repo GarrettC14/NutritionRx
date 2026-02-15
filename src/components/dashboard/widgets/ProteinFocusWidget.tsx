@@ -10,6 +10,8 @@ import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { useDailyNutrition } from '@/hooks/useDailyNutrition';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
+import { useStatusColors } from '@/hooks/useStatusColor';
+import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progressZones';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
@@ -18,10 +20,16 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
   const { protein: proteinTarget } = useResolvedTargets();
+  const { palette } = useStatusColors();
 
   const proteinConsumed = Math.round(totals.protein);
   const remaining = Math.max(0, proteinTarget - proteinConsumed);
   const progress = Math.min(proteinConsumed / proteinTarget, 1);
+
+  // Zone-based color
+  const zone = getProgressZone(proteinConsumed, proteinTarget);
+  const zoneColor = palette[ZONE_COLORS[zone]];
+  const zoneText = getZoneStatusText(zone);
 
   // Ring calculations
   const size = 120;
@@ -64,7 +72,7 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={colors.protein}
+            stroke={zoneColor}
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={`${circumference}`}
@@ -81,6 +89,7 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
 
       <View style={styles.details}>
         <Text style={styles.title}>Protein</Text>
+        <Text style={[styles.zoneStatus, { color: zoneColor }]}>{zoneText}</Text>
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <Text style={styles.statValue}>{proteinConsumed}g</Text>
@@ -140,7 +149,12 @@ const createStyles = (colors: any) =>
       fontSize: 18,
       fontWeight: '600',
       color: colors.textPrimary,
-      marginBottom: 12,
+      marginBottom: 4,
+    },
+    zoneStatus: {
+      fontSize: 12,
+      fontWeight: '500',
+      marginBottom: 8,
     },
     statsRow: {
       flexDirection: 'row',

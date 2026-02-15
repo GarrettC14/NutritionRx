@@ -74,7 +74,7 @@ export default function ActivityScreen() {
       lastCompletedScreen: 'activity',
     });
 
-    router.push('/onboarding/eating-style');
+    router.push('/onboarding/experience');
   };
 
   return (
