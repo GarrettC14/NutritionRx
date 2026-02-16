@@ -3,7 +3,7 @@
  * Shows a collapsible list of meals logged today
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,7 +24,7 @@ interface MealSection {
   totalCalories: number;
 }
 
-export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
+export const TodaysMealsWidget = React.memo(function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { entriesByMeal } = useDailyNutrition();
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
     setExpandedMeal(expandedMeal === mealType ? null : mealType);
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const hasAnyMeals = mealSections.some((m) => m.items.length > 0);
 
@@ -136,7 +136,7 @@ export function TodaysMealsWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

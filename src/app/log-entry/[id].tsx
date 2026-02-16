@@ -210,7 +210,8 @@ export default function LogEntryScreen() {
         });
       }
 
-      await refreshCurrentDate();
+      // updateLogEntry and updateQuickEntry already update the store with new entry + totals,
+      // so refreshCurrentDate is redundant and causes an unnecessary full DB reload
       router.back();
     } catch (error) {
       if (__DEV__) console.error('Failed to update entry:', error);

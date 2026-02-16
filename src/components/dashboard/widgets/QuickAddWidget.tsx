@@ -3,7 +3,7 @@
  * Shows recent/favorite foods for fast one-tap logging
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -20,7 +20,7 @@ interface QuickItem {
   source: 'recent' | 'favorite';
 }
 
-export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
+export const QuickAddWidget = React.memo(function QuickAddWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { entries } = useFoodLogStore();
@@ -86,7 +86,7 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={styles.container}>
@@ -142,7 +142,7 @@ export function QuickAddWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

@@ -20,7 +20,7 @@ import { WeightTrendChartPalette } from '@/types/weightTrend';
 
 const CHART_HEIGHT = 200;
 
-export function WeightTrendWidget({ isEditMode }: WidgetProps) {
+export const WeightTrendWidget = React.memo(function WeightTrendWidget({ isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors, colorScheme } = useTheme();
   const { entries, loadEntries, lastModified } = useWeightStore(useShallow((s) => ({
@@ -68,7 +68,7 @@ export function WeightTrendWidget({ isEditMode }: WidgetProps) {
     if (!isEditMode) router.push('/log-weight');
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={styles.container}>
@@ -87,7 +87,7 @@ export function WeightTrendWidget({ isEditMode }: WidgetProps) {
       />
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

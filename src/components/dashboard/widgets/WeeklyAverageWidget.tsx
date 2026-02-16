@@ -12,7 +12,7 @@ import { useFoodLogStore } from '@/stores';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 
-export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
+export const WeeklyAverageWidget = React.memo(function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { entries } = useFoodLogStore();
@@ -57,7 +57,7 @@ export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <TouchableOpacity
@@ -95,7 +95,7 @@ export function WeeklyAverageWidget({ config, isEditMode }: WidgetProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

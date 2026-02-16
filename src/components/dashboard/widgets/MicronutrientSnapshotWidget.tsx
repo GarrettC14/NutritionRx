@@ -40,7 +40,7 @@ const PRIORITY_NUTRIENTS = [
   'folate',
 ];
 
-export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps) {
+export const MicronutrientSnapshotWidget = React.memo(function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
@@ -146,7 +146,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
   };
 
   const { palette: statusPalette } = useStatusColors();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Get color based on percentage — uses status color tokens
   const getProgressColor = (percent: number): string => {
@@ -285,7 +285,7 @@ export function MicronutrientSnapshotWidget({ config, isEditMode }: WidgetProps)
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

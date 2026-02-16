@@ -3,7 +3,7 @@
  * Displays protein, carbs, and fat progress as horizontal bars
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from '@/hooks/useRouter';
 import { useTheme } from '@/hooks/useTheme';
@@ -20,7 +20,7 @@ interface MacroData {
   color: string;
 }
 
-export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
+export const MacroBarsWidget = React.memo(function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
@@ -54,7 +54,7 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <TouchableOpacity
@@ -105,7 +105,7 @@ export function MacroBarsWidget({ config, isEditMode }: WidgetProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

@@ -3,7 +3,7 @@
  * Interactive widget for tracking daily water intake
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -12,7 +12,7 @@ import { useWaterStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
-export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
+export const WaterTrackerWidget = React.memo(function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { todayLog, goalGlasses, addGlass } = useWaterStore();
 
@@ -34,7 +34,7 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
   const progress = Math.min(waterIntake / dailyGoal, 1);
   const waterColor = '#5BA4D9';
 
-  const styles = createStyles(colors, waterColor);
+  const styles = useMemo(() => createStyles(colors, waterColor), [colors, waterColor]);
 
   return (
     <View style={styles.container} testID={TestIDs.Widget.WaterTracker}>
@@ -72,7 +72,7 @@ export function WaterTrackerWidget({ config, isEditMode }: WidgetProps) {
       </TouchableOpacity>
     </View>
   );
-}
+});
 
 const createStyles = (colors: any, waterColor: string) =>
   StyleSheet.create({

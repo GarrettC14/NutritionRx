@@ -4,7 +4,7 @@
  * This is the "original" design that shows everything together
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -22,7 +22,7 @@ interface MacroData {
   color: string;
 }
 
-export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
+export const NutritionOverviewWidget = React.memo(function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
   const { calories: calorieTarget, protein: proteinTarget, carbs: carbTarget, fat: fatTarget } = useResolvedTargets();
@@ -50,7 +50,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
   const center = ringSize / 2;
 
   // Macro data
-  const macros: MacroData[] = [
+  const macros: MacroData[] = useMemo(() => [
     {
       name: 'Protein',
       consumed: Math.round(totals.protein),
@@ -69,7 +69,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
       target: fatTarget,
       color: colors.fat,
     },
-  ];
+  ], [totals.protein, totals.carbs, totals.fat, proteinTarget, carbTarget, fatTarget, colors.protein, colors.carbs, colors.fat]);
 
   const handleRingPress = () => {
     if (isEditMode) return;
@@ -89,7 +89,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
     secondaryText = `${caloriesConsumed.toLocaleString()} eaten`;
   }
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View testID={TestIDs.Widget.NutritionOverview} style={styles.container}>
@@ -201,7 +201,7 @@ export function NutritionOverviewWidget({ config, isEditMode }: WidgetProps) {
       </View>
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

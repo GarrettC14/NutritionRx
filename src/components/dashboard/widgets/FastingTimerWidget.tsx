@@ -4,7 +4,7 @@
  * Premium feature - shows locked state for free users
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -34,7 +34,7 @@ function getFastingPhase(hoursElapsed: number): FastingPhase {
   return FASTING_PHASES.deep_ketosis;
 }
 
-export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
+export const FastingTimerWidget = React.memo(function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
@@ -62,7 +62,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
     }
   }, [isLoaded, loadConfig]);
 
-  // Update timer every second
+  // Update timer every second — paused during edit mode to avoid unnecessary state updates
   useEffect(() => {
     const updateTimer = () => {
       const remaining = getTimeRemaining();
@@ -71,10 +71,12 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
     };
 
     updateTimer();
+    if (isEditMode) return;
+
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [getTimeRemaining, getProgressPercent, activeSession]);
+  }, [getTimeRemaining, getProgressPercent, activeSession, isEditMode]);
 
   // Handle app state changes for accurate timer
   useEffect(() => {
@@ -146,7 +148,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
     return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Fasting state colors
   const stateColors = {
@@ -333,7 +335,7 @@ export function FastingTimerWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

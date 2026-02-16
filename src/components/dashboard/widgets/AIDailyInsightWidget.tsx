@@ -6,7 +6,7 @@
  * Shows download prompt when LLM model is not yet downloaded.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -19,7 +19,7 @@ import { ModelDownloadSheet } from '@/components/llm/ModelDownloadSheet';
 import { useDailyInsightData } from '@/features/insights/hooks/useDailyInsightData';
 import { useDailyInsightStore } from '@/features/insights/stores/dailyInsightStore';
 
-export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
+export const AIDailyInsightWidget = React.memo(function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
@@ -41,7 +41,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
     await useDailyInsightStore.getState().refreshData();
   }, []);
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const renderContent = () => {
     // Loading state
@@ -174,7 +174,7 @@ export function AIDailyInsightWidget({ config, isEditMode }: WidgetProps) {
       />
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

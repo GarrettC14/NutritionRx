@@ -3,7 +3,7 @@
  * Displays protein-only progress ring for users focused on protein intake
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useRouter } from '@/hooks/useRouter';
@@ -15,7 +15,7 @@ import { getProgressZone, ZONE_COLORS, getZoneStatusText } from '@/utils/progres
 import { WidgetProps } from '@/types/dashboard';
 import { TestIDs } from '@/constants/testIDs';
 
-export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
+export const ProteinFocusWidget = React.memo(function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { totals } = useDailyNutrition();
@@ -44,7 +44,7 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <TouchableOpacity
@@ -104,7 +104,7 @@ export function ProteinFocusWidget({ config, isEditMode }: WidgetProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

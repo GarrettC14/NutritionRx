@@ -480,8 +480,8 @@ function TodayScreen() {
     );
   }
 
-  // Header component for the list
-  const ListHeader = () => (
+  // Header component for the list — memoized to prevent re-creation on every render
+  const ListHeader = useMemo(() => (
     <>
       {/* Date Header */}
       <View style={styles.header}>
@@ -566,11 +566,11 @@ function TodayScreen() {
         />
       )}
     </>
-  );
+  ), [selectedDate, navigateDate, goToToday, isToday, colors, dayTypeDisplay, streak, hasEntries, isEditMode, shouldShowBanner, daysSinceLastReflection, startReflection, dismissBanner, bannerDismissCount]);
 
-  // Footer component with meal sections
-  const ListFooter = () => (
-    <View style={styles.mealsContainer}>
+  // Footer component with meal sections — always mounted, hidden in edit mode to avoid unmount/remount
+  const ListFooter = useMemo(() => (
+    <View style={isEditMode ? styles.mealsContainerHidden : styles.mealsContainer} pointerEvents={isEditMode ? 'none' : 'auto'}>
       {mealTypes.map((mt) => (
         <MealSection
           key={mt.id}
@@ -587,7 +587,7 @@ function TodayScreen() {
         />
       ))}
     </View>
-  );
+  ), [mealTypes, entriesByMeal, quickEntriesByMeal, handleAddFood, handleEntryPress, handleQuickAddPress, handleDeleteEntry, handleDeleteQuickAdd, handleMenuPress, isEditMode]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -651,13 +651,12 @@ function TodayScreen() {
         <DraggableFlatList
           key={listKey}
           data={visibleWidgets}
-          extraData={isEditMode}
           keyExtractor={(item) => item.id}
           renderItem={renderWidget}
           onDragBegin={handleDragBegin}
           onDragEnd={handleDragEnd}
           ListHeaderComponent={ListHeader}
-          ListFooterComponent={isEditMode ? undefined : ListFooter}
+          ListFooterComponent={ListFooter}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           activationDistance={isEditMode ? 15 : 20}
@@ -873,6 +872,10 @@ const styles = StyleSheet.create({
   mealsContainer: {
     gap: spacing[3],
     marginTop: spacing[4],
+  },
+  mealsContainerHidden: {
+    height: 0,
+    overflow: 'hidden',
   },
   addWidgetButton: {
     position: 'absolute',

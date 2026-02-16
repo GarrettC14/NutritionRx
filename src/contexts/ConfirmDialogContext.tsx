@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { ConfirmDialog, ConfirmDialogConfig } from '@/components/ui/ConfirmDialog';
 
 interface ConfirmDialogContextValue {
@@ -26,7 +26,7 @@ export function ConfirmDialogProvider({ children }: ConfirmDialogProviderProps) 
   }, []);
 
   return (
-    <ConfirmDialogContext.Provider value={{ showConfirm, hideConfirm }}>
+    <ConfirmDialogContext.Provider value={useMemo(() => ({ showConfirm, hideConfirm }), [showConfirm, hideConfirm])}>
       {children}
       <ConfirmDialog visible={visible} config={config} onDismiss={hideConfirm} />
     </ConfirmDialogContext.Provider>

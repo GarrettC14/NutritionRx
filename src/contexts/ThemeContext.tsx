@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, chartColors, Colors, ChartColors } from '@/constants/colors';
@@ -77,23 +77,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const isDark = colorScheme === 'dark';
 
-  const themeColors: ThemeColors = {
+  const themeColors: ThemeColors = useMemo(() => ({
     ...colors[colorScheme],
     chart: chartColors[colorScheme],
     shadows: shadows[colorScheme],
-  };
+  }), [colorScheme]);
+
+  const value = useMemo(() => ({
+    preference,
+    colorScheme,
+    colors: themeColors,
+    isDark,
+    setPreference,
+    isLoading,
+  }), [preference, colorScheme, themeColors, isDark, setPreference, isLoading]);
 
   return (
-    <ThemeContext.Provider
-      value={{
-        preference,
-        colorScheme,
-        colors: themeColors,
-        isDark,
-        setPreference,
-        isLoading,
-      }}
-    >
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

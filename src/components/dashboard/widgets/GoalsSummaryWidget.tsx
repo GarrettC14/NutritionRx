@@ -3,7 +3,7 @@
  * Displays calorie goal, weight goal, and rate progress
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -12,7 +12,7 @@ import { useGoalStore, useWeightStore } from '@/stores';
 import { useResolvedTargets } from '@/hooks/useResolvedTargets';
 import { WidgetProps } from '@/types/dashboard';
 
-export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
+export const GoalsSummaryWidget = React.memo(function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { targetWeight, weeklyGoal } = useGoalStore();
@@ -37,7 +37,7 @@ export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <TouchableOpacity
@@ -120,7 +120,7 @@ export function GoalsSummaryWidget({ config, isEditMode }: WidgetProps) {
       )}
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

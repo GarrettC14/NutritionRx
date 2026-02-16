@@ -6,7 +6,7 @@
  * Premium-only with locked state for free users
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from '@/hooks/useRouter';
@@ -22,7 +22,7 @@ import { WeeklyDataCollector } from '@/features/weekly-insights/services/WeeklyD
 import { QuestionScorer } from '@/features/weekly-insights/services/QuestionScorer';
 import { generateHeadline } from '@/features/weekly-insights/constants/headlineTemplates';
 
-export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
+export const WeeklyRecapWidget = React.memo(function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { isPremium } = useSubscriptionStore();
@@ -95,7 +95,7 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
     }
   };
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const renderContent = () => {
     if (daysLogged === 0) {
@@ -187,7 +187,7 @@ export function WeeklyRecapWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

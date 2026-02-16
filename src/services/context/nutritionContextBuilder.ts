@@ -4,6 +4,7 @@
  * ALL statistics are computed in JavaScript — the LLM never does math.
  */
 
+import { InteractionManager } from 'react-native';
 import { getRawNutritionData, type RawNutritionData } from './nutritionContextQueries';
 import { computeDataAvailability, type DataAvailabilityResult } from './dataAvailability';
 import { computeDerivedInsights, type DerivedInsight } from './derivedNutritionInsights';
@@ -86,6 +87,9 @@ export interface UnifiedNutritionContext {
 // ============================================================
 
 export async function buildUnifiedNutritionContext(): Promise<UnifiedNutritionContext> {
+  // Defer heavy computation until after any pending animations/transitions complete
+  await new Promise<void>((resolve) => InteractionManager.runAfterInteractions(() => resolve()));
+
   const rawData = await getRawNutritionData();
 
   const metrics = computeMetrics(rawData);

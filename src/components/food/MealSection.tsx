@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, useReducedMotion } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, useReducedMotion, FadeIn, FadeOut } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -9,11 +9,6 @@ import { LogEntry, QuickAddEntry } from '@/types/domain';
 import { MealType, getMealTypeName } from '@/constants/mealTypes';
 import { TestIDs, mealAddFoodButton, mealCopyButton, mealEntryItem } from '@/constants/testIDs';
 import { FoodEntryCard } from './FoodEntryCard';
-
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 interface MealSectionProps {
   mealType: string;
@@ -69,9 +64,6 @@ export const MealSection = React.memo(function MealSection({
   const hasEntries = itemCount > 0;
 
   const toggleExpanded = () => {
-    if (!reducedMotion) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    }
     rotation.value = reducedMotion
       ? (isExpanded ? 0 : 90)
       : withTiming(isExpanded ? 0 : 90, { duration: 200 });
@@ -141,7 +133,11 @@ export const MealSection = React.memo(function MealSection({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <View style={styles.content}>
+        <Animated.View
+          entering={reducedMotion ? undefined : FadeIn.duration(200)}
+          exiting={reducedMotion ? undefined : FadeOut.duration(150)}
+          style={styles.content}
+        >
           {hasEntries ? (
             <View style={styles.entriesList}>
               {entries.map((entry) => (
@@ -170,7 +166,7 @@ export const MealSection = React.memo(function MealSection({
               </Text>
             </View>
           )}
-        </View>
+        </Animated.View>
       )}
     </View>
   );

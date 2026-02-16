@@ -17,7 +17,7 @@ function isLogEntry(entry: LogEntry | QuickAddEntry): entry is LogEntry {
   return 'foodName' in entry;
 }
 
-export function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCardProps) {
+export const FoodEntryCard = React.memo(function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCardProps) {
   const { colors } = useTheme();
 
   const isQuickAdd = !isLogEntry(entry);
@@ -87,7 +87,7 @@ export function FoodEntryCard({ entry, testID, onPress, onDelete }: FoodEntryCar
       )}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

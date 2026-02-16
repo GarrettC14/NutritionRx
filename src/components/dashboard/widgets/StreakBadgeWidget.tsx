@@ -3,14 +3,14 @@
  * Displays consecutive days of logging
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useFoodLogStore } from '@/stores';
 import { WidgetProps } from '@/types/dashboard';
 
-export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
+export const StreakBadgeWidget = React.memo(function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
   const { colors } = useTheme();
   const { streak } = useFoodLogStore();
 
@@ -18,7 +18,7 @@ export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
   const hasStreak = currentStreak > 0;
   const isHotStreak = currentStreak >= 7;
 
-  const styles = createStyles(colors, isHotStreak);
+  const styles = useMemo(() => createStyles(colors, isHotStreak), [colors, isHotStreak]);
 
   return (
     <View style={styles.container}>
@@ -42,7 +42,7 @@ export function StreakBadgeWidget({ config, isEditMode }: WidgetProps) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors: any, isHotStreak: boolean) =>
   StyleSheet.create({

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { useOnboardingStore } from '@/stores';
 import { TooltipId } from '@/constants/tooltipIds';
 
@@ -71,17 +71,17 @@ export function TooltipProvider({ children }: TooltipProviderProps) {
     setActiveTooltip(null);
   }, [activeTooltip, markSeen]);
 
+  const value = useMemo(() => ({
+    activeTooltip,
+    showTooltip,
+    showTooltipIfNotSeen,
+    hideTooltip,
+    markSeen,
+    hasSeen,
+  }), [activeTooltip, showTooltip, showTooltipIfNotSeen, hideTooltip, markSeen, hasSeen]);
+
   return (
-    <TooltipContext.Provider
-      value={{
-        activeTooltip,
-        showTooltip,
-        showTooltipIfNotSeen,
-        hideTooltip,
-        markSeen,
-        hasSeen,
-      }}
-    >
+    <TooltipContext.Provider value={value}>
       {children}
     </TooltipContext.Provider>
   );

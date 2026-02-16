@@ -55,6 +55,13 @@ export const AppState = {
   addEventListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
 };
 
+export const InteractionManager = {
+  runAfterInteractions: jest.fn((callback: () => void) => {
+    callback();
+    return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+  }),
+};
+
 export type TextStyle = Record<string, any>;
 export type ViewStyle = Record<string, any>;
 
@@ -68,4 +75,5 @@ export default {
   Dimensions,
   Linking,
   AppState,
+  InteractionManager,
 };

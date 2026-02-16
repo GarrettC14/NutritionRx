@@ -68,16 +68,16 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
   const todayOverride = useMacroCycleStore((s) => s.todayOverride);
   const isPremium = useSubscriptionStore((s) => s.isPremium);
 
-  const baseTargets: DayTargets = {
+  const baseTargets: DayTargets = useMemo(() => ({
     calories: calorieGoal || 2000,
     protein: proteinGoal || 150,
     carbs: carbGoal || 250,
     fat: fatGoal || 65,
-  };
+  }), [calorieGoal, proteinGoal, carbGoal, fatGoal]);
 
   const baseRanges = useMemo(
     () => computeRanges(baseTargets),
-    [baseTargets.calories, baseTargets.protein, baseTargets.carbs, baseTargets.fat],
+    [baseTargets],
   );
 
   const [resolved, setResolved] = useState<ResolvedTargets>({
@@ -149,7 +149,7 @@ export function useResolvedTargets(date?: string): ResolvedTargets {
     return () => {
       cancelled = true;
     };
-  }, [calorieGoal, proteinGoal, carbGoal, fatGoal, config, todayOverride, date, isPremium]);
+  }, [baseTargets, baseRanges, config, todayOverride, date, isPremium]);
 
   return resolved;
 }

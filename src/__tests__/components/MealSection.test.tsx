@@ -22,6 +22,11 @@ jest.mock('react-native-reanimated', () => {
     createAnimatedComponent: (comp: any) => comp,
   };
 
+  const createAnimationModifier = () => {
+    const modifier: any = { duration: jest.fn(() => modifier), delay: jest.fn(() => modifier) };
+    return modifier;
+  };
+
   return {
     __esModule: true,
     default: Animated,
@@ -31,6 +36,8 @@ jest.mock('react-native-reanimated', () => {
     }),
     withTiming: jest.fn((val: number) => val),
     useReducedMotion: jest.fn(() => false),
+    FadeIn: createAnimationModifier(),
+    FadeOut: createAnimationModifier(),
   };
 });
 

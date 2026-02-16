@@ -17,7 +17,7 @@ const BAR_COLOR = '#7C9A8E';
 const BAR_TODAY_COLOR = '#6B8B7E';
 const MAX_BAR_HEIGHT = 48;
 
-export function WeeklyBudgetWidget({ config, isEditMode }: WidgetProps) {
+export const WeeklyBudgetWidget = React.memo(function WeeklyBudgetWidget({ config, isEditMode }: WidgetProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
@@ -79,7 +79,7 @@ export function WeeklyBudgetWidget({ config, isEditMode }: WidgetProps) {
       </Text>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
